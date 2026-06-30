@@ -1,0 +1,107 @@
+import React, { useState } from "react";
+import { Button, Col, Row } from "antd";
+import MyDatePicker from "../../../Components/MyDatePicker";
+import axios from "axios";
+import { v4 } from "uuid";
+import MyDataTable from "../../../Components/MyDataTable";
+import { DownloadOutlined } from "@ant-design/icons";
+import {
+  downloadCSV,
+  downloadCSVCustomColumns,
+} from "../../../Components/exportToCSV";
+import { imsAxios } from "../../../axiosInterceptor";
+import MyButton from "../../../Components/MyButton";
+import { useToast } from "../../../hooks/useToast.js";
+
+function R16() {
+  const { showToast } = useToast();
+  const [datee, setDatee] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [dateData, setDateData] = useState([]);
+
+  const columns = [
+    { field: "DATE", headerName: "Date & Time", width: 150 },
+    { field: "TYPE", headerName: "Transfer Type", width: 120 },
+    { field: "PART", headerName: "Part Type", width: 80 },
+    { field: "PART_NEW", headerName: "Cat Part Code", width: 150 },
+    {
+      field: "COMPONENT",
+      headerName: "Component",
+      flex: 1,
+    },
+    { field: "FROMLOCATION", headerName: "Out Location", width: 120 },
+    { field: "TOLOCATION", headerName: "In Location", width: 120 },
+    { field: "OUTQTY", headerName: "Qty", width: 90 },
+    { field: "UNIT", headerName: "UoM", width: 90 },
+    { field: "VENDORCODE", headerName: "Vendor", width: 90 },
+    { field: "REQUESTEDBY", headerName: "Requested By", width: 120 },
+    { field: "ISSUEBY", headerName: "Approved By", width: 130 },
+  ];
+
+  const fetch = async () => {
+    setDateData([]);
+    setLoading(true);
+    const response = await imsAxios.post("/transaction/transactionOut", {
+      data: datee,
+    });
+
+    if (response.success) {
+      // setLoading(true);
+      showToast(response.message, "success");
+      let arr = response.data.map((row) => {
+        return {
+          ...row,
+          id: v4(),
+        };
+      });
+      setDateData(arr);
+      setLoading(false);
+    } else if (!response.success) {
+      showToast(response.message?.msg || response.message, "error");
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadingCSV = () => {
+    downloadCSV(dateData, columns, `RM Issue Register Report ${datee}`);
+  };
+
+  return (
+    <div style={{ height: "calc(100% - 50px)" }}>
+      <Row gutter={16} style={{ margin: "5px" }}>
+        <Col span={4}>
+          <MyDatePicker size="default" setDateRange={setDatee} />
+        </Col>
+
+        <Col span={1}>
+          <MyButton
+            variant="search"
+            onClick={fetch}
+            loading={loading}
+            type="primary"
+          >
+            Fetch
+          </MyButton>
+        </Col>
+        {dateData.length > 0 && (
+          <Col span={1} offset={18}>
+            <Button onClick={handleDownloadingCSV}>
+              <DownloadOutlined style={{ fontSize: "20px" }} />
+            </Button>
+          </Col>
+        )}
+      </Row>
+
+      <div className="hide-select" style={{ height: "calc(100% - 0px)", margin: "10px" }}>
+        <MyDataTable
+          checkboxSelection={true}
+          loading={loading}
+          data={dateData}
+          columns={columns}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default R16;

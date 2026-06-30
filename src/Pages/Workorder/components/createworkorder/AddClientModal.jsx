@@ -1,0 +1,378 @@
+import React, { useEffect, useState } from "react";
+import { useToast } from "../../../../hooks/useToast.js";
+import {
+  Button,
+  Row,
+  Col,
+  Input,
+  Form,
+  Divider,
+  Drawer,
+  Space,
+  InputNumber,
+  Popconfirm,
+} from "antd";
+import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
+import { imsAxios } from "../../../../axiosInterceptor";
+
+const AddClientModal = ({ setOpen, open }) => {
+  const { showToast } = useToast();
+  const [addVendor, setAddVendor] = useState({
+    vendor: {
+      vname: "",
+      pan: "",
+      cin: "",
+    },
+    branch: {
+      branchname: "",
+      state: "",
+      city: "",
+      gst: "",
+      pin: "",
+      email: "",
+      mobile: "",
+      address: "",
+      fax: "",
+    },
+  });
+  const [asyncOptions, setAsyncOptions] = useState([]);
+  const [selectLoading, setSelectLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [files, setFiles] = useState([]);
+
+  const [addClientForm] = Form.useForm();
+
+  const inputHandler = (name, value) => {
+    if (name === "vname" || name === "pan" || name === "cin") {
+      setAddVendor((addVendor) => {
+        return { ...addVendor, vendor: { ...addVendor.vendor, [name]: value } };
+      });
+    } else {
+      setAddVendor((addVendor) => {
+        return { ...addVendor, branch: { ...addVendor.branch, [name]: value } };
+      });
+    }
+  };
+
+  const getFetchState = async (e) => {
+    if (e.length > 2) {
+      setSelectLoading(true);
+      const response = await imsAxios.post("/backend/stateList", {
+        search: e,
+      });
+      setSelectLoading(false);
+      let arr = [];
+      arr = data.map((d) => {
+        return { text: d.text, value: d.id };
+      });
+      setAsyncOptions(arr);
+    }
+  };
+
+  const addClientDetail = async () => {
+    const values = await addClientForm.validateFields();
+    let obj = {
+      "clientName": values.clientName ,
+      "panNo": values.pan,
+      "mobileNo": values.mobile,
+      "state": values.state,
+      "address": values.address,
+      "city": values.city,
+      "pinCode": values.pin,
+      "phoneNo": values.phoneno,
+      "gst": values.gst,
+    };
+    try {
+    setSubmitLoading(true);
+    const response = await imsAxios.post("client/addclient", obj);
+    if (response.success) {
+      // fetchVendor();
+      reset()
+      showToast(response.message, "success");
+      setOpen(null);
+      // setShowAddVendorModal(false);
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+    }
+    } catch (error) {
+    showToast(error, "error")
+    } finally {
+      setSubmitLoading(false);
+    }
+
+    // const formData = new FormData();
+    // formData.append("vendor", JSON.stringify(obj.vendor));
+    // formData.append("branch", JSON.stringify(obj.branch));
+    // formData.append("uploadfile", files[0]);
+    // setSubmitLoading(true);
+    // const response = await imsAxios.post("client/addclient", obj);
+  //   setSubmitLoading(false);
+  //   if (response.success) {
+  //     // fetchVendor();
+  //     reset()
+  //     toast.success(data.message.toString().replaceAll("<br/>", " "));
+  //     setOpen(null);
+  //     // setShowAddVendorModal(false);
+  //   } else {
+  //     toast.error(response.message?.msg || response.message);
+  //   }
+  };
+
+  const reset = () => {
+    let obj = {
+      clientName: "",
+      pan: "",
+      cin: "",
+      paymentTerms: "",
+      branchname: "",
+      address: "",
+      state: "",
+      city: "",
+      pin: "",
+      fax: "",
+      mobile: "",
+      email: "",
+      gst: "",
+      phoneno:'',
+    };
+
+    addClientForm.setFieldsValue(obj);
+    setFiles([]);
+  };
+
+  useEffect(() => {
+    // fetchState();
+  });
+  return (
+    <Drawer
+      width="50vw"
+      title="Add Client"
+      onClose={() => setOpen(null)}
+      open={open}
+      styles={{
+        body: {
+          paddingTop: 5,
+        },
+      }}
+    >
+      <Form style={{ height: "100%" }} form={addClientForm} layout="vertical">
+        <div style={{ height: "97%", overflowY: "auto", overflowX: "hidden" }}>
+          <Divider orientation="center">Client Details</Divider>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Client Name"
+                    name="clientName"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please add Client name!",
+                      },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Pan Number"
+                    name="pan"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please add vendor PAN No.!",
+                      },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                {/* <Col span={12}>
+                  <Form.Item label="CIN Number" name="cin">
+                    <Input />
+                  </Form.Item>
+                </Col> */}
+                <Col span={12}>
+                  <Form.Item label="GST Number" name="gst">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Mobile" name="mobile">
+                    <Input />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                {/* <Col span={12}>
+                  {" "}
+                  <Form.Item label="Email" name="email">
+                    <Input />
+                  </Form.Item>
+                </Col> */}
+                {/* <Col span={12}>
+                  <Form.Item label="Mobile" name="mobile">
+                    <Input />
+                  </Form.Item>
+                </Col> */}
+              </Row>
+              {/* <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label="Fax Number" name="fax">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Payment Terms (in-days)"
+                    name="paymentTerms"
+                  >
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      min={1}
+                      max={999}
+                      size="default"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row> */}
+            </Col>
+          </Row>
+          <Divider orientation="center">Branch Details</Divider>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Phone number"
+                    name="phoneno"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please add label for vendor branch!",
+                      },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Select State"
+                    name="state"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select vendor state!",
+                      },
+                    ]}
+                  >
+                    <MyAsyncSelect
+                      selectLoading={selectLoading}
+                      onBlur={() => setAsyncOptions([])}
+                      optionsState={asyncOptions}
+                      loadOptions={getFetchState}
+                      value={addVendor.branch.state}
+                      onChange={(e) => inputHandler("state", e)}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="City"
+                    name="city"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please provide vendor City!",
+                      },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Pin Code"
+                    name="pin"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please provide vendor pin code!",
+                      },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item
+                    label="Complete Address"
+                    name="address"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please provide vendor complete address!",
+                      },
+                    ]}
+                  >
+                    <Input.TextArea rows={4} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              {/* <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item label="Vendor Document" name="file">
+                    <Row className="material-in-upload">
+                      <UploadDocs
+                        // size="large"
+                        // disable={poData?.materials?.length == 0}
+                        setFiles={setFiles}
+                        files={files}
+                      />
+                    </Row>
+                  </Form.Item>
+                </Col>
+              </Row> */}
+            </Col>
+          </Row>
+        </div>
+        <Row justify="end">
+          <Col>
+            <Space>
+              <Button onClick={reset}>Reset</Button>
+              <Popconfirm
+                title="Submit Confirm"
+                description="Are you sure you want to create this Client?"
+                onConfirm={addClientDetail}
+                okText="Yes"
+                cancelText="No"
+                okButtonProps={{ loading: submitLoading }}
+              >
+                <Button
+                  htmlType="subit"
+                  loading={submitLoading}
+                  // onClick={addClientDetail}
+                  type="primary"
+                >
+                  Submit
+                </Button>
+              </Popconfirm>
+            </Space>
+          </Col>
+        </Row>
+      </Form>
+    </Drawer>
+  );
+};
+
+export default AddClientModal;

@@ -1,0 +1,168 @@
+import React, { useEffect, useState } from "react";
+import { useToast } from "../../../hooks/useToast.js";
+import { MdOutlineDownloadForOffline } from "react-icons/md";
+import PendingFGModal from "./Modal/PendingFGModal";
+import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
+import { Button, Col, Row, Select, Skeleton } from "antd";
+import MyDataTable from "../../../Components/MyDataTable";
+import { GridActionsCellItem } from "@mui/x-data-grid";
+import { GoArrowRight } from "react-icons/go";
+import { v4 } from "uuid";
+import { imsAxios } from "../../../axiosInterceptor";
+
+const PendingFG = () => {
+  const { showToast } = useToast();
+  const [pending, setPending] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // const [search, setSearch] = useState("");
+  const [fGModal, setFGModal] = useState(false);
+  const [warLoading, setWarLoading] = useState(null);
+
+  const getPendingData = async () => {
+    setLoading(true);
+    setPending([]);
+
+    imsAxios
+      .get("/fgIN/pending")
+      .then((response) => {
+        if (response?.success) {
+            let arr = response?.data.map((row) => {
+          return {
+            ...row,
+            id: v4(),
+          };
+        });
+        setPending(arr);
+        setLoading(false);
+        } else {
+        showToast(response?.message, "error");
+        setLoading(false);
+        }
+      
+      })
+      .catch((err) => {
+        showToast(err, "error");
+        setLoading(false);
+      });
+  };
+
+  const handleArrowClick = async (row) => {
+    setWarLoading(row.id);
+    try {
+      const { data } = await imsAxios.get("/fgIN/pending?calculate=war" + `&mfg=${row?.mfg_transaction}` + `&qty=${row?.mfg_prod_planing_qty}`);
+     
+      const warRate = data?.war ?? 0;
+      setFGModal({ ...row, warRate });
+    } catch (err) {
+      toast.error("Failed to fetch WAR rate");
+      setFGModal(row);
+    } finally {
+      setWarLoading(null);
+    }
+  };
+
+  const columns = [
+    {
+      headerName: "Req.ID",
+      field: "mfg_transaction",
+      renderCell: ({ row }) => (
+        <span> {row.mfg_transaction + " / " + row.mfg_ref_id}</span>
+      ),
+      width: 200,
+    },
+    { field: "typeOfPPR", headerName: "Type", width: 150 },
+    { field: "mfg_full_date", headerName: "Data/Time", width: 180 },
+    { field: "mfg_sku", headerName: "SKU", width: 100 },
+    { field: "p_name", headerName: "Product", width: 220 },
+    {
+      field: "mfg_prod_planing_qty",
+      headerName: "MFG/STIN Qty",
+      width: 160,
+      renderCell: ({ row }) => (
+        <span>{row.mfg_prod_planing_qty + "/" + row.completedQTY}</span>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Action",
+      width: 140,
+      type: "actions",
+      getActions: ({ row }) => [
+        <GridActionsCellItem
+          key="view-fg"
+          label="View"
+          icon={
+            <GoArrowRight
+              onClick={() => handleArrowClick(row)}
+              style={{
+                color: warLoading === row.id ? "#aaa" : "#62AAFF",
+                fontSize: "20px",
+                pointerEvents: warLoading === row.id ? "none" : "auto",
+              }}
+            />
+          }
+        />,
+      ],
+    },
+  ];
+
+  const handleDownloadingCSV = () => {
+    let arr = [];
+    let csvData = [];
+    arr = pending;
+    csvData = arr.map((row) => {
+      return {
+        "Req.ID": `${row.mfg_transaction} /${row.mfg_ref_id}`,
+        Type: row.typeOfPPR,
+        "Data/Time": row.mfg_full_date,
+        SKU: row.SKU,
+        Product: row.p_name,
+        "MFG/STIN Qty": `${row.mfg_prod_planing_qty}/${row.completedQTY}`,
+      };
+    });
+    downloadCSVCustomColumns(csvData, "Pending FG Report");
+  };
+  useEffect(() => {
+    getPendingData();
+  }, []);
+
+  return (
+    <div style={{ height: "calc(100vh - 140px)", margin:"10px" }}>
+      <Row>
+        {/* <Col span={4} className="gutter-row">
+          <div>
+            <Select options={options} placeholder="Pending" style={{ width: "100%" }} />
+          </div>
+        </Col> */}
+        {/* <Col span={3} className="gutter-row">
+          <div>
+            <Button type="primary" onClick={getPendingData}>
+              Pending Data
+            </Button>
+          </div>
+        </Col> */}
+        {pending.length > 1 && (
+          <Col span={2} offset={19} className="gutter-row">
+            <Button onClick={handleDownloadingCSV}>
+              <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
+            </Button>
+          </Col>
+        )}
+      </Row>
+
+      <div style={{ height: "100%" }}>
+        {/* <Skeleton loading={loading}> */}
+        <MyDataTable data={pending} columns={columns} loading={loading} />
+        {/* </Skeleton> */}
+      </div>
+
+      <PendingFGModal
+        setFGModal={setFGModal}
+        fGModal={fGModal}
+        getPendingData={getPendingData}
+      />
+    </div>
+  );
+};
+
+export default PendingFG;

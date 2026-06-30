@@ -1,0 +1,443 @@
+import {
+  Col,
+  Row,
+  Space,
+  Card,
+  Typography,
+  Divider,
+  Skeleton,
+  Tooltip,
+} from "antd";
+import { useEffect, useState } from "react";
+import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import { imsAxios } from "../../../axiosInterceptor";
+import MyDataTable from "../../../Components/MyDataTable";
+import ToolTipEllipses from "../../../Components/ToolTipEllipses";
+import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
+import { downloadCSV } from "../../../Components/exportToCSV";
+import MyButton from "../../../Components/MyButton";
+import MySelect from "../../../Components/MySelect";
+import MyDatePicker from "../../../Components/MyDatePicker";
+import dayjs from "dayjs";
+import { useToast } from "../../../hooks/useToast";
+
+const Q3 = () => {
+  const { showToast } = useToast();
+  const [searchInput, setSearchInput] = useState("");
+  const [location, setLocation] = useState("");
+  const [rows, setRows] = useState([]);
+  const [details, setDetails] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [asyncOptions, setAsyncOptions] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [date, setDate] = useState("");
+
+  const getLocations = async () => {
+    try {
+      const response = await imsAxios.get("q3/location");
+      if (response.success) {
+        const arr = [];
+        response.data.map((a) => arr.push({ text: a.text, value: a.id }));
+        setLocationOptions(arr);
+      } else {
+        showToast(response.message || "Error fetching locations", "error");
+      }
+    } catch (error) {
+      showToast(error?.message || "Error fetching locations", "error");
+    }
+  };
+
+  useEffect(() => {
+    getLocations();
+  }, []);
+
+  const getProductOptions = async (search) => {
+    try {
+      let arr = [];
+      setLoading("select");
+      const { data } = await imsAxios.post("/backend/getProductByNameAndNo", {
+        search,
+      });
+      setLoading(false);
+      arr = data.map((d) => {
+        return { text: d.text, value: d.id };
+      });
+      setAsyncOptions(arr);
+    } catch (error) {
+      setAsyncOptions([]);
+    }
+  };
+
+  const getRows = async () => {
+    if (date) {
+      const [startStr, endStr] = [
+        date.substring(0, 10),
+        date.substring(11, 21),
+      ];
+      const start = dayjs(startStr, "DD-MM-YYYY");
+      const end = dayjs(endStr, "DD-MM-YYYY");
+      if (end.diff(start, "day") > 31) {
+        showToast(
+          "Date range cannot exceed 1 month. Please select a shorter range.",
+          "error",
+        );
+        return;
+      }
+    }
+    try {
+      setLoading("fetch");
+      setDetails({});
+      setRows([]);
+      const params = new URLSearchParams({ sku: searchInput });
+      if (date) params.append("date", date);
+      if (location) params.append("location", location);
+      const response = await imsAxios.get(`/q3?${params.toString()}`);
+
+      // Check if response has error status
+      if (response.status === "error") {
+        const errorMessage =
+          response.message || "An error occurred while fetching data";
+        showToast(errorMessage, "error");
+        setLoading(false);
+        return;
+      }
+
+      if (response.response) {
+        const { data1, data2 } = response.response;
+        const detailsObj = {
+          stock: data1.closingqty,
+          opening: data1.openingqty,
+          product: data1.product,
+          pending: data1.pendingfgReturnQty,
+          sku: data1.sku,
+          uom: data1.uom,
+          rate: data1.lastRate,
+        };
+
+        const arr = data2.map((row) => ({
+          ...row,
+          id: row.serial_no,
+        }));
+        setRows(arr);
+
+        setDetails(detailsObj);
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message?.msg ||
+        error.response?.data?.message ||
+        error.message ||
+        "An error occurred while fetching rows";
+      showToast(errorMessage, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div style={{ height: "100%", padding: 10 }}>
+      <Row justify="end" style={{ padding: 8, paddingTop: 0 }}>
+        <CommonIcons
+          action="downloadButton"
+          type="primary"
+          onClick={() => downloadCSV(rows, columns, "Q3 Report")}
+        />
+      </Row>
+
+      <Row style={{ height: "calc(100% - 35px)" }} gutter={8}>
+        <Col span={6} style={{ height: "100%", overflow: "auto" }}>
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            {/* Filters */}
+            <Card size="small" title="Filters">
+              <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                <div>
+                  <Typography.Text type="secondary">
+                    Product Name
+                  </Typography.Text>
+                  <MyAsyncSelect
+                    placeholder="Enter Product Name"
+                    onBlur={() => setAsyncOptions([])}
+                    loadOptions={getProductOptions}
+                    optionsState={asyncOptions}
+                    onChange={setSearchInput}
+                    selectLoading={loading === "select"}
+                    value={searchInput}
+                  />
+                </div>
+                <div>
+                  <Typography.Text type="secondary">
+                    Select Date Range
+                  </Typography.Text>
+
+                  <MyDatePicker size="default" setDateRange={setDate} />
+                </div>
+
+                <div>
+                  <Typography.Text type="secondary">Location</Typography.Text>
+                  <MySelect
+                    value={location}
+                    onChange={setLocation}
+                    options={locationOptions}
+                  />
+                </div>
+
+                <MyButton
+                  variant="search"
+                  loading={loading === "fetch"}
+                  disabled={!searchInput}
+                  onClick={getRows}
+                  type="primary"
+                  block
+                >
+                  Fetch
+                </MyButton>
+              </Space>
+            </Card>
+
+            {/* Stock Details */}
+            <Card size="small" title="Stock Details">
+              <Row gutter={[0, 6]}>
+                <Col span={24}>
+                  <Typography.Text strong style={{ fontSize: "0.8rem" }}>
+                    Product:
+                  </Typography.Text>
+                  <br />
+                  {loading !== "fetch" ? (
+                    <Typography.Text style={{ fontSize: "0.8rem" }}>
+                      {details.product ?? "--"} - {details.sku ?? "--"}
+                    </Typography.Text>
+                  ) : (
+                    <Skeleton.Input size="small" block active />
+                  )}
+                </Col>
+
+                <Divider />
+
+                <Col span={24}>
+                  <Typography.Text strong style={{ fontSize: "0.8rem" }}>
+                    Closing Stock:
+                  </Typography.Text>
+                  <br />
+                  {loading !== "fetch" ? (
+                    <Typography.Text style={{ fontSize: "0.8rem" }}>
+                      {details.stock ?? "--"} {details.uom ?? "--"}
+                    </Typography.Text>
+                  ) : (
+                    <Skeleton.Input size="small" block active />
+                  )}
+                </Col>
+
+                <Divider />
+
+                <Col span={24}>
+                  <Typography.Text strong style={{ fontSize: "0.8rem" }}>
+                    Not Okay Pending Stock:
+                  </Typography.Text>
+                  <br />
+                  {loading !== "fetch" ? (
+                    <Typography.Text style={{ fontSize: "0.8rem" }}>
+                      {details.pending ?? "--"} {details.uom ?? "--"}
+                    </Typography.Text>
+                  ) : (
+                    <Skeleton.Input size="small" block active />
+                  )}
+                </Col>
+
+                <Divider />
+
+                <Col span={24}>
+                  <Typography.Text strong style={{ fontSize: "0.8rem" }}>
+                    Opening Stock:
+                  </Typography.Text>
+                  <br />
+                  {loading !== "fetch" ? (
+                    <Typography.Text style={{ fontSize: "0.8rem" }}>
+                      {details.opening ?? "--"} {details.uom ?? ""}
+                    </Typography.Text>
+                  ) : (
+                    <Skeleton.Input size="small" block active />
+                  )}
+                </Col>
+
+                <Col span={24}>
+                  <Typography.Text strong style={{ fontSize: "0.8rem" }}>
+                    Last Rate:
+                  </Typography.Text>
+                  <br />
+                  <Typography.Text style={{ fontSize: "0.8rem" }}>
+                    {details.rate ?? "--"}
+                  </Typography.Text>
+                </Col>
+              </Row>
+            </Card>
+          </Space>
+        </Col>
+
+        {/* RIGHT COLUMN – TABLE */}
+        <Col span={18}>
+          <MyDataTable
+            loading={loading === "fetch"}
+            columns={columns}
+            data={rows}
+          />
+        </Col>
+      </Row>
+    </div>
+  );
+};
+
+const getStatusConfig = (type) => {
+  if (type === "OUT") return { label: "OUTWARD", backgroundColor: "#FF0032" };
+  if (type === "NEUTRAL")
+    return { label: "NEUTRAL", backgroundColor: "#FFC107" };
+  if (type === "CANCELLEND")
+    return { label: "CANCELLED", backgroundColor: "grey" };
+  return { label: "INWARD", backgroundColor: "#227C70" };
+};
+
+const columns = [
+  {
+    headerName: "#",
+    field: "id",
+    width: 30,
+  },
+  {
+    headerName: "Date",
+    field: "date",
+    width: 150,
+  },
+  {
+    headerName: "Type",
+    field: "transaction_type",
+    width: 150,
+    renderCell: ({ row }) => {
+      const status = getStatusConfig(row.type);
+      return (
+        <Tooltip title={status.label}>
+          <div
+            style={{
+              height: "15px",
+              width: "15px",
+              borderRadius: "50px",
+              backgroundColor: status.backgroundColor,
+              cursor: "pointer",
+            }}
+          ></div>
+        </Tooltip>
+      );
+    },
+  },
+  {
+    headerName: "Transaction",
+    field: "transaction_id",
+    renderCell: ({ row }) => {
+      const isCancelled = row.type === "CANCELLEND";
+      return (
+        <div
+          style={{
+            textDecoration: isCancelled ? "line-through" : "none",
+            opacity: isCancelled ? 0.7 : 1,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <Tooltip
+            placement="topLeft"
+            color="#047780"
+            overlayStyle={{ fontSize: "0.7rem" }}
+            title={
+              <span style={{ whiteSpace: "pre-line" }}>
+                {row.transaction_id}
+              </span>
+            }
+          >
+            <Typography.Text
+              style={{
+                fontSize: window.innerWidth < 1600 ? "0.7rem" : "0.8rem",
+                width: "100%",
+              }}
+              ellipsis
+            >
+              {row.transaction_id}
+            </Typography.Text>
+          </Tooltip>
+          {isCancelled ? (
+            <span
+              style={{ color: "#d32f2f", fontSize: "0.75rem", fontWeight: 600 }}
+            >
+              CANCELLED
+            </span>
+          ) : null}
+        </div>
+      );
+    },
+    width: 250,
+  },
+  {
+    headerName: "Qty IN",
+    field: "qty_in",
+    width: 200,
+  },
+  {
+    headerName: "Qty out",
+    field: "qty_out",
+    width: 200,
+  },
+  {
+    headerName: "IN Rate",
+    field: "qty_in_rate",
+    width: 200,
+  },
+  {
+    headerName: "Out Rate",
+    field: "out_rate",
+    width: 200,
+  },
+  // {
+  //   headerName: "Weighted Average",
+  //   field: "weightedSKURate",
+  //   width: 200,
+  // },
+  {
+    headerName: "New WAR",
+    field: "newWAR",
+    width: 200,
+  },
+  {
+    headerName: "Method",
+    field: "mode",
+    width: 200,
+  },
+  {
+    headerName: "Location IN",
+    field: "location_in",
+    width: 200,
+  },
+  {
+    headerName: "Location OUT",
+    field: "location_out",
+    width: 200,
+  },
+  {
+    headerName: "UoM",
+    field: "uom",
+    width: 70,
+  },
+  {
+    headerName: "Created / Approved By",
+    field: "doneby",
+    minWidth: 250,
+    renderCell: ({ row }) => <ToolTipEllipses text={`${row.doneby}`} />,
+    flex: 1,
+  },
+
+  {
+    headerName: "Remarks",
+    field: "remark",
+    minWidth: 180,
+    renderCell: ({ row }) => <ToolTipEllipses text={row.remark} />,
+    flex: 1,
+  },
+];
+
+export default Q3;

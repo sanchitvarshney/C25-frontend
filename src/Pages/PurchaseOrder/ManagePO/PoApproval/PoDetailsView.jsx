@@ -1,0 +1,169 @@
+import React from "react";
+import { imsAxios } from "../../../../axiosInterceptor";
+import { useToast } from "../../../../hooks/useToast.js";
+import { useState } from "react";
+import { useEffect } from "react";
+import { Drawer, Space, Typography, Row, Col, Card, Timeline } from "antd";
+import MyDataTable from "../../../../Components/MyDataTable";
+import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
+import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
+import { downloadCSV } from "../../../../Components/exportToCSV";
+
+export default function PoDetailsView({ viewPoDetails, setViewPoDetails }) {
+  const { showToast } = useToast();
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const getRows = async () => {
+    setLoading("fetch");
+    const response = await imsAxios.post(
+      "/purchaseOrder/fetchComponentList4POApproval",
+      {
+        poid: viewPoDetails,
+      }
+    );
+    setLoading(false);
+    if (response.success) {
+      let arr = response.data.map((row, index) => ({
+        id: index + 1,
+        ...row,
+      }));
+      setRows(arr);
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+      setViewPoDetails(false);
+    }
+  };
+  const columns = [
+    { headerName: "Sr. No", field: "id", width: 80 },
+    {
+      headerName: "Part No.",
+      field: "componentPartID",
+      renderCell: ({ row }) => <ToolTipEllipses text={row.componentPartID} />,
+    },
+    {
+      headerName: "Component",
+      field: "po_components",
+      width: 250,
+      renderCell: ({ row }) => <ToolTipEllipses text={row.po_components} />,
+    },
+    {
+      headerName: "Comp. Status",
+      field: "po_part_status",
+      width: 120,
+    },
+    {
+      headerName: "Qty",
+      field: "ordered_qty",
+      width: 120,
+    },
+    {
+      headerName: "UoM",
+      field: "uom",
+      width: 100,
+    },
+    {
+      headerName: "Item Description",
+      field: "poItemDescription",
+      width: 300,
+    },
+    {
+      headerName: "Approval Remark",
+      field: "approval_remark",
+      width: 300,
+      renderCell: ({ row }) => (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            // overflowX: "auto",
+          }}
+        >
+          <Typography.Text
+            ellipsis={{
+              tooltip: row.approval_remark,
+            }}
+            style={{
+              width: "100%",
+              // overflowX: "auto",
+              fontSize: window.innerWidth < 1600 ? "0.7rem" : "0.9rem",
+              // alignSelf: "center",
+            }}
+          >
+            {row.approval_remark}
+          </Typography.Text>
+          {/* <ToolTipEllipses copy={true} text={row.approval_remark} /> */}
+        </div>
+      ),
+      // width: "100%",
+      // flex: 1,
+    },
+  ];
+  useEffect(() => {
+    if (viewPoDetails) {
+      getRows();
+    }
+  }, [viewPoDetails]);
+  return (
+    <Drawer
+      title={`PO : ${viewPoDetails}`}
+      placement="right"
+      width="100vw"
+      onClose={() => setViewPoDetails(false)}
+      open={viewPoDetails}
+      bodyStyle={{
+        padding: 5,
+      }}
+      extra={
+        <Space>
+          {rows.length} Items{" "}
+          <CommonIcons
+            action="downloadButton"
+            onClick={() => downloadCSV(rows, columns, viewPoDetails)}
+          />
+        </Space>
+      }
+    >
+      <Row gutter={20} style={{ height: "95%" }}>
+        <Col span={16}>
+          <div style={{ height: "100%", overflowX: "auto", width: "100%" }}>
+            <MyDataTable
+              loading={loading === "fetch"}
+              columns={columns}
+              rows={rows}
+            />
+          </div>
+        </Col>
+        <Col span={8}>
+          <Card
+            title="PO logs"
+            size="small"
+            style={{ maxHeight: "100%" }}
+            bodyStyle={{ height: "95%" }}
+          >
+            {/* <Timeline
+              items={newPoLogs.map((row) => ({
+                children: (
+                  <>
+                    <strong>{row.po_log_status}</strong>
+                    <div style={{ fontSize: "10px" }}>
+                      By {row.user_name} on {row.date} {row.time}
+                    </div>
+                    <div style={{ fontSize: "13px" }}>
+                      Remark:{" "}
+                      {row.po_log_remark.length === 0
+                        ? "--"
+                        : row.po_log_remark}
+                    </div>
+                  </>
+                ),
+              }))}
+            /> */}
+          </Card>
+        </Col>
+      </Row>
+    </Drawer>
+  );
+}

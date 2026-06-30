@@ -1,0 +1,2620 @@
+import React, { useEffect, useState } from "react";
+import { v4 } from "uuid";
+import AddComponent from "./AddComponents";
+import { useToast } from "../../../hooks/useToast.js";
+import AddVendorSideBar from "./AddVendorSideBar";
+import CreateCostModal from "./CreateCostModal";
+import AddBranch from "../../Master/Vendor/model/AddBranch";
+import MySelect from "../../../Components/MySelect";
+import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import NavFooter from "../../../Components/NavFooter";
+import {
+  Col,
+  Descriptions,
+  Divider,
+  Form,
+  Input,
+  Row,
+  Tabs,
+  Modal,
+  Button,
+  InputNumber,
+  Radio,
+  Checkbox,
+} from "antd";
+import TextArea from "antd/lib/input/TextArea";
+import Loading from "../../../Components/Loading";
+import SuccessPage from "./SuccessPage";
+import { imsAxios } from "../../../axiosInterceptor";
+import AddProjectModal from "./AddProjectModal";
+import useApi from "../../../hooks/useApi.ts";
+import {
+  getCostCentresOptions,
+  getProjectOptions,
+  getVendorOptions,
+} from "../../../api/general.ts";
+import { convertSelectOptions } from "../../../utils/general.ts";
+import MyButton from "../../../Components/MyButton/index.jsx";
+
+const deliveryTermOptions = [
+  { label: "Within 10 days", value: "Within 10 days" },
+  { label: "Within 15 days", value: "Within 15 days" },
+  { label: "Within 30 days", value: "Within 30 days" },
+  { label: "Other", value: "Other" },
+];
+
+const paymentTermOptions = [
+  { label: "Within 7 days", value: "Within 7 days" },
+  { label: "Within 15 days", value: "Within 15 days" },
+  { label: "Within 30 days", value: "Within 30 days" },
+  { label: "Within 45 days", value: "Within 45 days" },
+  { label: "Within 60 days", value: "Within 60 days" },
+  { label: "Other", value: "Other" },
+];
+
+export default function CreatePo() {
+  const { showToast } = useToast();
+  const [totalValues, setTotalValues] = useState([]);
+  const [newPurchaseOrder, setnewPurchaseOrder] = useState({
+    termscondition: "",
+    customDeliveryTerm: "",
+    paymentterms: "",
+    advancePercentage: null,
+    advancePayment: 0,
+    vendorname: "",
+    vendortype: "v01",
+    vendorbranch: "",
+    vendoraddress: "",
+    billaddressid: "",
+    billaddress: "",
+    billPan: "",
+    billGST: "",
+    billCode: "",
+    venCode: "",
+    ship_type: "saved",
+    shipaddressid: "",
+    shipaddress: "",
+    ship_vendor_branch: "",
+    shipPan: "",
+    shipGST: "",
+    quotationdetail: "",
+    pocostcenter: "",
+    po_comment: "",
+    project_name: "",
+    pocreatetype: "N",
+    original_po: "",
+    raisedBy: "",
+  });
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showDetailsCondirm, setShowDetailsConfirm] = useState(false);
+  const [showAddProjectConfirm, setShowAddProjectConfirm] = useState(false);
+  const [showBranchModel, setShowBranchModal] = useState(false);
+  const [showAddVendorModal, setShowAddVendorModal] = useState(false);
+  const [showAddCostModal, setShowAddCostModal] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("1");
+  const [billToOptions, setBillTopOptions] = useState([]);
+  const [shipToOptions, setShipToOptions] = useState([]);
+  const [vendorBranches, setVendorBranches] = useState([]);
+  const [selectLoading, setSelectLoading] = useState(false);
+  const [stateCode, setStateCode] = useState("");
+  const [showQtyWarning, setShowQtyWarning] = useState(false);
+  const [qtyWarningData, setQtyWarningData] = useState(null);
+  const [pendingPOData, setPendingPOData] = useState(null);
+  const [rowCount, setRowCount] = useState([
+    {
+      id: v4(),
+      index: 1,
+      currency: "364907247",
+      exchange_rate: 1,
+      component: "",
+      qty: 1,
+      rate: "",
+      duedate: "",
+      inrValue: 0,
+      hsncode: "",
+      gsttype: "L",
+      gstrate: "",
+      cgst: 0,
+      sgst: 0,
+      igst: 0,
+      remark: "--",
+      internal_remark: "",
+      unit: "--",
+      rate_cap: 0,
+      tol_price: 0,
+      project_req_qty: 0,
+      po_exec_qty: 0,
+      diffPercentage: "--",
+    },
+  ]);
+  const [asyncOptions, setAsyncOptions] = useState([]);
+  const [userOptions, setUserOptions] = useState([]);
+  const [successData, setSuccessData] = useState(false);
+  const [projectDesc, setProjectDesc] = useState("");
+  const [sameAsBilling, setSameAsBilling] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [form] = Form.useForm();
+  const termsCondition = Form.useWatch("termscondition", form);
+  const advancePayment = Form.useWatch("advancePayment", form);
+
+  const { executeFun, loading: loading1 } = useApi();
+  const validatePO = () => {
+    const formValues = form.getFieldsValue();
+    const formProjectName = form.getFieldValue("project_name");
+    const currentPurchaseOrder = {
+      ...newPurchaseOrder,
+      ...formValues,
+      project_name:
+        formProjectName !== undefined && formProjectName !== null
+          ? formProjectName
+          : formValues.project_name !== undefined &&
+              formValues.project_name !== null
+            ? formValues.project_name
+            : newPurchaseOrder.project_name,
+      pocostcenter:
+        formValues.pocostcenter !== undefined &&
+        formValues.pocostcenter !== null
+          ? formValues.pocostcenter
+          : newPurchaseOrder.pocostcenter,
+      vendorname:
+        formValues.vendorname !== undefined && formValues.vendorname !== null
+          ? formValues.vendorname
+          : newPurchaseOrder.vendorname,
+      vendorbranch:
+        formValues.vendorbranch !== undefined &&
+        formValues.vendorbranch !== null
+          ? formValues.vendorbranch
+          : newPurchaseOrder.vendorbranch,
+      billaddressid:
+        formValues.billaddressid !== undefined &&
+        formValues.billaddressid !== null
+          ? formValues.billaddressid
+          : newPurchaseOrder.billaddressid,
+      shipaddressid:
+        formValues.shipaddressid !== undefined &&
+        formValues.shipaddressid !== null
+          ? formValues.shipaddressid
+          : newPurchaseOrder.shipaddressid,
+      ship_vendor:
+        formValues.ship_vendor !== undefined && formValues.ship_vendor !== null
+          ? formValues.ship_vendor
+          : newPurchaseOrder.ship_vendor,
+      ship_vendor_branch:
+        formValues.ship_vendor_branch !== undefined &&
+        formValues.ship_vendor_branch !== null
+          ? formValues.ship_vendor_branch
+          : newPurchaseOrder.ship_vendor_branch,
+      ship_type:
+        formValues.ship_type !== undefined && formValues.ship_type !== null
+          ? formValues.ship_type
+          : newPurchaseOrder.ship_type,
+      po_comment:
+        formValues.po_comment !== undefined && formValues.po_comment !== null
+          ? formValues.po_comment
+          : newPurchaseOrder.po_comment,
+      paymentterms:
+        formValues.paymentterms !== undefined &&
+        formValues.paymentterms !== null
+          ? formValues.paymentterms
+          : newPurchaseOrder.paymentterms,
+      paymenttermsday:
+        formValues.paymenttermsday !== undefined &&
+        formValues.paymenttermsday !== null
+          ? formValues.paymenttermsday
+          : newPurchaseOrder.paymenttermsday,
+      termscondition:
+        formValues.termscondition !== undefined &&
+        formValues.termscondition !== null
+          ? formValues.termscondition
+          : newPurchaseOrder.termscondition,
+      customDeliveryTerm:
+        formValues.customDeliveryTerm !== undefined &&
+        formValues.customDeliveryTerm !== null
+          ? formValues.customDeliveryTerm
+          : newPurchaseOrder.customDeliveryTerm,
+      customPaymentTerm:
+        formValues.customPaymentTerm !== undefined &&
+        formValues.customPaymentTerm !== null
+          ? formValues.customPaymentTerm
+          : newPurchaseOrder.customPaymentTerm,
+      advancePayment:
+        formValues.advancePayment !== undefined &&
+        formValues.advancePayment !== null
+          ? formValues.advancePayment
+          : newPurchaseOrder.advancePayment,
+      advancePercentage:
+        formValues.advancePercentage !== undefined &&
+        formValues.advancePercentage !== null
+          ? formValues.advancePercentage
+          : newPurchaseOrder.advancePercentage,
+      raisedBy:
+        formValues.raisedBy !== undefined && formValues.raisedBy !== null
+          ? formValues.raisedBy
+          : newPurchaseOrder.raisedBy,
+      original_po:
+        formValues.original_po !== undefined && formValues.original_po !== null
+          ? formValues.original_po
+          : newPurchaseOrder.original_po,
+      pocreatetype:
+        formValues.pocreatetype !== undefined &&
+        formValues.pocreatetype !== null
+          ? formValues.pocreatetype
+          : newPurchaseOrder.pocreatetype,
+    };
+    setnewPurchaseOrder(currentPurchaseOrder);
+
+    let newPo = {};
+    let componentData = {
+      currency: [],
+      exchange: [],
+      component: [],
+      qty: [],
+      rate: [],
+      duedate: [],
+      hsncode: [],
+      gsttype: [],
+      gstrate: [],
+      cgst: [],
+      sgst: [],
+      igst: [],
+      remark: [],
+      internal_remark: [],
+      rate_cap: [],
+      tol_price: [],
+      project_qty: [],
+      exq_po_qty: [],
+    };
+
+    rowCount.map((row) => {
+      componentData.currency.push(row.currency);
+      componentData.component.push(row.component.value);
+      componentData.qty.push(row.qty);
+      componentData.rate.push(row.rate);
+      componentData.duedate.push(row.duedate);
+      componentData.hsncode.push(row.hsncode);
+      componentData.gsttype.push(row.gsttype);
+      componentData.gstrate.push(row.gstrate);
+      componentData.remark.push(row.remark);
+      componentData.internal_remark.push(row.internal_remark);
+      componentData.cgst.push(row.cgst);
+      componentData.sgst.push(row.sgst);
+      componentData.igst.push(row.igst);
+      componentData.exchange.push(row.exchange_rate);
+      componentData.rate_cap.push(row.rate_cap);
+      componentData.project_qty.push(row.project_req_qty);
+      componentData.exq_po_qty.push(row.po_exec_qty);
+    });
+
+    newPo = {
+      ...currentPurchaseOrder,
+      ...componentData,
+      billaddressid: currentPurchaseOrder.billaddressid,
+      original_po: currentPurchaseOrder.original_po,
+      pocostcenter:
+        typeof currentPurchaseOrder.pocostcenter === "object"
+          ? currentPurchaseOrder.pocostcenter.value
+          : currentPurchaseOrder.pocostcenter,
+      pocreatetype: currentPurchaseOrder.pocreatetype,
+
+      shipaddressid: (() => {
+        if (currentPurchaseOrder.ship_type === "saved") {
+          return currentPurchaseOrder.shipaddressid;
+        } else if (currentPurchaseOrder.ship_type === "vendor") {
+          // Send vendor ID
+          return currentPurchaseOrder.ship_vendor
+            ? currentPurchaseOrder.ship_vendor.value
+            : null;
+        } else {
+          // For manual entry,
+          return null;
+        }
+      })(),
+      // Keep ship_vendor_branch separate for reference if needed
+      ship_vendor_branch: currentPurchaseOrder.ship_vendor_branch,
+      vendorbranch: currentPurchaseOrder.vendorbranch,
+      vendorname:
+        currentPurchaseOrder.vendorname?.value ||
+        currentPurchaseOrder.vendorname,
+      vendortype: currentPurchaseOrder.vendortype,
+      pocomment: currentPurchaseOrder.po_comment,
+      poproject_name: (() => {
+        const project = currentPurchaseOrder.project_name;
+        if (!project) return "";
+        if (typeof project === "object") {
+          return project?.value || project?.label || "";
+        }
+        return project;
+      })(),
+      paymenttermsday: currentPurchaseOrder.paymenttermsday
+        ? currentPurchaseOrder.paymenttermsday === ""
+          ? 30
+          : currentPurchaseOrder.paymenttermsday
+        : 30,
+      paymentterms: (() => {
+        if (
+          currentPurchaseOrder.paymentterms === "Other" &&
+          currentPurchaseOrder.customPaymentTerm?.trim()
+        ) {
+          return currentPurchaseOrder.customPaymentTerm.trim();
+        } else if (
+          currentPurchaseOrder.paymentterms &&
+          currentPurchaseOrder.paymentterms !== "Other"
+        ) {
+          return currentPurchaseOrder.paymentterms;
+        } else {
+          return "As per standard terms";
+        }
+      })(),
+      po_raise_by: currentPurchaseOrder.raisedBy,
+      advancePayment: currentPurchaseOrder.advancePayment,
+      termscondition:
+        currentPurchaseOrder.termscondition === "Other"
+          ? currentPurchaseOrder.customDeliveryTerm
+          : currentPurchaseOrder.termscondition,
+    };
+
+    let error = false;
+
+    if (rowCount.length == 0) {
+      showToast("Please add at least one component", "error");
+      return;
+    }
+
+    // Shipping validation based on ship_type
+    if (!currentPurchaseOrder.ship_type) {
+      showToast("Please select shipping address type", "error");
+      return;
+    }
+
+    if (currentPurchaseOrder.ship_type === "saved") {
+      // For saved mode, validate shipping address selection
+      if (!currentPurchaseOrder.shipaddressid) {
+        showToast("Please select shipping address", "error");
+        return;
+      }
+      if (
+        !currentPurchaseOrder.shipaddress ||
+        currentPurchaseOrder.shipaddress.trim() === ""
+      ) {
+        showToast(
+          "Shipping address is not populated. Please select a valid shipping address",
+          "error",
+        );
+        return;
+      }
+    } else if (currentPurchaseOrder.ship_type === "vendor") {
+      // For vendor mode, validate vendor and branch selection
+      if (
+        !currentPurchaseOrder.ship_vendor ||
+        !currentPurchaseOrder.ship_vendor_branch
+      ) {
+        showToast("Please select shipping vendor and branch", "error");
+        return;
+      }
+      if (
+        !currentPurchaseOrder.shipaddress ||
+        currentPurchaseOrder.shipaddress.trim() === ""
+      ) {
+        showToast(
+          "Shipping address is not populated. Please select a valid vendor branch",
+          "error",
+        );
+        return;
+      }
+    } else if (currentPurchaseOrder.ship_type === "manual") {
+      // For manual mode, validate all manual fields
+      if (
+        !currentPurchaseOrder.shipaddress ||
+        currentPurchaseOrder.shipaddress.trim() === ""
+      ) {
+        showToast("Please enter shipping address in manual mode", "error");
+        return;
+      }
+      if (
+        !currentPurchaseOrder.shipPan ||
+        currentPurchaseOrder.shipPan.trim() === ""
+      ) {
+        showToast("Please enter shipping PAN in manual mode", "error");
+        return;
+      }
+      if (
+        !currentPurchaseOrder.shipGST ||
+        currentPurchaseOrder.shipGST.trim() === ""
+      ) {
+        showToast("Please enter shipping GSTIN in manual mode", "error");
+        return;
+      }
+    }
+
+    // Other existing validations
+    if (
+      !currentPurchaseOrder.vendorname ||
+      !currentPurchaseOrder.vendortype ||
+      !currentPurchaseOrder.vendorbranch ||
+      !currentPurchaseOrder.vendoraddress ||
+      !currentPurchaseOrder.billaddressid ||
+      !currentPurchaseOrder.billaddress
+    ) {
+      showToast("Please fill all required vendor and billing details", "error");
+      return;
+    }
+
+    if (
+      currentPurchaseOrder.pocreatetype == "S" &&
+      !currentPurchaseOrder.original_po
+    ) {
+      return showToast(
+        "Please select a PR ID in case of supplementary PR",
+        "error",
+      );
+    }
+
+    if (
+      currentPurchaseOrder.termscondition === "Other" &&
+      !currentPurchaseOrder.customDeliveryTerm?.trim()
+    ) {
+      showToast(
+        "Please enter custom delivery term when 'Other' is selected",
+        "error",
+      );
+      return;
+    }
+
+    if (
+      currentPurchaseOrder.paymentterms === "Advance Payment" &&
+      !currentPurchaseOrder.advancePercentage
+    ) {
+      showToast("Please enter advance payment percentage", "error");
+      return;
+    }
+
+    rowCount.map((count) => {
+      if (
+        count.currency == "" ||
+        count.exchange == 0 ||
+        count.component == "" ||
+        count.qty == 0 ||
+        count.rate == ""
+      ) {
+        error = true;
+      }
+    });
+
+    if (error) {
+      showToast("Please enter all the values for all components", "error");
+      return;
+    }
+
+    setShowSubmitConfirm(newPo);
+  };
+  const submitHandler = async (confirmQtyExceed = false) => {
+    const formValues = form.getFieldsValue();
+    const formProjectName = form.getFieldValue("project_name");
+
+    const currentPurchaseOrder = {
+      ...newPurchaseOrder,
+      ...formValues,
+      project_name:
+        formProjectName !== undefined && formProjectName !== null
+          ? formProjectName
+          : formValues.project_name !== undefined &&
+              formValues.project_name !== null
+            ? formValues.project_name
+            : newPurchaseOrder.project_name,
+      pocostcenter:
+        formValues.pocostcenter !== undefined &&
+        formValues.pocostcenter !== null
+          ? formValues.pocostcenter
+          : newPurchaseOrder.pocostcenter,
+      vendorname:
+        formValues.vendorname !== undefined && formValues.vendorname !== null
+          ? formValues.vendorname
+          : newPurchaseOrder.vendorname,
+      vendorbranch:
+        formValues.vendorbranch !== undefined &&
+        formValues.vendorbranch !== null
+          ? formValues.vendorbranch
+          : newPurchaseOrder.vendorbranch,
+      billaddressid:
+        formValues.billaddressid !== undefined &&
+        formValues.billaddressid !== null
+          ? formValues.billaddressid
+          : newPurchaseOrder.billaddressid,
+      shipaddressid:
+        formValues.shipaddressid !== undefined &&
+        formValues.shipaddressid !== null
+          ? formValues.shipaddressid
+          : newPurchaseOrder.shipaddressid,
+      ship_vendor:
+        formValues.ship_vendor !== undefined && formValues.ship_vendor !== null
+          ? formValues.ship_vendor
+          : newPurchaseOrder.ship_vendor,
+      ship_vendor_branch:
+        formValues.ship_vendor_branch !== undefined &&
+        formValues.ship_vendor_branch !== null
+          ? formValues.ship_vendor_branch
+          : newPurchaseOrder.ship_vendor_branch,
+      ship_type:
+        formValues.ship_type !== undefined && formValues.ship_type !== null
+          ? formValues.ship_type
+          : newPurchaseOrder.ship_type,
+      po_comment:
+        formValues.po_comment !== undefined && formValues.po_comment !== null
+          ? formValues.po_comment
+          : newPurchaseOrder.po_comment,
+      paymentterms:
+        formValues.paymentterms !== undefined &&
+        formValues.paymentterms !== null
+          ? formValues.paymentterms
+          : newPurchaseOrder.paymentterms,
+      paymenttermsday:
+        formValues.paymenttermsday !== undefined &&
+        formValues.paymenttermsday !== null
+          ? formValues.paymenttermsday
+          : newPurchaseOrder.paymenttermsday,
+      termscondition:
+        formValues.termscondition !== undefined &&
+        formValues.termscondition !== null
+          ? formValues.termscondition
+          : newPurchaseOrder.termscondition,
+      customDeliveryTerm:
+        formValues.customDeliveryTerm !== undefined &&
+        formValues.customDeliveryTerm !== null
+          ? formValues.customDeliveryTerm
+          : newPurchaseOrder.customDeliveryTerm,
+      customPaymentTerm:
+        formValues.customPaymentTerm !== undefined &&
+        formValues.customPaymentTerm !== null
+          ? formValues.customPaymentTerm
+          : newPurchaseOrder.customPaymentTerm,
+      advancePayment:
+        formValues.advancePayment !== undefined &&
+        formValues.advancePayment !== null
+          ? formValues.advancePayment
+          : newPurchaseOrder.advancePayment,
+      advancePercentage:
+        formValues.advancePercentage !== undefined &&
+        formValues.advancePercentage !== null
+          ? formValues.advancePercentage
+          : newPurchaseOrder.advancePercentage,
+      raisedBy:
+        formValues.raisedBy !== undefined && formValues.raisedBy !== null
+          ? formValues.raisedBy
+          : newPurchaseOrder.raisedBy,
+      original_po:
+        formValues.original_po !== undefined && formValues.original_po !== null
+          ? formValues.original_po
+          : newPurchaseOrder.original_po,
+      pocreatetype:
+        formValues.pocreatetype !== undefined &&
+        formValues.pocreatetype !== null
+          ? formValues.pocreatetype
+          : newPurchaseOrder.pocreatetype,
+    };
+    const storedPOData = pendingPOData || showSubmitConfirm;
+    if (!storedPOData) {
+      showToast("PR data missing. Please try again.", "error");
+      setSubmitLoading(false);
+      return;
+    }
+
+    // Merge latest form values with stored component data
+    const finalPOData = {
+      ...storedPOData,
+      // Override with latest form values
+      billaddressid: currentPurchaseOrder.billaddressid,
+      original_po: currentPurchaseOrder.original_po,
+      pocostcenter:
+        typeof currentPurchaseOrder.pocostcenter === "object"
+          ? currentPurchaseOrder.pocostcenter.value
+          : currentPurchaseOrder.pocostcenter,
+      pocreatetype: currentPurchaseOrder.pocreatetype,
+      shipaddressid: (() => {
+        if (currentPurchaseOrder.ship_type === "saved") {
+          return currentPurchaseOrder.shipaddressid;
+        } else if (currentPurchaseOrder.ship_type === "vendor") {
+          return currentPurchaseOrder.ship_vendor
+            ? currentPurchaseOrder.ship_vendor.value
+            : null;
+        } else {
+          return null;
+        }
+      })(),
+      ship_vendor_branch: currentPurchaseOrder.ship_vendor_branch,
+      vendorbranch: currentPurchaseOrder.vendorbranch,
+      vendorname:
+        currentPurchaseOrder.vendorname?.value ||
+        currentPurchaseOrder.vendorname,
+      vendortype: currentPurchaseOrder.vendortype,
+      pocomment: currentPurchaseOrder.po_comment,
+      poproject_name: (() => {
+        const project = currentPurchaseOrder.project_name;
+        if (!project) return "";
+        if (typeof project === "object") {
+          return project?.value || project?.label || "";
+        }
+        return project;
+      })(),
+      paymenttermsday: currentPurchaseOrder.paymenttermsday
+        ? currentPurchaseOrder.paymenttermsday === ""
+          ? 30
+          : currentPurchaseOrder.paymenttermsday
+        : 30,
+      paymentterms: (() => {
+        if (
+          currentPurchaseOrder.paymentterms === "Other" &&
+          currentPurchaseOrder.customPaymentTerm?.trim()
+        ) {
+          return currentPurchaseOrder.customPaymentTerm.trim();
+        } else if (
+          currentPurchaseOrder.paymentterms &&
+          currentPurchaseOrder.paymentterms !== "Other"
+        ) {
+          return currentPurchaseOrder.paymentterms;
+        } else {
+          return "As per standard terms";
+        }
+      })(),
+      po_raise_by: currentPurchaseOrder.raisedBy,
+      advancePayment: currentPurchaseOrder.advancePayment,
+      termscondition:
+        currentPurchaseOrder.termscondition === "Other"
+          ? currentPurchaseOrder.customDeliveryTerm
+          : currentPurchaseOrder.termscondition,
+    };
+
+    setSubmitLoading(true);
+    try {
+      const response = await imsAxios.post("/purchaseOrder/createPO", {
+        ...finalPOData,
+        confirmQtyExceed: confirmQtyExceed,
+      });
+
+      setSubmitLoading(false);
+      const responseData = response?.data || response;
+      if (responseData) {
+        if (response.status === "warning") {
+          setShowSubmitConfirm(null);
+          setQtyWarningData(response.data);
+          setShowQtyWarning(true);
+          return;
+        }
+        setShowSubmitConfirm(null);
+        setPendingPOData(null);
+        if (response.success) {
+          resetFunction();
+          rowsReset();
+          setActiveTab("1");
+          setSuccessData({
+            vendorName: newPurchaseOrder.vendorname.label,
+            project: newPurchaseOrder.project_name,
+            poId: response.data?.po_id,
+            components: rowCount.map((row, index) => {
+              return {
+                id: index,
+                component: row.component.label,
+                // part: row.qty,
+                qty: row.qty,
+                rate: row.rate,
+                uom: row.unit,
+                value: Number(row.qty).toFixed(2) * Number(row.rate).toFixed(2),
+              };
+            }),
+          });
+        } else {
+          showToast(response.message, "error");
+        }
+      }
+    } catch (error) {
+      setSubmitLoading(false);
+      // Handle error response - message can be string or object
+      const errorMessage = error?.response?.data?.message
+        ? typeof error.response.data.message === "string"
+          ? error.response.data.message
+          : error.response.data.message?.msg || "An error occurred"
+        : error?.message || "Failed to create PR";
+      showToast(errorMessage, "error");
+    }
+  };
+  const getPOs = async (searchInput) => {
+    if (searchInput?.length > 2) {
+      setSelectLoading(true);
+      const response = await imsAxios.post("/backend/searchPoByPoNo", {
+        search: searchInput,
+      });
+      setSelectLoading(false);
+      let arr = [];
+      if (response?.success) {
+        arr = response?.data.map((d) => {
+          return { text: d.text, value: d.id };
+        });
+        setAsyncOptions(arr);
+      } else {
+        setAsyncOptions([]);
+      }
+    }
+  };
+  const getPaymentTermsDay = async (
+    vendorCode,
+    { showPageLoading = true } = {},
+  ) => {
+    if (showPageLoading) setPageLoading(true);
+    try {
+      const response = await imsAxios.post("/backend/vendorTerms", {
+        vendorcode: vendorCode,
+      });
+      const data = response?.data;
+
+      if (response.success) {
+        return data;
+      } else {
+        showToast(response.message, "error");
+      }
+    } finally {
+      if (showPageLoading) setPageLoading(false);
+    }
+  };
+  const selectInputHandler = async (name, value) => {
+    if (!value) return;
+
+    if (name === "vendorname") {
+      setPageLoading(true);
+      try {
+        const branches = await getVendorBracnch(value.value, {
+          showPageLoading: false,
+        });
+        const { address, gstin, statecode } = await getVendorAddress({
+          vendorCode: value,
+          vendorBranch: branches[0]?.value,
+        });
+
+        const termsData = await getPaymentTermsDay(value.value, {
+          showPageLoading: false,
+        });
+
+        const updated = {
+          vendorname: value,
+          vendorbranch: branches[0]?.value || "",
+          vendoraddress: address?.replaceAll("<br>", "\n") || "",
+          gstin: gstin || "",
+          venCode: statecode || "",
+          paymenttermsday: termsData?.paymentterms || 30,
+          paymentterms: termsData?.po_payment_terms || "",
+          msmeType: termsData?.msme_data?.msme_type || "",
+          msmeId: termsData?.msme_data?.msme_id || "",
+        };
+
+        form.setFieldsValue(updated);
+        setnewPurchaseOrder((prev) => ({ ...prev, ...updated }));
+      } finally {
+        setPageLoading(false);
+      }
+    } else if (name === "vendorbranch") {
+      const { address, gstin, statecode } = await getVendorAddress({
+        vendorCode: newPurchaseOrder.vendorname,
+        vendorBranch: value,
+      });
+
+      const updated = {
+        vendorbranch: value,
+        vendoraddress: address?.replaceAll("<br>", "\n") || "",
+        gstin: gstin || "",
+        venCode: statecode || "",
+      };
+
+      form.setFieldsValue(updated);
+      setnewPurchaseOrder((prev) => ({ ...prev, ...updated }));
+    } else if (name === "billaddressid") {
+      const billingDetails = await getBillingAddress(value);
+      if (!billingDetails) return;
+
+      form.setFieldsValue({
+        billaddressid: value,
+        billaddress: billingDetails.address?.replaceAll("<br>", "\n") || "",
+        billPan: billingDetails.pan || "",
+        billGST: billingDetails.gstin || "",
+        billCode: billingDetails.code || "",
+      });
+
+      setnewPurchaseOrder((prev) => ({
+        ...prev,
+        billaddressid: value,
+        billaddress: billingDetails.address?.replaceAll("<br>", "\n") || "",
+        billPan: billingDetails.pan || "",
+        billGST: billingDetails.gstin || "",
+        billCode: billingDetails.code || "",
+      }));
+    } else if (name === "shipaddressid") {
+      // If "other" is selected, clear the fields and make them editable
+      if (value === "other") {
+        form.setFieldsValue({
+          shipaddressid: value,
+          shipaddress: "",
+          shipPan: "",
+          shipGST: "",
+        });
+
+        setnewPurchaseOrder((prev) => ({
+          ...prev,
+          shipaddressid: value,
+          shipaddress: "",
+          shipPan: "",
+          shipGST: "",
+        }));
+
+        setSameAsBilling(false);
+      } else if (sameAsBilling) {
+        form.setFieldsValue({
+          shipaddressid: value,
+          shipaddress: newPurchaseOrder.billaddress,
+          shipPan: newPurchaseOrder.billPan,
+          shipGST: newPurchaseOrder.billGST,
+        });
+
+        setnewPurchaseOrder((prev) => ({
+          ...prev,
+          shipaddressid: value,
+          shipaddress: prev.billaddress,
+          shipPan: prev.billPan,
+          shipGST: prev.billGST,
+        }));
+      } else {
+        const shippingDetails = await getShippingAddress(value);
+        if (!shippingDetails) return;
+
+        form.setFieldsValue({
+          shipaddressid: value,
+          shipaddress: shippingDetails.address?.replaceAll("<br>", "\n") || "",
+          shipPan: shippingDetails.pan || "",
+          shipGST: shippingDetails.gstin || "",
+        });
+
+        setnewPurchaseOrder((prev) => ({
+          ...prev,
+          shipaddressid: value,
+          shipaddress: shippingDetails.address?.replaceAll("<br>", "\n") || "",
+          shipPan: shippingDetails.pan || "",
+          shipGST: shippingDetails.gstin || "",
+        }));
+      }
+    } else {
+      form.setFieldsValue({ [name]: value });
+      setnewPurchaseOrder((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSameAsBilling = (checked) => {
+    setSameAsBilling(checked);
+
+    if (checked) {
+      const billingOption = billToOptions.find(
+        (option) => option.value === newPurchaseOrder.billaddressid,
+      );
+
+      if (billingOption) {
+        const existsInShipping = shipToOptions.some(
+          (option) => option.value === billingOption.value,
+        );
+        if (!existsInShipping) {
+          setShipToOptions((prev) => [...prev, billingOption]);
+        }
+      }
+
+      form.setFieldsValue({
+        shipaddressid: newPurchaseOrder.billaddressid,
+        shipaddress: newPurchaseOrder.billaddress,
+        shipPan: newPurchaseOrder.billPan,
+        shipGST: newPurchaseOrder.billGST,
+      });
+
+      setnewPurchaseOrder((prev) => ({
+        ...prev,
+        shipaddressid: prev.billaddressid,
+        shipaddress: prev.billaddress,
+        shipPan: prev.billPan,
+        shipGST: prev.billGST,
+      }));
+    } else {
+      form.setFieldsValue({
+        shipaddressid: undefined,
+        shipaddress: "",
+        shipPan: "",
+        shipGST: "",
+      });
+
+      setnewPurchaseOrder((prev) => ({
+        ...prev,
+        shipaddressid: undefined,
+        shipaddress: "",
+        shipPan: "",
+        shipGST: "",
+      }));
+    }
+  };
+
+  const POoption = [
+    { text: "New", value: "N" },
+    { text: "Supplementary", value: "S" },
+  ];
+  const vendorDetailsOptions = [{ text: "Vendor", value: "v01" }];
+  //getting users list
+  const getusers = async (s) => {
+    if (s?.length > 2) {
+      setSelectLoading(true);
+      const response = await imsAxios.post("/backend/fetchAllUser", {
+        search: s,
+      });
+      setSelectLoading(false);
+      let arr = [];
+      if (response?.success) {
+        arr = response?.data.map((d) => {
+          return { text: d.text, value: d.id };
+        });
+        setUserOptions(arr);
+      } else {
+        setUserOptions([]);
+      }
+    }
+  };
+
+  const getVendors = async (search) => {
+    const response = await executeFun(() => getVendorOptions(search), "select");
+    let arr = [];
+
+    if (response.success) {
+      arr = convertSelectOptions(response.data);
+    }
+    setAsyncOptions(arr);
+    let data = response?.data;
+    arr = data;
+    // //   if (!data.msg) {
+    if (response.success) {
+      arr = arr.map((d) => {
+        return { text: d.text, value: d.id };
+      });
+      setAsyncOptions(arr);
+    } else {
+      setAsyncOptions([]);
+    }
+  };
+  //getting vendor branches
+  const getVendorBracnch = async (
+    vendorCode,
+    { showPageLoading = true } = {},
+  ) => {
+    if (showPageLoading) setPageLoading(true);
+    try {
+      const response = await imsAxios.post("/backend/vendorBranchList", {
+        vendorcode: vendorCode,
+      });
+
+      if (response.success) {
+        const arr = response.data.map((d) => {
+          return { value: d.id, text: d.text };
+        });
+        setVendorBranches(arr);
+        return arr;
+      }
+      if (!response?.success) {
+        return;
+      }
+    } finally {
+      if (showPageLoading) setPageLoading(false);
+    }
+  };
+  // getting vendor address
+  const getVendorAddress = async ({ vendorCode, vendorBranch }) => {
+    const response = await imsAxios.post("/backend/vendorAddress", {
+      vendorcode: vendorCode?.value,
+      branchcode: vendorBranch,
+    });
+
+    return {
+      address: response?.data?.address,
+      gstin: response?.data.gstid,
+      statecode: response?.data?.state,
+    };
+  };
+  const getBillTo = async () => {
+    setSelectLoading(true);
+    const response = await imsAxios.post("/backend/billingAddressList", {
+      search: "",
+    });
+    setSelectLoading(false);
+    let arr = [];
+    arr = response?.data.map((d) => {
+      return { text: d.text, value: d.id };
+    });
+    setBillTopOptions(arr);
+
+    if (arr.length > 0 && !newPurchaseOrder.billaddressid) {
+      const firstOption = arr[0].value;
+      // Use selectInputHandler to populate billing details
+      await selectInputHandler("billaddressid", firstOption);
+    }
+  };
+  const shipTo = async () => {
+    setSelectLoading(true);
+    const response = await imsAxios.post("/backend/shipingAddressList", {
+      search: "",
+    });
+    setSelectLoading(false);
+    let arr = [];
+    arr = response?.data.map((d) => {
+      return { text: d.text, value: d.id };
+    });
+    // Add "other" option to the shipping options
+    // arr.push({ text: "Other", value: "other" });
+    setShipToOptions(arr);
+    if (arr.length > 0 && !newPurchaseOrder.shipaddressid) {
+      const firstOption = arr[0].value;
+      // Use selectInputHandler to populate billing details
+      await selectInputHandler("shipaddressid", firstOption);
+    }
+  };
+  const handleFetchCostCenterOptions = async (search) => {
+    const response = await executeFun(
+      () => getCostCentresOptions(search),
+      "select",
+    );
+    let arr = [];
+    if (response.success) arr = convertSelectOptions(response.data);
+    setAsyncOptions(arr);
+  };
+  const getBillingAddress = async (billaddressid) => {
+    if (billaddressid == null || billaddressid === "") return null;
+    setPageLoading(true);
+    try {
+      const response = await imsAxios.post("/backend/billingAddress", {
+        billing_code: billaddressid,
+      });
+      return {
+        gstin: response?.data?.gstin,
+        pan: response?.data?.pan,
+        address: response?.data?.address,
+        code: response.data?.statecode,
+      };
+    } finally {
+      setPageLoading(false);
+    }
+
+    // selectInputHandler("billDetails", data.data.address);
+  };
+  const getShippingAddress = async (shipaddressid) => {
+    if (
+      shipaddressid == null ||
+      shipaddressid === "" ||
+      shipaddressid === "other"
+    ) {
+      return null;
+    }
+    setPageLoading(true);
+    try {
+      const response = await imsAxios.post("/backend/shippingAddress", {
+        shipping_code: shipaddressid,
+      });
+      setStateCode(response?.data?.statecode);
+      // console.log("stateCodeeeeeeeeeeeeee", data.data.statecode);
+      return {
+        gstin: response.data?.gstin,
+        pan: response.data?.pan,
+        address: response.data?.address,
+      };
+    } finally {
+      setPageLoading(false);
+    }
+  };
+  const resetFunction = () => {
+    let obj = {
+      vendorname: "",
+      vendortype: "v01",
+      vendorbranch: "",
+      vendoraddress: "",
+      billaddressid: "",
+      billaddress: "",
+      billPan: "",
+      billGST: "",
+      shipaddressid: "",
+      shipaddress: "",
+      shipPan: "",
+      shipGST: "",
+      // termscondition: "",
+      quotationdetail: "",
+      pocostcenter: "",
+      po_comment: "",
+      project_name: "",
+      pocreatetype: "N",
+      original_po: "",
+      termscondition: "",
+      customDeliveryTerm: "",
+      paymentterms: "",
+      advancePayment: 0,
+      advancePercentage: null,
+    };
+
+    // form.reset
+    // form.resetFields();
+    form.setFieldsValue(obj);
+    setnewPurchaseOrder(obj);
+    form.setFieldValue("advancePayment", "");
+    setSameAsBilling(false);
+    setShowDetailsConfirm(false);
+    setPendingPOData(null);
+    setQtyWarningData(null);
+    setShowQtyWarning(false);
+  };
+  const rowsReset = () => {
+    setRowCount([
+      {
+        id: v4(),
+        index: 1,
+        currency: "364907247",
+        exchange_rate: 1,
+        component: "",
+        qty: 1,
+        rate: "",
+        duedate: "",
+        inrValue: 0,
+        hsncode: "",
+        gsttype: "L",
+        gstrate: "",
+        cgst: 0,
+        sgst: 0,
+        igst: 0,
+        remark: "--",
+        unit: "--",
+      },
+    ]);
+  };
+  const setNewPO = () => {
+    resetFunction();
+    setSuccessData(false);
+  };
+  const handleFetchProjectOptions = async (search) => {
+    const response = await executeFun(
+      () => getProjectOptions(search),
+      "select",
+    );
+    setAsyncOptions(response.data);
+  };
+  const handleProjectChange = async (value) => {
+    const projectValue =
+      typeof value === "object" ? value : { value: value, label: value };
+
+    // Update form value to ensure it's synced
+    form.setFieldsValue({ project_name: projectValue });
+
+    setnewPurchaseOrder((prev) => ({
+      ...prev,
+      project_name: projectValue,
+    }));
+
+    setPageLoading(true);
+    try {
+      const response = await imsAxios.post("/backend/projectDescription", {
+        project_name: typeof value === "object" ? value.value : value,
+      });
+      const data = response?.data;
+      if (data) {
+        if (response.success) {
+          setProjectDesc(data.description);
+
+          await handleProjectCostCenter(
+            typeof value === "object" ? value.value : value,
+            { showPageLoading: false },
+          );
+        } else {
+          showToast(data.message, "error");
+        }
+      }
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  const handleProjectCostCenter = async (
+    projectName,
+    { showPageLoading = true } = {},
+  ) => {
+    if (showPageLoading) setPageLoading(true);
+    try {
+      const response = await imsAxios.post("/purchaseOrder/costCenter", {
+        project_name: projectName,
+      });
+      const responseData =
+        response?.success !== undefined ? response : response?.data || response;
+
+      if (
+        responseData &&
+        responseData.success &&
+        responseData.data &&
+        Array.isArray(responseData.data) &&
+        responseData.data.length > 0
+      ) {
+        const costCenterData = responseData.data[0];
+        const costCenterOption = {
+          value: costCenterData.id,
+          label: costCenterData.text,
+        };
+
+        form.setFieldsValue({ pocostcenter: costCenterOption });
+        const updatedPO = {
+          ...newPurchaseOrder,
+          pocostcenter: costCenterOption,
+        };
+        setnewPurchaseOrder(updatedPO);
+      } else {
+        showToast(
+          responseData?.message || "Failed to fetch cost center",
+          "error",
+        );
+      }
+    } catch (error) {
+      showToast("Error fetching project cost center", "error");
+    } finally {
+      if (showPageLoading) setPageLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (submitLoading) {
+      setTimeout(() => {
+        setSubmitLoading(false);
+      }, 600000);
+    }
+  }, [submitLoading]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await getBillTo();
+      if (cancelled) return;
+      await shipTo();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sameAsBilling && newPurchaseOrder.billaddressid) {
+      const billingOption = billToOptions.find(
+        (option) => option.value === newPurchaseOrder.billaddressid,
+      );
+
+      if (billingOption) {
+        const existsInShipping = shipToOptions.some(
+          (option) => option.value === billingOption.value,
+        );
+        if (!existsInShipping) {
+          setShipToOptions((prev) => [...prev, billingOption]);
+        }
+      }
+
+      form.setFieldsValue({
+        shipaddressid: newPurchaseOrder.billaddressid,
+        shipaddress: newPurchaseOrder.billaddress,
+        shipPan: newPurchaseOrder.billPan,
+        shipGST: newPurchaseOrder.billGST,
+      });
+
+      setnewPurchaseOrder((prev) => ({
+        ...prev,
+        shipaddressid: prev.billaddressid,
+        shipaddress: prev.billaddress,
+        shipPan: prev.billPan,
+        shipGST: prev.billGST,
+      }));
+    }
+  }, [sameAsBilling, newPurchaseOrder.billaddressid]);
+  const finish = (values) => {
+    setnewPurchaseOrder((prev) => ({
+      ...prev,
+      ...values,
+      project_name: prev.project_name || values.project_name,
+      pocostcenter: prev.pocostcenter || values.pocostcenter,
+    }));
+    setActiveTab("2");
+  };
+  return (
+    <div
+      style={{
+        height: "calc(100vh - 180px)",
+        overflow: "hidden",
+        margin: "10px",
+      }}
+    >
+      {/* create confirm modal */}
+      <Modal
+        title="Confirm Create PR!"
+        open={showSubmitConfirm}
+        onCancel={() => setShowSubmitConfirm(false)}
+        footer={[
+          <Button key="back" onClick={() => setShowSubmitConfirm(false)}>
+            No
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={submitLoading}
+            onClick={() => {
+              setPendingPOData(showSubmitConfirm); // ← Store the PR data
+              setShowSubmitConfirm(false); // ← Close this modal
+              submitHandler(false); // ← Try to submit (will trigger warning if needed)
+            }}
+          >
+            Yes
+          </Button>,
+        ]}
+      >
+        <p>Are you sure you want to generate this Purchase Order?</p>
+      </Modal>
+      {/* reset vendor confirm modal */}
+      <Modal
+        title="Confirm Reset!"
+        open={showDetailsCondirm}
+        onOk={resetFunction}
+        onCancel={() => setShowDetailsConfirm(false)}
+        footer={[
+          <Button key="back" onClick={() => setShowDetailsConfirm(false)}>
+            No
+          </Button>,
+          <Button key="submit" type="primary" onClick={resetFunction}>
+            Yes
+          </Button>,
+        ]}
+      >
+        <p>Are you sure to reset details of this Purchase Order?</p>
+      </Modal>
+      {/* Quantity Warning Modal */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "20px", color: "#faad14" }}>⚠️</span>
+            <span>Quantity Exceeds Project Requirement</span>
+          </div>
+        }
+        open={showQtyWarning}
+        onCancel={() => {
+          setShowQtyWarning(false);
+          setQtyWarningData(null);
+          setPendingPOData(null);
+        }}
+        footer={[
+          <Button
+            key="back"
+            onClick={() => {
+              setShowQtyWarning(false);
+              setQtyWarningData(null);
+            }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            danger
+            loading={submitLoading}
+            onClick={async () => {
+              setShowQtyWarning(false);
+              await submitHandler(true); // Pass confirmation flag - pendingPOData already has the data
+            }}
+          >
+            Proceed Anyway
+          </Button>,
+        ]}
+        width={700}
+      >
+        <div>
+          <p style={{ marginBottom: "16px", fontWeight: 500 }}>
+            The following components exceed the project quantity requirements:
+          </p>
+
+          {qtyWarningData?.warnings?.map((warning, index) => (
+            <div
+              key={index}
+              style={{
+                padding: "12px",
+                marginBottom: "12px",
+                backgroundColor: "#fff7e6",
+                border: "1px solid #ffd591",
+                borderRadius: "4px",
+              }}
+            >
+              <p style={{ margin: "4px 0", fontSize: "14px" }}>
+                <strong>{warning.message}:</strong>
+              </p>
+            </div>
+          ))}
+
+          <p style={{ marginTop: "16px", color: "#595959", fontSize: "13px" }}>
+            ⚠️ <strong>Warning:</strong> Proceeding will create a PR that
+            exceeds the project requirements. Please verify this is intentional
+            before continuing.
+          </p>
+        </div>
+      </Modal>
+      <AddVendorSideBar
+        open={showAddVendorModal}
+        setOpen={setShowAddVendorModal}
+      />
+      <AddBranch
+        getVendorBracnch={getVendorBracnch}
+        setOpenBranch={setShowBranchModal}
+        openBranch={showBranchModel}
+      />
+      <CreateCostModal
+        showAddCostModal={showAddCostModal}
+        setShowAddCostModal={setShowAddCostModal}
+      />
+      <AddProjectModal
+        showAddProjectConfirm={showAddProjectConfirm}
+        setShowAddProjectConfirm={setShowAddProjectConfirm}
+      />
+      {!successData && (
+        <div style={{ height: "100%", overflow: "hidden" }}>
+          <Tabs
+            style={{
+              height: "100%",
+            }}
+            activeKey={activeTab}
+            tabBarExtraContent={{
+              right:
+                activeTab === "2" ? (
+                  <MyButton
+                    variant="upload"
+                    text="Excel"
+                    onClick={() => setOpen(true)}
+                  >
+                    Excel
+                  </MyButton>
+                ) : null,
+            }}
+            size="small"
+            onChange={setActiveTab}
+            items={[
+              {
+                key: "1",
+                label: "Purchase Request Details",
+                children: (
+                  <div
+                    style={{
+                      height: "100%",
+                      overflowY: "scroll",
+                      overflowX: "hidden",
+                      maxHeight: "calc(100vh - 235px)",
+                      padding: "0vh 20px 10px",
+                    }}
+                  >
+                    {pageLoading && <Loading />}
+                    {/* vendor */}
+                    <Form
+                      form={form}
+                      size="small"
+                      scrollToFirstError={true}
+                      name="create-po"
+                      layout="vertical"
+                      initialValues={newPurchaseOrder}
+                      onFinish={finish}
+                      onFieldsChange={(value, allFields) => {
+                        if (value.length == 1) {
+                          selectInputHandler(value[0].name[0], value[0].value);
+                        }
+                      }}
+                    >
+                      <Row>
+                        <Col span={4}>
+                          <Descriptions size="small" title="PR Type">
+                            <Descriptions.Item
+                              contentStyle={{
+                                fontSize: window.innerWidth < 1600 && "0.7rem",
+                              }}
+                            >
+                              Provide Purchase Order type as in
+                              <br /> (New Or Supplementary)
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Col>
+                        <Col span={20}>
+                          <Row gutter={16}>
+                            {/* PR type */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="pocreatetype"
+                                label="PR Type"
+                                rules={rules.pocreatetype}
+                              >
+                                <MySelect size="default" options={POoption} />
+                              </Form.Item>
+                            </Col>
+
+                            {newPurchaseOrder.pocreatetype == "S" && (
+                              <Col span={6}>
+                                <Form.Item
+                                  name="original_po"
+                                  label={
+                                    <span
+                                      style={{
+                                        fontSize:
+                                          window.innerWidth < 1600 && "0.7rem",
+                                      }}
+                                    >
+                                      Original PR
+                                    </span>
+                                  }
+                                  rules={rules.original_po}
+                                >
+                                  <MyAsyncSelect
+                                    selectLoading={selectLoading}
+                                    size="default"
+                                    onBlur={() => setAsyncOptions([])}
+                                    loadOptions={getPOs}
+                                    optionsState={asyncOptions}
+                                  />
+                                </Form.Item>
+                              </Col>
+                            )}
+                          </Row>
+                        </Col>
+                      </Row>
+                      <Divider />
+                      <Row>
+                        <Col span={4}>
+                          <Descriptions size="small" title="Vendor Details">
+                            <Descriptions.Item
+                              contentStyle={{
+                                fontSize: window.innerWidth < 1600 && "0.7rem",
+                              }}
+                            >
+                              Type Name or Code of the vendor
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Col>
+
+                        <Col span={20}>
+                          <Row gutter={16}>
+                            {/* vendor type */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="vendortype"
+                                label={
+                                  <span
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                    }}
+                                  >
+                                    Vendor Type
+                                  </span>
+                                }
+                                rules={rules.vendortype}
+                              >
+                                <MySelect
+                                  size="default"
+                                  options={vendorDetailsOptions}
+                                />
+                              </Form.Item>
+                            </Col>
+                            {/* vendor name */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="vendorname"
+                                rules={rules.vendorname}
+                                label={
+                                  <div
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      width: 350,
+                                    }}
+                                  >
+                                    Vendor Name
+                                    {/* <span
+                                  onClick={() => setShowAddVendorModal(true)}
+                                  style={{
+                                    color: "#1890FF",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Add Vendor
+                                </span> */}
+                                  </div>
+                                }
+                              >
+                                <MyAsyncSelect
+                                  selectLoading={loading1("select")}
+                                  size="default"
+                                  labelInValue
+                                  onBlur={() => setAsyncOptions([])}
+                                  optionsState={asyncOptions}
+                                  loadOptions={getVendors}
+                                />
+                              </Form.Item>
+                            </Col>
+                            {/* venodr branch */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="vendorbranch"
+                                rules={rules.vendorbranch}
+                                label={
+                                  <div
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      width: 350,
+                                    }}
+                                  >
+                                    Vendor Branch
+                                    {/* <span
+                                  onClick={() => {
+                                    newPurchaseOrder.vendorname.value
+                                      ? setShowBranchModal({
+                                        vendor_code: newPurchaseOrder.vendorname.value,
+                                      })
+                                      : showToast("Please Select a vendor first", "error");
+                                  }}
+                                  style={{ color: "#1890FF" }}
+                                >
+                                  Add Branch
+                                </span> */}
+                                  </div>
+                                }
+                              >
+                                <MySelect options={vendorBranches} />
+                              </Form.Item>
+                            </Col>
+                            {/* gstin */}
+                            <Col span={6}>
+                              <Form.Item name="gstin" label="GSTIN">
+                                <Input size="default" disabled />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                          <Row gutter={8}>
+                            <Col span={6}>
+                              <Form.Item name="msmeType" label="MSME Type">
+                                <Input size="default" disabled />
+                              </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                              <Form.Item label="MSME Id" name="msmeId">
+                                <Input size="default" disabled />
+                              </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                              <Form.Item
+                                name="vendoraddress"
+                                label="Bill From Address"
+                                rules={rules.vendoraddress}
+                              >
+                                <TextArea
+                                  value={newPurchaseOrder.vendoraddress}
+                                  rows={4}
+                                  style={{
+                                    resize: "none",
+                                    backgroundColor: "#ffffff",
+                                    color: "#1f1f1f",
+                                    fontWeight: 600,
+                                    fontSize: "14px",
+                                    lineHeight: "1.6",
+                                    opacity: 1,
+                                    border: "1px solid #d9d9d9",
+                                    borderRadius: "6px",
+                                    padding: "12px 16px",
+                                    boxShadow:
+                                      "inset 0 1px 3px rgba(0,0,0,0.05)",
+                                  }}
+                                  disabled
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+                      <Divider />
+                      {/* PR TERMS */}
+                      <Row>
+                        <Col span={4}>
+                          <Descriptions size="small" title="PR Terms">
+                            <Descriptions.Item
+                              contentStyle={{
+                                fontSize: window.innerWidth < 1600 && "0.7rem",
+                              }}
+                            >
+                              Provide PR terms and other information
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Col>
+                        <Col span={20}>
+                          <Row gutter={16}>
+                            {/* terms and conditions */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="termscondition"
+                                label="Delivery Terms"
+                              >
+                                <MySelect
+                                  options={deliveryTermOptions}
+                                  onChange={(value) => {
+                                    if (value !== "Other") {
+                                      form.setFieldsValue({
+                                        customDeliveryTerm: "",
+                                      });
+                                    }
+                                  }}
+                                />
+                              </Form.Item>
+                              <Form.Item noStyle>
+                                {termsCondition === "Other" && (
+                                  <Form.Item
+                                    name="customDeliveryTerm"
+                                    style={{ marginTop: 8 }}
+                                  >
+                                    <Input placeholder="Enter custom delivery term" />
+                                  </Form.Item>
+                                )}
+                              </Form.Item>
+                            </Col>
+                            {/* quotations */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="quotationdetail"
+                                label="Quotation"
+                              >
+                                <Input size="default" name="quotationdetail" />
+                              </Form.Item>
+                            </Col>
+                            {/* payment terms */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="paymentterms"
+                                label="Payment Terms"
+                              >
+                                <MySelect
+                                  options={paymentTermOptions}
+                                  onChange={(value) => {
+                                    // Agar "Other" nahi select kiya to custom field clear kar do
+                                    if (value !== "Other") {
+                                      form.setFieldsValue({
+                                        customPaymentTerm: "",
+                                      });
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        customPaymentTerm: "",
+                                      }));
+                                    }
+                                  }}
+                                />
+                              </Form.Item>
+                              {form.getFieldValue("paymentterms") ===
+                                "Other" && (
+                                <Form.Item
+                                  name="customPaymentTerm"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please enter payment terms",
+                                    },
+                                  ]}
+                                  style={{ marginTop: 8 }}
+                                >
+                                  <Input.TextArea
+                                    rows={2}
+                                    placeholder="e.g. 30% Advance, balance against delivery"
+                                    onChange={(e) => {
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        customPaymentTerm: e.target.value,
+                                      }));
+                                    }}
+                                  />
+                                </Form.Item>
+                              )}
+                            </Col>
+
+                            {/* po due date*/}
+                            {/* <Col span={6}>
+                          <Form.Item label="Due Date (in days)" name="paymenttermsday">
+                            <InputNumber style={{ width: "100%" }} size="default" min={1} max={999} />
+                          </Form.Item>
+                        </Col> */}
+                          </Row>
+                          <Row gutter={16} style={{ marginTop: 16 }}>
+                            <Col span={5}>
+                              <Form.Item
+                                label="Advance Payment"
+                                name="advancePayment"
+                              >
+                                <Radio.Group
+                                  onChange={(e) => {
+                                    const isYes = e.target.value === 1;
+                                    if (!isYes) {
+                                      form.setFieldsValue({
+                                        advancePercentage: null,
+                                      });
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        advancePercentage: null,
+                                      }));
+                                    }
+
+                                    if (
+                                      isYes &&
+                                      form.getFieldValue("paymentterms") ===
+                                        "Other"
+                                    ) {
+                                      const percent =
+                                        form.getFieldValue(
+                                          "advancePercentage",
+                                        ) || "";
+                                      const currentText =
+                                        form.getFieldValue(
+                                          "customPaymentTerm",
+                                        ) || "";
+                                      let newText = "";
+
+                                      if (percent) {
+                                        if (currentText.includes("% Advance")) {
+                                          newText = currentText.replace(
+                                            /\d+% Advance/,
+                                            `${percent}% Advance`,
+                                          );
+                                        } else {
+                                          newText = currentText
+                                            ? `${percent}% Advance, ${currentText}`
+                                            : `${percent}% Advance`;
+                                        }
+                                      } else {
+                                        newText = currentText;
+                                      }
+
+                                      form.setFieldsValue({
+                                        customPaymentTerm: newText,
+                                      });
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        customPaymentTerm: newText,
+                                      }));
+                                    }
+                                  }}
+                                >
+                                  <Radio value={1}>Yes</Radio>
+                                  <Radio value={0}>No</Radio>
+                                </Radio.Group>
+                              </Form.Item>
+                            </Col>
+                            {/* Advance Percentage Input */}
+                            <Col span={3}>
+                              <Form.Item noStyle>
+                                {advancePayment === 1 && (
+                                  <Form.Item
+                                    name="advancePercentage"
+                                    label="Advance %"
+                                    rules={[
+                                      { required: true, message: "Enter %" },
+                                    ]}
+                                  >
+                                    <InputNumber
+                                      min={1}
+                                      max={100}
+                                      formatter={(v) => `${v}%`}
+                                      parser={(v) => v.replace("%", "")}
+                                      style={{ width: "100%" }}
+                                      type="number"
+                                      onChange={(value) => {
+                                        if (
+                                          form.getFieldValue("paymentterms") ===
+                                          "Other"
+                                        ) {
+                                          const currentText =
+                                            form.getFieldValue(
+                                              "customPaymentTerm",
+                                            ) || "";
+                                          let newText = "";
+
+                                          if (value) {
+                                            if (
+                                              currentText.includes("% Advance")
+                                            ) {
+                                              newText = currentText.replace(
+                                                /\d+% Advance/,
+                                                `${value}% Advance`,
+                                              );
+                                            } else {
+                                              newText = currentText
+                                                ? `${value}% Advance, ${currentText}`
+                                                : `${value}% Advance`;
+                                            }
+                                          } else {
+                                            newText = currentText
+                                              .replace(/\d+% Advance,?\s*/, "")
+                                              .trim();
+                                          }
+
+                                          form.setFieldsValue({
+                                            customPaymentTerm: newText,
+                                          });
+                                          setnewPurchaseOrder((prev) => ({
+                                            ...prev,
+                                            customPaymentTerm: newText,
+                                          }));
+                                        }
+                                      }}
+                                    />
+                                  </Form.Item>
+                                )}
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                          <Row gutter={16} style={{ marginTop: 16 }}>
+                            {/* project id */}
+
+                            <Col span={5}>
+                              <Form.Item
+                                name="project_name"
+                                rules={rules.project_name}
+                                label={
+                                  <div
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      width: 350,
+                                    }}
+                                  >
+                                    Project ID
+                                  </div>
+                                }
+                              >
+                                <MyAsyncSelect
+                                  selectLoading={loading1("select")}
+                                  onBlur={() => setAsyncOptions([])}
+                                  loadOptions={handleFetchProjectOptions}
+                                  optionsState={asyncOptions}
+                                  onChange={handleProjectChange}
+                                />
+                              </Form.Item>
+                            </Col>
+                            {/* project name */}
+                            <Col span={5}>
+                              <Form.Item label="Project Description">
+                                <Input
+                                  size="default"
+                                  disabled
+                                  value={projectDesc}
+                                />
+                              </Form.Item>
+                            </Col>
+                            {/* cost center */}
+                            <Col span={4}>
+                              <Form.Item
+                                name="pocostcenter"
+                                rules={rules.pocostcenter}
+                                label={
+                                  <div
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      width: 350,
+                                    }}
+                                  >
+                                    Cost Center
+                                    {/* <span
+                                  onClick={() => setShowAddCostModal(true)}
+                                  style={{
+                                    color: "#1890FF",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Add Cost Center
+                                </span> */}
+                                  </div>
+                                }
+                              >
+                                <MyAsyncSelect
+                                  selectLoading={loading1("select")}
+                                  onBlur={() => setAsyncOptions([])}
+                                  loadOptions={handleFetchCostCenterOptions}
+                                  optionsState={asyncOptions}
+                                />
+                              </Form.Item>
+                            </Col>
+                            {/* comments */}
+                            <Col span={5}>
+                              <Form.Item label="Comments" name="po_comment">
+                                <Input size="default" />
+                              </Form.Item>
+                            </Col>
+                            {/* raised by */}
+                            <Col span={5}>
+                              <Form.Item
+                                label="Requested By"
+                                name="raisedBy"
+                                rules={rules.raisedBy}
+                              >
+                                <MyAsyncSelect
+                                  selectLoading={selectLoading}
+                                  size="default"
+                                  onBlur={() => setUserOptions([])}
+                                  optionsState={userOptions}
+                                  loadOptions={getusers}
+                                  onChange={(value) =>
+                                    selectInputHandler("raisedBy", value)
+                                  }
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+
+                      <Divider />
+                      <Row>
+                        <Col span={4}>
+                          <Descriptions size="small" title="Billing Details">
+                            <Descriptions.Item
+                              contentStyle={{
+                                fontSize: window.innerWidth < 1600 && "0.7rem",
+                              }}
+                            >
+                              Provide billing information
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Col>
+                        <Col span={20}>
+                          <Row gutter={16}>
+                            {/* billing id */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="billaddressid"
+                                label="Billing Id"
+                                rules={rules.billaddressid}
+                              >
+                                <MySelect options={billToOptions} />
+                              </Form.Item>
+                            </Col>
+                            {/* pan number */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="billPan"
+                                label="Pan No."
+                                rules={rules.billPan}
+                              >
+                                <Input
+                                  size="default"
+                                  value={newPurchaseOrder.billPan}
+                                  disabled
+                                />
+                              </Form.Item>
+                            </Col>
+                            {/* gstin uin */}
+                            <Col span={6}>
+                              <Form.Item
+                                name="billGST"
+                                label="GSTIN / UIN"
+                                rules={rules.billGST}
+                              >
+                                <Input
+                                  size="default"
+                                  value={newPurchaseOrder.billGST}
+                                  disabled
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                          {/* billing address */}
+                          <Row>
+                            <Col span={18}>
+                              <Form.Item
+                                name="billaddress"
+                                label="Billing Address"
+                                rules={rules.billaddress}
+                              >
+                                <TextArea
+                                  value={newPurchaseOrder.billaddress}
+                                  disabled
+                                  rows={5}
+                                  style={{
+                                    resize: "none",
+                                    backgroundColor: "#ffffff",
+                                    color: "#1f1f1f",
+                                    fontWeight: 600,
+                                    fontSize: "14px",
+                                    lineHeight: "1.6",
+                                    opacity: 1,
+                                    border: "1px solid #d9d9d9",
+                                    borderRadius: "6px",
+                                    padding: "12px 16px",
+                                    boxShadow:
+                                      "inset 0 1px 3px rgba(0,0,0,0.05)",
+                                  }}
+                                  className="bold-disabled-textarea"
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+
+                      <Divider />
+                      <Row>
+                        <Col span={4}>
+                          <Descriptions size="small" title="Shipping Details">
+                            <Descriptions.Item
+                              contentStyle={{
+                                fontSize: window.innerWidth < 1600 && "0.7rem",
+                              }}
+                            >
+                              Provide shipping information
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Col>
+                        <Col span={20}>
+                          <Row gutter={16}>
+                            <Col span={10}>
+                              <Form.Item
+                                name="ship_type"
+                                label="Shipping Address Type"
+                              >
+                                <Radio.Group
+                                  onChange={(e) => {
+                                    const type = e.target.value;
+                                    if (type === "manual") {
+                                      form.setFieldsValue({
+                                        ship_vendor: "",
+                                        ship_vendor_branch: "",
+                                        shipaddress: "",
+                                        shipPan: "",
+                                        shipGST: "",
+                                      });
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        ship_type: type,
+                                        ship_vendor: "",
+                                        ship_vendor_branch: "",
+                                        shipaddress: "",
+                                        shipPan: "",
+                                        shipGST: "",
+                                      }));
+                                    }
+                                  }}
+                                >
+                                  <Radio value="saved">Default</Radio>
+                                  <Radio value="vendor">Vendor</Radio>
+                                  <Radio value="manual">Manual</Radio>
+                                </Radio.Group>
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                          <Col span={6}>
+                            <Form.Item label="">
+                              <Checkbox
+                                checked={sameAsBilling}
+                                onChange={(e) =>
+                                  handleSameAsBilling(e.target.checked)
+                                }
+                                disabled={
+                                  form.getFieldValue("ship_type") !== "saved"
+                                }
+                              >
+                                Same as Billing Address
+                              </Checkbox>
+                            </Form.Item>
+                          </Col>
+
+                          {/* Saved Mode - Original shipping address selection with Same as Billing functionality */}
+                          {form.getFieldValue("ship_type") === "saved" && (
+                            <Row gutter={16} style={{ marginTop: 16 }}>
+                              <Col span={6}>
+                                <Form.Item
+                                  name="shipaddressid"
+                                  label="Shipping Id"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please select shipping address",
+                                    },
+                                  ]}
+                                >
+                                  <MySelect
+                                    options={shipToOptions}
+                                    disabled={sameAsBilling}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col span={6}>
+                                <Form.Item
+                                  label="Pan No."
+                                  name="shipPan"
+                                  rules={rules.shipPan}
+                                >
+                                  <Input
+                                    size="default"
+                                    disabled={
+                                      sameAsBilling ||
+                                      newPurchaseOrder.shipaddressid !== "other"
+                                    }
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col span={6}>
+                                <Form.Item
+                                  name="shipGST"
+                                  label="GSTIN / UIN"
+                                  rules={rules.shipGST}
+                                >
+                                  <Input
+                                    size="default"
+                                    disabled={
+                                      sameAsBilling ||
+                                      newPurchaseOrder.shipaddressid !== "other"
+                                    }
+                                  />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          )}
+
+                          {/* Vendor Mode - Vendor and Branch selection */}
+                          {form.getFieldValue("ship_type") === "vendor" && (
+                            <Row gutter={16} style={{ marginTop: 16 }}>
+                              <Col span={8}>
+                                <Form.Item
+                                  name="ship_vendor"
+                                  label="Shipping Vendor"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please select shipping vendor",
+                                    },
+                                  ]}
+                                >
+                                  <MyAsyncSelect
+                                    labelInValue
+                                    placeholder="Search vendor for shipping"
+                                    loadOptions={getVendors}
+                                    onBlur={() => setAsyncOptions([])}
+                                    optionsState={asyncOptions}
+                                    onChange={async (value) => {
+                                      if (!value) return;
+                                      const branches = await getVendorBracnch(
+                                        value.value,
+                                      );
+                                      const { address, gstin } =
+                                        await getVendorAddress({
+                                          vendorCode: value,
+                                          vendorBranch: branches[0]?.value,
+                                        });
+                                      form.setFieldsValue({
+                                        ship_vendor_branch:
+                                          branches[0]?.value || "",
+                                        shipaddress:
+                                          address?.replaceAll("<br>", "\n") ||
+                                          "",
+                                        shipGST: gstin || "",
+                                      });
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        ship_vendor: value,
+                                        ship_vendor_branch:
+                                          branches[0]?.value || "",
+                                        shipaddress:
+                                          address?.replaceAll("<br>", "\n") ||
+                                          "",
+                                        shipGST: gstin || "",
+                                      }));
+                                    }}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col span={8}>
+                                <Form.Item
+                                  name="ship_vendor_branch"
+                                  label="Shipping vendor Branch"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please select branch",
+                                    },
+                                  ]}
+                                >
+                                  <MySelect
+                                    options={vendorBranches}
+                                    onChange={async (branch) => {
+                                      if (
+                                        !newPurchaseOrder.ship_vendor &&
+                                        !form.getFieldValue("ship_vendor")
+                                      )
+                                        return;
+                                      const vendorValue =
+                                        newPurchaseOrder.ship_vendor ||
+                                        form.getFieldValue("ship_vendor");
+                                      const { address, gstin } =
+                                        await getVendorAddress({
+                                          vendorCode: vendorValue,
+                                          vendorBranch: branch,
+                                        });
+                                      form.setFieldsValue({
+                                        shipaddress:
+                                          address?.replaceAll("<br>", "\n") ||
+                                          "",
+                                        shipGST: gstin || "",
+                                      });
+                                      setnewPurchaseOrder((prev) => ({
+                                        ...prev,
+                                        ship_vendor_branch: branch,
+                                        shipaddress:
+                                          address?.replaceAll("<br>", "\n") ||
+                                          "",
+                                        shipGST: gstin || "",
+                                      }));
+                                    }}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              {/* <Col span={4}>
+                            <Form.Item label="Pan No." name="shipPan">
+                              <Input size="default" disabled />
+                            </Form.Item>
+                          </Col> */}
+                              <Col span={4}>
+                                <Form.Item name="shipGST" label="GSTIN">
+                                  <Input size="default" disabled />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          )}
+
+                          {/* Manual Mode - Editable fields */}
+                          {form.getFieldValue("ship_type") === "manual" && (
+                            <Row gutter={16} style={{ marginTop: 16 }}>
+                              <Col span={6}>
+                                <Form.Item
+                                  label="Party Name"
+                                  name="partyName"
+                                  rules={rules.shipPan}
+                                >
+                                  <Input
+                                    size="default"
+                                    placeholder="Enter Party Name"
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col span={6}>
+                                <Form.Item
+                                  label="Pan No."
+                                  name="shipPan"
+                                  rules={rules.shipPan}
+                                >
+                                  <Input
+                                    size="default"
+                                    placeholder="Enter Shipping PAN"
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col span={6}>
+                                <Form.Item
+                                  name="shipGST"
+                                  label="GSTIN / UIN"
+                                  rules={rules.shipGST}
+                                >
+                                  <Input
+                                    size="default"
+                                    placeholder="Enter Shipping GSTIN"
+                                  />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          )}
+
+                          {/* Shipping Address Field - Common for all modes */}
+                          <Row style={{ marginTop: 16 }}>
+                            <Col span={18}>
+                              <Form.Item
+                                label="Shipping Address"
+                                name="shipaddress"
+                                rules={rules.shipaddress}
+                              >
+                                <TextArea
+                                  rows={5}
+                                  disabled={
+                                    form.getFieldValue("ship_type") === "saved"
+                                      ? sameAsBilling ||
+                                        newPurchaseOrder.shipaddressid !==
+                                          "other"
+                                      : form.getFieldValue("ship_type") !==
+                                        "manual"
+                                  }
+                                  placeholder={
+                                    form.getFieldValue("ship_type") === "manual"
+                                      ? "Enter complete shipping address"
+                                      : "Shipping address will be populated based on selection"
+                                  }
+                                  style={{
+                                    resize: "none",
+                                    backgroundColor: "#ffffff",
+                                    color: "#1f1f1f",
+                                    fontWeight: 600,
+                                    fontSize: "14px",
+                                    lineHeight: "1.6",
+                                    opacity: 1,
+                                    border: "1px solid #d9d9d9",
+                                    borderRadius: "6px",
+                                    padding: "12px 16px",
+                                    boxShadow:
+                                      "inset 0 1px 3px rgba(0,0,0,0.05)",
+                                  }}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </Col>
+                        <NavFooter
+                          submithtmlType="submit"
+                          submitButton={true}
+                          formName="create-po"
+                          resetFunction={() => setShowDetailsConfirm(true)}
+                        />
+                      </Row>
+                    </Form>
+                    <Divider />
+                  </div>
+                ),
+              },
+              {
+                key: "2",
+                label: "Add Components Details",
+                disabled: activeTab === 1 ? false : true,
+                children: (
+                  <div style={{ height: "100%" }}>
+                    <AddComponent
+                      newPurchaseOrder={newPurchaseOrder}
+                      form={form}
+                      setTotalValues={setTotalValues}
+                      setRowCount={setRowCount}
+                      rowCount={rowCount}
+                      setActiveTab={setActiveTab}
+                      resetFunction={resetFunction}
+                      submitHandler={validatePO}
+                      submitLoading={submitLoading}
+                      totalValues={totalValues}
+                      setStateCode={setStateCode}
+                      open={open}
+                      setOpen={setOpen}
+                      gstState={
+                        newPurchaseOrder.billCode === newPurchaseOrder.venCode
+                          ? "L"
+                          : "I"
+                      }
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </div>
+      )}
+      {successData && (
+        <SuccessPage
+          resetFunction={resetFunction}
+          po={successData}
+          setNewPO={setNewPO}
+        />
+      )}
+    </div>
+  );
+}
+
+// form rules
+const rules = {
+  pocreatetype: [
+    {
+      required: true,
+      message: "Please Select a PR Type!",
+    },
+  ],
+  original_po: [
+    {
+      required: true,
+      message: "Please Select a PR Type!",
+    },
+  ],
+  vendortype: [
+    {
+      required: true,
+      message: "Please Select a vendor Type!",
+    },
+  ],
+  vendorname: [
+    {
+      required: true,
+      message: "Please Select a vendor Name!",
+    },
+  ],
+  vendorbranch: [
+    {
+      required: true,
+      message: "Please Select a vendor Branch!",
+    },
+  ],
+  vendoraddress: [
+    {
+      required: true,
+      message: "Please Enter bill from address!",
+    },
+  ],
+  pocostcenter: [
+    {
+      required: true,
+      message: "Please Select a Cost Center!",
+    },
+  ],
+  project_name: [
+    {
+      required: true,
+      message: "Please Select a Project!",
+    },
+  ],
+  raisedBy: [
+    {
+      required: true,
+      message: "Please select who requested for this PR!",
+    },
+  ],
+  billaddressid: [
+    {
+      required: true,
+      message: "Please Select a Billing Address!",
+    },
+  ],
+  billPan: [
+    {
+      required: true,
+      message: "Please enter Billing PAN Number!",
+    },
+  ],
+  billaddress: [
+    {
+      required: true,
+      message: "Please Enter Billing Address!",
+    },
+  ],
+  shipaddressid: [
+    {
+      required: true,
+      message: "Please Select a Shipping Address!",
+    },
+  ],
+  shipPan: [
+    {
+      required: true,
+      message: "Please Enter Shipping PAN Number!",
+    },
+  ],
+  shipGST: [
+    {
+      required: true,
+      message: "Please Enter Shipping GSTIN!",
+    },
+  ],
+  shipaddress: [
+    {
+      required: true,
+      message: "Please Enter Shipping Address!",
+    },
+  ],
+  billGST: [
+    {
+      required: true,
+      message: "Please enter Billing GSTIN Number!",
+    },
+  ],
+};

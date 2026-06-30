@@ -1,0 +1,249 @@
+import React, { useState } from "react";
+import { useToast } from "../../../hooks/useToast.js";
+import { Button, Col, Row, Select } from "antd";
+import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
+import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import { v4 } from "uuid";
+import MyDataTable from "../../../Components/MyDataTable";
+import MyDatePicker from "../../../Components/MyDatePicker";
+import { MdOutlineDownloadForOffline } from "react-icons/md";
+import { imsAxios } from "../../../axiosInterceptor";
+import useApi from "../../../hooks/useApi.ts";
+import { getProductsOptions } from "../../../api/general.ts";
+import MyButton from "../../../Components/MyButton";
+
+const CompletedFG = () => {
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [all, setAll] = useState({
+    info: "datewise",
+    selOption: "datewise",
+  });
+  const [asyncSelect, setAsyncSelect] = useState([]);
+  const [datee, setDatee] = useState("");
+  const [dateData, setDateData] = useState([]);
+  const [skuData, setSkuData] = useState([]);
+  const options = [
+    { label: "Date Wise", value: "datewise" },
+    { label: "SKU Wise", value: "skuwise" },
+  ];
+  // filter date
+
+  const { executeFun, loading1 } = useApi();
+  const getOption = async (searchInput) => {
+    const response = await executeFun(
+      () => getProductsOptions(searchInput, true),
+      "select"
+    );
+    let  data  = response?.data;
+
+    setAsyncSelect(data);
+  };
+
+  const skuWise = async () => {
+    setLoading(true);
+    setSkuData([]);
+    const response = await imsAxios.post("/fgIN/fgInCompleted", {
+      searchBy: all.info,
+      searchValue: all.selOption,
+    });
+    if (response?.success) {
+      let arr = response?.data.map((row, index) => {
+        return {
+          ...row,
+          id: v4(),
+          index: index + 1,
+        };
+      });
+      setSkuData(arr);
+      setLoading(false);
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+      setLoading(false);
+    }
+  };
+
+  const dateWise = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setDateData([]);
+
+    const response = await imsAxios.post("/fgIN/fgInCompleted", {
+      searchBy: all.info,
+      searchValue: datee,
+    });
+    if (response.success) {
+      let arr = response.data.map((row, index) => {
+        return {
+          ...row,
+          id: v4(),
+          index: index + 1,
+        };
+      });
+      setDateData(arr);
+      setLoading(false);
+    } else {
+      showToast(response?.message?.msg || response?.message, "error");
+      setLoading(false);
+    }
+  };
+
+  const columns = [
+    { field: "index", headerName: "No.", width: 100 },
+    { field: "ppr_type", headerName: "Type", width: 150 },
+    {
+      headerName: "Req. Id",
+      field: "mfg_transaction",
+      renderCell: ({ row }) => (
+        <span> {row.mfg_transaction + " / " + row.ppr_transaction}</span>
+      ),
+      width: 200,
+    },
+    { field: "mfg_date", headerName: "Date/Time", width: 170 },
+    { field: "ppr_sku", headerName: "SKU", width: 100 },
+    { field: "sku_name", headerName: "Product", width: 420 },
+    {
+      field: "completed_qty",
+      headerName: "MFG/STIN Qty",
+      width: 160,
+    },
+  ];
+
+  const handleDownloadingCSV = () => {
+    let arr = [];
+    if (all.info === "datewise") {
+      arr = dateData;
+    } else {
+      arr = skuData;
+    }
+    let csvData = [];
+    csvData = arr.map((row) => {
+      return {
+        "Req.ID": `${row.mfg_transaction}/${row.ppr_transaction}`,
+        Type: row.ppr_type,
+        "Date/Time": row.mfg_date,
+        Sku: row.ppr_sku,
+        Product: row.sku_name,
+        "Mfg/Stin Qtyk": row.completed_qty,
+      };
+    });
+    downloadCSVCustomColumns(csvData, "Completed FG");
+  };
+
+  return (
+    <div style={{ height: "calc(100vh - 140px)", margin:10 }} >
+      <Row gutter={5}>
+        <Col span={3}>
+          <Select
+            options={options}
+            style={{ width: "100%" }}
+            placeholder="Select Option"
+            value={all.info}
+            onChange={(e) =>
+              setAll((all) => {
+                return { ...all, info: e };
+              })
+            }
+          />
+        </Col>
+
+        {all.info == "datewise" ? (
+          <>
+            <Col span={5} className="gutter-row">
+              <MyDatePicker setDateRange={setDatee} size="default" />
+            </Col>
+            <Col span={2} className="gutter-row">
+              <MyButton onClick={dateWise} type="primary" variant="search">
+                Fetch
+              </MyButton>
+            </Col>
+           
+              <Col span={2} offset={12} className="gutter-row">
+                <div>
+                  <Button onClick={handleDownloadingCSV}>
+                    <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
+                  </Button>
+                </div>
+              </Col>
+       
+          </>
+        ) : all.info == "skuwise" ? (
+          <>
+            <>
+              <Col span={5} className="gutter-row">
+                <div>
+                  <MyAsyncSelect
+                    style={{ width: "100%" }}
+                    onBlur={() => setAsyncSelect([])}
+                    placeholder="SKU"
+                    loadOptions={getOption}
+                    optionsState={asyncSelect}
+                    value={all.selOption.value}
+                    onChange={(e) =>
+                      setAll((all) => {
+                        return { ...all, selOption: e };
+                      })
+                    }
+                  />
+                </div>
+              </Col>
+              <Col span={2} className="gutter-row">
+                <MyButton onClick={skuWise} type="primary" variant="search">
+                  Fetch
+                </MyButton>
+              </Col>
+              {skuData.length > 0 && (
+                <Col span={2} offset={11} className="gutter-row">
+                  <div>
+                    <Button onClick={handleDownloadingCSV}>
+                      <MdOutlineDownloadForOffline
+                        style={{ fontSize: "20px" }}
+                      />
+                    </Button>
+                  </div>
+                </Col>
+              )}
+            </>
+          </>
+        ) : (
+          ""
+        )}
+
+        {/* {dateData.length >= 1 ? (
+          <Col span={3} className="gutter-row">
+            <div>
+              <Button>
+                <DownloadOutlined
+                  onClick={handleDownloadingCSV}
+                  style={{ fontSize: "18px" }}
+                  color="#5D7788"
+                />
+              </Button>
+            </div>
+          </Col>
+        ) : (
+          <Col span={3} className="gutter-row">
+            <div>
+              <Button>
+                <DownloadOutlined
+                  onClick={handleDownloadingCSV}
+                  style={{ fontSize: "18px" }}
+                  color="#5D7788"
+                />
+              </Button>
+            </div>
+          </Col>
+        )} */}
+      </Row>
+      <div style={{ height: "calc(100vh - 180px)", marginTop: "10px" }}>
+        {all.info == "datewise" ? (
+          <MyDataTable loading={loading} data={dateData} columns={columns} />
+        ) : (
+          <MyDataTable loading={loading} data={skuData} columns={columns} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CompletedFG;

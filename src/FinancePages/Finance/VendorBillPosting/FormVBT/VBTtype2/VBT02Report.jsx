@@ -1,0 +1,1056 @@
+import {
+  Card,
+  Col,
+  Drawer,
+  Form,
+  Input,
+  Modal,
+  Pagination,
+  Row,
+  Typography,
+} from "antd";
+import { useState } from "react";
+import { imsAxios } from "../../../../../axiosInterceptor";
+import { useEffect } from "react";
+import { useToast } from "../../../../../hooks/useToast.js";
+
+import validateResponse from "../../../../../Components/validateResponse";
+import { v4 } from "uuid";
+import VBTHeaders from "../VBT01/VBTHeaders.jsx";
+import NavFooter from "../../../../../Components/NavFooter.jsx";
+import SingleComponent from "../../SingleProduct.jsx";
+
+function VBT02Report({
+  editingVBT,
+  setEditingVBT,
+  setVBTData,
+  apiUrl,
+  setApiUrl,
+  editVbtDrawer,
+})  {
+  const [Vbt01] = Form.useForm();
+    const { showToast } = useToast();
+  const [vbtComponent, setVbtComponent] = useState([]);
+  const [taxDetails, setTaxDetails] = useState([]);
+  const [roundOffSign, setRoundOffSign] = useState("+");
+  const [roundOffValue, setRoundOffValue] = useState(0);
+  const [tdsArray, setTdsArray] = useState([]);
+  const [allTdsOptions, setAllTdsOptions] = useState([]);
+  const [optionState, setOptionState] = useState([]);
+  const [glCodes, setGlCodes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currencies, setCurrencies] = useState([]);
+  const [addFreightCalc, setAddFreightCalc] = useState(false);
+  const [addMiscCalc, setAddMiscCalc] = useState(false);
+  const [addInsurCalc, setAddInsurCalc] = useState(false);
+  const [allRowInsurance, setAllRowInsurance] = useState(false);
+  const [allRowFreight, setAllRowFreight] = useState(false);
+  const [allRowSws, setAllRowSws] = useState(false);
+  // ---
+  const [editVBTCode, setEditVBTCode] = useState([]);
+  const [editApiUrl, setEditApiUrl] = useState("");
+  const [isCreate, setIsCreate] = useState(false);
+  const [glstate, setglState] = useState([]);
+  const [paginate, setPaginate] = useState([]);
+  const [totalPage, setTotalPage] = useState();
+  const [current, setCurrent] = useState(0);
+  const [currArr, setCurrArr] = useState([]);
+  const [newArr, setNewArr] = useState([]);
+  const [isAnother, setIsAnother] = useState("");
+  const [singleArr, setSingleArr] = useState([]);
+  const [mainArrVenAm, setNewArrVenAm] = useState([]);
+  const [mAVenAmValue, setMAVenAmValue] = useState("");
+  const [mAfreightValue, setMAFreightValue] = useState("");
+  const [headerCal, setHeaderCal] = useState([]);
+  const [mainArrs, setmainArrs] = useState([]);
+  const [mainUpdated, setMainUpdated] = useState(1);
+
+  const components = Form.useWatch("components", {
+    form: Vbt01,
+    preserve: true,
+  });
+
+  // const mainArrs = Form.useWatch("mainArrs", {
+  //   form: Vbt01,
+  //   preserve: true,
+  // });
+
+  const [lastRateArr, setLastRateArr] = useState([]);
+  const resetForm = () => {
+    Vbt01.resetFields();
+  };
+
+  var chunk;
+  var result;
+  const getApiUrl = (vbtCode) => {
+    return vbtCode.split("/")[0].toLowerCase();
+  };
+  const backFunction = () => {
+    if (editingVBT) {
+      setEditingVBT(null);
+      setIsCreate(false);
+
+      // resetForm();
+    } else {
+      setEditVbtDrawer(null);
+      Vbt01.setFields([
+        {
+          name: "components",
+          touched: false,
+        },
+      ]);
+    }
+
+    resetForm();
+    setRoundOffSign("+");
+    setRoundOffValue(0);
+  };
+  const getCurrencies = async () => {
+    const response = await imsAxios.get("/backend/fetchAllCurrecy");
+    let arr = [];
+    arr = response.data.map((d) => {
+      return {
+        text: d.currency_symbol,
+        value: d.currency_id,
+        notes: d.currency_notes,
+      };
+    });
+    setCurrencies(arr);
+  };
+
+  // const getTdsOptions = async (minId) => {
+  //   const response = await imsAxios.post(`/tally/${apiUrl}/fetch_minData`, {
+  //     min_id: minId,
+  //   });
+  //   const { data } = response;
+  //   data.data[0].ven_tds.push({
+  //     ladger_name: "--",
+  //     ledger_key: "--",
+  //     tds_code: "--",
+  //     tds_key: "--",
+  //     tds_name: "--",
+  //     tds_gl_code: "--",
+  //     tds_percent: "0",
+  //   });
+  //   if (response.success) {
+  //     let arr = data.data;
+  //     setAllTdsOptions(arr[0].ven_tds);
+
+  //     let tdsC = arr[0].ven_tds.map((r) => {
+  //       return {
+  //         text: r.tds_name,
+  //         value: r.tds_key,
+  //       };
+  //     });
+  //     setTdsArray(tdsC);
+  //   } else {
+  //     toast.error(response.message?.msg || response.message);
+  //   }
+  // };
+  const getGl = async () => {
+    let link;
+    if (editVbtDrawer) {
+      let apiLink = getApiUrl(editVbtDrawer);
+      // console.log("apilink", apiLink);
+      setEditApiUrl(apiLink);
+      link = `/tally/${apiLink}/${apiLink}_gl_options`;
+    } else {
+      link = `/tally/${apiUrl}/${apiUrl}_gl_options`;
+    }
+    const response = await imsAxios.get(link);
+    let arr = [];
+    if (data.length > 0) {
+      arr = data.map((d) => {
+        return {
+          text: d.text,
+          value: d.id,
+        };
+      });
+      // console.log("arr=>", arr);
+      setGlCodes(arr);
+    }
+  };
+
+  const submitFunction = async () => {
+    const values = await Vbt01.validateFields();
+    console.log("valuesss", values);
+    if (isAnother) {
+      let createdEntry = Vbt01.getFieldValue("components");
+      paginate[current - 1] = createdEntry;
+      setNewArr(paginate);
+      const creatingComp = Array.prototype.concat(...newArr);
+      console.log("creatingComp", creatingComp);
+      values.components = creatingComp;
+    }
+    if (isCreate) {
+      const roundarr = values.components.map(
+        (component) => component.venAmmount
+      );
+      let a;
+      if (roundOffSign.toString() === "+") {
+        a = roundarr[roundarr.length - 1] + +Number(roundOffValue.toString());
+      } else if (roundOffSign.toString() === "-") {
+        a = roundarr[roundarr.length - 1] -= +Number(roundOffValue.toString());
+      } else {
+        a = roundarr[roundarr.length - 1];
+        // console.log("a- with out any roundoff", a);
+      }
+      const modifiedArray =
+        roundarr.length > 0 ? [...roundarr.slice(0, -1), a] : roundarr;
+      let finalObj = {
+        bill_amount: values.billAmmount,
+        bill_qty: values.components.map((component) => component.vbtBillQty),
+        // cgst_gl: values.components.map((component) => component.CGSTGLValue),
+        // cgsts: values.components.map((component) => component.cgstAmount),
+        comment: values.comment,
+        component: values.components.map((component) => component.partName),
+        eff_date: values.effectiveDate,
+        freight: values.components.map((component) =>
+          component.freightAmount.toString()
+        ),
+        g_l_codes: values.components.map((component) => component.glCodeValue),
+        gst_ass_vals: values.components.map(
+          (component) => component.gstAssValue
+        ),
+        hsn_code: values.components.map((component) => component.hsnCode),
+        igst_gl: values.components.map((component) => component.IGSTGLValue),
+        igsts: values.components.map((component) => component.igstAmount),
+        in_gst_types: values.components.map((component) => component.gstType),
+        in_qtys: values.components.map((component) => component.vbtInQty),
+        in_rates: values.components.map((component) => component.vbtInRate),
+        invoice_date: values.invoiceDate,
+        invoice_no: values.invoiceNo,
+        // invoice_no: values.components.map((component) => component.invoiceNo),
+        item_description: values.components.map(
+          (component) => component.itemDescription
+        ),
+        min_key: values.components.map((component) => component.minId),
+        part_code: values.components.map((component) => component.partCode),
+        // sgst_gl: values.components.map((component) => component.CGSTGLValue),
+        // sgsts: values.components.map((component) => component.sgstAmount),
+
+        taxable_values: values.components.map(
+          (component) => component.taxableValue
+        ),
+        // tds_amounts: values.components.map((component) => component.tdsAmount),
+        // tds_ass_vals: values.components.map((component) => component.tdsAssValue),
+        // tds_codes: values.components.map((component) => component.tds_key),
+        // tds_gl_code: values.components.map((component) => component.tds_gl_code),
+        vbp_gst_rate: values.components.map((component) => component.gstRate),
+        vbt_gstin: "999999999999999",
+        ven_address: values.venAddress,
+        ven_amounts: modifiedArray,
+        ven_code: values.components[0]?.ven_code,
+        acknowledgeIRN: values.ackNum,
+        // vbt_gstin: values.components[0]?.gstin_option[0],
+        // poNumber: values.components.map((component) => component.poNumber),
+        // projectID: values.components.map((component) => component.projectID),
+        // // vbtKey: editVbtDrawer,
+        // insertDate: values.components[0]?.insertDate,
+        // insertBy: values.components[0]?.insertBy,
+        ////////
+        port_code: values.portCode,
+        port_name: values.portName,
+        boe_no: values.boeNo,
+        boe_date: values.boeDate,
+        cha: values.cha,
+        hawb_no: values.hawbNo,
+        mawb_no: values.mawbNo,
+        currency: values.components.map((component) => component.currency),
+        custom_duty: values.components.map((component) => component.customDuty),
+        exchange: values.components.map((component) => component.currencyRate),
+        insurance: values.components.map((component) =>
+          component.insurance.toString()
+        ),
+        misc: values.components.map((component) =>
+          component.miscCharges.toString()
+        ),
+        other_charges: values.components.map(
+          (component) => component.otherDuty
+        ),
+        sws: values.components.map((component) => component.sws),
+        cifValue: values.components.map((component) => component.cifValue),
+        cifPrice: values.components.map((component) => component.cifPrice),
+        inrPrice: values.components.map((component) => component.inrPrice),
+        customAssValue: values.components.map(
+          (component) => component.customAssVal
+        ),
+
+        // misc: values.components.map((component) => component.miscCharges),
+      };
+
+      const finalData = {
+        ...finalObj,
+        round_type: roundOffSign.toString(),
+        round_value: roundOffValue.toString(),
+      };
+      addVbt(finalData);
+    } else {
+      const roundarr = values.components.map(
+        (component) => component.venAmmount
+      );
+      // console.log("roundarr", roundarr);
+      // console.log("roundOffValue", roundOffValue);
+      // console.log("roundOffSign", roundOffSign);
+      let a;
+      if (roundOffSign.toString() === "+") {
+        a = roundarr[roundarr.length - 1] + +Number(roundOffValue.toString());
+        // console.log("a", a);
+      } else if (roundOffSign.toString() === "-") {
+        a = roundarr[roundarr.length - 1] -= +Number(roundOffValue.toString());
+        // console.log("a", a);
+      } else {
+        a = roundarr[roundarr.length - 1];
+        // console.log("a- with out any roundoff", a);
+      }
+      const editmodifiedArray =
+        roundarr.length > 0 ? [...roundarr.slice(0, -1), a] : roundarr;
+      let finalObj = {
+        bill_amount: values.billAmmount,
+        bill_qty: values.components.map((component) => component.vbtBillQty),
+        // cgst_gl: values.components.map((component) => component.CGSTGLValue),
+        // cgsts: values.components.map((component) => component.cgstAmount),
+        comment: values.comment,
+        component: values.components.map((component) => component.partName),
+        eff_date: values.effectiveDate,
+        freight: values.components.map((component) =>
+          component.freightAmount.toString()
+        ),
+        g_l_codes: values.components.map((component) => component.glCodeValue),
+        gst_ass_vals: values.components.map(
+          (component) => component.gstAssValue
+        ),
+        hsn_code: values.components.map((component) => component.hsnCode),
+        igst_gl: values.components.map((component) => component.IGSTGL.value),
+        igsts: values.components.map((component) => component.igstAmount),
+        in_gst_types: values.components.map((component) => component.gstType),
+        in_qtys: values.components.map((component) => component.vbtInQty),
+        in_rates: values.components.map((component) => component.vbtInRate),
+        invoice_date: values.invoiceDate,
+        invoice_no: values.invoiceNo,
+        // invoice_no: values.components.map((component) => component.invoiceNo),
+        item_description: values.components.map(
+          (component) => component.itemDescription
+        ),
+        min_key: values.components.map((component) => component.minId),
+        part_code: values.components.map((component) => component.partCode),
+        // sgst_gl: values.components.map((component) => component.CGSTGLValue),
+        // sgsts: values.components.map((component) => component.sgstAmount),
+
+        taxable_values: values.components.map(
+          (component) => component.taxableValue
+        ),
+        // tds_amounts: values.components.map((component) => component.tdsAmount),
+        // tds_ass_vals: values.components.map((component) => component.tdsAssValue),
+        // tds_codes: values.components.map((component) => component.tds_key),
+        // tds_gl_code: values.components.map((component) => component.tds_gl_code),
+        vbp_gst_rate: values.components.map((component) => component.gstRate),
+        vbt_gstin: "999999999999999",
+        ven_address: values.venAddress,
+        ven_amounts: editmodifiedArray,
+        ven_code: values.components[0]?.venCode,
+        // vbt_gstin: values.components[0]?.gstin_option[0],
+        // poNumber: values.components.map((component) => component.poNumber),
+        // projectID: values.components.map((component) => component.projectID),
+        // // vbtKey: editVbtDrawer,
+        // insertDate: values.components[0]?.insertDate,
+        // insertBy: values.components[0]?.insertBy,
+        ////////
+        port_code: values.portCode,
+        port_name: values.portName,
+        boe_no: values.boeNo,
+        boe_date: values.boeDate,
+        cha: values.cha,
+        hawb_no: values.hawbNo,
+        mawb_no: values.mawbNo,
+        currency: values.components.map((component) => component.currency),
+        custom_duty: values.components.map((component) => component.customDuty),
+        exchange: values.components.map((component) => component.currencyRate),
+        insurance: values.components.map((component) =>
+          component.insurance.toString()
+        ),
+        misc: values.components.map((component) =>
+          component.miscCharges.toString()
+        ),
+        other_charges: values.components.map(
+          (component) => component.otherDuty
+        ),
+        sws: values.components.map((component) => component.sws),
+        // misc: values.components.map((component) => component.miscCharges),
+        vbtKey: editVbtDrawer,
+        insertDate: values.components[0]?.insertDate,
+        insertBy: values.components[0]?.insertBy,
+        poNumber: values.components.map((component) => component.poNumber),
+        projectID: values.components.map((component) => component.projectID),
+        cifValue: values.components.map((component) => component.cifValue),
+        cifPrice: values.components.map((component) => component.cifPrice),
+        inrPrice: values.components.map((component) => component.inrPrice),
+        acknowledgeIRN: values.ackNum,
+        customAssValue: values.components.map(
+          (component) => component.customAssVal
+        ),
+      };
+      const finalData = {
+        ...finalObj,
+        roundOffSign: roundOffSign.toString(),
+        roundOffValue: roundOffValue.toString(),
+      };
+      // console.log("finalData for update", finalData);
+      updateVbt(finalData);
+    }
+    // con
+  };
+
+  const addVbt = async (finalData) => {
+    setLoading(true);
+    const response = await imsAxios.post(
+      `/tally/${apiUrl}/add_${apiUrl}`,
+      finalData
+    );
+    const { data } = response;
+    // console.log("response", response);
+    if (response.status == 200) {
+      showToast(data, "success");
+      setTimeout(() => {
+        setEditingVBT(null);
+      }, 2000);
+      // setVBTData([]);
+      setLoading(false);
+      backFunction();
+    } else {
+      setLoading(false);
+      validateResponse(data);
+    }
+    setLoading(false);
+  };
+  const updateVbt = async (finalData) => {
+    let vbtCodeForEdit = getApiUrl(editVbtDrawer);
+    // console.log("vbtCodeForEdit", vbtCodeForEdit);
+    // return;
+    let link = `/tally/${vbtCodeForEdit}/update`;
+    const response = await imsAxios.put(link, finalData);
+    const { data } = response;
+    // console.log("data", response);
+    if (response.status === 200) {
+      showToast(response.data, "success");
+      setEditVbtDrawer(null);
+      setLoading(false);
+    } else {
+      showToast(response.data, "error");
+      setLoading(false);
+    }
+  };
+  const showCofirmModal = () => {
+    Modal.confirm({
+      okText: "Save",
+      title: isCreate
+        ? "Are you sure you want to add this VBT"
+        : "Are you sure you want to submit the Edited details",
+      content: isCreate
+        ? "Please make sure that the values are correct."
+        : "Please make sure that the values are correct, This process is irreversible",
+      onOk() {
+        submitFunction();
+      },
+    });
+  };
+  const changeToNextPage = () => {
+    // setLoading(true);
+    console.log("current", current);
+    let createdEntry = Vbt01.getFieldValue("components");
+    console.log("createdEntry", createdEntry);
+
+    let id;
+    // let newArray = [];
+    if (current < totalPage) {
+      id = current + 1;
+      setCurrent(id);
+      Vbt01.setFieldValue("components", paginate[id - 1]);
+      setCurrArr(paginate[id - 1]);
+
+      paginate[current - 1] = createdEntry;
+      console.log("paginate in func", paginate);
+
+      let newArray = [...newArr];
+      setNewArr(paginate);
+      console.log("newArray", newArray);
+      console.log("id", id);
+      setLoading(false);
+    }
+  };
+  const changeToBackPage = () => {
+    // setLoading(true);
+    let id;
+    let createdEntry = Vbt01.getFieldValue("components");
+    console.log("createdEntry in back", createdEntry);
+    if (current - 1 > 0) {
+      id = current - 1;
+      setCurrent(id);
+      Vbt01.setFieldValue("components", paginate[id - 1]);
+      setCurrArr(paginate[id - 1]);
+      paginate[current - 1] = createdEntry;
+    }
+    setNewArr(paginate);
+    console.log("id", id);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    const partCodeArr = currArr.map((row) => row?.c_part_no);
+    if (currArr && currArr[0]?.ven_code) {
+      getLastPrice(currArr[0]?.ven_code, partCodeArr);
+    }
+  }, [currArr]);
+
+  //edit vbt fn
+  const getEditVbtDetails = async (vbtCode) => {
+    setLoading(true);
+    const response = await imsAxios.get(`/tally/vbt/getData?vbtKey=${vbtCode}`);
+
+    if (response.status == 200) {
+      const { data } = response;
+      // console.log("response", response);
+      let newMin = response.data[0].minId;
+      // console.log("newMin", newMin); // setVbtComponent(data);
+      getGl();
+      let tdsName = {
+        label: data[0]?.tds?.glName,
+        Value: data[0]?.tds?.tdsGlKey,
+      };
+
+      let arr = data.map((row) => ({
+        ...row,
+
+        tdsAssValue: row.tdsAssValue,
+        venAmmount: row.venAmmount,
+        poNumber: row.poNumber,
+        projectID: row.projectID,
+        partCode: row.part.partCode,
+        partName: row.part.partName,
+        glName: row.tds?.tdsName,
+        glCode: row?.tds?.tdsGlKey,
+        // tdsName: {
+        //   label: row.tds?.tdsName,
+        //   value: row?.tds?.tdsKey,
+        // },
+        // tds_key: row?.tds?.tdsKey,
+        // tdsPercent: row?.tds?.tdsPercent,
+        // tdsAmount: row.tdsAmount,
+        // gstType: row.gstType === "L" ? "L" : "I",
+        insertDate: row.insertDate,
+        insertBy: row.insertBy,
+        roundOffSigns: row.roundOffSign,
+        roundOffValue: row.roundOffValue,
+        // purchaseGl: row?.purchase_gl,
+        billAmm: row?.taxableValue,
+        currencyRate: row?.exchangeRate,
+        miscCharges: row?.misc,
+        insurance: row?.insuranceValue,
+        freightAmount: row?.freightAmount,
+        otherDuty: row?.otherCharges,
+        IGSTGL: row?.igst,
+        igstAmount: row?.igstAmount,
+        vbtOtherData: row?.vbtOtherData,
+        currency: row?.currencyType,
+        // gstAssValue,
+        // igstAmount: row.igsts,
+        // miscCharges: row.misc,
+        gstAssValue: row?.gstAssValue,
+        glCodeValue: row?.purchase_gl.value,
+      }));
+      ///
+      // let newarr = arr.slice([10]);
+      console.log("arr", arr);
+      setSingleArr(arr);
+      // arr = newarr;
+      if (arr.length > 25) {
+        setIsAnother(true);
+        console.log("Arr", arr.length);
+        chunk = arr.length / 25;
+        chunk = Math.ceil(chunk);
+        setTotalPage(chunk);
+        console.log("chunk", chunk);
+        result = divideArray(arr, chunk);
+        // console.log("result", chunk);
+        setPaginate(result);
+        setCurrArr(result[0]);
+        Vbt01.setFieldValue("components", result[0]);
+        Vbt01.setFieldValue("bigarr", arr);
+        setEditVBTCode(result[0]);
+        setVbtComponent(result[0]);
+        setCurrent(1);
+      } else {
+        // chunk = arr.length;
+        setTotalPage(1);
+        result = arr;
+        // console.log("result", result);
+        Vbt01.setFieldValue("components", result);
+        setEditVBTCode(arr);
+        setVbtComponent(arr);
+      }
+  
+      setCurrent(1);
+      setLoading(false);
+    }
+  };
+  const getGstGlOptions = async () => {
+    const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
+    const { data } = response;
+    if (data) {
+      if (data[0]) {
+        let arr = data.map((row) => ({ value: row.id, text: row.text }));
+        setglState(arr);
+      }
+    }
+  };
+
+  useEffect(() => {
+    let arr = singleArr;
+    components?.forEach((component) => {
+      let index = singleArr.findIndex(
+        (obj) =>
+          obj.id === component.id && obj.c_part_no === component.c_part_no
+      );
+      if (index !== -1) {
+        // arr
+        arr[index] = component;
+        // singleArr[index] = component;
+      }
+    });
+    // console.log("udpated arr", arr);
+    setmainArrs(arr);
+    // Vbt01.setFieldValue("mainArrs", singleArr);
+  }, [components, singleArr]);
+
+
+  const getVBTDetail = async (minIdArr) => {
+    // return;
+    // setLoading(true);
+    // console.log("this iwas the min id", minId);
+    // const response = await imsAxios.post(`/tally/${apiUrl}/fetch_minData`, {
+    //   min_id: minId,
+    // });
+    const response = await imsAxios.post(
+      `/tally/${apiUrl}/fetch_multi_min_data`,
+      {
+        mins: minIdArr.map((row) => row?.transation ?? row?.min_transaction),
+      }
+    );
+    const { data } = response;
+    if (response.success) {
+      setVbtComponent(data);
+          const arr = response.data.map((row) => ({
+        ...row,
+        minId: row.transaction,
+        poNumber: row.poNumber,
+        projectID: row.projectID,
+        partCode: row.itemCode,
+        partName: row.itemName,
+        vbtBillQty: row.qty,
+        vbtInQty: row.qty,
+        taxableValue: row.value,
+        vbtInRate: row.rate,
+        hsnCode: row.hsnCode,
+        gstRate: row.gstRate,
+        cgstAmount: row.cgst,
+        sgstAmount: row.sgst,
+        igstAmount: row.igst,
+        venAddress: row.venAddress,
+        igstAmount: row.igst,
+        ven_name: row.venName,
+
+        tdsName: {
+          label: row.ven_tds?.tds_name,
+          value: row?.ven_tds?.tds_key,
+        },
+        unit: row.uom,
+
+        gstType: row.gstType === "L" ? "L" : "I",
+
+        cgst: "TP274965899340",
+        sgst: "TP385675494002",
+        igst: "TP486973272469",
+        glCodeValue:
+          apiUrl === "vbt01"
+            ? "TP821753548513"
+            : apiUrl === "vbt06"
+              ? "TP672531876660"
+              : "",
+        glCode: glCodes,
+        freight: "(Freight Inward)800105",
+        freightAmount: 0,
+      }));
+      getGl();
+      getCurrencies();
+      setSingleArr(arr);
+  
+      if (arr.length > 25) {
+        setIsAnother(true);
+        console.log("Arr", arr.length);
+        chunk = arr.length / 25;
+        chunk = Math.ceil(chunk);
+        setTotalPage(chunk);
+        console.log("chunk", chunk);
+        result = divideArray(arr, chunk);
+        // console.log("result", paginate.length);
+        setPaginate(result);
+        setCurrArr(result[0]);
+        Vbt01.setFieldValue("components", result[0]);
+      } else {
+        // chunk = arr.length;
+        setTotalPage(1);
+        result = arr;
+        // console.log("result", result);
+        Vbt01.setFieldValue("components", result);
+      }
+      setPaginate(result);
+      // getTdsOptions(minIdArr[0]);
+      setCurrArr(arr);
+
+      Vbt01.setFieldValue("portCode", "INDEL4");
+      Vbt01.setFieldValue("gst", "999999999999999");
+      Vbt01.setFieldValue("totalFreight", 0);
+      Vbt01.setFieldValue("totalMisc", 0);
+      setCurrent(1);
+
+      // Vbt01.setFieldValue("portCode", "INDEL4");
+      Vbt01.setFieldValue("portName", "Delhi Air Cargo");
+      Vbt01.setFieldValue("cha", "LINKERS INDIA LOGISTICS PV");
+      setSingleArr(arr);
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+      setEditingVBT(null);
+    }
+    // setLoading(false);
+  };
+
+  // console.log("paginate", paginate);
+  useEffect(() => {
+    if (totalPage) {
+      setTotalPage(totalPage);
+    }
+  }, [totalPage]);
+
+  // console.log("totalPage", totalPage);
+  function divideArray(arr, numSubarrays) {
+    // Calculate the size of each subarray
+    const subarraySize = Math.ceil(arr.length / numSubarrays);
+    // console.log("subarraySize", subarraySize);
+    // Initialize an empty array to store subarrays
+    const subarrays = [];
+
+    // Iterate through the array and divide it into subarrays
+    let startIndex = 0;
+    for (let i = 0; i < numSubarrays; i++) {
+      const endIndex = startIndex + subarraySize;
+      subarrays.push(arr.slice(startIndex, endIndex));
+      startIndex = endIndex;
+    }
+
+    return subarrays;
+  }
+  const getLastPrice = async (venCode, partArr) => {
+    const response = await imsAxios.post(
+      // `/tally/vbt/lastOptions?vendorCode=${venCode}&partCode=${partCode}`
+      "/tally/vbt/lastOptions",
+      {
+        partCode: partArr,
+        vendorCode: venCode,
+      }
+    );
+    const { data } = response;
+    if (typeof data === "object" && data?.length) {
+      setLastRateArr(data);
+    } else {
+      setLastRateArr([]);
+    }
+  };
+  useEffect(() => {
+    if (editingVBT?.length > 0) {
+      getVBTDetail(editingVBT);
+      setIsCreate(true);
+      getGstGlOptions();
+    }
+  }, [editingVBT]);
+
+  useEffect(() => {
+    if (editVbtDrawer) {
+      // console.log("editVBTdrawees", editVbtDrawer);
+      getEditVbtDetails(editVbtDrawer);
+      getCurrencies();
+      getGstGlOptions();
+      Vbt01.setFields([
+        {
+          name: "components",
+          touched: false,
+        },
+      ]);
+    }
+  }, [editVbtDrawer]);
+
+  useEffect(() => {
+    const values = singleArr?.reduce(
+      (partialSum, a) => partialSum + +Number(a?.taxableValue).toFixed(2),
+      0
+    );
+    const value = +Number(values).toFixed(2);
+    const freights = mainArrs?.reduce(
+      (partialSum, a) => partialSum + +Number(a?.freightAmount),
+      0
+    );
+    const freight = +Number(freights).toFixed(2);
+    const cgsts = singleArr?.reduce(
+      (partialSum, a) => partialSum + +Number(a?.cgstAmount).toFixed(2),
+      0
+    );
+    const cgst = +Number(cgsts).toFixed(2);
+    const sgsts = singleArr?.reduce(
+      (partialSum, a) => partialSum + +Number(a?.sgstAmount).toFixed(2),
+      0
+    );
+    const sgst = +Number(sgsts).toFixed(2);
+    const igsts = singleArr?.reduce(
+      (partialSum, a) => partialSum + +Number(a?.igstAmount).toFixed(2),
+      0
+    );
+
+    const igst = +Number(igsts).toFixed(2);
+   
+    let vendorAmounts;
+    vendorAmounts = mainArrs?.reduce(
+      (partialSum, a) => partialSum + (a?.venAmmount || 0),
+      0
+    );
+    var vendorAmount = vendorAmounts;
+    setMAVenAmValue(vendorAmount);
+
+    const tds = singleArr?.reduce(
+      (a, b) => a + +Number(b?.tdsAmount ?? 0).toFixed(2),
+      0
+    );
+
+    if (roundOffSign === "+") {
+      vendorAmounts = vendorAmount + +Number(roundOffValue).toFixed(2);
+      vendorAmount = +Number(vendorAmounts).toFixed(2);
+    }
+    if (roundOffSign === "-") {
+      vendorAmounts -= +Number(roundOffValue).toFixed(2);
+      vendorAmount = +Number(vendorAmounts).toFixed(2);
+    }
+
+    // console.log("my single arr", singleArr);
+    // setmainArrs(singleArr);
+
+    const arr = [
+      {
+        title: "Value",
+        description: value,
+      },
+      {
+        title: "Freight",
+        description: freight,
+      },
+      {
+        title: "CGST",
+        description: cgst,
+      },
+      {
+        title: "SGST",
+        description: sgst,
+      },
+      {
+        title: "IGST",
+        description: igst,
+      },
+      { title: "TDS", description: tds },
+      {
+        title: "Round Off",
+        description:
+          roundOffSign.toString() + [Number(roundOffValue).toFixed(2)],
+      },
+      {
+        title: "Vendor Amount",
+        description: vendorAmount,
+      },
+    ];
+    setTaxDetails(arr);
+  }, [
+    singleArr,
+    roundOffSign,
+    roundOffValue,
+    mainArrVenAm,
+    components,
+    // mainArrs,
+  ]);
+
+
+  return (
+    <Drawer
+      bodyStyle={{ padding: 5 }}
+      width="100vw"
+      onClose={backFunction}
+      open={editingVBT || editVbtDrawer}
+      destroyOnClose={true}
+      title={
+        isCreate
+          ? vbtComponent?.length > 0 &&
+            `${vbtComponent?.[0]?.venName} | ${vbtComponent?.[0]?.venCode}`
+          : `${editVbtDrawer}`
+      }
+    >
+      <Form
+        style={{ height: "100%" }}
+        form={Vbt01}
+        layout="vertical"
+        initialValues={initialValues}
+      >
+        <Row gutter={5} style={{ height: "100%" }}>
+          <Col span={6} style={{ overflow: "hidden", height: "90%" }}>
+            <VBTHeaders
+              taxDetails={taxDetails}
+              form={Vbt01}
+              vbtComponent={vbtComponent}
+              setVbtComponent={setVbtComponent}
+              editingVBT={editingVBT}
+              setEditingVBT={setEditingVBT}
+              roundOffSign={roundOffSign}
+              roundOffValue={roundOffValue}
+              setRoundOffSign={setRoundOffSign}
+              setRoundOffValue={setRoundOffValue}
+              addFreightCalc={addFreightCalc}
+              setAddFreightCalc={setAddFreightCalc}
+              addMiscCalc={addMiscCalc}
+              setAddMiscCalc={setAddMiscCalc}
+              setAddInsurCalc={setAddInsurCalc}
+              addInsurCalc={addInsurCalc}
+              allRowInsurance={allRowInsurance}
+              setAllRowInsurance={setAllRowInsurance}
+              allRowFreight={allRowFreight}
+              setAllRowFreight={setAllRowFreight}
+              setAllRowSws={setAllRowSws}
+              allRowSws={allRowSws}
+              editVBTCode={editVBTCode}
+              glstate={glstate}
+              paginate={paginate}
+              setPaginate={setPaginate}
+            />
+          </Col>
+
+          <Col
+            span={18}
+            style={{
+              height: "90%",
+              overflowX: "hidden",
+              overflowY: "auto",
+            }}
+          >
+            {`Page ${current} of ${totalPage}`}
+            <Form.List name="components">
+              {(fields, { add, remove }) => (
+                <>
+                  <Col>
+                    {fields.map((field, index) => (
+                      <Form.Item noStyle>
+                        <SingleComponent
+                          fields={fields}
+                          field={field}
+                          index={index}
+                          add={add}
+                          form={Vbt01}
+                          remove={remove}
+                          tdsArray={tdsArray}
+                          allTdsOptions={allTdsOptions}
+                          // setOptionState={setOptionState}
+                          optionState={optionState}
+                          // glstate={glstate}
+                          // setglState={setglState}
+                          getGl={getGl}
+                          glCodes={glCodes}
+                          setGlCodes={setGlCodes}
+                          apiUrl={apiUrl}
+                          currencies={currencies}
+                          setCurrencie={setCurrencies}
+                          addFreightCalc={addFreightCalc}
+                          setAddFreightCalc={setAddFreightCalc}
+                          addMiscCalc={addMiscCalc}
+                          setAddMiscCalc={setAddMiscCalc}
+                          setAddInsurCalc={setAddInsurCalc}
+                          addInsurCalc={addInsurCalc}
+                          allRowInsurance={allRowInsurance}
+                          setAllRowInsurance={setAllRowInsurance}
+                          allRowFreight={allRowFreight}
+                          setAllRowFreight={setAllRowFreight}
+                          setAllRowSws={setAllRowSws}
+                          allRowSws={allRowSws}
+                          loading={loading}
+                          setEditApiUrl={setEditApiUrl}
+                          isCreate={isCreate}
+                          setIsCreate={setIsCreate}
+                          setglState={setglState}
+                          getGstGlOptions={getGstGlOptions}
+                          glstate={glstate}
+                          lastRateArr={lastRateArr}
+                          paginate={paginate}
+                          setPaginate={setPaginate}
+                          setSingleArr={setSingleArr}
+                          singleArr={singleArr}
+                          mainArrs={mainArrs}
+                          setmainArrs={setmainArrs}
+                          // updateSingleArr={updateSingleArr}
+                          setNewArrVenAm={setNewArrVenAm}
+                          mainArrVenAm={mainArrVenAm}
+                          setMAVenAmValue={setMAVenAmValue}
+                          mAVenAmValue={mAVenAmValue}
+                          setMAFreightValue={setMAFreightValue}
+                          mAfreightValue={mAfreightValue}
+                          headerCal={headerCal}
+                          setHeaderCal={setHeaderCal}
+                        />
+                      </Form.Item>
+                    ))}
+              
+                  </Col>
+                </>
+              )}
+            </Form.List>
+          </Col>
+        </Row>
+      </Form>
+      {current < totalPage ? (
+        <NavFooter
+          nextLabel="Next"
+          backLabel="Back"
+          submitFunction={() => {
+            changeToNextPage();
+          }}
+          resetFunction={backFunction}
+          backFunction={() => changeToBackPage()}
+          loading={loading}
+        />
+      ) : (
+        <NavFooter
+          nextLabel="Submit"
+          submitFunction={() => {
+            showCofirmModal();
+          }}
+          resetFunction={backFunction}
+          backFunction={() => changeToBackPage()}
+          loading={loading}
+        />
+      )}
+      {/* <NavFooter
+        nextLabel="Submit"
+        submitFunction={() => {
+          showCofirmModal();
+        }}
+        resetFunction={backFunction}
+        loading={loading}
+      /> */}
+    </Drawer>
+  );
+}
+
+export default VBT02Report;
+const initialValues = {
+  minId: "",
+};

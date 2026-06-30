@@ -1,0 +1,77 @@
+import { Card, Form, Input, Col, Row } from "antd";
+
+import MySelect from "../../../../Components/MySelect";
+
+const DispatchDetailsCard = ({
+  form,
+  setaddid,
+  addoptions,
+}) => {
+
+  const handleaddress = (e) => {
+
+    setaddid(true);
+    addoptions.map((item) => {
+      if (item.value === e) {
+        form.setFieldValue("shippingaddress", item.address);
+        form.setFieldValue("dispatchfrompincode", item.pincode);
+        form.setFieldValue("dispatchfromgst", item.gst);
+        form.setFieldValue("dispatchaddrid", item.value);
+      }
+    });
+  };
+  //
+  ///////
+  return (
+    <Col span={24}>
+      <Card
+        size="small"
+        title="Dispatch Details"
+        style={{ height: "100%", overflow: "hidden" }}
+        bodyStyle={{ overflow: "auto", height: "98%" }}
+      >
+        <Form.Item
+          name="dispatchid"
+          label="Select Dispatch Address"
+          rules={[
+            { required: true, message: "Please select Dispatch Address!" },
+          ]}
+        >
+          <MySelect
+            options={addoptions}
+            onChange={(e) => {
+              handleaddress(e);
+            }}
+          />
+        </Form.Item>
+        <Form.Item
+          name="shippingaddress"
+          label="Complete Address"
+          rules={[{ required: true }]}
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
+        {/* {rtnchallan && ( */}
+        <>
+          <Form.Item
+            name="dispatchfrompincode"
+            label="Shipping Pin"
+            // rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="dispatchfromgst"
+            label="Shipping GST"
+            // rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+        </>
+        {/* )} */}
+      </Card>
+    </Col>
+  );
+};
+
+export default DispatchDetailsCard;
