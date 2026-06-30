@@ -106,9 +106,9 @@ const RMPartCodeConversion = () => {
       const { data } = response;
   
         if (response?.success) {
-          setComponentStock(`${data.data.closingStock} ${data.data.uom ?? ""}`);
+          setComponentStock(`${data.closingStock} ${data.uom ?? ""}`);
         } else {
-          showToast(data.message, "error");
+          showToast(response.message, "error");
         }
     
     } catch (error) {
