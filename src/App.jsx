@@ -4,7 +4,6 @@ import {
   Routes,
   useNavigate,
   useLocation,
-  Link,
   useSearchParams,
 } from "react-router-dom";
 import { Box, LinearProgress } from "@mui/material";
@@ -13,7 +12,6 @@ import Rout from "./Routes/Routes";
 import { useSelector, useDispatch } from "react-redux/es/exports";
 import "buffer";
 import AppHeader from "./new/Header/AppHeader.jsx";
-import NotificationDropdown from "./Components/NotificationDropdown/NotificationDropdown";
 import {
   setNotifications,
   setTestPages,
@@ -24,20 +22,18 @@ import {
   setSettings,
 } from "./Features/loginSlice/loginSlice.js";
 import UserMenu from "./Components/UserMenu";
-import Logo from "./Components/Logo";
 import socket from "./Components/socket.js";
 import {
-  toggleNotifications,
   setShowNotifications,
   setShowMessageNotifications,
   setShowTickets,
   setShowSetting,
   setShowSwitchModule,
 } from "./Features/uiSlice/uiSlice.js";
-import Layout, { Content, Header } from "antd/lib/layout/layout";
+import Layout, { Content } from "antd/lib/layout/layout";
 import { Select, Modal, Button } from "antd";
 import { SwapOutlined } from "@ant-design/icons";
-import { Tooltip, IconButton } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import InternalNav from "./Components/InternalNav";
 import { imsAxios } from "./axiosInterceptor";
 import internalLinks from "./Pages/internalLinks.jsx";
@@ -57,7 +53,6 @@ import {
 } from "./utils/postLoginRedirect.js";
 import ModuleSearch from "./Components/ModuleSearch/ModuleSearch.jsx";
 
-
 const App = () => {
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -65,10 +60,8 @@ const App = () => {
   const sessionFromUrl = searchParams.get("session");
   const branchFromUrl = searchParams.get("branch");
   const comFromUrl = searchParams.get("company");
-  const type = searchParams.get("type")
+  const type = searchParams.get("type");
   const { user, testPages } = useSelector((state) => state.login);
-
-
 
   const { notifications } = useSelector((state) => state.login);
 
@@ -96,7 +89,13 @@ const App = () => {
 
   const authPublicPaths = React.useMemo(
     () =>
-      new Set(["/login", "/signup", "/login/otp", "/ims/login", "/first-login"]),
+      new Set([
+        "/login",
+        "/signup",
+        "/login/otp",
+        "/ims/login",
+        "/first-login",
+      ]),
     [],
   );
   const isAuthPublicPath = (p) => authPublicPaths.has(p);
@@ -104,7 +103,7 @@ const App = () => {
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/login/otp";
-    
+
   const [testPage, setTestPage] = useState(false);
   const [branchSelected, setBranchSelected] = useState(true);
   const notificationsRef = useRef();
@@ -115,13 +114,9 @@ const App = () => {
   const [switchBranch, setSwitchBranch] = useState(null);
   const [switchSession, setSwitchSession] = useState(null);
   const [switchSuccess, setSwitchSuccess] = useState(false);
-  const [showBlackScreen, setShowBlackScreen] = useState(false);
-  const [isBannerVisible, setIsBannerVisible] = useState(false);
   const logoutHandler = () => {
-    setShowBlackScreen(false);
-dispatch(logoutUser());
+    dispatch(logoutUser());
   };
-
 
   const handleSelectCompanyBranch = (value) => {
     dispatch(setCompanyBranch(value));
@@ -209,7 +204,13 @@ dispatch(logoutUser());
 
   useEffect(() => {
     if (tokenFromUrl && sessionFromUrl && comFromUrl && branchFromUrl && type) {
-      fetchUserDeatils(tokenFromUrl, sessionFromUrl, comFromUrl, branchFromUrl, type);
+      fetchUserDeatils(
+        tokenFromUrl,
+        sessionFromUrl,
+        comFromUrl,
+        branchFromUrl,
+        type,
+      );
     }
   }, [tokenFromUrl, sessionFromUrl, comFromUrl, branchFromUrl, type]);
 
@@ -234,8 +235,6 @@ dispatch(logoutUser());
       }
     }
     if (user) {
-      if (!user.company_branch) {
-      }
       if (user.company_branch) {
         setBranchSelected(true);
       }
@@ -326,10 +325,6 @@ dispatch(logoutUser());
 
         let arr = [];
         for (const property in data) {
-          let obj = {
-            url: property,
-            status: data[property],
-          };
           if (property.includes("/")) {
             if (data[property] == "TEST") {
               let obj = {
@@ -417,8 +412,9 @@ dispatch(logoutUser());
     if (!isAuthShellPath || !user) return;
     const redirectParam = searchParams.get("redirect");
     const safeRedirect = getSafeInternalRedirect(redirectParam);
-    const link = JSON.parse(localStorage.getItem("branchData") || "{}")
-      ?.currentLink;
+    const link = JSON.parse(
+      localStorage.getItem("branchData") || "{}",
+    )?.currentLink;
     if (user.passwordChanged === "P") {
       if (safeRedirect) {
         sessionStorage.setItem(POST_LOGIN_REDIRECT_STORAGE_KEY, safeRedirect);
@@ -427,13 +423,7 @@ dispatch(logoutUser());
     } else {
       navigate(safeRedirect ?? link ?? "/", { replace: true });
     }
-  }, [
-    user,
-    pathname,
-    isAuthShellPath,
-    navigate,
-    searchParams,
-  ]);
+  }, [user, pathname, isAuthShellPath, navigate, searchParams]);
 
   useEffect(() => {
     if (user && user.token) {
@@ -513,10 +503,6 @@ dispatch(logoutUser());
 
         let arr = [];
         for (const property in data) {
-          let obj = {
-            url: property,
-            status: data[property],
-          };
           if (property.includes("/")) {
             if (data[property] == "TEST") {
               let obj = {
@@ -632,19 +618,6 @@ dispatch(logoutUser());
       }
     }
   }, [navigate, user]);
-  
-
-  useEffect(() => {
-    if (user && user.passwordChanged !== "P") {
-      const timer = setTimeout(() => {
-        setShowBlackScreen(true);
-      }, 1500);
-
-      return () => clearTimeout(timer);
-    } else {
-      setShowBlackScreen(false);
-    }
-  }, [user]);
 
   const getOffsetLeft = () => {
     // if (isTestServer && isBannerVisible) {
@@ -654,12 +627,12 @@ dispatch(logoutUser());
     // } else if (isBannerVisible) {
     //   return 70;
     // } else {
-      if(isTestServer) return 60;
-      return 40;
+    if (isTestServer) return 60;
+    return 40;
     // }
   };
 
-  const options = [{ label: "B36 [ALWAR]", value: "BRALWR36" }];
+  const options = [{ label: " C25", value: " C25" }];
   const sessionOptions = buildMergedSessionSelectOptions(LEGACY_SESSION_CODES);
 
   const locationBranchOptions = {
@@ -689,7 +662,7 @@ dispatch(logoutUser());
       urlParams.append("company", company);
       urlParams.append("branch", branch);
       urlParams.append("session", session);
-      urlParams.append("type","switch")
+      urlParams.append("type", "switch");
     }
 
     const redirectUrl = `${targetUrl}?${urlParams.toString()}`;
@@ -735,12 +708,17 @@ dispatch(logoutUser());
   }
 
   return (
-    <div style={{ height: "100vh", backgroundColor: isAuthShellPath ? "#fcf9f7" : "white" }}>
+    <div
+      style={{
+        height: "100vh",
+        backgroundColor: isAuthShellPath ? "#fcf9f7" : "white",
+      }}
+    >
       <Layout
         style={{
           width: "100%",
           top: 0,
-          paddingTop: isBannerVisible ? "30px" : "0px",
+          paddingTop: "0px",
         }}
       >
         {/* header start */}
@@ -876,12 +854,12 @@ dispatch(logoutUser());
                   style={{
                     height: (() => {
                       const headerHeight = isAuthShellPath ? 10 : 50;
-                      const bannerHeight = isBannerVisible ? 0 : 0;
+                      const bannerHeight = 0;
                       const testServerHeight = isTestServer ? 15 : 0;
                       const byDefaultHeight =
                         pathname === "/auth/profile" || isAuthShellPath
                           ? 1
-                          :50;
+                          : 50;
                       return `calc(100vh - ${headerHeight}px - ${bannerHeight}px - ${testServerHeight}px - ${byDefaultHeight}px)  `;
                     })(),
                     width: "100%",
@@ -1097,8 +1075,6 @@ dispatch(logoutUser());
           </div>
         )}
       </Modal>
-
-   
     </div>
   );
 };

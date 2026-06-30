@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback, memo } from "react";
+import  { useMemo, useState, useEffect, useCallback, memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../index.css";
 import { loadMenuConfig } from "./menuLoader";
@@ -848,7 +848,7 @@ const SidebarInner = ({
             style={{
               height: "100%",
               width: secondSidebarWidth,
-              background: "#fff5e0",
+              background: "#f2e0b9",
               borderRight: "1px solid #e0e0e0",
               position: "absolute",
               top: 0,

@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Col,
-  Divider,
   Empty,
   Form,
   Input,
@@ -16,12 +15,12 @@ import {
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
-import { useToast } from "../../../hooks/useToast.js";
 import { EditFilled, DeleteFilled } from "@ant-design/icons";
 import MyButton from "../../../Components/MyButton";
 import Loading from "../../../Components/Loading";
 import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
+import { useToast } from "../../../hooks/useToast.js";
 const PartCodeConversion = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -30,9 +29,9 @@ const PartCodeConversion = () => {
     in: [],
     out: {},
   });
-  const [remarks, setRemarks] = useState();
   const [editingComponent, setEditingComponent] = useState(false);
   const [componentStock, setComponentStock] = useState("--");
+  const [componentRates, setComponentRates] = useState({});
 
   const [addComponentForm] = Form.useForm();
   const [remarksForm] = Form.useForm();
@@ -44,30 +43,33 @@ const PartCodeConversion = () => {
 
   const getComponentOption = async (search) => {
     try {
-      const payload = {
-        search,
-      };
-      // setLoading("select");
-      // const response = await imsAxios.post(
-      //   "/backend/getComponentByNameAndNo",
-      //   payload
-      // );
       const response = await executeFun(
         () => getComponentOptions(search),
-        "select"
+        "select",
       );
       const { data } = response;
-      imsAxios;
-      let arr = [];
-      if (response.success) {
-        arr = data.map((d) => {
-          return { text: d.text, value: d.id };
-        });
-        setAsyncOptions(arr);
+      if (response?.success) {
+        let arr = [];
+        if (data.length) {
+          arr = data.map((d) => {
+            return { text: d.text, value: d.id };
+          });
+          setAsyncOptions(arr);
+          setComponentRates((curr) => {
+            const next = { ...curr };
+            data.forEach((d) => {
+              next[d.id] = d.rate;
+            });
+            return next;
+          });
+        } else {
+          setAsyncOptions([]);
+        }
       } else {
         setAsyncOptions([]);
       }
     } catch (error) {
+      showToast(error?.message || "Server Error", "error");
     } finally {
       setLoading(false);
     }
@@ -80,13 +82,13 @@ const PartCodeConversion = () => {
       setLoading("select");
       const response = await imsAxios.post(
         "/conversion/conversion_locations",
-        payload
+        payload,
       );
       const { data } = response;
-
-      let arr = [];
       if (response?.success) {
-        arr = response.data.map((d) => {
+        let arr = [];
+
+        arr = data.map((d) => {
           return { text: d.text, value: d.id };
         });
         setAsyncOptions(arr);
@@ -94,6 +96,7 @@ const PartCodeConversion = () => {
         setAsyncOptions([]);
       }
     } catch (error) {
+      showToast(error?.message || "Server Error", "error");
     } finally {
       setLoading(false);
     }
@@ -106,13 +109,15 @@ const PartCodeConversion = () => {
         location,
       });
       const { data } = response;
-
-      if (response?.success) {
-        setComponentStock(`${data.closingStock} ${data.uom ?? ""}`);
-      } else {
-        showToast(response.message, "error");
-      }
+    
+        if (response?.success) {
+          setComponentStock(`${data.closingStock} ${data.uom ?? ""}`);
+        } else {
+          showToast(response.message, "error");
+        }
+    
     } catch (error) {
+      showToast(error?.message || "Server Error", "error");
     } finally {
       setLoading(false);
     }
@@ -277,15 +282,19 @@ const PartCodeConversion = () => {
         component_in: addedComponents.in.map((row) => row.component.value),
         qty_in: addedComponents.in.map((row) => row.qty),
         loc_in: addedComponents.in.map((row) => row.location.value),
+        rate: addedComponents.in.map(
+          (row) => componentRates[row.component.value] ?? 0,
+        ),
       },
       final: {
         component_out: addedComponents.out.component.value,
         qty_out: addedComponents.out.qty,
         loc_out: addedComponents.out.location.value,
+        rate: [componentRates[addedComponents.in[0].component.value] ?? 0],
       },
     };
     Modal.confirm({
-      title: "Confirm Part Code Conversion.",
+      title: "Confirm SF Part Code Conversion.",
       content: (
         <Row gutter={[0, 12]}>
           <Col span={24}>
@@ -333,24 +342,22 @@ const PartCodeConversion = () => {
       const response = await imsAxios.post("/conversion/saveConversion", {
         ...payload,
         ...remarks,
-        type:"sf"
+        type: "sf",
       });
       const { data } = response;
-     
-        if (response?.success) {
-          showToast(response.message, "success");
-          setAddedComponents({
-            in: [],
-            qty: {},
-          });
-          remarksForm.resetFields();
 
-          setRemarks("");
-        } else {
-          showToast(response?.message, "error");
-        }
-   
+      if (data.code === 200) {
+        showToast(data.message, "success");
+        setAddedComponents({
+          in: [],
+          qty: {},
+        });
+        remarksForm.resetFields();
+      } else {
+        showToast(data.message, "error");
+      }
     } catch (error) {
+      showToast(error?.message ?? "Server Error", "error");
     } finally {
       setLoading(false);
     }
@@ -382,8 +389,8 @@ const PartCodeConversion = () => {
   return (
     <div
       style={{
-        height: "calc(100vh - 160px)",
-        padding: 10,
+        height: "calc(100vh - 170px)",
+        padding: "10px 10px",
       }}
     >
       <Form
@@ -408,7 +415,11 @@ const PartCodeConversion = () => {
                         type="secondary"
                         style={{ fontSize: "0.9rem" }}
                       >
-                        Existing Stock: {componentStock}
+                        Existing Stock: {componentStock} | Rate:{" "}
+                        {componentIn?.value != null &&
+                        componentRates[componentIn.value] != null
+                          ? componentRates[componentIn.value]
+                          : "--"}
                       </Typography.Text>
                     }
                     label="Component"
@@ -445,7 +456,7 @@ const PartCodeConversion = () => {
                 </Col>
                 <Col span={4}>
                   <Form.Item label="Qty" rules={rules.qtyIn} name="qtyIn">
-                    <Input type="number" />
+                    <Input />
                   </Form.Item>
                 </Col>
               </Row>
@@ -461,6 +472,18 @@ const PartCodeConversion = () => {
               <Row gutter={6}>
                 <Col span={14}>
                   <Form.Item
+                    extra={
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: "0.9rem" }}
+                      >
+                        Rate:{" "}
+                        {componentOut?.value != null &&
+                        componentRates[componentOut.value] != null
+                          ? componentRates[componentOut.value]
+                          : "--"}
+                      </Typography.Text>
+                    }
                     label="Component"
                     rules={rules.componentOut}
                     name="componentOut"
@@ -492,7 +515,7 @@ const PartCodeConversion = () => {
                 </Col>
                 <Col span={4}>
                   <Form.Item label="Qty" rules={rules.qtyOut} name="qtyOut">
-                    <Input  type="number"/>
+                    <Input />
                   </Form.Item>
                 </Col>
               </Row>
@@ -560,8 +583,8 @@ const PartCodeConversion = () => {
                         paddingBottom: 20,
                       }}
                     >
-                      {addedComponents.in.map((component) => (
-                        <Col span={24}>
+                      {addedComponents.in.map((component, index) => (
+                        <Col span={24} key={index}>
                           <Row align="middle">
                             <Col xl={5} xxl={3}>
                               {!editingComponent && (
@@ -576,7 +599,7 @@ const PartCodeConversion = () => {
                                     onClick={() =>
                                       deleteAddedComponent(
                                         component.id,
-                                        "initial"
+                                        "initial",
                                       )
                                     }
                                     icon={<DeleteFilled />}
@@ -715,4 +738,4 @@ const defaultValues = {
   qtyOut: "",
   locationOut: null,
 };
-export default PartCodeConversion; 
+export default PartCodeConversion;

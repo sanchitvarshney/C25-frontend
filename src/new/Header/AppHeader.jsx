@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import {
   Badge,
-  Switch,
   IconButton,
   Select,
   MenuItem,
@@ -9,8 +8,6 @@ import {
   Link,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import SearchIcon from "@mui/icons-material/Search";
-import TuneIcon from "@mui/icons-material/Tune";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import { SiSocketdotio } from "react-icons/si";
@@ -49,7 +46,7 @@ const AppHeader = (props) => {
   const notificationButtonRef = useRef(null);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-10 h-[45px] w-full flex items-center bg-[var(--ant-layout-header-background,#1d252c)]">
+    <div className="fixed top-0 left-0 right-0 z-10 h-[45px] w-full flex items-center bg-[var(--ant-layout-header-background,#047780)]">
       <div className="w-full pr-[26px]">
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center gap-[24px]">

@@ -12,7 +12,7 @@ import {
 } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import Loading from "../../../Components/Loading";
-import DownloadButton from "./DownloadButton";
+// import DownloadButton from "./DownloadButton";
 import LocationCard from "./LocationCard";
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
@@ -33,19 +33,11 @@ const initHeader = {
 };
 
 const QueryQ5 = () => {
-  const [stockDetails, setStockDetails] = useState({
-    componentName: "",
-    stock: [],
-    total: 0,
-    unit: "",
-    partCode: "",
-  });
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [headerData, setHeaderData] = useState(initHeader);
   const [rmData, setRmData] = useState([]);
   const [sfData, setSfData] = useState([]);
   const [vendorData, setVendorData] = useState([]);
-  const [compCode, setCompCode] = useState("");
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm();
 
@@ -150,17 +142,17 @@ const QueryQ5 = () => {
                 </Form.Item>
                 <Row justify="end">
                   <Space>
-                    <DownloadButton
+                    {/* <DownloadButton
                       total={stockDetails?.total}
                       componentLabel={`${stockDetails.partCode} - ${stockDetails?.component}`}
                       rows={stockDetails?.stock}
-                    />
+                    /> */}
                     <MyButton
                       variant="search"
                       onClick={async () => {
                         await getStockDetails("VENDOR");
                         await getStockDetails("RM");
-                        getStockDetails("SF");
+                         getStockDetails("SF");
                       }}
                       type="primary"
                       loading={loading("fetch")}
@@ -255,16 +247,7 @@ const QueryQ5 = () => {
           }}
           gutter={6}
         >
-          <Col span={24}>
-            <Row justify="center">
-              {stockDetails?.component && (
-                <Typography.Title level={5}>
-                  {stockDetails.partCode} -{stockDetails?.component} -
-                  {stockDetails?.total} {stockDetails?.unit}
-                </Typography.Title>
-              )}
-            </Row>
-          </Col>
+       
           <Col
             span={24}
             style={{
@@ -327,8 +310,9 @@ const QueryQ5 = () => {
                       </Row>
                       <AccordionDetails>
                         <Row gutter={[6, 6]}>
-                          {rmData?.stock?.map((row) => (
+                          {rmData?.stock?.map((row, index) => (
                             <LocationCard
+                              key={row.id || index}
                               locationAddress={row.loc_address}
                               location={row.loc_name}
                               value={row.closing}
@@ -384,9 +368,10 @@ const QueryQ5 = () => {
                       {/* <Col span={24}> */}
                       <AccordionDetails style={{}}>
                         <Row gutter={[6, 6]}>
-                          {sfData?.stock?.map((row) => (
+                          {sfData?.stock?.map((row, index) => (
                             // <Col span={4}>
                             <LocationCard
+                              key={row.id || index}
                               locationAddress={row.loc_address}
                               location={row.loc_name}
                               value={row.closing}
@@ -453,8 +438,9 @@ const QueryQ5 = () => {
 
                       <AccordionDetails>
                         <Row gutter={[6, 6]}>
-                          {vendorData?.stock?.map((row) => (
+                          {vendorData?.stock?.map((row, index) => (
                             <LocationCard
+                              key={row.id || index}
                               locationAddress={row.loc_address}
                               location={row.loc_name}
                               value={row.closing}

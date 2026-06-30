@@ -28,8 +28,6 @@ const Header = ({
   notifications,
   showNotifications,
   setShowNotifications,
-  showTickets,
-  setShowTickets,
   showSetting,
   setShowSetting,
 }) => {

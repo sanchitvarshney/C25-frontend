@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import  { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input, Empty } from "antd";
 import { SearchOutlined, CloseCircleFilled } from "@ant-design/icons";
@@ -149,10 +149,10 @@ export default function ModuleSearch() {
         style={{
           width: 200,
           height: 34,
-          borderRadius: 8,
+          borderRadius: 20,
           border: "1px solid rgba(255,255,255,0.3)",
-          background: "rgba(255,255,255,0.06)",
-          color: "rgba(255,255,255,0.85)",
+          background: "#ffffce",
+          color: "#000",
           display: "flex",
           alignItems: "center",
           gap: 8,
@@ -179,7 +179,7 @@ export default function ModuleSearch() {
             border: "1px solid rgba(255,255,255,0.35)",
             fontSize: 12,
             fontWeight: 700,
-            color: "rgba(255,255,255,0.9)",
+            color: "#000/",
             background: "rgba(255,255,255,0.08)",
           }}
         >
