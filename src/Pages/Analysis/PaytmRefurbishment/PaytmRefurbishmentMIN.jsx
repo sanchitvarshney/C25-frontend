@@ -7,7 +7,6 @@ import {
   Input,
   Row,
   Switch,
-  Typography,
 } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -47,7 +46,6 @@ function PaytmRefurbishmentMIN() {
       vendorcode: value,
     });
     setLoading(false);
-    const { data } = response;
    
       if (response.success) {
         let arr = response.data.map((row) => ({
@@ -71,7 +69,7 @@ function PaytmRefurbishmentMIN() {
     });
     setLoading(false);
     const { data } = response;
-    if (data) {
+   
       if (response.success) {
         let { address } = data.data;
         minForm.setFieldValue(
@@ -81,7 +79,7 @@ function PaytmRefurbishmentMIN() {
       } else {
         showToast(response.message?.msg || response.message, "error");
       }
-    }
+   
   };
   const validateHandler = async () => {
     let values = await minForm.validateFields();

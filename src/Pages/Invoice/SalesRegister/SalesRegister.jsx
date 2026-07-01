@@ -1,5 +1,5 @@
-import { Button, Col, Drawer, Input, Row, Space } from "antd";
-import React, { useEffect, useState } from "react";
+import { Col, Drawer, Input, Row, Space } from "antd";
+import  { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
@@ -10,13 +10,6 @@ import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import MyButton from "../../../Components/MyButton";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import {
-  EyeFilled,
-  EyeInvisibleFilled,
-  EyeInvisibleOutlined,
-  EyeInvisibleTwoTone,
-  EyeOutlined,
-} from "@ant-design/icons";
 
 function SalesRegister() {
   const [wise, setWise] = useState("created_date_wise");
@@ -162,6 +155,7 @@ function SalesRegister() {
       width: 65,
       getActions: ({ row }) => [
         <GridActionsCellItem
+          key="view"
           showInMenu
           // icon={<EyeOutlined />}
           onClick={() => getDetials(row)}

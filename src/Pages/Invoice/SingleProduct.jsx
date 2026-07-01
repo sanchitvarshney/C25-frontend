@@ -5,6 +5,7 @@ import Loading from "../../Components/Loading";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import MySelect from "../../Components/MySelect";
 import { imsAxios } from "../../axiosInterceptor";
+import { useToast } from "../../hooks/useToast.js";
 
 export default function SingleProduct({
   index,
@@ -17,15 +18,10 @@ export default function SingleProduct({
   gstGlOptions,
   gstType,
   glOptions,
-  shippingAddress,
 }) {
-  // const { loading } = useSelector((state) => state.imsData);
-
   const [loading, setLoading] = useState(false);
-
+const { showToast } = useToast();
   const [optionState, setOptionState] = useState([]);
-  const component =
-    Form.useWatch(["components", field.name, "component"], form) ?? 0;
   const qty = Form.useWatch(["components", field.name, "qty"], form) ?? 0;
   const rate = Form.useWatch(["components", field.name, "rate"], form) ?? 0;
   const product =
@@ -33,8 +29,6 @@ export default function SingleProduct({
   const tcs = Form.useWatch(["components", field.name, "tcs"], form) ?? 0;
   const freight =
     Form.useWatch(["components", field.name, "freight"], form) ?? 0;
-  const shippingCode =
-    Form.useWatch(["components", field.name, "shippingAddress"], form) ?? 0;
   const gstRate =
     Form.useWatch(["components", field.name, "gstRate"], form)?.replaceAll(
       "%",
@@ -50,12 +44,13 @@ export default function SingleProduct({
         search: searchTerm,
       });
 
-      let arr = data.map((row) => ({
+      let arr = response.data.map((row) => ({
         text: row.text,
         value: row.id,
       }));
       setOptionState(arr);
     } catch (error) {
+      showToast("Error while fetching products", "error");
     } finally {
       setLoading(false);
     }
@@ -68,8 +63,8 @@ export default function SingleProduct({
         product_key: product.value,
       });
 
-      if (data.code === 200 || data.code === "200") {
-        let arr = data.data;
+      if (response?.success) {
+        let arr = response.data;
         form.setFieldValue(
           ["components", field.name, "hsnCode"],
           arr[0].hsncode
@@ -298,10 +293,4 @@ export default function SingleProduct({
     </Row>
   );
 }
-const gstRateOptions = [
-  { value: "0", text: "00%" },
-  { value: "5", text: "05%" },
-  { value: "12", text: "12%" },
-  { value: "18", text: "18%" },
-  { value: "28", text: "28%" },
-];
+

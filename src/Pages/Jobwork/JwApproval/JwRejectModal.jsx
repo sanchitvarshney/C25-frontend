@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Form, Modal, Row, Typography, Col, Button, Input } from "antd";
+import { Form, Modal, Row, Col, Input } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 
@@ -17,7 +17,6 @@ export default function JwRejectModal({ open, close, getRows }) {
       remark: values.remarks,
     });
     setLoading(false);
-    const { data } = response;
     if (response.success) {
       close();
       resetHandler();

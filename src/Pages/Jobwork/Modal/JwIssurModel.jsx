@@ -11,7 +11,7 @@ import { saveJwMAterialIssue } from "../../../api/general";
 import useApi from "../../../hooks/useApi";
 import Loading from "../../../Components/Loading";
 
-const JwIssurModel = ({ openModal, setOpenModal, datewiseFetchData }) => {
+const JwIssurModel = ({ openModal, setOpenModal }) => {
   const { showToast } = useToast();
   const [loading, setLoading] = useLoading();
   const [closeLoading, setCloseLoading] = useLoading();

@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Form, Input, Space, Select, Upload } from "antd";
 import {  Divider } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
-import axios from "axios";
 import { Row, Col } from "antd";
 import { CheckOutlined, UploadOutlined } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";

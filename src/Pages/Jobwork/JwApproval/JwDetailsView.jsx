@@ -1,4 +1,4 @@
-import React from "react";
+
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 import { useState } from "react";
@@ -31,7 +31,7 @@ export default function JwDetailsView({ viewPoDetails, setViewPoDetails }) {
       }));
       setRows(arr);
     } else {
-      toast.message(response?.message);
+      showToast(response?.message, "error");
       setViewPoDetails(false);
     }
   };

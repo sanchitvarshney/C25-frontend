@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Col, Row, Select, Button, Input, Popover } from "antd";
 import MyDataTable from "../../Components/MyDataTable";
 import MyDatePicker from "../../Components/MyDatePicker";
@@ -30,7 +30,7 @@ const JwIssue = () => {
     jwId: "",
     vendorName: "",
   });
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const options = [
     { label: "Date", value: "datewise" },
     { label: "JW ID", value: "jw_transaction_wise" },

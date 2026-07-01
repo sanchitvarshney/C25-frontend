@@ -4,15 +4,13 @@ import {
   Col,
   Drawer,
   Input,
-  Modal,
   Popconfirm,
   Row,
   Typography,
 } from "antd";
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import Loading from "../../../Components/Loading";
 import SummaryCard from "../../../Components/SummaryCard";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { v4 } from "uuid";
@@ -73,7 +71,7 @@ function MINDrawer({ transactionInwarding, setTransactionInwarding }) {
     },
     {
       headerName: "SFG In Qty",
-      renderCell: ({ row }) => <Typography.Text>--</Typography.Text>,
+      renderCell: ( ) => <Typography.Text>--</Typography.Text>,
     },
     {
       headerName: "In qty",

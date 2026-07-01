@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import { Button, Col, Input, Row, Select } from "antd";
 import MyDatePicker from "../../Components/MyDatePicker";
 import { useToast } from "../../hooks/useToast.js";
@@ -30,7 +30,7 @@ const JwsfInward = () => {
   const [jwData, setDJWData] = useState([]);
   const [skuData, setSKUData] = useState([]);
   const [vendorData, setVendorData] = useState([]);
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const option = [
     { label: "Date Wise", value: "datewise" },
     { label: "JW ID Wise", value: "jw_transaction_wise" },

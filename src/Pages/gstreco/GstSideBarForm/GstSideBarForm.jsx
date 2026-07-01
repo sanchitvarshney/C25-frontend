@@ -1,6 +1,6 @@
-import React from "react";
+
 import { Form, Input, Space , Select, Button,
-  Drawer, Row, Col,InputNumber
+  Drawer, Row, Col
   } 
   from "antd";
 import { useState, useEffect } from "react";

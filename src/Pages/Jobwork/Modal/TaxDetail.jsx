@@ -1,10 +1,10 @@
-import { Col, Divider, Modal, Row } from "antd";
-import React, { useEffect } from "react";
+import { Col, Modal, Row } from "antd";
+import { useEffect } from "react";
 
 export default function TaxDetail({ detailModal, setDetailModal, addRow }) {
-  let value = addRow?.map((row) => Number(row.value));
-  let Cgst = addRow?.map((row) => Number(row.cgst) + Number(row.sgst));
-  let Igst = addRow?.map((row) => Number(row.igst));
+  // let value = addRow?.map((row) => Number(row.value));
+  // let Cgst = addRow?.map((row) => Number(row.cgst) + Number(row.sgst));
+  // let Igst = addRow?.map((row) => Number(row.igst));
   let all = addRow?.map((row) => Number(row.cgst) + Number(row.sgst) + Number(row.igst));
   let grandTotal = addRow?.map(
     (row) => Number(row.value) + Number(row.cgst) + Number(row.sgst) + Number(row.igst)

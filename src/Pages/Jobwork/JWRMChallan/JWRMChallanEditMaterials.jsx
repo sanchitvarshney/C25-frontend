@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
   Card,
   Col,
   Divider,
@@ -9,7 +8,6 @@ import {
   Input,
   Row,
   Skeleton,
-  Space,
 } from "antd";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -30,7 +28,7 @@ function JWRMChallanEditMaterials({
 }) {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
-  const [vendorData, setVendorData] = useState(null);
+  // const [vendorData, setVendorData] = useState(null);
   const [loading, setLoading] = useLoading();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [vendorBranchOptions, setVendorBranchOptions] = useState([]);
@@ -71,7 +69,7 @@ function JWRMChallanEditMaterials({
         if (obj.billing_info?.value) {
           await getBillingAddressDetails(obj.billing_info.value);
         }
-        setVendorData(vendor ? { vendor, ...obj } : obj);
+        // setVendorData(vendor ? { vendor, ...obj } : obj);
       } catch (err) {
         console.error("Error setting form/address details:", err);
       }
@@ -166,8 +164,7 @@ function JWRMChallanEditMaterials({
       vendorcode: vendor_id,
     });
     setLoading("values", false);
-    // console.log("response->", response)
-    const { data } = response;
+
  
       if (response.success) {
         let arr = response.data.map((row) => ({
@@ -182,7 +179,6 @@ function JWRMChallanEditMaterials({
   };
   const getVendorBranchDetails = async (branchCode) => {
     const vendorCode = createJobWorkChallanForm.getFieldsValue().vendor.value;
-    let obj1 = createJobWorkChallanForm.getFieldsValue();
     setLoading("values", true);
     const response = await imsAxios.post("backend/vendorAddress", {
       branchcode: branchCode,
@@ -196,7 +192,6 @@ function JWRMChallanEditMaterials({
           vendor_address: data.data.address?.replaceAll("<br>", "\n"),
           vendor_gst: data.data.gstid,
         };
-        obj1 = { ...obj1, ...obj };
         createJobWorkChallanForm.setFieldsValue(obj);
         return obj;
       } else {

@@ -1,5 +1,5 @@
-import React from "react";
-import { Button, Col, Form, Input, Modal, Row } from "antd";
+
+import {Col, Form, Input, Modal, Row } from "antd";
 
 export default function JwApprovalModel({
   open,

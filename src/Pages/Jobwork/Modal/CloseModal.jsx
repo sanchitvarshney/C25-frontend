@@ -1,15 +1,12 @@
-import React, { useState } from "react";
-import { Col, Drawer, Input, Modal, Row, Space } from "antd";
-
-import axios from "axios";
+import  { useState } from "react";
+import { Col, Input, Modal, Row } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
-import { useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 
 function CloseModal({ closeModalOpen, setCloseModalOpen, getRows }) {
   const { showToast } = useToast();
   const [remark, setRemark] = useState("");
-  const { seltype, row } = closeModalOpen;
+  const { row } = closeModalOpen;
   // console.log(row);
 
   const generateFun = async () => {
@@ -50,7 +47,7 @@ function CloseModal({ closeModalOpen, setCloseModalOpen, getRows }) {
             and product SKU.
           </Col>
           <Col span={24} style={{ marginTop: "10px" }}>
-            Note: "CLOSE" action is an reversible action..
+            {`Note: "CLOSE" action is an reversible action..`}
           </Col>
           <Col
             span={24}

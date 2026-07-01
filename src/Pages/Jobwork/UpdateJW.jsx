@@ -40,7 +40,7 @@ const UpdateJW = () => {
     },
   ]);
 
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const originalPoNomber = Form.useWatch("originalPoNomber", jwUpdateForm);
 
   const getOriginalPoOptions = async (search) => {
@@ -80,7 +80,7 @@ const UpdateJW = () => {
             bom: data.headers.subject_name,
             vendor: data.headers.vendor_name,
           };
-          const componentsArr = data.components.map((row, index) => ({
+          const componentsArr = data.components.map((row) => ({
             component: {
               label: row.component_name,
               value: row.component_key,
@@ -96,6 +96,7 @@ const UpdateJW = () => {
         }
  
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -191,7 +192,7 @@ const UpdateJW = () => {
   }, [originalPoNomber]);
 
   return (
-    <div gutter={6} style={{ height: "90%", padding: 10 }}>
+    <div  style={{ height: "90%", padding: 10 }}>
       <Form
         initialValues={initialValues}
         layout="vertical"

@@ -1,20 +1,8 @@
-import React, { useEffect } from "react";
-import { Col, Divider, Drawer, Row, Space, Input, Skeleton } from "antd";
-import MyDataTable from "../../../Components/MyDataTable";
 
-function UpdateViewModal({ viewModal, setViewModal, header, component, loadingUpdate }) {
-  const columns = [
-    { field: "index", headerName: "S No.", width: 100 },
-    { field: "component_name", headerName: "Name", width: 480 },
-    { field: "component_part", headerName: "Part", width: 140 },
-    { field: "component_uom", headerName: "UoM", width: 150 },
-    {
-      field: "recipe_qty",
-      headerName: "Recipe Qty",
-      width: 220,
-      renderCell: ({ row }) => <Input value={row.recipe_qty} disabled />,
-    },
-  ];
+import { Col,  Drawer, Row, Space, Skeleton } from "antd";
+
+function UpdateViewModal({ viewModal, setViewModal, header, loadingUpdate }) {
+
 
   return (
     <Space>

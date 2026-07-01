@@ -1,10 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Table, Row, Col, Button } from "antd";
-// import api from "../config";
-import { DownloadOutlined } from "@ant-design/icons";
-
-// import { CSVLink} from "react-csv";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { Table } from "antd";
 import "./summary.css";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";

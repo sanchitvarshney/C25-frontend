@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Form, Input, Space, Select, Upload, } from "antd";
-import { InputNumber, Divider } from "antd";
+import {  Divider } from "antd";
 // import api from '../config'
 import { Row, Col } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
@@ -63,7 +63,7 @@ const AddBookDetails = () => {
 
 
 
-  const handleFormSubmit = async (formData) => {
+  const handleFormSubmit = async () => {
     try {
      const values = await bookForm.validateFields();
      console.log(values);

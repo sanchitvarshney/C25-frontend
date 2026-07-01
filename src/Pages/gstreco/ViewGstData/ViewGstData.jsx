@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import  { useState, useEffect } from "react";
 import EditIcon from "@mui/icons-material/Edit";
 
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -10,7 +9,7 @@ import {
 } from "@ant-design/icons";
 import GstSideBarForm from "../GstSideBarForm/GstSideBarForm";
 import MyDataTable from "../../../Components/MyDataTable";
-import { Popconfirm, Row, Col, Button, Modal } from "antd";
+import { Popconfirm, Col, Button, Modal } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components/exportToCSV";
@@ -43,7 +42,7 @@ const ViewGstData = () => {
     }
   };
 
-  const cancel = (e) => {};
+  const cancel = () => {};
 
   const columns = [
     {

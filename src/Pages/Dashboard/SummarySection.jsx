@@ -1,8 +1,6 @@
-import { Button, Card, Col, Flex, Row, Skeleton, Typography } from "antd";
-import React from "react";
+import {  Card, Col, Flex, Row, Skeleton, Typography } from "antd";
 import MyButton from "../../Components/MyButton";
 import { useNavigate } from "react-router";
-import MyDatePicker from "../../Components/MyDatePicker";
 import { customColor } from "../../utils/customColor";
 
 const MasterSummary = ({

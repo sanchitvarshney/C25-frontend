@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Col,
-  Dropdown,
   Form,
   Input,
   Modal,
@@ -46,7 +45,7 @@ const POAnalysis = () => {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [updateModalInfo, setUpdateModalInfo] = useState(false);
   const [open, setOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState("");
+  // const [selectedRow, setSelectedRow] = useState("");
   const [advancedFilter, setAdvancedFilter] = useState(false);
   const [advancedDate, setAdvancedDate] = useState("");
 
@@ -114,19 +113,17 @@ const POAnalysis = () => {
         downloadFunction(data?.buffer?.data, jwId);
       }
     } else {
-      toast.error(response?.message);
+      showToast(response?.message?.msg || response.message, "error");
     }
   };
-  const askPassword = () => {
-    // <Modal
-  };
+
   const vendorLogin = async () => {
     setConfirmLoading(true);
     const values = await passwordForm.validateFields();
-    let vencode = selectedRow.vendor.split("( ")[1].split(" )")[0];
+    // let vencode = selectedRow.vendor.split("( ")[1].split(" )")[0];
     const response = await imsAxios.post("/auth/redirectVendor", {
       currentPassword: values.password,
-      vendorCode: vencode,
+      // vendorCode: vencode,
     });
     const { data } = response;
     setConfirmLoading(true);
@@ -137,7 +134,7 @@ const POAnalysis = () => {
       setOpen(false);
       passwordForm.resetFields();
     } else {
-      toast.error(response?.message);
+      showToast(response?.message?.msg || response.message, "error");
       setConfirmLoading(false);
     }
     // navigate("");
@@ -193,7 +190,6 @@ const POAnalysis = () => {
       />,
     ],
   };
-  const selectedWise = filterForm.getFieldValue("wise");
 
   return (
     <Row gutter={6} style={{ height: "100%", padding: 10 }}>
@@ -446,9 +442,9 @@ const SKUSelect = ({ wise }) => {
   );
 };
 const VendorSelect = ({ wise, useApi }) => {
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const getSkuOptions = async (search) => {
     const response = await executeFun(() => getVendorOptions(search), "select");

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
   Card,
   Col,
   Divider,
@@ -8,7 +7,6 @@ import {
   Form,
   Input,
   Row,
-  Select,
   Skeleton,
   Modal,
 } from "antd";
@@ -18,7 +16,6 @@ import { v4 } from "uuid";
 import FormTableDataGrid from "../../../Components/FormTableDataGrid";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { useToast } from "../../../hooks/useToast.js";
-import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import Loading from "../../../Components/Loading";
 import NavFooter from "../../../Components/NavFooter";
 import errorToast from "../../../Components/errorToast";
@@ -34,10 +31,7 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useLoading();
-  const [loadChallan, setLoadChallan] = useState(false);
   const [locationOptions, setLocationOptions] = useState([]);
-  const [asyncOptions, setAsyncOptions] = useState([]);
-  const [dropLocationOptions, setDropLocationOptions] = useState([]);
   const [dispatchBranches, setDispatchBranches] = useState([]);
   const [billingBranches, setBillingBranches] = useState([]);
   const [restCom, setRestCom] = useState({
@@ -57,8 +51,7 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
       otherRef: "",
     });
     setLocationOptions([]);
-    setDropLocationOptions([]);
-    setAsyncOptions([]);
+ 
   };
 
   const handleClose = () => {
@@ -296,45 +289,45 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
     }
   };
 
-  const getDropLocation = async (value) => {
-    let vendor = createJobWorkChallanForm.getFieldsValue().vendorcode;
-    if (vendor) {
-      setLoading("select", true);
-      const response = await imsAxios.get(`/backend/fetchVendorJWLocation?vendor=${vendor?.value}`);
-      setLoading("select", false);
-      if (response.success) {
-        let arr = [];
-        arr = response.data.map((row) => ({
-          value: row.id,
-          text: row.text,
-        }));
-        setDropLocationOptions(arr);
-      } else {
-        showToast(response.message, "error");
-      }
-    }
-  };
-  const getAsyncOptions = async (search, type) => {
-    let link =
-      type === "dispatch"
-        ? "/backend/dispatchAddressList"
-        : type === "billing" && "/backend/billingAddressList";
-    setLoading("select", true);
-    const response = await imsAxios.post(link, {
-      search: search,
-    });
-    setLoading("select", false);
-    const data = response.data ?? [];
-    if (response.success && data.length) {
-      const arr = data.map((row) => ({
-        text: row.label ?? row.text,
-        value: row.key ?? row.id,
-      }));
-      setAsyncOptions(arr);
-    } else {
-      setAsyncOptions([]);
-    }
-  };
+  // const getDropLocation = async () => {
+  //   let vendor = createJobWorkChallanForm.getFieldsValue().vendorcode;
+  //   if (vendor) {
+  //     setLoading("select", true);
+  //     const response = await imsAxios.get(`/backend/fetchVendorJWLocation?vendor=${vendor?.value}`);
+  //     setLoading("select", false);
+  //     if (response.success) {
+  //       let arr = [];
+  //       arr = response.data.map((row) => ({
+  //         value: row.id,
+  //         text: row.text,
+  //       }));
+  //       setDropLocationOptions(arr);
+  //     } else {
+  //       showToast(response.message, "error");
+  //     }
+  //   }
+  // };
+  // const getAsyncOptions = async (search, type) => {
+  //   let link =
+  //     type === "dispatch"
+  //       ? "/backend/dispatchAddressList"
+  //       : type === "billing" && "/backend/billingAddressList";
+  //   setLoading("select", true);
+  //   const response = await imsAxios.post(link, {
+  //     search: search,
+  //   });
+  //   setLoading("select", false);
+  //   const data = response.data ?? [];
+  //   if (response.success && data.length) {
+  //     const arr = data.map((row) => ({
+  //       text: row.label ?? row.text,
+  //       value: row.key ?? row.id,
+  //     }));
+  //     setAsyncOptions(arr);
+  //   } else {
+  //     setAsyncOptions([]);
+  //   }
+  // };
   const getDispatchAddress = async (value) => {
     setLoading("page", true);
     const response = await imsAxios.post("/backend/dispatchAddress", {
@@ -561,7 +554,7 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
       // getDetails();
     } else if (!response.success) {
       showToast(response.message?.msg || response.message, "error");
-      setLoadChallan(false);
+      // setLoadChallan(false);
     }
   };
   useEffect(() => {
@@ -576,7 +569,7 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
   useEffect(() => {
     const vendorcode = createJobWorkChallanForm.getFieldsValue().vendorcode;
     if (vendorcode) {
-      getDropLocation();
+      // getDropLocation();
       getLocations(vendorcode?.value);
     }
   }, [createJobWorkChallanForm.getFieldsValue().vendorcode]);

@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import Input from "antd/lib/input/Input";
 import { Button, Col, Drawer, Form, Modal, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 import MySelect from "../../../Components/MySelect";
 import validateResponse from "../../../Components/validateResponse";
+import Loading from "../../../Components/Loading.jsx";
 
 export default function PaytmQCUpdate({ setUpdatingQC, updatingQC, getRows }) {
   const { showToast } = useToast();
-  const [imeiNumber, setImeiNumber] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [qcData, setQCData] = useState({});
   const [resetQcData, setResetQCData] = useState({});
@@ -106,8 +106,8 @@ export default function PaytmQCUpdate({ setUpdatingQC, updatingQC, getRows }) {
     });
     setSearchLoading(false);
     if (response.success) {
-      setQCData(data.data);
-      setResetQCData(data.data);
+      setQCData(response.data);
+      setResetQCData(response.data);
     } else {
       showToast(response.message?.msg || response.message, "error");
     }
@@ -121,7 +121,7 @@ export default function PaytmQCUpdate({ setUpdatingQC, updatingQC, getRows }) {
       return showToast("Please select the actual problem", "error");
     } else if (!qcData.correction_by || qcData.correction_by == "") {
       return showToast("Please select the correction action performed", "error");
-    } else if (!qcData.correction_by || qcData.correction_by == "") {
+    } else if (!qcData.after_correction_status || qcData.after_correction_status == "") {
       return showToast("Please select the status after correction", "error");
     }
     let final = {
@@ -143,7 +143,7 @@ export default function PaytmQCUpdate({ setUpdatingQC, updatingQC, getRows }) {
       );
       setSubmitLoading(false);
       setShowSubmitConfirm(false);
-      const validateData = validateResponse(data);
+      const validateData = validateResponse(response.data);
       showToast(validateData.message, "success");
       setUpdatingQC(false);
       getRows();
@@ -212,6 +212,8 @@ export default function PaytmQCUpdate({ setUpdatingQC, updatingQC, getRows }) {
       >
         <p>Are you sure you want to update this Paytm QC Analysis?</p>
       </Modal>
+
+      {searchLoading && <Loading />}
 
       <div style={{ padding: "0px 10px", height: "100%" }}>
         <Form size="small" layout="vertical">

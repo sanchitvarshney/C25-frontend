@@ -1,23 +1,24 @@
 
 import { useState, useEffect } from "react";
-import { Card, Col, Form, Row, Typography } from "antd";
+import { Card, Col, Form, Row } from "antd";
 import SingleDatePicker from "../../Components/SingleDatePicker";
 import SummaryCard from "../../Components/SummaryCard";
 import TaxDetails from "./TaxDetails";
 import SingleProduct from "./SingleProduct";
 import { imsAxios } from "../../axiosInterceptor";
 import MySelect from "../../Components/MySelect";
+import { useToast } from "../../hooks/useToast.js";
+
 
 const Products = ({
   form,
   tcsOptions,
-  loading,
   setLoading,
   gstType,
   setGstType,
 }) => {
   const [taxDetails, setTaxDetails] = useState(inititalTaxDetails);
-
+const { showToast } = useToast();
   const [gstGlOptions, setGstGlOptions] = useState([]);
   const [glOptions, setGlOptions] = useState([]);
   const [shippingCode, setShippingCode] = useState([]);
@@ -41,6 +42,7 @@ const Products = ({
         setGstGlOptions(data);
       }
     } catch (error) {
+      showToast("Error occurred while fetching GST GL options", "error");
     } finally {
       setLoading(false);
     }
@@ -53,6 +55,7 @@ const Products = ({
       const { data } = response;
       setGlOptions(data);
     } catch (error) {
+      showToast("Error occurred while fetching GL options", "error");
     } finally {
       setLoading(false);
     }
@@ -185,7 +188,7 @@ const Products = ({
             <>
               <Col>
                 {fields.map((field, index) => (
-                  <Form.Item noStyle>
+                  <Form.Item noStyle key={field.key ?? index}>
                     <SingleProduct
                       fields={fields}
                       field={field}

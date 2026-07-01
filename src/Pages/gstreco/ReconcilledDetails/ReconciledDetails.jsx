@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 
 import "./reconciledDetails.css";
@@ -15,7 +15,6 @@ const ReconciledDetails = () => {
   const { showToast } = useToast();
   const [bookData, setBookData] = useState([]);
   const [gstData, setGstData] = useState([]);
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [selectedGstRowIndex, setSelectedGstRowIndex] = useState(null);
   const [getGstdata, setgstdata] = useState([]);
   const [getbookdata, setbookdata] = useState([]);
@@ -25,9 +24,9 @@ const ReconciledDetails = () => {
 
 
   
-  const handleRowSelection = (rowId) => {
-    setSelectedRowIndex(rowId);
-  };
+  // const handleRowSelection = (rowId) => {
+  //   setSelectedRowIndex(rowId);
+  // };
 
   const handleGstRowSelection = (rowid) => {
     setSelectedGstRowIndex(rowid);
@@ -237,14 +236,14 @@ const ReconciledDetails = () => {
       headerName: "Select",
       field: "select",
       width: 50,
-      renderCell: (params) => {
-        return (
-          <Checkbox
-            checked="true"
-            onChange={() => handleRowSelection(params.row.id)}
-          />
-        );
-      },
+      // renderCell: (params) => {
+      //   return (
+      //     <Checkbox
+      //       checked="true"
+      //       onChange={() => handleRowSelection(params.row.id)}
+      //     />
+      //   );
+      // },
       headerClassName: "header-background",
     },
     {

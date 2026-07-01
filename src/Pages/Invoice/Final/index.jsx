@@ -1,5 +1,5 @@
-import { Button } from "antd";
-import React, { useEffect, useState } from "react";
+
+import { useEffect, useState } from "react";
 
 import MyDataTable from "../../../Components/MyDataTable";
 import printFunction from "../../../Components/printFunction";
@@ -78,7 +78,7 @@ function FinalInvoice() {
     const response = await imsAxios.get(
       `/invoice/downloadInvoice?invoiceID=${id}`
     );
-    printFunction(data.buffer.data);
+    printFunction(response?.data?.buffer?.data);
   };
 
   useEffect(() => {

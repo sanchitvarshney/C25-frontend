@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button, Col, Input, Row, Select, Skeleton } from "antd";
-// import InternalNav from "../../Components/InternalNav";
-// import JobworkUpdate from "../links/JobworkUpdate";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
-import axios from "axios";
 import { useToast } from "../../../../hooks/useToast.js";
 import UpdateViewModal from "../../Modal/UpdateViewModal";
-import { EyeTwoTone, OrderedListOutlined } from "@ant-design/icons";
 import { v4 } from "uuid";
 import { PlusCircleTwoTone, MinusCircleTwoTone } from "@ant-design/icons";
 import MyDataTable from "../../../../Components/MyDataTable";
@@ -26,8 +22,6 @@ function UpdateJW() {
   });
 
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchInput1, setSearchInput1] = useState("");
   const [header, setHeader] = useState([]);
   const [component, setComponent] = useState([]);
   const [viewModal, setViewModal] = useState(false);
@@ -229,17 +223,17 @@ function UpdateJW() {
       );
 
       // Check if any row has status as "alt"
-      const updatedComponent = component.map((v) => {
-        if (v.id == id) {
-          return { ...v, status: value };
-        } else {
-          return v;
-        }
-      });
+      // const updatedComponent = component.map((v) => {
+      //   if (v.id == id) {
+      //     return { ...v, status: value };
+      //   } else {
+      //     return v;
+      //   }
+      // });
 
-      const hasAlternateStatus = updatedComponent.some(
-        (row) => row.status === "alt"
-      );
+      // const hasAlternateStatus = updatedComponent.some(
+      //   (row) => row.status === "alt"
+      // );
     
     }
   };
@@ -277,7 +271,7 @@ function UpdateJW() {
             loadOptions={getComponentName}
             selectLoading={loading1("select")}
             value={row?.component_name}
-            onInputChange={(e) => setSearchInput1(e)}
+            // onInputChange={(e) => setSearchInput1(e)}
             optionsState={asyncOptions}
             onChange={(e) => inputHandler("component_name", row.id, e)}
           />
@@ -613,7 +607,7 @@ function UpdateJW() {
                     <MyAsyncSelect
                       style={{ width: "100%" }}
                       onBlur={() => setAsyncOptions([])}
-                      onInputChange={(e) => setSearchInput(e)}
+                      // onInputChange={(e) => setSearchInput(e)}
                       loadOptions={getComponent}
                       value={updateData?.poType}
                       optionsState={asyncOptions}

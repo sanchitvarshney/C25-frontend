@@ -1,5 +1,4 @@
 import { Col, Form, Input, Modal, Row } from "antd";
-import React from "react";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
@@ -43,9 +42,8 @@ const CancelEwayBillModal = ({ show, hide }) => {
         }
       }
     } catch (error) {
-    } finally {
-      //   setLoading(false);
-    }
+      showToast("Error while cancelling E-way bill", "error");
+    } 
   };
   return (
     <Modal

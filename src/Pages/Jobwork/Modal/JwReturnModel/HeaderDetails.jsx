@@ -1,5 +1,4 @@
 import { Card, Row, Col, Divider, Typography } from "antd";
-import React from "react";
 
 const HeaderDetails = ({ headerDetails }) => {
   return (
@@ -7,6 +6,7 @@ const HeaderDetails = ({ headerDetails }) => {
       <Row>
         {headerDetails.map((row, index) => (
           <Entry
+            key={index}
             title={row.title}
             value={row.value}
             lastIndex={index === headerDetails.length - 1}

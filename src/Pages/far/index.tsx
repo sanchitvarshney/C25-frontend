@@ -1,10 +1,12 @@
 import { InboxOutlined } from "@ant-design/icons";
 import { Card, Flex, Form, Modal, Row, Typography, Upload } from "antd";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
 import { ModalType } from "@/types/general";
 import { useState } from "react";
 import useApi from "@/hooks/useApi";
 import { uploadFile } from "@/api/far/upload";
+//@ts-ignore
 import { downloadFunction } from "../../Components/printFunction";
 
 const FARUpload = () => {
@@ -29,7 +31,7 @@ const FARUpload = () => {
       form.resetFields();
     }
   };
-  const normFile = (e) => {
+  const normFile = (e: any) => {
     console.log("Upload event:", e);
     if (Array.isArray(e)) {
       return e;

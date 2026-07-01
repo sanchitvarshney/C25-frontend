@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
   Card,
   Col,
   Form,
-  Input,
   Modal,
   Row,
   Space,
@@ -55,6 +53,7 @@ const JWUpdateRate = () => {
         }
   
     } catch (error) {
+      showToast(error.message, "error");
    
     } finally {
       setLoading(false);
@@ -113,6 +112,7 @@ const JWUpdateRate = () => {
         }
   
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ const JWUpdateRate = () => {
 
     maxCount: 1,
 
-    beforeUpload(file) {
+    beforeUpload() {
       return false;
     },
   };

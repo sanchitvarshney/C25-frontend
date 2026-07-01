@@ -28,8 +28,6 @@ import useApi from "../../../../hooks/useApi";
 import { uplaodFileInJWReturn } from "../../../../api/general";
 import MyDataTable from "../../../../Components/MyDataTable";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
-import axios from "axios";
-
 const JwReturnModel = ({ show, close }) => {
   const { showToast } = useToast();
   const [headerDetails, setHeaderDetails] = useState([]);
@@ -126,7 +124,7 @@ const JwReturnModel = ({ show, close }) => {
         transaction: transaction,
       });
 
-      const {body,header} = response?.data;
+      const {body,header} = response?.data || {};
       const headerValues = header;
       setVendor(headerValues?.vendor?.code)
       let headerArr = [];
@@ -142,12 +140,12 @@ const JwReturnModel = ({ show, close }) => {
       };
 
       for (let key in headerObj) {
-        if (headerObj.hasOwnProperty(key)) {
+  
           headerArr.push({
             title: key,
             value: headerObj[key],
           });
-        }
+      
       }
 
       const componentArr = body.map((row) => ({
@@ -255,7 +253,7 @@ const JwReturnModel = ({ show, close }) => {
 
     maxCount: 1,
 
-    beforeUpload(file) {
+    beforeUpload() {
       return false;
     },
   };
@@ -272,7 +270,6 @@ const JwReturnModel = ({ show, close }) => {
     );
     if (response?.data?.status == "success") {
       let { data } = response;
-      let rows = data.data;
 
       const formattedHeaders = data.data.headers.map((header) =>
         header

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Drawer, Skeleton, Space } from "antd";
 import { CloseCircleFilled, PrinterTwoTone } from "@ant-design/icons";
-import axios from "axios";
 import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
 import printFunction from "../../../Components/printFunction";

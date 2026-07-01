@@ -91,7 +91,7 @@ const newPurchaseOrder = {
   location: "",
 };
 
-export default function CreateJW({}) {
+export default function CreateJW() {
   // initialize loading state
   const { showToast } = useToast();
   const [loading, setLoading] = useLoading();
@@ -120,7 +120,7 @@ export default function CreateJW({}) {
   const [createPoForm] = Form.useForm();
   // get po options
   //   in case of po type change
-  const getPoOptions = async (inputValue) => {};
+  const getPoOptions = async () => {};
   //   get vendor options
   const getVendorOption = async (search) => {
     const response = await executeFun(() => getVendorOptions(search), "select");
@@ -210,10 +210,10 @@ export default function CreateJW({}) {
           }));
           setDropLocationOptions(arr);
         } else {
-          toast.error(response.message);
+          showToast(response.message, "error");
         }
       } catch (error) {
-        toast.error(error.message || "Failed to fetch pick location");
+        showToast(error.message || "Failed to fetch pick location", "error");
       }
     }
   };

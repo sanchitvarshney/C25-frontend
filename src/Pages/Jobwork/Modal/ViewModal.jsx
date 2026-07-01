@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -6,17 +6,9 @@ import {
   Drawer,
   Dropdown,
   Row,
-  Skeleton,
   Space,
 } from "antd";
-import {
-  EyeFilled,
-  CloseCircleFilled,
-  InfoCircleTwoTone,
-} from "@ant-design/icons";
 import { v4 } from "uuid";
-import axios from "axios";
-import InfoModal from "./InfoModal";
 import MyDataTable from "../../../Components/MyDataTable";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";

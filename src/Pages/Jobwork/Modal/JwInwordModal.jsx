@@ -9,7 +9,6 @@ import {
   Select,
   Button,
   Skeleton,
-  Popconfirm,
   Form,
   Typography,
   Upload,
@@ -25,7 +24,6 @@ import {
   FormOutlined,
   InboxOutlined,
 } from "@ant-design/icons";
-import MySelect from "../../../Components/MySelect";
 import { v4 } from "uuid";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { useToast } from "../../../hooks/useToast.js";
@@ -52,23 +50,19 @@ export default function JwInwordModal({ editModal, setEditModal }) {
   const [header, setHeaderData] = useState([]);
   const [modalLoad, setModalLoad] = useLoading();
   const [modalUploadLoad, setModalUploadLoad] = useState(false);
-  const { all, row } = editModal;
+  const {  row } = editModal;
   const [mainData, setMainData] = useState([]);
   const [eWayBill, setEWayBill] = useState("");
   const [bomList, setBomList] = useState([]);
   const [showBomList, setShowBomList] = useState(false);
-  const [conrem, setConRem] = useState("");
   const [loading, setLoading] = useState(false);
-  const [attachment, setAttachment] = useState("");
   const [irnNo, setIrnNo] = useState("");
   const [materialInSuccess, setMaterialInSuccess] = useState(false);
   const [isApplicable, setIsApplicable] = useState(false);
   const [isScan, setIsScan] = useState(false);
-  // const [pickLocationOptions, setPickLocationOptions] = useState([]);
   const [modalForm] = Form.useForm();
   const [excelUploadForm] = Form.useForm();
 
-  const fileComponents = Form.useWatch("fileComponents", modalForm);
   const [uplaoaClicked, setUploadClicked] = useState(false);
   const [consumptionStep, setConsumptionStep] = useState("details");
   const [consumptionMode, setConsumptionMode] = useState("");
@@ -129,28 +123,6 @@ export default function JwInwordModal({ editModal, setEditModal }) {
     setLocValue(arr);
   };
 
-  const getPickLocation = async () => {
-    let vendor = header?.vendor?.code;
-    if (vendor) {
-      try {
-        const response = await imsAxios.get(
-          `/backend/fetchVendorJWLocation?vendor=${vendor}`
-        );
-        if (response.success) {
-          let arr = [];
-          arr = response.data.map((row) => ({
-            value: row.id,
-            text: row.text,
-          }));
-          setPickLocationOptions(arr);
-        } else {
-          showToast(response.message, "error");
-        }
-      } catch (error) {
-        showToast(error.message || "Failed to fetch pick location", "error");
-      }
-    }
-  };
   const inputHandler = async (name, id, value) => {
     if (name == "component") {
       setMainData((a) =>
@@ -529,6 +501,7 @@ export default function JwInwordModal({ editModal, setEditModal }) {
       sortable: false,
       renderCell: ({ row }) => [
         <GridActionsCellItem
+          key={row.id}
           icon={<Delete color="error" sx={{ fontSize: "1.7rem", cursor: "pointer" }} />}
           onClick={() => {
             removeRow(row.id);
@@ -880,7 +853,6 @@ export default function JwInwordModal({ editModal, setEditModal }) {
       setModalUploadLoad(true);
       const formData = new FormData();
       const values = await modalForm.validateFields();
-      let fileName;
       values.fileComponents.map((comp) => {
         formData.append("files", comp.file[0]?.originFileObj);
       });
@@ -894,7 +866,6 @@ export default function JwInwordModal({ editModal, setEditModal }) {
           typeof fileResponse.data === "string"
             ? fileResponse.data
             : fileResponse.data?.data;
-        setAttachment(fetchAttachment);
         saveFunction(fetchAttachment);
       } else {
         setModalUploadLoad(false);
@@ -915,13 +886,6 @@ export default function JwInwordModal({ editModal, setEditModal }) {
     }
   }, [editModal]);
 
-  // useEffect(() => {
-  //   if (header?.vendor?.code) {
-  //     getPickLocation();
-  //   }
-  // }, [header?.vendor?.code]);
-
-  const text = "Are you sure to update this jw sf Inward?";
   const closeModal = () => {
     setEditModal(false);
     resetConsumptionFlow();
@@ -1799,7 +1763,7 @@ export default function JwInwordModal({ editModal, setEditModal }) {
                         <>
                           <Col>
                             {fields.map((field, index) => (
-                              <Form.Item noStyle>
+                              <Form.Item noStyle key={field.key ?? index}>
                                 <SingleProduct
                                   fields={fields}
                                   field={field}

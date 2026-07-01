@@ -1,5 +1,5 @@
 import { Button, Drawer, Form, Row } from "antd";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { imsAxios } from "../../axiosInterceptor";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { useToast } from "../../hooks/useToast.js";
@@ -17,7 +17,7 @@ const MapModal = ({ open, close }) => {
       const response = await imsAxios.get(
         `/tally/invoice/fetchInvGroup?type=GST`
       );
-      const arr = data.map((row) => ({ label: row.text, value: row.value }));
+      const arr = response.data.map((row) => ({ label: row.text, value: row.value }));
       form.setFieldValue("gstGls", arr);
     } catch (error) {
       form.setFieldValue("gstGls", []);
@@ -32,7 +32,7 @@ const MapModal = ({ open, close }) => {
       const response = await imsAxios.get(
         `tally/invoice/fetchInvGroup?type=INV01`
       );
-      const arr = data.map((row) => ({ label: row.text, value: row.value }));
+      const arr = response.data.map((row) => ({ label: row.text, value: row.value }));
       form.setFieldValue("invoiceGls", arr);
     } catch (error) {
       form.setFieldValue("invoiceGls", []);
@@ -56,6 +56,7 @@ const MapModal = ({ open, close }) => {
         setAsyncOptions(arr);
       }
     } catch (error) {
+      showToast("Error while fetching subgroups", "error");
     } finally {
       setLoading(false);
     }

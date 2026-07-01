@@ -1,5 +1,4 @@
 import { Modal } from "antd";
-import React from "react";
 
 function SubmitConfirmModal({ open, handleCancel, loading, submitHandler }) {
   return (

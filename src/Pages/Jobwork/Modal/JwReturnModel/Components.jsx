@@ -9,7 +9,7 @@ import {
   Space,
   Flex,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MyButton from "../../../../Components/MyButton";
@@ -19,17 +19,11 @@ import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 const Components = ({
   form,
   locationOptions,
-  formRules,
   rows,
-  setRows,
   selectedRows,
   setSelectedRows,
   autoConsOptions,
-  setAutoConsumptionOption,
   setOpen,
-  open,
-  preview,
-  setPreview,
 }) => {
   const addComponent = async () => {
     const values = await form.validateFields();
@@ -338,14 +332,3 @@ const SingleComponent = ({ form, locationOptions, rows, autoConsOptions }) => {
   );
 };
 
-const initialValues = {
-  component: undefined,
-  partCode: undefined,
-  qty: "",
-  rate: "",
-  value: 0,
-  invoice: "",
-  location: undefined,
-  autoCons: { label: "NO", value: "0" },
-  remarks: "",
-};

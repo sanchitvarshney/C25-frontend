@@ -4,17 +4,17 @@ import MySelect from "../../Components/MySelect";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { imsAxios } from "../../axiosInterceptor";
 import SingleDatePicker from "../../Components/SingleDatePicker";
+import { useToast } from "../../hooks/useToast.js";
 
-const HeaderDetails = ({ form, setTcsOptions, loading, setLoading }) => {
+const HeaderDetails = ({ form, setTcsOptions,setLoading }) => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
   const [locationArr, setLocationArr] = useState([]);
   const [toggleCheck, setToggleCheck] = useState(false);
   const [stateOptions, setStateOptions] = useState([]);
-
+const { showToast } = useToast();
   const client = Form.useWatch("client", form);
   const location = Form.useWatch("location", form);
-  const deliveryNoteDate = Form.useWatch("deliveryNoteDate", form);
   const billingState = Form.useWatch("billingState", {
     form: form,
     preserve: true,
@@ -53,7 +53,7 @@ const HeaderDetails = ({ form, setTcsOptions, loading, setLoading }) => {
     const response = await imsAxios.get(`/client/getClient?name=${search}`);
     setSelectLoading(false);
     let arr = [];
-    arr = data?.data?.map((d) => {
+    arr = response?.data?.map((d) => {
       return { text: d.name, value: d.code };
     });
     setAsyncOptions(arr);
@@ -85,7 +85,7 @@ const HeaderDetails = ({ form, setTcsOptions, loading, setLoading }) => {
     const response = await imsAxios.get(
       `/client/getClient?code=${client.value}`
     );
-    form.setFieldValue("billingEmail", data.data[0].email);
+    form.setFieldValue("billingEmail", response?.data?.[0]?.email);
   };
   const getBranchDetails = async (locationId) => {
     try {
@@ -94,19 +94,19 @@ const HeaderDetails = ({ form, setTcsOptions, loading, setLoading }) => {
         `/client/getClientDetail?addressID=${locationId}`
       );
       form.setFieldValue("billingState", {
-        label: data[0].state.name,
-        value: data[0].state.code,
+        label: response?.data?.[0]?.state?.name,
+        value: response?.data?.[0]?.state?.code,
       });
-      form.setFieldValue("billingCity", data[0].city);
-      form.setFieldValue("billingName", data[0].name);
-      form.setFieldValue("billingPin", data[0].pinCode);
-      form.setFieldValue("billingGst", data[0].gst);
-      form.setFieldValue("billingPan", data[0].panNo);
-      form.setFieldValue("billingMobile", data[0].phoneNo);
-      form.setFieldValue("billingAddress", data[0].address);
+      form.setFieldValue("billingCity", response?.data?.[0]?.city);
+      form.setFieldValue("billingName", response?.data?.[0]?.name);
+      form.setFieldValue("billingPin", response?.data?.[0]?.pinCode);
+      form.setFieldValue("billingGst", response?.data?.[0]?.gst);
+      form.setFieldValue("billingPan", response?.data?.[0]?.panNo);
+      form.setFieldValue("billingMobile", response?.data?.[0]?.phoneNo);
+      form.setFieldValue("billingAddress", response?.data?.[0]?.address);
 
-      if (data.length) {
-        const arr = data;
+      if (response?.success) {
+        const arr = response.data;
         setTcsOptions(
           arr[0].tcsOption.map((row) => ({
             text: row.tcs_name,
@@ -118,7 +118,7 @@ const HeaderDetails = ({ form, setTcsOptions, loading, setLoading }) => {
         );
       }
     } catch (error) {
-      console.log("error in getting location details", error);
+     showToast("Error occurred while fetching branch details", "error");
     } finally {
       setLoading(false);
     }

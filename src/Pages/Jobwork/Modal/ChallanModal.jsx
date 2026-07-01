@@ -1,25 +1,19 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import {
   Button,
   Col,
   Drawer,
   Input,
-  message,
   Row,
   Skeleton,
   Space,
-  Spin,
 } from "antd";
 import {
-  EyeFilled,
   CloseCircleFilled,
-  InfoCircleTwoTone,
 } from "@ant-design/icons";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
-import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import { imsAxios } from "../../../axiosInterceptor";
 
 // import TableActions from "../../Components/TableActions.jsx/TableActions";
@@ -27,7 +21,6 @@ import { imsAxios } from "../../../axiosInterceptor";
 function ChallanModal({ challanModal, setChallanModal }) {
   const { showToast } = useToast();
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [spinLoading, setSpinLoading] = useState(false);
   console.log(data);
   let compArray = [];
@@ -40,10 +33,7 @@ function ChallanModal({ challanModal, setChallanModal }) {
   data.map((aa) => rateArray.push(aa.part_rate));
   data.map((aaa) => hsnArray.push(aaa.hsn_code));
   data.map((aaaa) => remarkArray.push(aaaa.remarks));
-  //   console.log(z);
-  //   console.log(zz);
-  //   console.log(zzz);
-  //   console.log(za);
+ 
 
   const getFetchChallan = async () => {
     setSpinLoading(true);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 // import api from '../config';
@@ -9,7 +9,7 @@ import {
 import SideForm from "../SideForm/SideForm";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDataTable from "../../../Components/MyDataTable";
-import { Popconfirm, Row, Col, Button, Modal } from "antd";
+import { Popconfirm, Col, Button, Modal } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import MyButton from "../../../Components/MyButton";
@@ -42,7 +42,7 @@ const ViewBookData = () => {
     }
   };
 
-  const cancel = (e) => {};
+  const cancel = () => {};
 
   const columns = [
     {

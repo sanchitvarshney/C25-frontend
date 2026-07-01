@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Col, Row, Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -11,7 +11,6 @@ import TableActions, {
 import { downloadCSV } from "../../../Components/exportToCSV";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import PaytmQCUpload from "./PaytmQCUpload";
-import { useEffect } from "react";
 import PaytmQCUpdate from "./PaytmQCUpdate";
 import PaytmGraph from "./PaytmGraph";
 import { BarChartOutlined } from "@ant-design/icons";
@@ -73,9 +72,9 @@ export default function PaytmQCReport() {
         { id: 24, type: "SIM Network issue" },
       ];
 
-      let total = data.chart_data?.reduce((partialSum, a) => partialSum + a, 0);
+      let total = response?.data?.chart_data?.reduce((partialSum, a) => partialSum + a, 0);
       setTotalChartData(total);
-      chartArr = data.chart_data?.map((value, index) => {
+      chartArr = response?.data?.chart_data?.map((value, index) => {
         chartArr[index].value = value;
         chartArr[index].percentage = (value * 100) / total;
         return chartArr[index];

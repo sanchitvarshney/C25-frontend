@@ -20,9 +20,6 @@ import TableActions, {
   CommonIcons,
 } from "../../Components/TableActions.jsx/TableActions";
 import MyDataTable from "../../Components/MyDataTable";
-
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
 import Loading from "../../Components/Loading";
 import { useToast } from "../../hooks/useToast.js";
 
@@ -31,7 +28,6 @@ export default function Drive() {
   const [currentPath, setCurrentPath] = useState("/");
   const [currentDirectory, setCurrentDirectory] = useState("");
   const [currentItems, setCurrentItems] = useState([]);
-  const [previosDirectory, setPreviousDirectory] = useState(null);
   const [addDirModal, setAddDirModal] = useState(false);
   const [addFileModal, setAddFileModal] = useState(false);
   const [newDirName, setNewDirName] = useState("");
@@ -39,11 +35,9 @@ export default function Drive() {
   const [newFileDescription, setNewFileDescription] = useState("");
   const [uploadFiles, setUploadFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useSelector((state) => state.login);
 
   const openDir = (item) => {
     if (item.type === "dir") {
-      setPreviousDirectory(currentDirectory);
       let str = currentPath;
       if (currentPath !== "/") {
         str = str + "/";
@@ -114,7 +108,7 @@ export default function Drive() {
     if (newDirName === "") {
       return showToast("Please provide a deparment name", "error");
     }
-    const response = await imsAxios.post("/drive/newDirectory", {
+    await imsAxios.post("/drive/newDirectory", {
       name: newDirName,
       parent: currentDirectory.unique_id,
     });
@@ -135,7 +129,7 @@ export default function Drive() {
     formData.append("parent", currentDirectory.unique_id);
     formData.append("description", newFileDescription);
     setLoading("submit");
-    const data = await imsAxios.post("/drive/uploadFile", formData);
+    await imsAxios.post("/drive/uploadFile", formData);
     setLoading(false);
     setAddFileModal(false);
     setNewFileName("");
@@ -187,9 +181,7 @@ export default function Drive() {
       
     } 
   }, [currentPath]);
-  useEffect(() => {
-    setPreviousDirectory(currentItems[0]?.parent);
-  }, [currentItems]);
+
   useEffect(() => {
     if (currentDirectory) {
       console.log("this is the current directory: ", currentDirectory);

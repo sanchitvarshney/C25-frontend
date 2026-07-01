@@ -1,4 +1,4 @@
-import { Button, Col, Input, Row, Space } from "antd";
+import { Col, Input, Row, Space } from "antd";
 import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -10,9 +10,7 @@ import MySelect from "../../../Components/MySelect";
 import printFunction, {
   downloadFunction,
 } from "../../../Components/printFunction";
-import TableActions, {
-  CommonIcons,
-} from "../../../Components/TableActions.jsx/TableActions";
+import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import JWRMChallanCancel from "./JWRMChallanCancel";
 import JWRMChallanEditAll from "./JWRMChallanEditAll";
@@ -33,7 +31,6 @@ function JwRwChallan() {
   const [editiJWAll, setEditJWAll] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
-  const [showEwayBillModal, setShowEwayBillModal] = useState(null);
   const [showEwayBillCancelModal, setShowEwayBillCancelModal] = useState(null);
 
   const wiseOptions = [
@@ -50,7 +47,7 @@ function JwRwChallan() {
         ? "/backend/getProductByNameAndNo"
         : type === "vendor" && "/backend/vendorList";
     setLoading("select");
-    
+
     const response = await imsAxios.post(link, {
       search: search,
     });
@@ -95,7 +92,7 @@ function JwRwChallan() {
       challan: challan_id,
     });
 
-    console.log(response,"response")
+    console.log(response, "response");
     setLoading(false);
     if (response.success) {
       printFunction(response.data.buffer?.data);
@@ -122,16 +119,6 @@ function JwRwChallan() {
     }
   };
 
-  const handleEwayBillPrint = async () => {
-    try {
-      setLoading("print");
-      const response = await imsAxios.post("");
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const columns = [
     {
       field: "actions",
@@ -151,11 +138,12 @@ function JwRwChallan() {
               row.challan_id,
               row.issue_transaction_id,
               row.status,
-              row.jw_transaction_id
+              row.jw_transaction_id,
             )
           }
         />,
         <GridActionsCellItem
+          key="print"
           showInMenu
           // disabled={disabled}
           label="Print"
@@ -164,11 +152,12 @@ function JwRwChallan() {
               row.challan_id,
               row.issue_transaction_id,
               row.status,
-              row.jw_transaction_id
+              row.jw_transaction_id,
             )
           }
         />,
         <GridActionsCellItem
+          key="edit"
           showInMenu
           disabled={row.status === "cancel"}
           label={row.status === "create" ? "Create" : "Edit"}
@@ -183,6 +172,7 @@ function JwRwChallan() {
           }}
         />,
         <GridActionsCellItem
+          key="cancel"
           showInMenu
           disabled={row.status === "create" ? false : true}
           label="Cancel"
@@ -196,13 +186,14 @@ function JwRwChallan() {
         row.jw_ewaybill_status === "--" ||
         row.jw_ewaybill_status === "CANCELLED" ? (
           <GridActionsCellItem
+            key="createEwayBill"
             showInMenu
             label={
               <Link
                 style={{ textDecoration: "none", color: "black" }}
                 to={`/warehouse/e-way/jw/${row.challan_id.replaceAll(
                   "/",
-                  "_"
+                  "_",
                 )}`}
                 target="_blank"
               >
@@ -277,14 +268,17 @@ function JwRwChallan() {
       width: 120,
       field: "jw_ewaybill_status",
     },
-      {
-        headerName: "Eway Bill",
-        width: 150,
-        field: "jw_ewaybill",
-        renderCell: ({ row }) => (
-          <ToolTipEllipses text={row.jw_ewaybill} copy={row.jw_ewaybill!=="--"?true:false} />
-        ),
-      },
+    {
+      headerName: "Eway Bill",
+      width: 150,
+      field: "jw_ewaybill",
+      renderCell: ({ row }) => (
+        <ToolTipEllipses
+          text={row.jw_ewaybill}
+          copy={row.jw_ewaybill !== "--" ? true : false}
+        />
+      ),
+    },
     {
       headerName: "SKU ID",
       width: 100,
@@ -304,7 +298,7 @@ function JwRwChallan() {
     setSearchInput("");
   }, [wise]);
   return (
-    <div style={{ height: "100%", padding:10 }}>
+    <div style={{ height: "100%", padding: 10 }}>
       <JWRMChallanEditMaterials
         editingJWMaterials={editingJWMaterials}
         setEditingJWMaterials={setEditingJWMaterials}
@@ -323,9 +317,7 @@ function JwRwChallan() {
         show={showEwayBillCancelModal}
         hide={() => setShowEwayBillCancelModal(null)}
       />
-      <Row
-        justify="space-between"
-      >
+      <Row justify="space-between">
         {/* <EWayBillModal
           show={showEwayBillModal}
           hide={() => setShowEwayBillModal(null)}

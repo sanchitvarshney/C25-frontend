@@ -1,8 +1,6 @@
 import { Card, Col, Divider, Drawer, Row, Typography } from "antd";
-import React from "react";
-import { useState } from "react";
-import { useEffect } from "react";
 import { CChart } from "@coreui/react-chartjs";
+import { customColor } from "../../../Utils/CustomColor";
 
 function PaytmGraph({
   showGraph,
@@ -16,8 +14,8 @@ function PaytmGraph({
       <Row>
         <Col span={6} style={{ height: 800, overflowY: "scroll" }}>
           <Card title={`Total: ${totalChartData}`} size="small">
-            {chartData.map((row) => (
-              <Row justify="space-between">
+            {chartData.map((row, index) => (
+              <Row justify="space-between" key={row.type ?? index} >
                 <Col span={20}>
                   <Typography.Text
                     style={{ fontWeight: "bold", marginRight: 8 }}

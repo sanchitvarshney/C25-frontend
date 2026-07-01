@@ -1,6 +1,6 @@
-import React from "react";
+
 import { Col, Drawer, Space, Row } from "antd";
-import { EyeFilled, CloseCircleFilled, InfoCircleTwoTone } from "@ant-design/icons";
+import { CloseCircleFilled, } from "@ant-design/icons";
 
 function InfoModal({ infoModalInfo, setInfoModalInfo, view }) {
   console.log(view);

@@ -3,7 +3,6 @@ import { imsAxios } from "../../../axiosInterceptor";
 import MyDataTable from "../../../Components/MyDataTable";
 import { useToast } from "../../../hooks/useToast.js";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import printFunction, {
   downloadFunction,
 } from "../../../Components/printFunction";
@@ -39,7 +38,7 @@ const DraftInvoice = () => {
       const response = await imsAxios.get(
         `/invoice/downloadInvoice?invoiceID=${invoiceId}`
       );
-      downloadFunction(data.buffer.data, invoiceId);
+      downloadFunction(response?.data?.buffer?.data, invoiceId);
     } catch (error) {
       console.log("Some error while download invoice", error);
     } finally {
@@ -53,7 +52,7 @@ const DraftInvoice = () => {
       const response = await imsAxios.get(
         `/invoice/downloadInvoice?invoiceID=${invoiceId}`
       );
-      printFunction(data.buffer.data);
+      printFunction(response?.data?.buffer?.data);
     } catch (error) {
       console.log("Some error while download invoice", error);
     } finally {
@@ -122,6 +121,7 @@ const DraftInvoice = () => {
     getActions: ({ row }) => [
       // Edit icon
       <GridActionsCellItem
+        key="edit"
         showInMenu
         label="Edit"
         onClick={() =>
@@ -130,18 +130,21 @@ const DraftInvoice = () => {
       />,
       // Delete icon
       <GridActionsCellItem
+        key="delete"
         showInMenu
         label="Delete"
         onClick={() => showDeleteConfirm(row.invoice)}
       />,
       // download Icon
       <GridActionsCellItem
+        key="download"
         showInMenu
         label="Download"
         onClick={() => handleDownload(row.invoice)}
       />,
       // print Icon
       <GridActionsCellItem
+        key="print"
         showInMenu
         label="Print"
         onClick={() => handlePrint(row.invoice)}
@@ -149,6 +152,7 @@ const DraftInvoice = () => {
 
       // active icon
       <GridActionsCellItem
+        key="activate"
         showInMenu
         label="Confirm Invoice"
         onClick={() => showActivateConfirm(row.invoice)}

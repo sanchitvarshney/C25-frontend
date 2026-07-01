@@ -1,7 +1,6 @@
-import { Card, Col, Divider, Row, Skeleton, Typography } from "antd";
-import React from "react";
+import { Card, Col, Divider, Row,  Typography } from "antd";
 
-function TaxDetails({ summary, title, type, loading }) {
+function TaxDetails({ summary, title, loading }) {
   return (
     <Card title={title} size="small">
       <Row gutter={[0, 8]}>

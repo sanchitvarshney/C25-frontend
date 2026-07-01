@@ -50,7 +50,7 @@ const CreateInvoice = () => {
     const values = await invoiceForm.validateFields();
     const invoiceTotal = components.reduce(
       (a, b) => a + +Number(b?.totalAmount).toFixed(3),
-      0
+      0,
     );
 
     const obj = {
@@ -91,29 +91,29 @@ const CreateInvoice = () => {
       rate: values.components.map((component) => component.rate),
       freight: values.components.map((component) => component.freight),
       glCode: values.components.map((component) => component.glCode),
-      gstType: values.components.map((component) => gstType.toUpperCase()),
+      gstType: values.components.map(() => gstType.toUpperCase()),
       gstAssValue: values.components.map((component) => component.gstassValue),
       remark: values.components.map((component) => component.remark),
       invoiceType: "goodsAndServices",
       gstRate: values.components.map(
-        (component) => component.gstRate?.replaceAll("%", "") ?? 0
+        (component) => component.gstRate?.replaceAll("%", "") ?? 0,
       ),
       sgst:
         gstType === "local"
           ? values.components.map(
-              (component) => +Number(component.gstAmount).toFixed(3) / 2
+              (component) => +Number(component.gstAmount).toFixed(3) / 2,
             )
           : undefined,
       cgst:
         gstType === "local"
           ? values.components.map(
-              (component) => +Number(component.gstAmount).toFixed(3) / 2
+              (component) => +Number(component.gstAmount).toFixed(3) / 2,
             )
           : undefined,
       igst:
         gstType === "interstate"
           ? values.components.map(
-              (component) => +Number(component.gstAmount).toFixed(3)
+              (component) => +Number(component.gstAmount).toFixed(3),
             )
           : undefined,
       sgstGl:
@@ -132,7 +132,7 @@ const CreateInvoice = () => {
       tcsGl: values.components.map((component) => component.tcsGlCode),
       tcsCode: values.components.map((component) => component.tcs),
       customerAmount: values.components.map(
-        (component) => component.totalAmount
+        (component) => component.totalAmount,
       ),
       invoiceTotal: +Number(invoiceTotal).toFixed(3),
     };
@@ -156,11 +156,11 @@ const CreateInvoice = () => {
       setLoading("fetching");
 
       let { data: headerData } = await imsAxios.get(
-        `/invoice/getInvoice?invoiceID=${invoiceId}`
+        `/invoice/getInvoice?invoiceID=${invoiceId}`,
       );
       headerData = headerData[0];
       const { data: componentData } = await imsAxios.get(
-        `/invoice/getInvoiceProducts?invoiceID=${invoiceId}`
+        `/invoice/getInvoiceProducts?invoiceID=${invoiceId}`,
       );
 
       const finalObj = {
@@ -211,6 +211,7 @@ const CreateInvoice = () => {
       };
       invoiceForm.setFieldsValue(finalObj);
     } catch (error) {
+      showToast("Error occurred while fetching invoice details", "error");
     } finally {
       setLoading(false);
     }
@@ -226,12 +227,13 @@ const CreateInvoice = () => {
         : shippingState?.toString() !== currentStateCode
     ) {
       setGstType("local");
-    } else if (
-      shippingState && shippingState?.value
+    } else {
+      const value = shippingState?.value
         ? shippingState?.value?.toString()
-        : shippingState?.toString() !== currentStateCode
-    ) {
-      setGstType("interstate");
+        : shippingState?.toString();
+      if (value) {
+        setGstType("interstate");
+      }
     }
   }, [shippingState]);
 
@@ -268,7 +270,11 @@ const CreateInvoice = () => {
             </Button>
           }
         >
-          <Tabs.TabPane tab="Billing Details" key="1" style={{ height: "calc(100% - 40px)" }}>
+          <Tabs.TabPane
+            tab="Billing Details"
+            key="1"
+            style={{ height: "calc(100% - 40px)" }}
+          >
             <HeaderDetails
               setTcsOptions={setTcsOptions}
               form={invoiceForm}
@@ -276,7 +282,11 @@ const CreateInvoice = () => {
               setLoading={setLoading}
             />
           </Tabs.TabPane>
-          <Tabs.TabPane tab="Product Details"style={{ height: "calc(100% - 40px)" }}key="2">
+          <Tabs.TabPane
+            tab="Product Details"
+            style={{ height: "calc(100% - 40px)" }}
+            key="2"
+          >
             <Products
               gstType={gstType}
               form={invoiceForm}

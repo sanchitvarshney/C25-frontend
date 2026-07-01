@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button, Col, Input, Row, Select } from "antd";
 import MyDatePicker from "../../Components/MyDatePicker.jsx";
 import MyAsyncSelect from "../../Components/MyAsyncSelect.jsx";
@@ -31,7 +31,7 @@ const JwRmConsumption = () => {
   const [skuData, setSKUData] = useState([]);
   const [vendorData, setVendorData] = useState([]);
   // console.log(allData);
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const option = [
     { label: "Date Wise", value: "date" },
     { label: "JW ID Wise", value: "jw" },

@@ -234,6 +234,7 @@ const Dashboard = () => {
         }
    
     } catch (error) {
+      showToast(error.message || error, "error");
     } finally {
       setLoading((curr) => ({
         ...curr,
@@ -282,6 +283,7 @@ const Dashboard = () => {
         }
       }
     } catch (error) {
+      showToast(error.message || error, "error");
     } finally {
       setLoading((curr) => ({
         ...curr,
@@ -302,7 +304,7 @@ const Dashboard = () => {
       const  data  = response?.data;
       if (data) {
         if (response.success) {
-          const arr = data.topProducts.map((item, index) => ({
+          const arr = data.topProducts.map((item) => ({
             sku: item.productSku,
             qty: item.totalmfgQuantity,
             product: item.productName,
@@ -314,6 +316,7 @@ const Dashboard = () => {
         }
       }
     } catch (error) {
+      showToast(error.message || error, "error");
     } finally {
       setLoading((curr) => ({
         ...curr,
@@ -363,6 +366,7 @@ const Dashboard = () => {
         }
       }
     } catch (error) {
+      showToast(error.message || error, "error");
     } finally {
       setLoading((curr) => ({
         ...curr,

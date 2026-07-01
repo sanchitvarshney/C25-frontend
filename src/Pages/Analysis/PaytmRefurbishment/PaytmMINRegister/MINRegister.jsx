@@ -9,7 +9,7 @@ import {
   Space,
   Typography,
 } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MyDatePicker from "../../../../Components/MyDatePicker";
@@ -178,7 +178,7 @@ function MINRegister() {
       type: "actions",
       width: 80,
       getActions: ({ row }) => [
-        <TableActions action="scan" onClick={() => fetchIMEINumbers(row)} />,
+        <TableActions key="scan" action="scan" onClick={() => fetchIMEINumbers(row)} />,
       ],
     },
   ];
@@ -392,8 +392,8 @@ function MINRegister() {
                 bodyStyle={{ height: "100%" }}
               >
                 <Col style={{ overflow: "auto", height: "93%" }} span={24}>
-                  {imeiArr.map((imei) => (
-                    <Row>
+                  {imeiArr.map((imei, index) => (
+                    <Row key={imei ?? index} >
                       <Typography.Text style={{ margin: "5px 0" }}>
                         {imei}
                       </Typography.Text>

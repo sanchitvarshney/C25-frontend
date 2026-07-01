@@ -1,7 +1,6 @@
 import {
   Card,
   Col,
-  Divider,
   Form,
   Input,
   Modal,
@@ -10,7 +9,6 @@ import {
   Space,
   Typography,
 } from "antd";
-import React from "react";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useParams } from "react-router";
@@ -19,8 +17,8 @@ import { useEffect } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDataTable from "../../../Components/MyDataTable";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
-import dayjs from "dayjs";
 import MyButton from "../../../Components/MyButton";
+import Loading from "../../../Components/Loading.jsx";
 
 const EWayBill = () => {
   const { showToast } = useToast();
@@ -33,120 +31,118 @@ const EWayBill = () => {
   const [form] = Form.useForm();
 
   const getDetails = async () => {
+    let response;
     try {
       setLoading("fetch");
       if (location.href.includes("jw")) {
-        var response = await imsAxios.post("/ewaybill/fetch_challan_data", {
+        response = await imsAxios.post("/ewaybill/fetch_challan_data", {
           challan_no: params.jwId.replaceAll("_", "/"),
         });
       } else if (location.href.includes("dc")) {
-        var response = await imsAxios.post("/gatepass/fetch_dc", {
+        response = await imsAxios.post("/gatepass/fetch_dc", {
           challan_no: params.jwId.replaceAll("_", "/"),
         });
       } else if (location.href.includes("scrape-wo")) {
-        var response = await imsAxios.post("/wo_challan/scrape_wo_challan", {
+        response = await imsAxios.post("/wo_challan/scrape_wo_challan", {
           challan_no: params.jwId.replaceAll("_", "/"),
         });
       } else {
-        var response = await imsAxios.post(
+        response = await imsAxios.post(
           "/wo_challan/fetch_wo_delivery_challan",
           {
             challan_no: params.jwId.replaceAll("_", "/"),
-          }
+          },
         );
       }
 
       const { data, items } = response;
- 
-        if (response?.success) {
-          const { bill_from, bill_to, ship_from, ship_to } = data;
-          const finalObj = {
-            docNo: data?.challan_id,
-            billFromName: bill_from.legalName,
-            billFromGstin: bill_from.gstin,
-            billFromState: {
-              label: bill_from?.state?.state_name,
-              value: bill_from?.state?.state_code,
-            },
-            billFromLocation: bill_from.location,
-            billFromAddress1: bill_from.address1,
-            billFromAddress2: bill_from.address2,
-            billFromPincode: bill_from.pincode,
-            billToName: bill_to.client,
-            billToGstin: bill_to.gst,
-            billToState: {
-              label: bill_to?.state?.state_name,
-              value: bill_to?.state?.state_code,
-            },
-            billToLocation: bill_to.location,
-            billToAddress1: bill_to.address1,
-            billToAddress2: bill_to.address2,
-            billToPincode: bill_to.pincode,
-            dispatchFromPlace: ship_from.legalName,
-            dispatchFromPincode: ship_from.pincode,
-            dispatchFromAddress1: ship_from.address1,
-            dispatchFromAddress2: ship_from.address2,
-            dispatchFromLocation: ship_from.location,
-            dispatchFromState: {
-              label: ship_from?.state.state_name,
-              value: ship_from?.state.state_code,
-            },
-            dispatchFromGstin: ship_from.gst,
-            dispatchToPlace: ship_to.company,
-            dispatchToGstin: ship_to.gst,
-            dispatchToPincode: ship_to.pincode,
-            dispatchToAddress1: ship_to.address1,
-            dispatchToAddress2: ship_to.address2,
-            dispatchToState: {
-              label: ship_to?.state.state_name,
-              value: ship_to?.state.state_code,
-            },
-            dispatchToLocation: ship_to.location,
-            distance: "0",
-            mode: "1",
-            vehicleType: "R",
-            transactionType: "1",
-            documentType: "CHL",
-            type: "O",
-            vehicleNo: data?.vehicle,
-          };
-          // form.setValue("totalAmount",data?.total_amount)
-          const arr = items.map((row, index) => ({
-            id: index + 1,
-            component: row.component_name,
-            hsn: row.hsn_code,
-            qty: row.qty,
-            rate: row.rate,
-            value: row.taxable_amount,
-            uom: row.unit_name,
-          }));
-          setComponents(arr);
-          form.setFieldsValue(finalObj);
-        } else {
-          showToast(response.message?.msg || response.message, "error");
-        }
-  
+
+      if (response?.success) {
+        const { bill_from, bill_to, ship_from, ship_to } = data;
+        const finalObj = {
+          docNo: data?.challan_id,
+          billFromName: bill_from.legalName,
+          billFromGstin: bill_from.gstin,
+          billFromState: {
+            label: bill_from?.state?.state_name,
+            value: bill_from?.state?.state_code,
+          },
+          billFromLocation: bill_from.location,
+          billFromAddress1: bill_from.address1,
+          billFromAddress2: bill_from.address2,
+          billFromPincode: bill_from.pincode,
+          billToName: bill_to.client,
+          billToGstin: bill_to.gst,
+          billToState: {
+            label: bill_to?.state?.state_name,
+            value: bill_to?.state?.state_code,
+          },
+          billToLocation: bill_to.location,
+          billToAddress1: bill_to.address1,
+          billToAddress2: bill_to.address2,
+          billToPincode: bill_to.pincode,
+          dispatchFromPlace: ship_from.legalName,
+          dispatchFromPincode: ship_from.pincode,
+          dispatchFromAddress1: ship_from.address1,
+          dispatchFromAddress2: ship_from.address2,
+          dispatchFromLocation: ship_from.location,
+          dispatchFromState: {
+            label: ship_from?.state.state_name,
+            value: ship_from?.state.state_code,
+          },
+          dispatchFromGstin: ship_from.gst,
+          dispatchToPlace: ship_to.company,
+          dispatchToGstin: ship_to.gst,
+          dispatchToPincode: ship_to.pincode,
+          dispatchToAddress1: ship_to.address1,
+          dispatchToAddress2: ship_to.address2,
+          dispatchToState: {
+            label: ship_to?.state.state_name,
+            value: ship_to?.state.state_code,
+          },
+          dispatchToLocation: ship_to.location,
+          distance: "0",
+          mode: "1",
+          vehicleType: "R",
+          transactionType: "1",
+          documentType: "CHL",
+          type: "O",
+          vehicleNo: data?.vehicle,
+        };
+        // form.setValue("totalAmount",data?.total_amount)
+        const arr = items.map((row, index) => ({
+          id: index + 1,
+          component: row.component_name,
+          hsn: row.hsn_code,
+          qty: row.qty,
+          rate: row.rate,
+          value: row.taxable_amount,
+          uom: row.unit_name,
+        }));
+        setComponents(arr);
+        form.setFieldsValue(finalObj);
+      } else {
+        showToast(response.message?.msg || response.message, "error");
+      }
     } catch (error) {
+      showToast("Error while fetching details", "error");
     } finally {
       setLoading("fetch");
     }
   };
-  const transactionType = Form.useWatch("transactionType", form);
   const subSupplyTypeOption = Form.useWatch("subType", form);
-  const dispFromState = Form.useWatch("dispatchFromState", form);
 
   const getStateOptions = async () => {
     try {
       const response = await imsAxios.get("/tally/backend/states");
-   
-        if (response.success) {
-          const arr = response.data.map((row) => ({
-            text: row.name,
-            value: row.code,
-          }));
-          setStateOptions(arr);
-        }
- 
+
+      if (response.success) {
+        const arr = response.data.map((row) => ({
+          text: row.name,
+          value: row.code,
+        }));
+        setStateOptions(arr);
+      }
     } catch (error) {
       setStateOptions([]);
     } finally {
@@ -158,14 +154,14 @@ const EWayBill = () => {
     try {
       const response = await imsAxios.post("/jwEwaybill/trans_mode");
       const { data } = response;
-    
-        if (response.success) {
-          setTransporterModeOptions(data);
-        } else {
-          showToast(response.message, "error");
-        }
-  
+
+      if (response.success) {
+        setTransporterModeOptions(data);
+      } else {
+        showToast(response.message, "error");
+      }
     } catch (error) {
+      showToast("Error while fetching transporter mode options", "error");
     } finally {
       setLoading(false);
     }
@@ -253,36 +249,34 @@ const EWayBill = () => {
       if (location.href.includes("jw")) {
         response = await imsAxios.post(
           "/ewaybill/createEwayBillJobWork",
-          payload
+          payload,
         );
       } else if (location.href.includes("dc")) {
         response = await imsAxios.post("/ewaybill/createEwayBillDc", payload);
       } else if (location.href.includes("scrape-wo")) {
         response = await imsAxios.post(
           "/ewaybill/createEwayforScrapeWo",
-          payload
+          payload,
         );
       } else {
         response = await imsAxios.post(
           "/ewaybill/createEwayBillWorkOrder",
-          payload
+          payload,
         );
       }
-    
-  
-        if (response?.success) {
-          showToast(response?.message, "success");
-          setSuccessData({ ewayBillNo: response?.data?.ewayBillNo });
-        } else {
-          showToast(response.message, "error");
-        }
-   
+
+      if (response?.success) {
+        showToast(response?.message, "success");
+        setSuccessData({ ewayBillNo: response?.data?.ewayBillNo });
+      } else {
+        showToast(response.message, "error");
+      }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
   };
-  
 
   useEffect(() => {
     getDetails();
@@ -292,6 +286,7 @@ const EWayBill = () => {
 
   return (
     <Form form={form} layout="vertical" style={{ padding: 10 }}>
+      {loading === "fetch" && <Loading />}
       {!successData && (
         <Row gutter={[6, 6]}>
           <Col span={24}>
@@ -609,7 +604,7 @@ const EWayBill = () => {
                   Total Amount :{form.getFieldValue("totalAmount")}
                   {components.reduce(
                     (a, b) => +a + +Number(b.value).toFixed(3),
-                    0
+                    0,
                   )}
                 </Typography.Text>
               }
@@ -633,7 +628,7 @@ const EWayBill = () => {
           status="success"
           title="E-Way Bill Generation Successfull"
           extra={[
-            <Row justify="center" gutter={16}>
+            <Row justify="center" gutter={16} key="extra">
               <Col>
                 <Typography.Title level={4}>E-Way Bill No:</Typography.Title>
                 <Typography.Title copyable={true} level={5}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import {CloseCircleFilled } from "@ant-design/icons";
 import { useToast } from "../../../hooks/useToast.js";
 import { v4 } from "uuid";
