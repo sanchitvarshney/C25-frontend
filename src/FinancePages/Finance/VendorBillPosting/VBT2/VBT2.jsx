@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
-import links from "../links";
+import  { useEffect, useState } from "react";
+// import links from "../links";
 import MyDatePicker from "../../../../Components/MyDatePicker";
-import axios from "axios";
-import "../../../Accounts/accounts.css";
+// import axios from "axios";
 import { useToast } from "../../../../hooks/useToast.js";
 import { AiFillEdit } from "react-icons/ai";
-import Loading from "../../../../Components/Loading";
+// import Loading from "../../../../Components/Loading";
 import CreateVBT2 from "./CreateVBT2";
 import MyDataTable from "../../../../Components/MyDataTable";
 import MapVBTModal from "../MapVBTModal";
@@ -21,23 +20,23 @@ import { convertSelectOptions } from "../../../../utils/general.ts";
 export default function VBT2() {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [searchInput, setSearchInput] = useState("MIN/23-24/");
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [toggleCleared, setToggleCleared] = React.useState(false);
+  // const [toggleCleared, setToggleCleared] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const [editingVBT, setEditingVBT] = useState(null);
   const [mapVBT, setMapVBT] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   // vbt check in vocie
-  const [checkInvoiceId, setCheckInvoiceId] = useState("");
-  const [confirmModal, setConfirmModal] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [createVBT, setCreateVBT] = useState(false);
-  const [selectedVendors, setSelectedVendors] = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
+  // const [checkInvoiceId, setCheckInvoiceId] = useState("");
+  // const [confirmModal, setConfirmModal] = useState(false);
+  // const [open, setOpen] = useState(false);
+  // const [createVBT, setCreateVBT] = useState(false);
+  // const [selectedVendors, setSelectedVendors] = useState([]);
+  // const [searchLoading, setSearchLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const vbtTableColumsns = [
     {
@@ -90,6 +89,7 @@ export default function VBT2() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <GridActionsCellItem
+          key={row?.id || "delete"}
           icon={<AiFillEdit />}
           onClick={() => getVBTDetail(row.min_transaction)}
           label="Delete"
@@ -118,7 +118,7 @@ export default function VBT2() {
       min_id: minId,
     });
     if (response.success) {
-      setEditingVBT(data.data);
+      setEditingVBT(response.data);
     } else {
       showToast(response.message?.msg || response.message, "error");
       setEditingVBT(null);
@@ -242,9 +242,9 @@ export default function VBT2() {
     }
     setVBTData([]);
   }, [wise]);
-  useEffect(() => {
-    setToggleCleared((toggleCleared) => !toggleCleared);
-  }, [vbtData]);
+  // useEffect(() => {
+  //   setToggleCleared((toggleCleared) => !toggleCleared);
+  // }, [vbtData]);
   return (
     <>
       <MapVBTModal mapVBT={mapVBT} setMapVBT={setMapVBT} />
@@ -323,7 +323,7 @@ export default function VBT2() {
                     ? true
                     : false
                 }
-                loading={searchLoading}
+                // loading={searchLoading}
                 type="primary"
                 onClick={getRows}
               >
@@ -372,7 +372,7 @@ export default function VBT2() {
         <div style={{ height: "85%", padding: "0px 10px" }}>
           <MyDataTable
             checkboxSelection={wise == "vendor_wise"}
-            loading={loading || searchLoading}
+            loading={loading }
             columns={vbtTableColumsns}
             data={vbtData}
             onSelectionModelChange={(newSelectionModel) => {

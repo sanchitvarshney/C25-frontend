@@ -11,7 +11,7 @@ const printFunction = (buffer) => {
   const url = URL.createObjectURL(file);
   printJS(url);
 };
-const downloadFunction = (buffer, filename, type) => {
+const downloadFunction = (buffer, filename) => {
   const file = new Blob([
     new Uint8Array(buffer),
     {
@@ -20,7 +20,7 @@ const downloadFunction = (buffer, filename, type) => {
   ]);
   fileDownload(file, `${filename}.pdf`);
 };
-const downloadExcel = (buffer, filename, type) => {
+const downloadExcel = (buffer, filename) => {
   const file = new Blob([new Uint8Array(buffer)]);
   fileDownload(file, filename + ".xlsx");
 };

@@ -1,6 +1,5 @@
 import { Button, Drawer, Space, Divider } from "antd";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import Loading from "../../../Components/Loading";
@@ -10,7 +9,7 @@ import MySelect from "../../../Components/MySelect";
 export default function MapVBTModal({ mapVBT, setMapVBT }) {
   const { showToast } = useToast();
   const [selectedVBT, setSelectedVBT] = useState();
-  const [selectedGroup, setSelectedGroup] = useState("");
+  // const [selectedGroup, setSelectedGroup] = useState("");
   const [groups, setGroups] = useState([]);
   const [gstGlGroups, setGstGlGroups] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +27,7 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     { value: "vbt07", text: "VBT 7" },
   ];
 
-  const getGroups = async (search) => {
+  const getGroups = async () => {
     if (selectedVBT) {
       setFetchLoading(true);
       const response = await imsAxios.post("/tally/vbt/fetch_vbt_group", {
@@ -37,7 +36,7 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
       setFetchLoading(false);
       if (response.success) {
         // let arr = data.data.vbt_group_key.split(",");
-        let arr = data.data.vbt_group_key.map((row) => {
+        let arr = response.data.vbt_group_key.map((row) => {
           return {
             value: row.code,
             label: row.label.replaceAll("&amp;", " & ").replaceAll("amp;", ""),
@@ -57,7 +56,7 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     setFetchLoading(false);
     if (response.success) {
       // let arr = data.data.vbt_group_key.split(",");
-      let arr = data.data.vbt_group_key.map((row) => {
+      let arr = response.data.vbt_group_key.map((row) => {
         return {
           value: row.code,
           label: row.label.replaceAll("&amp;", " & ").replaceAll("amp;", ""),
@@ -95,12 +94,10 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setGstSubmitLoading(false);
     if (response.success) {
-      if (data.message.msg.toLowerCase().includes("updated")) {
-        showToast("VBT Updated", "success");
-      } else {
-        showToast(data.message.msg, "error");
-      }
-      setSelectedGroup(null);
+    
+        showToast(response.message, "error");
+      
+      // setSelectedGroup(null);
       setMapVBT(null);
     } else {
       showToast(response.message?.msg || response.message, "error");
@@ -117,12 +114,10 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setLoading(false);
     if (response.success) {
-      if (data.message.msg.toLowerCase().includes("updated")) {
-        showToast("VBT Updated", "success");
-      } else {
-        showToast(data.message.msg, "error");
-      }
-      setSelectedGroup(null);
+    
+        showToast(response.message, "error");
+   
+      // setSelectedGroup(null);
       setMapVBT(null);
     } else {
       showToast(response.message?.msg || response.message, "error");
@@ -131,7 +126,6 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
   useEffect(() => {
     console.log(selectedVBT);
     getGroups();
-    setSelectedGroup([]);
   }, [selectedVBT]);
   useEffect(() => {
     if (mapVBT) {

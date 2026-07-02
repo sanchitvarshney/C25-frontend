@@ -30,7 +30,7 @@ const RequestedLedgers = ({ vendor, refId, modalOpen }) => {
   const [showDetails, setShowDetails] = useState(null);
 
   const [form] = Form.useForm();
-  const { executeFun, loading } = useApi();
+  const { executeFun } = useApi();
 
   const handleFetchMails = async (refId) => {
     const response = await executeFun(
@@ -56,6 +56,7 @@ const RequestedLedgers = ({ vendor, refId, modalOpen }) => {
     width: 30,
     getActions: ({ row }) => [
       <GridActionsCellItem
+      key={"view"}
         showInMenu
         // disabled={disabled}
         label="Details"
@@ -188,8 +189,8 @@ const DetailsCard = ({
             )}
             <Flex vertical gap={10}>
               {mail.uploadedLedgers &&
-                mail.uploadedLedgers.map((row) => (
-                  <a href={row} target="_blank">
+                mail.uploadedLedgers.map((row,idx) => (
+                  <a href={row} target="_blank" key={row?.id || idx}>
                     {row}
                   </a>
                 ))}

@@ -14,5 +14,4 @@ export default io(getSocketLink(), {
     companyBranch: companyBranch,
   },
   transports: ["websocket"],
-  // transports: ["websocket"],
 });

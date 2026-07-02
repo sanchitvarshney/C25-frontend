@@ -34,13 +34,13 @@ interface CreateBOMType {
   }[];
 }
 export const createBOM = async (
-  values: BOMType,
+  values: any,
   approvals: MultiStageApproverType[],
   action: "final" | "draft",
   isUpdating: boolean,
   updateType: bomUpdateType,
-  isBomRej,
-  bomId
+  isBomRej: boolean | string,
+  bomId: string,
 ) => {
   let url = "";
   if (action === "draft") {
@@ -57,24 +57,23 @@ export const createBOM = async (
   if (isUpdating) {
     if (updateType === "ecn") {
       version = version + 0.01;
-      if (values.name !== ogName) {
-        version = +(version + 1).toFixed(0);
-        version = version + ".00";
-      }
-    } else if (updateType === "main" || values.name !== ogName) {
-      version = +(version + 1).toFixed(0);
-      version = version + ".00";
+      // if (values.name !== ogName) {
+      //   version = +(version + 1).toFixed(0);
+      //   version = version + ".00";
+      // }
+    }  else{
+ version = Number(version).toFixed(2);
     }
-    version = Number(version).toFixed(2);
+   
   } else {
     version = version + ".0";
     version = Number(version).toFixed(1);
   }
   // return;
-  let arr1: CreateBOMType["approvalMetrics"] = approvals.map((row) => {
-    let obj: CreateBOMType["approvalMetrics"][0] = row;
+  let arr1: any = approvals.map((row) => {
+    let obj: any = row;
     obj.stage = `L${obj.stage}`;
-    obj.approvers = obj.approvers.map((app) => ({
+    obj.approvers = obj.approvers.map((app: any) => ({
       ...app,
       // user: app.user?.value,
       user: {
@@ -88,11 +87,11 @@ export const createBOM = async (
     return obj;
   });
   //parsing approvers
-  let arr: CreateBOMType["approvalMetrics"] = approvals.map((row) => {
-    let obj: CreateBOMType["approvalMetrics"][0] = row;
+  let arr: any = approvals.map((row) => {
+    let obj: any = row;
     // return;
     obj.stage = `${obj.stage}`;
-    obj.approvers = obj.approvers.map((app) => ({
+    obj.approvers = obj.approvers.map((app: any) => ({
       ...app,
       // user: app.user?.value,
       user: {
@@ -106,8 +105,8 @@ export const createBOM = async (
     return obj;
   });
 
-  const payload: CreateBOMType = {
-    components: values.components.map((row) => ({
+  const payload: any = {
+    components: values.components.map((row: any) => ({
       component:
         typeof row.component === "object" ? row.component.value : row.component,
       qty: row.qty,
@@ -141,7 +140,7 @@ export const createBOM = async (
     }
   }
 
-  values.documents?.map((row) => {
+  values.documents?.map((row: any) => {
     formData.append("documents", row.originFileObj);
   });
   let response;
@@ -179,7 +178,7 @@ export const getBOMList = async (action: "final" | "draft") => {
     url = "/bomRnd/bomList";
   }
   const response: ResponseType = await imsAxios.get(url);
-  let arr: BOMTypeExtended[] = [];
+  let arr: any = [];
 
   if (response.success) {
     const obj: GetBOMListType[] = response.data;
@@ -253,7 +252,7 @@ export const getComponents = async (bomKey: string) => {
   const response: ResponseType = await imsAxios.get(
     `/bomRnd/bomDetails/${bomKey}`
   );
-  let arr: BOMType["components"] = [];
+  let arr: any = [];
 
   if (response.success) {
     let values: GetBomComponentsType[] = response.data?.components;
@@ -350,13 +349,13 @@ export const getLogs = async (bomKey: string) => {
   const response: ResponseType = await imsAxios.get(
     `/bomRnd/bomDetails/${bomKey}`
   );
-  let arr: BOMApprovalType | {} = {};
+  let arr: any = {};
 
   if (response.success) {
     const values = response.data.approvers; 
 
     // Create a grouped structure by line
-    const groupedLogs = values.reduce((acc, row) => {
+    const groupedLogs = values.reduce((acc: any[], row: any) => {
       const existing = acc.find((item) => item.line === row.line);
 
       if (existing) {
@@ -580,7 +579,7 @@ export const getExistingBom = async (sku: string, version: string) => {
           isDraft: false, // You might need to adjust this depending on your BOM data
           version: version, // Use the passed version
           id: values.bomKey, // bomKey is used as the BOM ID
-          components: response.data.components.map((row) => ({
+          components: response.data.components.map((row: any) => ({
             component: {
               partno: row.partno,
               name: row.name.trim(), // Clean up any extra spaces
@@ -701,7 +700,7 @@ export const createDraftBomRND = async (data: BomRequest) => {
   return response;  
 };
 
-export const uploadDocs = async (formData) => {
+export const uploadDocs = async (formData:any) => {
   try {
     const response = await imsAxios.post("/bomRnd/uploadDocs", formData, {
       headers: {

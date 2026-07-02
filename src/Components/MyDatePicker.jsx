@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 
@@ -9,9 +9,8 @@ const MyDatePicker = ({
   size,
   disabledtheDate,
   startingDate,
-  select,
 }) => {
-  const [searchDateRange, setSearchDateRange] = useState(
+  const [searchDateRange] = useState(
     [startingDate ? dayjs() : dayjs().startOf("month"), dayjs()]
   );
 

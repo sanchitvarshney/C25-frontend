@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Button, Col, Input, Row, Tooltip, Popconfirm, Space } from "antd";
+import  { useState, useEffect } from "react";
+import {  Col, Input, Row ,Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
@@ -12,7 +12,6 @@ import {
   CloudDownloadOutlined,
   PrinterFilled,
   EyeFilled,
-  DeleteFilled,
   EditFilled,
 } from "@ant-design/icons";
 import { GridActionsCellItem } from "@mui/x-data-grid";
@@ -38,7 +37,7 @@ function JVReport() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewJVDetail, setViewJVDetail] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  // const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [editVoucher, setEditVoucher] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
@@ -66,22 +65,22 @@ function JVReport() {
       showToast(response.message?.msg || response.message, "error");
     }
   };
-  const deleteFun = async () => {
-    setLoading(true);
-    if (deleteConfirm) {
-      const response = await imsAxios.post("/tally/jv/jv_delete", {
-        jv_code: deleteConfirm,
-      });
-      setLoading(false);
-      if (response.success) {
-        setDeleteConfirm(null);
-        showToast(response.message, "success");
-        getRows();
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
-    }
-  };
+  // const deleteFun = async () => {
+  //   setLoading(true);
+  //   if (deleteConfirm) {
+  //     const response = await imsAxios.post("/tally/jv/jv_delete", {
+  //       jv_code: deleteConfirm,
+  //     });
+  //     setLoading(false);
+  //     if (response.success) {
+  //       setDeleteConfirm(null);
+  //       showToast(response.message, "success");
+  //       getRows();
+  //     } else {
+  //       showToast(response.message?.msg || response.message, "error");
+  //     }
+  //   }
+  // };
   const getLedgerOptions = async (searchTerm) => {
     setSelectLoading(true);
     const response = await imsAxios.post("/tally/ledger/ledger_options", {
@@ -165,6 +164,7 @@ function JVReport() {
       getActions: ({ row }) => [
         // view voucher
         <GridActionsCellItem
+        key={row.module_used ?? "view"}
           disabled={loading}
           icon={<EyeFilled className="view-icon" />}
           onClick={() => {
@@ -173,6 +173,7 @@ function JVReport() {
           label="view"
         />,
         <GridActionsCellItem
+          key={row.module_used ?? "print"}
           // print voucher
           disabled={loading}
           icon={<PrinterFilled className="view-icon" />}
@@ -182,6 +183,7 @@ function JVReport() {
           label="print"
         />,
         <GridActionsCellItem
+          key={row.module_used ?? "download"}
           // download voucher
           disabled={loading}
           icon={<CloudDownloadOutlined className="view-icon" />}
@@ -191,6 +193,7 @@ function JVReport() {
           label="download"
         />,
         <GridActionsCellItem
+          key={row.module_used ?? "edit"}
           // edit voucher
           disabled={loading}
           icon={<EditFilled className="view-icon" />}
@@ -232,7 +235,7 @@ function JVReport() {
       jv_key: key,
     });
     setLoading(false);
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
     // module_used
   };
   const handleDownload = async (id) => {
@@ -243,7 +246,7 @@ function JVReport() {
     const response = await imsAxios.post(link, {
       jv_key: id,
     });
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
     setLoading(false);
   };
   useEffect(() => {

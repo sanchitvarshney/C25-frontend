@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
-import links from "./links";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { Card, Col, Input, Row } from "antd";
@@ -99,7 +97,7 @@ export default function JournalPosting() {
     });
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -181,6 +179,7 @@ export default function JournalPosting() {
       sortable: false,
       renderCell: ({ row }) => [
         <GridActionsCellItem
+        key={row?.id || "delete"}
           icon={
             <Delete
               color="error"
@@ -331,7 +330,7 @@ export default function JournalPosting() {
       setLoading(false);
       if (response.success) {
         resetHandler();
-        showToast(data.message.msg, "success");
+        showToast(response?.message,  "success");
       } else {
         showToast(response.message?.msg || response.message, "error");
       }

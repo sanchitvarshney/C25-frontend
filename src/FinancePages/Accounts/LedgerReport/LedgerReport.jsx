@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import links from "./links";
 import {
-  Button,
   Card,
   Col,
   Row,
@@ -21,14 +20,13 @@ import { useEffect } from "react";
 import { setCurrentLinks } from "../../../Features/loginSlice/loginSlice.js";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
-import { useLocation, useParams } from "react-router-dom";
 import useApi from "../../../hooks/useApi.ts";
 import { getLedgerReport } from "../../../api/ledger";
 import MyButton from "../../../Components/MyButton/index.jsx";
 import { getRecoReport } from "../../../api/finance/vendor-reco.js";
-import Loading from "../../../Components/Loading.jsx";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
+import { useParams } from "react-router-dom";
 
 export default function LedgerReport() {
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -36,21 +34,20 @@ export default function LedgerReport() {
   const [selectLoading, setSelectLoading] = useState(false);
   const [rows, setRows] = useState({ rows: [] });
   const [summary, setSummary] = useState({});
-  const [searchLedger, setSearchLedger] = useState(null);
   const [recoRows, setRecoRows] = useState([]);
 
   const [filterForm] = Form.useForm();
   const dispatch = useDispatch();
   const params = useParams();
   const { executeFun, loading: loading1 } = useApi();
-  const { Title, Link, Text } = Typography;
+  const { Title } = Typography;
 
   const getLedgerOptions = async (searchInput) => {
     setSelectLoading(true);
     const response = await imsAxios.post("/tally/ledger/ledger_options", {
       search: searchInput,
     });
-    setSelectLoading(false);
+
     if (response.success) {
       let arr = [];
       arr = response.data.map((d) => {
@@ -60,6 +57,7 @@ export default function LedgerReport() {
         };
       });
       setAsyncOptions(arr);
+          setSelectLoading(false);
     }
   };
   const handleFetchLedgerReport = async () => {
@@ -196,7 +194,7 @@ export default function LedgerReport() {
 
 
     const values = await filterForm.validateFields();
-    let csvData = rows.map((row, index) => {
+    let csvData = rows.map((row) => {
       return {
         "Ref Date": row.referenceDate,
         Refrence: row.reference,
@@ -262,7 +260,7 @@ export default function LedgerReport() {
               <Form.Item name="vendor" label="Ledger" rules={rules.vendor}>
                 <MyAsyncSelect
                   onBlur={() => setAsyncOptions([])}
-                  selectLoading={loading1("select")}
+                  selectLoading={loading1("select") ?? selectLoading}
                   placeholder="Select Ledger"
                   labelInValue
                   loadOptions={handleFetchLedgerOptions}
@@ -270,7 +268,6 @@ export default function LedgerReport() {
                   onChange={(value) =>
                     filterForm.setFieldValue("vendor", value)
                   }
-                  value={searchLedger}
                 />
               </Form.Item>
               <Form.Item name="date" label="Time Period" rules={rules.date}>
@@ -427,8 +424,8 @@ export default function LedgerReport() {
                   <Typography.Text strong>Status</Typography.Text>
                 </Flex>
                 <Divider />
-                {recoRows.map((row) => (
-                  <Flex justify="space-between">
+                {recoRows.map((row, index) => (
+                  <Flex justify="space-between" key={row.month ?? index}>
                     <Typography.Text>{row.month}</Typography.Text>
                     <Typography.Text>{row.status}</Typography.Text>
                   </Flex>

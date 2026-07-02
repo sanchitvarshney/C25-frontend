@@ -79,8 +79,8 @@ const Notes = ({ notes, fetchLoading, handleFetchNotes, filterForm }) => {
                 row.note.includes(searchString)
             )
 
-            .map((note) => (
-              <Col span={24}>
+            .map((note,idx) => (
+              <Col span={24} key={note.id || idx}>
                 <Row gutter={6}>
                   <Col span={24} style={{ fontSize: 14 }}>
                     <Typography.Text type="secondary" strong>

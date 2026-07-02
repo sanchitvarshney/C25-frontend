@@ -11,7 +11,6 @@ import {
   Space,
   Switch,
   Upload,
-  message,
   Form,
 } from "antd";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -46,7 +45,7 @@ export default function Reference() {
   const [zeroVbtRows, setZeroVbtRows] = useState([]);
   const [zeroBpRows, setZeroBpRows] = useState([]);
   const [uploadFile, setUploadFile] = useState(false);
-  const [showUploadFile, setShowUploadFile] = useState(false);
+  // const [showUploadFile, setShowUploadFile] = useState(false);
   // const []
   const [uploadForm] = Form.useForm();
   const getVendorOptions = async (search) => {
@@ -107,7 +106,7 @@ export default function Reference() {
     uploadForm.resetFields();
   };
   const getVBTRows = async () => {
-    setShowUploadFile(false);
+    // setShowUploadFile(false);
     setUploadFile(false);
     resetForm();
     setVBTRows([]);
@@ -679,7 +678,7 @@ export default function Reference() {
       width: 100,
     },
   ];
-  const getUploadFilePreview = () => {};
+  // const getUploadFilePreview = () => {};
   const handleDownloadExcel = () => {
     console.log("vbt rows---------", vbtRows);
     console.log("left columns for csv---------", leftColumnsforCSV);
@@ -712,11 +711,11 @@ export default function Reference() {
       setVBTRows(arr);
     }
   };
-  useEffect(() => {
-    if (uploadFile == true) {
-      setShowUploadFile(true);
-    }
-  }, [setUploadFile]);
+  // useEffect(() => {
+  //   if (uploadFile == true) {
+  //     // setShowUploadFile(true);
+  //   }
+  // }, [setUploadFile]);
 
   useEffect(() => {
     const selectedVBTRows = vbtRows.filter((item) => item.selected);

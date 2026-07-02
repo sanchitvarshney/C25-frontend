@@ -38,7 +38,7 @@ import * as xlsx from "xlsx";
 import { downloadExcel } from "../../Components/printFunction";
 import { useSelector } from "react-redux/es/exports";
 import { convertSelectOptions } from "../../utils/general.ts";
-import { useSearchParams } from "react-router-dom";
+// import { useSearchParams } from "react-router-dom";
 import Ledgers from "./ledgers";
 import { createDraft } from "../../api/finance/vendor-reco";
 import MyButton from "../../Components/MyButton/index.jsx";
@@ -48,10 +48,10 @@ const initialValues = {
   date: "",
 };
 
-const statusOption = {
-  match: "matched",
-  unmatch: "unmatched",
-};
+// const statusOption = {
+//   match: "matched",
+//   unmatch: "unmatched",
+// };
 
 const VendorReconcilation = () => {
   const [showFilters, setShowFilters] = useState(true);
@@ -72,9 +72,9 @@ const VendorReconcilation = () => {
     debitVendor: "0",
     creditVendor: "0",
   });
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedRows, setSelectedRows] = useState([]);
+  // const [showNotesModal, setShowNotesModal] = useState(false);
+  // const [searchParams, setSearchParams] = useSearchParams();
+  // const [selectedRows, setSelectedRows] = useState([]);
   const [showRequestLedgerModal, setShowRequestLedgerModal] = useState(null);
 
   const { executeFun, loading } = useApi();
@@ -87,11 +87,11 @@ const VendorReconcilation = () => {
     setShowFilters(false);
   };
 
-  var paramsVendorCode = searchParams.get("vendorCode");
-  var paramsVendor = searchParams.get("vendor");
-  var paramsDate = searchParams.get("date");
+  // var paramsVendorCode = searchParams.get("vendorCode");
+  // var paramsVendor = searchParams.get("vendor");
+  // var paramsDate = searchParams.get("date");
   // var paramsRecoId = searchParams.get("date");
-  console.log("this is the params date", paramsDate);
+  // console.log("this is the params date", paramsDate);
 
   const handleGenerateRecoRef = async (vendor, date) => {
     const response = await executeFun(() => createDraft(vendor, date), "fetch");
@@ -128,11 +128,11 @@ const VendorReconcilation = () => {
         content: (
           <Flex vertical gap={15}>
             <Typography.Text strong>
-              Following transactions are not matched"
+              {`Following transactions are not matched`}
             </Typography.Text>
             <div>
-              {response.data.map((row) => (
-                <Typography.Text>{row.moduleUsed}, </Typography.Text>
+              {response.data.map((row, idx) => (
+                <Typography.Text key={row.moduleUsed || idx}>{row.moduleUsed}, </Typography.Text>
               ))}
             </div>
           </Flex>
@@ -319,26 +319,26 @@ const VendorReconcilation = () => {
     }
   }, [showNoteDialog]);
 
-  useEffect(() => {
-    if (paramsVendorCode) {
-      // setShowFilters(false);
-      filterForm.setFieldValue("vendor", {
-        label: paramsVendor,
-        text: paramsVendor,
-        value: paramsVendorCode,
-      });
+  // useEffect(() => {
+  //   if (paramsVendorCode) {
+  //     // setShowFilters(false);
+  //     filterForm.setFieldValue("vendor", {
+  //       label: paramsVendor,
+  //       text: paramsVendor,
+  //       value: paramsVendorCode,
+  //     });
 
-      handleFetchManualTransactions(paramsVendorCode, paramsDate);
-      handleFetchLedgerDetais(paramsVendorCode, paramsDate);
-      handleGenerateRecoRef(paramsVendorCode, paramsDate);
-      setShowFilters(false);
-    }
-  }, [paramsVendorCode]);
-  useEffect(() => {
-    if (paramsDate) {
-      filterForm.setFieldValue("date", paramsDate);
-    }
-  }, []);
+  //     handleFetchManualTransactions(paramsVendorCode, paramsDate);
+  //     handleFetchLedgerDetais(paramsVendorCode, paramsDate);
+  //     handleGenerateRecoRef(paramsVendorCode, paramsDate);
+  //     setShowFilters(false);
+  //   }
+  // }, [paramsVendorCode]);
+  // useEffect(() => {
+  //   if (paramsDate) {
+  //     filterForm.setFieldValue("date", paramsDate);
+  //   }
+  // }, []);
 
   const actionColumn = [
     {
@@ -350,7 +350,7 @@ const VendorReconcilation = () => {
         // <GridActionsCellItem
         //   icon={<EyeFilled onClick={() => setOpen(row?.module_used)} />}
         // />,
-        <Tooltip title={row.matched ? "Un-match Entry" : "Match Entry"}>
+        <Tooltip key={"edit"} title={row.matched ? "Un-match Entry" : "Match Entry"}>
           <TableActions
             action={row.matched ? "cancel" : "check"}
             onClick={() => handleUpdateMatchStatus(row.matched, row.voucherNo)}
@@ -381,7 +381,7 @@ const VendorReconcilation = () => {
           handleFetchLedgerDetais();
           handleFetchManualTransactions();
         }}
-        paramsDate={paramsDate}
+        // paramsDate={paramsDate}
         hide={hideFilters}
         loading={loading("fetchDetails")}
       />
@@ -436,8 +436,8 @@ const VendorReconcilation = () => {
               setShowTransactionModal={setShowTransactionModal}
               setShowNoteDialog={setShowNoteDialog}
               selectedVendor={selectedVendor}
-              selectedRows={selectedRows}
-              setShowNotesModal={setShowNotesModal}
+              // selectedRows={selectedRows}
+              // setShowNotesModal={setShowNotesModal}
               handleUpdateMatchStatus={handleUpdateMatchStatus}
               toggleShowRequestLedgerModal={toggleShowRequestLedgerModal}
               handleSaveToDraft={handleSaveToDraft}
@@ -462,10 +462,10 @@ const VendorReconcilation = () => {
 
 export default VendorReconcilation;
 
-const Filters = ({ form, show, hide, submitFun, loading, paramsDate }) => {
+const Filters = ({ form, show, hide, submitFun, loading }) => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const { executeFun, loading: fetchLoading } = useApi();
-  const dateValue = Form.useWatch("date", form);
+  // const dateValue = Form.useWatch("date", form);
   const handleFetchVendorOptiions = async (search) => {
     // if (vcode) {
     // }
@@ -551,14 +551,14 @@ const VendorCard = ({
   const closingDiff = vendorDetailsClosing - vendorInputClosing;
   const netClosingBalance = closingDiff - manualTotalSum;
 
-  const manualArr = manualTransactions.map((row) => ({
-    type:
-      row.type === "debit"
-        ? "Less" + "/" + row.impact
-        : "Add" + "/" + row.impact,
-    particulars: row.description,
-    amount: row.amount,
-  }));
+  // const manualArr = manualTransactions.map((row) => ({
+  //   type:
+  //     row.type === "debit"
+  //       ? "Less" + "/" + row.impact
+  //       : "Add" + "/" + row.impact,
+  //   particulars: row.description,
+  //   amount: row.amount,
+  // }));
 
   const vendorManualArr = manualTransactions
     .filter((row) => row.impact === "vendor")
@@ -966,9 +966,6 @@ const ButtonsCard = ({
   setShowTransactionModal,
   setShowNoteDialog,
   selectedVendor,
-  setShowNotesModal,
-  selectedRows,
-  handleUpdateMatchStatus,
   toggleShowRequestLedgerModal,
   handleSaveToDraft,
 }) => {
@@ -1090,7 +1087,7 @@ const NotesModal = ({
                   row.note.includes(searchString)
               )
               .map((note) => (
-                <Col span={24}>
+                <Col span={24} key={note.date}>
                   <Row gutter={6}>
                     <Col span={24}>
                       <b>{note.date}</b>

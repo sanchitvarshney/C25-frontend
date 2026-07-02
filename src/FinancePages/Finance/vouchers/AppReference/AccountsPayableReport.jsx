@@ -1,32 +1,25 @@
 import { useState } from "react";
 import {
   Button,
-  Checkbox,
   Col,
   Row,
-  Input,
   Typography,
   Modal,
 
 } from "antd";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { v4 } from "uuid";
-
 import { useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
-
 import MySelect from "../../../../Components/MySelect";
-import { downloadCSV } from "../../../../Components/exportToCSV";
-import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import socket from "../../../../Components/socket";
-import confirm from "antd/es/modal/confirm";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 
 export default function AccountsPayableReport() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectOptions, setSelectOptions] = useState([]);
-  const [rows, setRows] = useState(false);
+  // const [rows, setRows] = useState(false);
   const [subgroup, setSubgroup] = useState("");
   const [socketValue, setSocketValue] = useState("");
   const [open, setOpen] = useState(false);
@@ -35,7 +28,7 @@ export default function AccountsPayableReport() {
   console.log("options", options);
   const fetchReport = async () => {
     setLoading(true);
-    setRows([]);
+    // setRows([]);
     const response = await imsAxios.get(
       "/tally/ap/fetchSubGroup/sundryCreditor"
     );
@@ -56,28 +49,28 @@ export default function AccountsPayableReport() {
 
     setLoading(false);
   };
-  const fetchAPData = async (subgroup) => {
-    setLoading(true);
-    let subgroupValue = subgroup.value;
-    const response = await imsAxios.get(
-      `/tally/ap/allApData?groupKey=${subgroupValue}`
-    );
+  // const fetchAPData = async (subgroup) => {
+  //   setLoading(true);
+  //   let subgroupValue = subgroup.value;
+  //   const response = await imsAxios.get(
+  //     `/tally/ap/allApData?groupKey=${subgroupValue}`
+  //   );
 
-    let { data } = response;
-    if (response.status == 200) {
-      let arr = data?.map((row, index) => ({
-        ...row,
-        id: v4(),
-        index: index + 1,
-      }));
+  //   let { data } = response;
+  //   if (response.status == 200) {
+  //     let arr = data?.map((row, index) => ({
+  //       ...row,
+  //       id: v4(),
+  //       index: index + 1,
+  //     }));
 
-      setRows(arr);
-      setLoading(false);
-    } else {
-      showToast(response.message.msg, "error");
-      setLoading(false);
-    }
-  };
+  //     setRows(arr);
+  //     setLoading(false);
+  //   } else {
+  //     showToast(response.message.msg, "error");
+  //     setLoading(false);
+  //   }
+  // };
   // left vbt columns
   // const columns = [
   //   {
@@ -232,7 +225,7 @@ export default function AccountsPayableReport() {
     // let arr = notifications;
     let groupkey = subgroup.value;
     if (!groupkey) {
-      toast.error("Select and Search the Group for Download");
+      showToast("Select and Search the Group for Download", "error");
     }
     socket.emit("getAgeingReport", {
       notificationId: newId,

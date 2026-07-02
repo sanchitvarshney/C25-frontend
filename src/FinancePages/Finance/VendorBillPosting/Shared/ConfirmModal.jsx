@@ -5,10 +5,7 @@ function ConfirmModal({
   setOpen,
   loading,
   setCreateVBT,
-  createVBT,
   setEditingVBT,
-  editingVBT,
-  confirmModal,
   setConfirmModal,
 }) {
   console.log("inside the modal");

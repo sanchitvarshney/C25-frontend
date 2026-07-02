@@ -9,7 +9,6 @@ import {
   Space,
   Typography,
 } from "antd";
-import React from "react";
 import { useState } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useEffect } from "react";
@@ -24,7 +23,7 @@ export default function CashEditModal({ cashEdit, setCashEdit }) {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [headerDetails, setHeaderDetails] = useState({});
-  const [resetData, setResetData] = useState(false);
+  // const [resetData, setResetData] = useState(false);
   const [rows, setRows] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState();
 
@@ -59,13 +58,13 @@ export default function CashEditModal({ cashEdit, setCashEdit }) {
           refDate: data.header[0].ref_date,
         });
         setRows(rowsArr);
-        setResetData({
-          headerData: {
-            headerAccount,
-            refDate: data.header[0].ref_date,
-          },
-          rows: rowsArr,
-        });
+        // setResetData({
+        //   headerData: {
+        //     headerAccount,
+        //     refDate: data.header[0].ref_date,
+        //   },
+        //   rows: rowsArr,
+        // });
       } else {
         showToast(response.message?.msg || response.message, "error");
         setCashEdit(false);
@@ -78,7 +77,7 @@ export default function CashEditModal({ cashEdit, setCashEdit }) {
       search: search,
     });
     setLoading(false);
-    const arr = data.map((row) => {
+    const arr = response.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);
@@ -121,14 +120,14 @@ export default function CashEditModal({ cashEdit, setCashEdit }) {
     });
     setRows(arr);
   };
-  const addRows = () => {
-    let arr = rows;
-    arr.push({});
-  };
-  const removeRow = (id) => {
-    let arr = rows.filter((row) => row.id !== id);
-    setRows(arr);
-  };
+  // const addRows = () => {
+  //   let arr = rows;
+  //   arr.push({});
+  // };
+  // const removeRow = (id) => {
+  //   let arr = rows.filter((row) => row.id !== id);
+  //   setRows(arr);
+  // };
   const submitHandler = async () => {
     let link = "";
     if (pathname.includes("payment")) {
@@ -158,11 +157,11 @@ export default function CashEditModal({ cashEdit, setCashEdit }) {
       }
     }
   };
-  const resetHandler = () => {
-    const { headerData, rows } = resetData;
-    setRows(rows);
-    setHeaderDetails(headerData);
-  };
+  // const resetHandler = () => {
+  //   const { headerData, rows } = resetData;
+  //   setRows(rows);
+  //   setHeaderDetails(headerData);
+  // };
   const columns = [
     // {
     //   headerName: <CommonIcons action="addRow" onClick={addRows} />,

@@ -1,8 +1,7 @@
-import { memo, useCallback, useState } from "react";
-import { Form, Row, Typography } from "antd";
+import { memo, useState } from "react";
+import { Typography } from "antd";
 import TableActions, { CommonIcons } from "./TableActions.jsx/TableActions";
 import { v4 } from "uuid";
-import { useEffect } from "react";
 import { useToast } from "../hooks/useToast";
 
 
@@ -130,9 +129,9 @@ const FormTable3 = ({
               )}
             </td>
           )}
-          {columns.map((col) =>
+          {columns.map((col, index) =>
             !col.conditional ? (
-              <td style={columnHeaderStyle(col)}>
+              <td style={columnHeaderStyle(col)} key={col.name ?? index}>
                 <Typography.Text style={{ fontSize: "0.8rem" }} strong>
                   {col.headerName}
                 </Typography.Text>
@@ -192,7 +191,6 @@ const SingleRow = ({
   removeRow,
   index,
   columns,
-  calculation,
   editing,
   saveRow,
   inputHandler,
@@ -313,17 +311,17 @@ const tableColumnStyle = {
   borderRadius: 5,
 };
 
-const rules = {
-  hsn: [
-    {
-      required: true,
-      message: "Please enter a HSN code!",
-    },
-  ],
-  location: [
-    {
-      required: true,
-      message: "Please select a Location!",
-    },
-  ],
-};
+// const rules = {
+//   hsn: [
+//     {
+//       required: true,
+//       message: "Please enter a HSN code!",
+//     },
+//   ],
+//   location: [
+//     {
+//       required: true,
+//       message: "Please select a Location!",
+//     },
+//   ],
+// };

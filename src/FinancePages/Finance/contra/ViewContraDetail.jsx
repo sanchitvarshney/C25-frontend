@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
-import axios from "axios";
 import printFunction, {
   downloadFunction,
 } from "../../../Components/printFunction";
@@ -56,9 +55,9 @@ export default function ViewContraDetail({ contraId, setContraId }) {
             id: v4(),
           };
         });
-        setCreateDate(data.data[0].create_date);
+        setCreateDate(response.data[0].create_date);
         setContraRows(arr);
-        setRefDate(data.data[0].ref_date);
+        setRefDate(response.data[0].ref_date);
       }
     }
   };
@@ -67,7 +66,7 @@ export default function ViewContraDetail({ contraId, setContraId }) {
     const response = await imsAxios.post("/tally/contra/contra_print", {
       code: contraId,
     });
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
     setPrintLoading(false);
   };
   const downloadFun = async () => {
@@ -76,7 +75,7 @@ export default function ViewContraDetail({ contraId, setContraId }) {
     const response = await imsAxios.post("/tally/contra/contra_print", {
       code: contraId,
     });
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
     setDownloadLoading(false);
   };
   const DescriptionItem = ({ title, content }) => (

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import Loading from "../../../Components/Loading";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Button, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Button, Col, Form, Input, Row, Space, } from "antd";
 import validateResponse from "../../../Components/validateResponse";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
@@ -15,26 +15,26 @@ export default function EditLedger({ getLedgerList }) {
   const [selectedLedger, setSelectedLedger] = useState(null);
   const [ledgerData, setLedgerData] = useState();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [codeConfirmLoading, setCodeConfirmLoading] = useState(false);
-  const [codeConfirmed, setCodeConfirmed] = useState("pending");
-  const confirmCode = async () => {
-    setCodeConfirmLoading(true);
-    const response = await imsAxios.post("/tally/ledger/check_leadger_code", {
-      code: ledgerData?.l_code,
-    });
-    setCodeConfirmLoading(false);
-    if (response.success) {
-      if (response.data.exist) {
-        setCodeConfirmed("exist");
-      } else if (!response.data.exist) {
-        setCodeConfirmed("not exist");
-      }
-    } else {
-      setCodeConfirmed("exist");
-      showToast(response.message?.msg || response.message);
+  // const [codeConfirmLoading, setCodeConfirmLoading] = useState(false);
+  // const [codeConfirmed, setCodeConfirmed] = useState("pending");
+  // const confirmCode = async () => {
+  //   setCodeConfirmLoading(true);
+  //   const response = await imsAxios.post("/tally/ledger/check_leadger_code", {
+  //     code: ledgerData?.l_code,
+  //   });
+  //   setCodeConfirmLoading(false);
+  //   if (response.success) {
+  //     if (response.data.exist) {
+  //       setCodeConfirmed("exist");
+  //     } else if (!response.data.exist) {
+  //       setCodeConfirmed("not exist");
+  //     }
+  //   } else {
+  //     setCodeConfirmed("exist");
+  //     showToast(response.message?.msg || response.message);
      
-    }
-  };
+  //   }
+  // };
 
   const options = [
     { text: "YES", value: "yes" },

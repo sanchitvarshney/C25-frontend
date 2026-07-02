@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
-import axios from "axios";
 import { BsDownload, BsEyeFill } from "react-icons/bs";
 import MyDataTable from "../../../Components/MyDataTable";
 import ViewContraDetail from "./ViewContraDetail";
@@ -10,7 +9,7 @@ import printFunction, {
   downloadFunction,
 } from "../../../Components/printFunction";
 import MySelect from "../../../Components/MySelect";
-import { Button, Input, Popconfirm, Row, Space } from "antd";
+import { Button, Input, Row, Space } from "antd";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { v4 } from "uuid";
 import { DownloadOutlined } from "@ant-design/icons";
@@ -29,7 +28,7 @@ export default function ContraReport() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [contraId, setContraId] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  // const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
   const [editingContra, setEditingContra] = useState(null);
@@ -95,7 +94,7 @@ export default function ContraReport() {
     const response = await imsAxios.post("/tally/contra/contra_print", {
       code: id,
     });
-    printFunction(data.buffer.data);
+    printFunction(response?.data?.buffer?.data);
     setLoading(false);
   };
   const handleDownload = async (id) => {
@@ -106,25 +105,25 @@ export default function ContraReport() {
     const response = await imsAxios.post(link, {
       code: id,
     });
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response?.data?.buffer?.data, filename);
     setLoading(false);
   };
-  const deleteFun = async () => {
-    setLoading(true);
-    if (deleteConfirm) {
-      const response = await imsAxios.post("/tally/contra/contra_delete", {
-        contra_code: deleteConfirm,
-      });
-      setLoading(false);
-      if (response.success) {
-        setDeleteConfirm(null);
-        showToast(response.message, "success");
-        getRows();
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
-    }
-  };
+  // const deleteFun = async () => {
+  //   setLoading(true);
+  //   if (deleteConfirm) {
+  //     const response = await imsAxios.post("/tally/contra/contra_delete", {
+  //       contra_code: deleteConfirm,
+  //     });
+  //     setLoading(false);
+  //     if (response.success) {
+  //       setDeleteConfirm(null);
+  //       showToast(response.message, "success");
+  //       getRows();
+  //     } else {
+  //       showToast(response.message?.msg || response.message, "error");
+  //     }
+  //   }
+  // };
   const getLedger = async (search) => {
     setSelectLoading(true);
     const response = await imsAxios.post("/tally/contra/bank_cash_ledgers", {
@@ -187,6 +186,7 @@ export default function ContraReport() {
       flex: 1,
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row.id ?? "view"}
           disabled={loading}
           icon={<BsEyeFill className="view-icon" />}
           onClick={() => {
@@ -195,6 +195,7 @@ export default function ContraReport() {
           label="Delete"
         />,
         <GridActionsCellItem
+        key={row.id ?? "print"}
           disabled={loading}
           icon={<AiFillPrinter className="view-icon" />}
           onClick={() => {
@@ -203,6 +204,7 @@ export default function ContraReport() {
           label="Delete"
         />,
         <GridActionsCellItem
+        key={row.id ?? "download"}
           disabled={loading}
           icon={<BsDownload className="view-icon" />}
           onClick={() => {
@@ -212,6 +214,7 @@ export default function ContraReport() {
         />,
 
         <TableActions
+          key={row.id ?? "edit"}
           action="edit"
           disabled={loading}
           onClick={() => {

@@ -209,7 +209,7 @@ export default function BankPayment() {
       search: search,
     });
     setSelectLoading(false);
-    const arr = data.map((row) => {
+    const arr = response?.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);

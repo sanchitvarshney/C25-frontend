@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Card, Col, Form, Row, Input } from "antd";
+import  { useState } from "react";
+import {  Col, Form, Row, Input } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import NavFooter from "../../../Components/NavFooter";
@@ -33,7 +33,7 @@ function CashReceipt() {
       search: search,
     });
     setSelectLoading(false);
-    const arr = data.map((row) => {
+    const arr = response.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);

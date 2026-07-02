@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   Card,
-  Checkbox,
   Col,
   Divider,
   Form,
@@ -19,8 +18,6 @@ const HeaderDetails = ({
   roundOffValue,
   setRoundOffValue,
   form,
-  addRateDiff,
-  setAddRateDiff,
 }) => {
   const [taxDetails, setTaxDetails] = useState([]);
   useEffect(() => {
@@ -117,8 +114,8 @@ const HeaderDetails = ({
       <Col span={24}>
         <Card size="small">
           <Row>
-            {taxDetails.map((row) => (
-              <Col span={24}>
+            {taxDetails.map((row, index) => (
+              <Col span={24} key={row.name || index}>
                 <Row>
                   <Col span={12}>
                     <Typography.Text

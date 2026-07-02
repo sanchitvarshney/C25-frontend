@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { imsAxios } from "../../../axiosInterceptor";
-import { downloadCSV } from "../../../Components/exportToCSV";
 import MyDataTable from "../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
@@ -17,7 +16,6 @@ function ViewClients() {
   const [branchAddOpen, setBranchAddOpen] = useState(null);
   const [branchModal, setBranchModal] = useState(null);
   const [updatingClient, setUpdatingClient] = useState(null);
-  const [branchCode, setBranchCode] = useState("");
   const [showAllBranch, setShowAllBranch] = useState(false);
   const [addClientApi, setAddClientApi] = useState(false);
 
@@ -56,9 +54,7 @@ function ViewClients() {
   //     toast.error(response.message?.msg || response.message);
   //   }
   // };
-  const handleDownloadExcel = () => {
-    downloadCSV(rows, columns, "Clients Report");
-  };
+
   const columns = [
     {
       headerName: "Actions",
@@ -66,18 +62,21 @@ function ViewClients() {
       width: 100,
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row.id ?? "edit"}
           // icon={<SecurityIcon />}
           label="Edit Client"
           onClick={() => manageClientAPI(row)}
           showInMenu
         />,
         <GridActionsCellItem
+          key={row.id ?? "add"}
           // icon={<FileCopyIcon />}
           label="Add Branch"
           onClick={() => setBranchAddOpen(row)}
           showInMenu
         />,
         <GridActionsCellItem
+          key={row.id ?? "view"}
           // icon={<FileCopyIcon />}
           label="Edit / View Branch Details"
           onClick={() => manageBranchAPI(row)}

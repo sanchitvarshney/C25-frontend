@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { AiOutlinePlus, AiOutlineMinus } from "react-icons/ai";
+import { useState } from "react";
 
 export default function TaxModal({ totalValues, bottom, visibleBottom }) {
   const [visible, setVisible] = useState(false);

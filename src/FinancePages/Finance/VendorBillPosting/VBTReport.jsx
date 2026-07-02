@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
 import ViewVBTReport from "./ViewVBTReport";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Button, Col, Input, Modal,  Row, Space } from "antd";
+import { Button, Col, Input,  Row, Space } from "antd";
 import { v4 } from "uuid";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import printFunction, {
@@ -17,7 +17,7 @@ import { downloadCSV } from "../../../Components/exportToCSV";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../axiosInterceptor";
-import { useNavigate, Link } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import DeleteVbt from "./DeleteVbt";
 import CreateDebitNote from "../DebitNote/Create";
 import VBT01Report from "./FormVBT/VBT01/VBT01Report";
@@ -48,7 +48,7 @@ export default function VBTReport() {
   const [editvbturl, setEditVbtUrl] = useState("");
   const { executeFun, loading: loading1 } = useApi();
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const getApiUrl = (editVbtDrawer) => {
     // console.log("vbtCode", vbtCode.split("/")[0].toLowerCase());
     return editVbtDrawer.split("/")[0].toLowerCase();
@@ -110,20 +110,20 @@ export default function VBTReport() {
     setLoading(false);
   };
 
-  const getEditVBTDetails = async (code) => {
-    setLoading(true);
+  // const getEditVBTDetails = async (code) => {
+  //   setLoading(true);
 
-    const response = await imsAxios.post("/tally/vbt01/vbt_edit", {
-      vbt_code: code,
-    });
-    setLoading(false);
-    if (response.success) {
-      setEditingVBT(data.message);
-    } else {
-      showToast(response.message?.msg || response.message, "error");
-    }
-  };
-  const setDebitNoteVbtCodesHandler = async (singleRowArr) => {
+  //   const response = await imsAxios.post("/tally/vbt01/vbt_edit", {
+  //     vbt_code: code,
+  //   });
+  //   setLoading(false);
+  //   if (response.success) {
+  //     setEditingVBT(data.message);
+  //   } else {
+  //     showToast(response.message?.msg || response.message, "error");
+  //   }
+  // };
+  const setDebitNoteVbtCodesHandler = async () => {
     let arr = [];
     selectedRows.map((row) => {
       let matched = rows.filter((r) => r.id === row)[0];
@@ -133,24 +133,24 @@ export default function VBTReport() {
     });
     setDebitNoteDrawer(arr);
   };
-  const callModal = (vbtCode) => {
-    setOpenModal(true);
-  };
-  const confirmDelete = () => {};
+  // const callModal = (vbtCode) => {
+  //   setOpenModal(true);
+  // };
+  // const confirmDelete = () => {};
 
 
-  const submitVerifyHandler = async (row) => {
-    let vbtKey = row.vbt_code;
-    let id = row.ID;
-    const response = await imsAxios.patch("/tally/vbt/verify", {
-      ID: id,
-      vbtKey: vbtKey,
-      verificationStatus: "true",
-    });
-    if (response.status === 200) {
-      getSearchResults();
-    }
-  };
+  // const submitVerifyHandler = async (row) => {
+  //   let vbtKey = row.vbt_code;
+  //   let id = row.ID;
+  //   const response = await imsAxios.patch("/tally/vbt/verify", {
+  //     ID: id,
+  //     vbtKey: vbtKey,
+  //     verificationStatus: "true",
+  //   });
+  //   if (response.status === 200) {
+  //     getSearchResults();
+  //   }
+  // };
  
 
   const columns = [
@@ -161,6 +161,7 @@ export default function VBTReport() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -169,6 +170,7 @@ export default function VBTReport() {
           label="View"
         />,
         <GridActionsCellItem
+          key={"edit"}
           showInMenu
           disabled={row.vbt_code.split("/")[0] == "VBT03"}
           onClick={() => {
@@ -177,6 +179,7 @@ export default function VBTReport() {
           label="Edit"
         />,
         <GridActionsCellItem
+          key={"delete"}
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -185,12 +188,14 @@ export default function VBTReport() {
           label="Delete"
         />,
         <GridActionsCellItem
+          key={"print"}
           showInMenu
           disabled={loading}
           onClick={() => printFun(row.vbt_code)}
           label="Print"
         />,
         <GridActionsCellItem
+          key={"download"}
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -201,6 +206,7 @@ export default function VBTReport() {
 
    
         <GridActionsCellItem
+          key={"debitNote"}
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -760,13 +766,9 @@ export default function VBTReport() {
       });
       setViewReportData(arr);
     } else {
-      if (data.message.msg) {
-        showToast(response.message?.msg || response.message, "error");
-      } else if (data.message) {
-        showToast(response.message?.msg || response.message, "error");
-      } else {
-        showToast("Something wrong happened", "error");
-      }
+    
+        showToast(response.message||"Something wrong", "error");
+    
     }
   };
   useEffect(() => {

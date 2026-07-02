@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 
 import MyDatePicker from "../../../../Components/MyDatePicker";
 
-import "../../../Accounts/accounts.css";
 import { useToast } from "../../../../hooks/useToast.js";
 import { AiFillEdit } from "react-icons/ai";
 import CreateVBT1 from "./CreateVBT1";
@@ -26,18 +25,18 @@ export default function VBT1() {
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [toggleCleared, setToggleCleared] = React.useState(false);
+  // const [toggleCleared, setToggleCleared] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [editingVBT, setEditingVBT] = useState(null);
   const [mapVBT, setMapVBT] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
 
-  const [checkInvoiceId, setCheckInvoiceId] = useState("");
-  const [confirmModal, setConfirmModal] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [createVBT, setCreateVBT] = useState(false);
-  const [selectedVendors, setSelectedVendors] = useState([]);
+  // const [checkInvoiceId, setCheckInvoiceId] = useState("");
+  // const [confirmModal, setConfirmModal] = useState(false);
+  // const [open, setOpen] = useState(false);
+  // const [createVBT, setCreateVBT] = useState(false);
+  // const [selectedVendors, setSelectedVendors] = useState([]);
   const { executeFun, loading: loading1 } = useApi();
   const vbtTableColumns = [
     {
@@ -90,8 +89,9 @@ export default function VBT1() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row?.id || "delete"}
           icon={<AiFillEdit />}
-          onClick={() => getVBTDetail(row.min_transaction)}
+          // onClick={() => getVBTDetail(row.min_transaction)}
           label="Delete"
         />,
       ],
@@ -107,7 +107,7 @@ export default function VBT1() {
     }
     setAsyncOptions(arr);
   };
-  const getVBTDetail = async (minId, vbtKey) => {
+  // const getVBTDetail = async (minId, vbtKey) => {
     // setLoading(true);
     // console.log("minid", minId);
     // const response = await imsAxios.post("/tally/vbt01/fetch_minData", {
@@ -125,7 +125,7 @@ export default function VBT1() {
     //   setEditingVBT(null);
     // }
     // setLoading(false);
-  };
+  // };
   // console.log("seteditingvBt", editingVBT);
   // const { editVBT } = useSelector((state) => state.login);
   // const { isEditVBT } = useSelector((state) => state.login);
@@ -174,8 +174,7 @@ export default function VBT1() {
     });
     setLoading(false);
     if (response.success) {
-      console.log(data.data);
-      let arr = data.data;
+      let arr = response.data;
       arr = arr.map((row) => ({
         ...row,
         ven_tds: arr[0].ven_tds,
@@ -230,13 +229,13 @@ export default function VBT1() {
     // console.log(data);
   };
   const submitHandler = () => {
-    if (createVBT) {
-      setEditingVBT(selectedVendors);
-      setConfirmModal(false);
-      setOpen(false);
-    } else {
-      setEditingVBT(null);
-    }
+    // if (createVBT) {
+    //   setEditingVBT(selectedVendors);
+    //   setConfirmModal(false);
+    //   setOpen(false);
+    // } else {
+    //   setEditingVBT(null);
+    // }
   };
   const wiseOptions = [
     { value: "date_wise", text: "Date Wise" },
@@ -252,12 +251,12 @@ export default function VBT1() {
     }
     setVBTData([]);
   }, [wise]);
-  useEffect(() => {
-    setToggleCleared((toggleCleared) => !toggleCleared);
-  }, [vbtData]);
+  // useEffect(() => {
+  //   setToggleCleared((toggleCleared) => !toggleCleared);
+  // }, [vbtData]);
   useEffect(() => {
     submitHandler();
-  }, [createVBT, selectedVendors]);
+  }, []);
 
   return (
     <div style={{ height: "95%" }}>

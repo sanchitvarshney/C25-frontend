@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
-import axios from "axios";
 import {
   Button,
   Col,

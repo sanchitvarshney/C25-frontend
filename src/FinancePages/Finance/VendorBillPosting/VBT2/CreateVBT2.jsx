@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "../../../Accounts/accounts.css";
 import NavFooter from "../../../../Components/NavFooter";
 import Loading from "../../../../Components/Loading";
 import { v4 } from "uuid";
@@ -31,11 +30,11 @@ export default function CreateVBT2({ editingVBT, setEditingVBT, setVBTData }) {
     { label: "Round Off", sign: "+", values: [] },
   ]);
   const checkInvoice = async (checkInvoiceId, vendorCode) => {
-    const data = await imsAxios.get(
+    const response = await imsAxios.get(
       `/tally/vbt/checkInvoice?vbtInvoiceNo=${checkInvoiceId}&vendor=${vendorCode}`
     );
-    if (data.status === 200 || response.success ) {
-      let arr = data.data;
+    if ( response.success ) {
+      let arr = response.data;
       if (arr.checkInvoice == true) {
         // setConfirmModal(true);
 
@@ -197,7 +196,7 @@ export default function CreateVBT2({ editingVBT, setEditingVBT, setVBTData }) {
 
       if (row.tdsAmount == "0" || row.tdsAmount == "--") {
         totalVendor =
-          row.tdsAmount == "--" || "0" ? Number(row.vendorAmount) : a;
+          row.tdsAmount == "--" || row.tdsAmount == "0" ? Number(row.vendorAmount) : a;
       } else {
         totalVendor = a;
       }
@@ -265,14 +264,14 @@ export default function CreateVBT2({ editingVBT, setEditingVBT, setVBTData }) {
       setVBTData([]);
     } else {
       setLoading(false);
-      validateResponse(data);
+      validateResponse(response);
     }
   };
   const getGl = async () => {
     const response = await imsAxios.get("/tally/vbt02/vbt02_gl_options");
     let arr = [];
-    if (data.length > 0) {
-      arr = data.map((d) => {
+    if (response.data.length > 0) {
+      arr = response.data.map((d) => {
         return {
           text: d.text,
           value: d.id,
@@ -287,7 +286,7 @@ export default function CreateVBT2({ editingVBT, setEditingVBT, setVBTData }) {
     arr = arr.map((row) => {
       if (row.id == id) {
         let obj = row;
-        let tdsPercent = obj.tdsGL?.tds_percent ? obj.tdsGL?.tds_percent : 0;
+        // let tdsPercent = obj.tdsGL?.tds_percent ? obj.tdsGL?.tds_percent : 0;
         obj = {
           ...obj,
           [name]: value,

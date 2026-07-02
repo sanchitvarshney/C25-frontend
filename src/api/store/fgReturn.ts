@@ -1,6 +1,5 @@
 import { imsAxios } from "../../axiosInterceptor";
 import { ResponseType } from "../../types/general";
-import { CompletedFGReturnType } from "../../types/store";
 
 interface GetPendingReturns {
   product_id: string;
@@ -34,7 +33,7 @@ export const getPendingReturns = async (
 
   let arr = [];
   if (response.success) {
-    arr = response.data.map((row: GetPendingReturns, index) => ({
+    arr = response.data.map((row: GetPendingReturns, index: number) => ({
       id: index + 1,
       productKey: row.product_id,
       sku: row.product_sku,
@@ -76,10 +75,10 @@ export const getCompletedReturns = async (date: string) => {
     }
   );
 
-  let arr: CompletedFGReturnType[] = [];
+  let arr: any = [];
   if (response.success) {
     arr = response.data.map(
-      (row: GetCompletedReturns, index): CompletedFGReturnType => ({
+      (row: GetCompletedReturns, index: number): any => ({
         id: index + 1,
         transactionId: row.txn_id,
         sku: row.sku,

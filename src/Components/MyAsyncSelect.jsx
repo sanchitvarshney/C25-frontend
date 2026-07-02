@@ -1,7 +1,5 @@
 import { useEffect, useState, forwardRef } from "react";
-import { Select, Empty, Spin, Row } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
-const { Option } = Select;
+import { Select, Spin, Row } from "antd";
 
 const MyAsyncSelect = forwardRef(function MyAsyncSelect({
   value,
@@ -14,13 +12,11 @@ const MyAsyncSelect = forwardRef(function MyAsyncSelect({
   defaultValue,
   selectLoading,
   labelInValue,
-  borderBottom,
   mode,
   disabled,
   noBorder,
   color,
   hideArrow,
-  searchIcon,
   onFocus,
   onMouseEnter,
 }, ref) {

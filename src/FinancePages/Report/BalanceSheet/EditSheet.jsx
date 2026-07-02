@@ -1,5 +1,5 @@
 import { Col, Drawer, Input, Row, Skeleton, Typography } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -11,7 +11,6 @@ function EditSheet({ editingSheet, setEditingSheet }) {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  let arr = [];
   const getEditingData = async () => {
     setLoading("fetch");
     const response = await imsAxios.get("/tally/reports/editBalancesheet");
@@ -104,8 +103,8 @@ function EditSheet({ editingSheet, setEditingSheet }) {
         editingData.map((row) => (
           <Row key={row.code}>
             <Typography.Title level={4}>{row.name}</Typography.Title>
-            {row.children.map((group) => (
-              <Col span={24} style={{ margin: "0 20px" }}>
+            {row.children.map((group, idx) => (
+              <Col span={24} style={{ margin: "0 20px" }} key={group.key || idx}>
                 <Row gutter={8} style={{ margin: 10 }}>
                   <Col span={4}>
                     <Typography.Title level={5}>{group.name}</Typography.Title>

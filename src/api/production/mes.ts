@@ -31,7 +31,7 @@ export const getPprDetails = async (ppr: string) => {
   );
   if (response.success) {
     const values: GetPPRDetails = response.data;
-    const final: PPRDetailsType = {
+    const final: any = {
       customer: values.customer_name,
       product: {
         value: values.product_sku,
@@ -106,7 +106,7 @@ export const getProcessOptions = async (sku: string) => {
     const values: GetProcessOptionsType[] = response.data;
 
     const final: ProcessDetailsType[] = values.map(
-      (row): ProcessDetailsType => ({
+      (row): any => ({
         bom: {
           value: row.bom.id,
           text: row.bom.name,

@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { Button, Card, Col, Form, Input, Row, Space } from "antd";
 import validateResponse from "../../../Components/validateResponse";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
@@ -31,12 +30,13 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
     const response = await imsAxios.post("/tally/getSubgroup", {
       search: search,
     });
-    setSelectLoading(false);
+ 
     if (response.success) {
       let arr = response.data.map((d) => {
         return { text: d.label, value: d.id };
       });
       setAsyncOptions(arr);
+         setSelectLoading(false);
     }
   };
   const ledgerTypeOptions = [
@@ -46,7 +46,7 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
     { text: "Bank", value: "B" },
   ];
   const inputHandler = (name, value) => {
-    setNewLedger((newsubGroup) => {
+    setNewLedger(() => {
       return { ...newLedger, [name]: value };
     });
   };

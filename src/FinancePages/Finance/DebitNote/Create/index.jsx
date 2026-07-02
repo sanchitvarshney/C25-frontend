@@ -18,22 +18,21 @@ const CreateDebitNote = ({ setDebitNoteDrawer, debitNoteDrawer }) => {
   const [debitNoteForm] = Form.useForm();
   const components = Form.useWatch("components", debitNoteForm);
 
-  const getTDSData = async () => {
-    const response = await imsAxios.get("/tally/tds/nature_of_tds");
-    const { data } = response;
-    if (data) {
-      if (response.success) {
-        let arr = data.data;
+  // const getTDSData = async () => {
+  //   const response = await imsAxios.get("/tally/tds/nature_of_tds");
+  //   const { data } = response;
+  //   if (data) {
+  //     if (response.success) {
+  //       let arr = data.data;
 
-        return arr;
-      } else {
-        toast.error(response.message?.msg || response.message);
-      }
-    }
-  };
+  //       return arr;
+  //     } else {
+  //       showToast(response.message?.msg || response.message, "error");
+  //     }
+  //   }
+  // };
 
   const getDetails = async (vbtCodes) => {
-    const vbtType = vbtCodes[0].split("/")[0].toLowerCase();
     try {
       setLoading("fetch");
       const response = await imsAxios.post("/tally/vbt01/vbt_edit", {
@@ -43,15 +42,12 @@ const CreateDebitNote = ({ setDebitNoteDrawer, debitNoteDrawer }) => {
       const { data } = response;
       if (data) {
         if (response.success) {
-          const tdsOptions = await getTDSData();
-          let tdsPerc = tdsOptions.filter(
-            (tds) => tds.tds_key === data.data[0].tds_code
-          )[0];
-          let tdsPercentage;
-          if (tdsPerc) {
-            tdsPercentage = +Number(tdsPerc.percentage || 0).toFixed(2);
-            tdsPercentage = tdsPercentage + "%";
-          }
+          // const tdsOptions = await getTDSData();
+          // let tdsPerc = tdsOptions.filter(
+          //   (tds) => tds.tds_key === data.data[0].tds_code
+          // )[0];
+          // let tdsPercentage;
+       
 
           let arr = response.data.map((row) => {
             const value = +Number(
@@ -235,9 +231,9 @@ const CreateDebitNote = ({ setDebitNoteDrawer, debitNoteDrawer }) => {
   const submitHandler = async (values) => {
     try {
       setLoading("submit");
-      const respose = await imsAxios.post(`/tally/vbt01/debit/create`, values);
-      const { data } = respose;
-      if (data) {
+      const response = await imsAxios.post(`/tally/vbt01/debit/create`, values);
+      const { data } = response;
+     
         if (response.success) {
           showToast(response.message, "success");
           setDebitNoteDrawer(null);
@@ -247,10 +243,9 @@ const CreateDebitNote = ({ setDebitNoteDrawer, debitNoteDrawer }) => {
           setLoading(false);
           showToast(data.message.msg ?? data, "error");
         }
-      }
+    
     } catch (error) {
       showToast("Some error occured while creating this debit note", "error");
-      console.log("Some error occured while creating this debit note", error);
     }
     // finally {
     //   setLoading(false);

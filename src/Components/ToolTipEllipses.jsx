@@ -1,8 +1,7 @@
 import { Tooltip, Typography } from "antd";
-import React from "react";
 import { customColor } from "../utils/customColor";
 
-export default function ToolTipEllipses({ text, type, copy, width }) {
+export default function ToolTipEllipses({ text, type, copy }) {
   return (
     <Tooltip
       styles={{ root: { fontSize: "0.7rem", color: "white" } }}

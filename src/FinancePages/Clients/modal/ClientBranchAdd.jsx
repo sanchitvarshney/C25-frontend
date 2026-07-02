@@ -5,17 +5,16 @@ import {
   Input,
   Row,
   Button,
-  Space,
   Modal,
   Descriptions,
-  Divider,
 } from "antd";
 
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MySelect from "../../../Components/MySelect";
 import NavFooter from "../../../Components/NavFooter";
 import { useToast } from "../../../hooks/useToast";
+import Loading from "../../../Components/Loading";
 
 function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
   const { showToast } = useToast();
@@ -31,7 +30,7 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
   const getCountries = async () => {
     setPageLoading(true);
     const response = await imsAxios.get("/tally/backend/countries");
-    setPageLoading(false);
+   
     let arr = [];
     if (response.success && response.data[0]) {
       arr = response.data.map((row) => ({
@@ -39,6 +38,7 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
         value: row.code,
       }));
       setCountriesOptions(arr);
+       setPageLoading(false);
     }
   };
   const getState = async () => {
@@ -168,137 +168,14 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
       >
         Are you sure you want to want to reset the entered Info?
       </Modal>
+      {pageLoading && <Loading />}
       <Form
         layout="vertical"
         size="small"
         form={addClientForm}
         onFinish={(values) => setShowSubmitConfirm(values)}
       >
-        {/* <Row> */}
-        {/* <Col span={4}>
-             <Descriptions
-               size="small"
-               title="Client Information"
-             >
-               <Descriptions.Item
-                 contentStyle={{
-                   fontSize:
-                     window.innerWidth < 1600 && "0.7rem",
-                   marginTop:
-                     window.innerWidth < 1600 && -15,
-                 }}
-               >
-                 Please provide client basic info
-               </Descriptions.Item>
-             </Descriptions>
-           </Col> */}
-        {/* <Col span={20}>
-             <Row gutter={16}> */}
-        {/* Client Name */}
-        {/* <Col span={6}>
-                 <Form.Item
-                   name="clientname"
-                   label="Client Name"
-                   rules={[
-                     {
-                       required: true,
-                       message:
-                         "Please Input Client's Name!",
-                     },
-                   ]}
-                 >
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-
-        {/* Client sales person */}
-        {/* <Col span={6}>
-                 <Form.Item
-                   name="salesperson"
-                   label="Sales Person Name"
-                 >
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-
-        {/* GST Number */}
-        {/* <Col span={6}>
-                 <Form.Item
-                   name="gst"
-                   label="GST Number"
-                   rules={[
-                     {
-                       required: true,
-                       message:
-                         "Please Input the client's GST Number !",
-                     },
-                   ]}
-                 >
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-
-        {/* Pan Number */}
-        {/* <Col span={6}>
-                 <Form.Item
-                   name="pan"
-                   label="PAN Number"
-                   rules={[
-                     {
-                       required: true,
-                       message:
-                         "Please Input the client's PAN Number!",
-                     },
-                   ]}
-                 >
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-        {/* </Row> */}
-        {/* <Row gutter={16}> */}
-        {/* Client email */}
-        {/* <Col span={6}>
-                 <Form.Item name="email" label="Email">
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-
-        {/* Client number */}
-        {/* <Col span={6}>
-                 <Form.Item
-                   name="phone"
-                   label="Phone Number"
-                   rules={[
-                     {
-                       required: true,
-                       message:
-                         "Please enter client's phone number!",
-                     },
-                   ]}
-                 >
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-
-        {/* Client mobile */}
-        {/* <Col span={6}>
-                 <Form.Item
-                   name="mobile"
-                   label="Mobile Number"
-                 >
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-
-        {/* Client website */}
-        {/* <Col span={6}>
-                 <Form.Item name="website" label="Website">
-                   <Input size="default" />
-                 </Form.Item>
-               </Col> */}
-        {/* </Row> */}
-        {/* </Col>
-         </Row> */}
+   
         <Row>
           <Col span={4}>
             <Descriptions size="small" title="Branch Address Information">

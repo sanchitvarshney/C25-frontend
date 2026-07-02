@@ -1,6 +1,6 @@
-import React from "react";
+
 import { DownOutlined } from "@ant-design/icons";
-import { Dropdown, Menu, Space } from "antd";
+import { Dropdown, Space } from "antd";
 import { Avatar } from "antd";
 import { Link } from "react-router-dom";
 

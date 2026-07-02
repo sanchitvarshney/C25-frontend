@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import MyDataTable from "../../../Components/MyDataTable";
 import printFunction, {
   downloadFunction,
@@ -68,7 +68,7 @@ export default function VoucherView({ detailVoucherId, setDetailVoucherId }) {
       });
       setLoading(false);
       if (response.success) {
-        setVoucherDate(data.data[0].insert_date);
+        setVoucherDate(response.data[0].insert_date);
 
         const arr = response.data.map((row) => {
           return {
@@ -77,7 +77,7 @@ export default function VoucherView({ detailVoucherId, setDetailVoucherId }) {
           };
         });
         setVoucherRows(arr);
-        setVoucherType(data.data[0].which_module);
+        setVoucherType(response.data[0].which_module);
       }
     }
   };
@@ -96,7 +96,7 @@ export default function VoucherView({ detailVoucherId, setDetailVoucherId }) {
       v_code: detailVoucherId,
     });
     setDownloadLoading(false);
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
   };
   const printFun = async () => {
     let link = "";
@@ -110,7 +110,7 @@ export default function VoucherView({ detailVoucherId, setDetailVoucherId }) {
       v_code: detailVoucherId,
     });
     setPrintLoading(false);
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
   };
   const DescriptionItem = ({ title, content }) => (
     <div className="site-description-item-profile-wrapper">

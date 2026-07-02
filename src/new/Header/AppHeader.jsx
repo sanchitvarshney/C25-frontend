@@ -32,7 +32,6 @@ const AppHeader = (props) => {
     socketConnected,
     socketLoading,
     onRefreshSocket,
-    notificationsCount = 0,
     messagesCount = 0,
     onClickMessages,
     userMenu,

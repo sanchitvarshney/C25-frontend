@@ -1,6 +1,5 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
-import { Input, Button, Space } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
+import { useRef, useEffect, useCallback, useState } from "react";
+import { Input, Space } from "antd";
 
 // Uppercase + lowercase (exclude I,O,i,l for clarity) + digits
 const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz0123456789";
@@ -76,7 +75,6 @@ const ImageCaptcha = ({
   onChange,
   onCodeChange,
   onRefresh,
-  caseSensitive = true,
   placeholder = "Enter text shown above",
   inputStyle,
     disabled = false,

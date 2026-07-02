@@ -6,19 +6,18 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import  {  useState } from "react";
 
 export default function FormTable({
   columns,
   data,
-  loading,
   getRowStyle,
   headText = "center",
   cellText = "left",
 }) {
   const [hoveredRow, setHoveredRow] = useState(null);
-  const [headers, setHeaders] = useState([]);
-  const [cells, setCells] = useState([]);
+  // const [headers, setHeaders] = useState([]);
+  // const [cells, setCells] = useState([]);
   const getColumnWidth = (column) => column.width ?? column.minWidth ?? 120;
   const fixedLefts = columns.reduce((acc, column, index) => {
     const previousIndex = index - 1;
@@ -45,16 +44,16 @@ export default function FormTable({
     }
     return {};
   };
-  useEffect(() => {
-    let arr = columns.map((row) => {
-      return row.headerName;
-    });
-    let arr1 = columns.map((row) => {
-      return row.renderCell({ row });
-    });
-    setHeaders(arr);
-    setCells(arr1);
-  }, [columns]);
+  // useEffect(() => {
+  //   let arr = columns.map((row) => {
+  //     return row.headerName;
+  //   });
+  //   let arr1 = columns.map((row) => {
+  //     return row.renderCell({ row });
+  //   });
+  //   setHeaders(arr);
+  //   setCells(arr1);
+  // }, [columns]);
 
   return (
     <TableContainer

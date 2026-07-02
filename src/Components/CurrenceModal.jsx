@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import  { useState, useRef } from "react";
 import { Button, Modal, Col, Row, Input, Form, Typography } from "antd";
 
 export default function CurrenceModal({ showCurrency, setShowCurrencyModal }) {
@@ -11,11 +11,7 @@ export default function CurrenceModal({ showCurrency, setShowCurrencyModal }) {
       ["components", showCurrency.rowId, "exchangeRate"],
       rate
     );
-    // showCurrency.inputHandler(
-    //   "exchange_rate",
-    //   { rate: rate, currency: showCurrency.currency },
-    //   showCurrency.rowId
-    // );
+
     setShowCurrencyModal(null);
   };
   return (

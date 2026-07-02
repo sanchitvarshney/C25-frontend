@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import "../../../Accounts/accounts.css";
+import { useState } from "react";
 import { useEffect } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import Loading from "../../../../Components/Loading";
@@ -37,11 +36,11 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
   ];
 
   const checkInvoice = async (checkInvoiceId, vendorCode) => {
-    const data = await imsAxios.get(
+    const response = await imsAxios.get(
       `/tally/vbt/checkInvoice?vbtInvoiceNo=${checkInvoiceId}&vendor=${vendorCode}`
     );
-    if (data.status === 200 || response.success ) {
-      let arr = data.data;
+    if (response.success ) {
+      let arr = response.data;
       if (arr.checkInvoice == true) {
         // setConfirmModal(true);
 
@@ -72,57 +71,57 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
     setEditingVBT(null);
   };
   const submitFunction = async () => {
-    let cgstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "cgst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
+    // let cgstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "cgst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
 
-    let sgstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "sgst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
+    // let sgstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "sgst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
 
-    let igstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "igst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
-    let freightTotal = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "freight")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
-    let valueTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "net amount")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
+    // let igstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "igst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
+    // let freightTotal = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "freight")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
+    // let valueTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "net amount")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
 
-    let totalValidatingData =
-      Number(cgstTotalData) +
-      Number(sgstTotalData) +
-      Number(igstTotalData) +
-      Number(freightTotal) +
-      Number(valueTotalData);
-    if (roundOffSign == "-") {
-      totalValidatingData = totalValidatingData - Number(roundOffValue);
-    } else if (roundOffSign == "+") {
-      totalValidatingData = totalValidatingData + Number(roundOffValue);
-    }
-    totalValidatingData = Number(totalValidatingData).toFixed(3);
-    totalValidatingData = Number(totalValidatingData).toFixed(3);
+    // let totalValidatingData =
+    //   Number(cgstTotalData) +
+    //   Number(sgstTotalData) +
+    //   Number(igstTotalData) +
+    //   Number(freightTotal) +
+    //   Number(valueTotalData);
+    // if (roundOffSign == "-") {
+    //   totalValidatingData = totalValidatingData - Number(roundOffValue);
+    // } else if (roundOffSign == "+") {
+    //   totalValidatingData = totalValidatingData + Number(roundOffValue);
+    // }
+    // totalValidatingData = Number(totalValidatingData).toFixed(3);
+    // totalValidatingData = Number(totalValidatingData).toFixed(3);
     let finalObj = {
       ven_code: vbt?.ven_code,
       ven_address: vendorData.in_vendor_addr,
@@ -196,8 +195,8 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
       let totalVendor = 0;
 
       if (row.tdsAmount == "0" || row.tdsAmount == "--") {
-        totalVendor =
-          row.tdsAmount == "--" || "0" ? Number(row.vendorAmount) : a;
+        // totalVendor =
+        //   row.tdsAmount == "--" || "0" ? Number(row.vendorAmount) : a;
       } else {
         totalVendor = a;
       }
@@ -264,15 +263,15 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
         setVBTData([]);
       } else {
         setLoading(false);
-        validateResponse(data);
+        validateResponse(response?.data);
       }
     }
   };
   const getGl = async () => {
     const response = await imsAxios.get("/tally/vbt/vbtGlOptions?type=vbt07");
     let arr = [];
-    if (data.length > 0) {
-      arr = data.map((d) => {
+    if (response.success) {
+      arr = response.data.map((d) => {
         return {
           text: d.text,
           value: d.id,
@@ -287,7 +286,7 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
     arr = arr.map((row) => {
       if (row.id == id) {
         let obj = row;
-        let tdsPercent = obj.tdsGL?.tds_percent ? obj.tdsGL?.tds_percent : 0;
+        // let tdsPercent = obj.tdsGL?.tds_percent ? obj.tdsGL?.tds_percent : 0;
         obj = {
           ...obj,
           [name]: value,

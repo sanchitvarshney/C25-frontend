@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Button,
   Card,
@@ -312,7 +312,7 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
       <Row justify="end">
         <Col>
           <Space align="center" style={{ height: "100%", paddingTop: 7 }}>
-            <Button onClick={addVendor} type="primary">
+            <Button onClick={addVendor} type="primary" loading={loading}>
               Save
             </Button>
             <Button onClick={vendorReset} type="default">

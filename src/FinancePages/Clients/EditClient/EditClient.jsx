@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Drawer, Row, Col, Button, Switch, Form, Space, Input } from "antd";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -13,99 +13,11 @@ function EditClient({
 }) {
   const { showToast } = useToast();
   const [updateClientForm] = Form.useForm();
-  const [statusLoading, setStatusLoading] = useState(false);
+  // const [statusLoading, setStatusLoading] = useState(false);
   const [tdsOptions, setTdsOptions] = useState([]);
   const [tcsOptions, setTcsOptions] = useState([]);
   const [clientStatus, setClientStatus] = useState();
 
-
-  // const getMatchById = async () => {
-  //   const { data: tdsData } = await imsAxios.get(
-  //     "/vendor/getAllTds"
-  //   );
-
-  //   const { data: tcsData } = await imsAxios.get(
-  //     "/tally/tcs/getAllTcs"
-  //   );
-
-  //   const { data: clientData } = await imsAxios.get(
-  //     `/client/getClient?code=${updatingClient?.code}`
-  //   );
-
-  //   let tdsArr = tdsData?.data.map((row) => {
-  //     return { text: row.text, value: row.id };
-  //   });
-  //   let tcsArr = tcsData?.data.map((row) => {
-  //     return { text: row.text, value: row.id };
-  //   });
-
-  //   let obj = {
-  //     ...clientData,
-  //   };
-
-  //   updateClientForm.setFieldsValue(obj);
-
-  //   setClientStatus(obj.status);
-  //   setTdsOptions(tdsArr);
-  //   setTcsOptions(tcsArr);
-  // };
-
-  // const changeStatus = async (value) => {
-  //   setStatusLoading(true);
-  //   const response = await imsAxios.post(
-  //     "/vendor/updateVendorStatus",
-  //     {
-  //       status: value ? "B" : "A",
-  //       vendor_code: editVendor?.vendor_code,
-  //     }
-  //   );
-  //   setStatusLoading(false);
-  //   if (response.success) {
-  //     toast.success(response.message);
-  //     if (value) {
-  //       setVendorStatus("B");
-  //     } else {
-  //       setVendorStatus("A");
-  //     }
-  //   }
-  // };
-
-  // const submitHandler = async () => {
-  //   const values = await updateClientForm.validateFields();
-  //   let obj = {
-  //     code: updatingClient?.code,
-  //     clientName: values?.name,
-  //     email: values?.email,
-  //     panNo: values?.panNo,
-  //     mobileNo: values?.mobile,
-  //     website: values?.website,
-  //     salesPerson: values?.salePerson,
-  //     status: clientStatus,
-  //     tds: values?.tds,
-  //     tcs: values?.tcs,
-  //   };
-
-  //   const response = await imsAxios.put(
-  //     "/client/update",
-  //     obj
-  //   );
-  //   if (response.success) {
-  //     getRows();
-  //     setUpdatingClient(null);
-  //     toast.success(response.message);
-  //   }
-  // };
-
-  // const changeStatus = () => {
-  //   setClientStatus(
-  //     clientStatus == "active" ? "inactive" : "active"
-  //   );
-  //   toast.info(
-  //     clientStatus == "active"
-  //       ? "Status has been Inactive"
-  //       : "Status has been Active"
-  //   );
-  // };
 
   const getMatchById = async () => {
     const response = await imsAxios.get(
@@ -144,25 +56,6 @@ function EditClient({
     }
   };
 
-  // const changeStatus = async (value) => {
-  //   setStatusLoading(true);
-  //   const response = await imsAxios.post(
-  //     "/vendor/updateVendorStatus",
-  //     {
-  //       status: value ? "B" : "A",
-  //       vendor_code: editVendor?.vendor_code,
-  //     }
-  //   );
-  //   setStatusLoading(false);
-  //   if (response.success) {
-  //     toast.success(response.message);
-  //     if (value) {
-  //       setVendorStatus("B");
-  //     } else {
-  //       setVendorStatus("A");
-  //     }
-  //   }
-  // };
 
   const submitHandler = async () => {
     const values = await updateClientForm.validateFields();

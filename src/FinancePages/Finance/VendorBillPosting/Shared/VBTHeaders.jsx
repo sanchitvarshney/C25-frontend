@@ -1,14 +1,13 @@
 import { Card, Col, Form, Input, Row, Typography } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MySelect from "../../../../Components/MySelect";
-import InputMask from "react-input-mask";
 import TaxDetails from "./TaxDetails";
+import SingleDatePicker from "../../../../Components/SingleDatePicker";
 //
 function VBTHeaders({
   form,
   vbtComponent,
   taxDetails,
-  editingVBT,
   roundOffValue,
   roundOffSign,
   setRoundOffSign,

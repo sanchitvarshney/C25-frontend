@@ -1,18 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  Button,
   Form,
   Input,
   Row,
   Col,
   Typography,
-  Space,
   message,
-  Tooltip,
 } from "antd";
 import Loading from "../../../../../Components/Loading";
-import MyAsyncSelect from "../../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../../Components/MySelect";
 
 
@@ -37,28 +33,21 @@ export default function SingleComponent({
     gl: "",
     glN: "",
   });
-  const [messageApi, contextHolder] = message.useMessage();
+  const [contextHolder] = message.useMessage();
   let lastOpVals = form.getFieldValue("components");
   var partArr = [];
   lastOpVals.forEach((element) => {
     partArr.push(element.c_part_no);
   });
 
-  const component =
-    Form.useWatch(["components", field.name, "component"], form) ?? 0;
   const qty =
     Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
-  // const rate =
-  //   Form.useWatch(["components", field.name, "vbtInRate"], form) ?? 0;
-  const product =
-    Form.useWatch(["components", field.name, "product"], form) ?? 0;
+
   const tcs = Form.useWatch(["components", field.name, "tcs"], form) ?? 0;
   const freight =
     Form.useWatch(["components", field.name, "freight"], form) ?? 0;
   const gstType = Form.useWatch(["components", field.name, "gstType"], form);
-  const minId = Form.useWatch(["components", field.name, "minID"], form);
-  let amountWithFreight;
-  let value;
+
 
   const taxableValue =
     Form.useWatch(["components", field.name, "taxableValue"], form) ?? 0;
@@ -1063,10 +1052,4 @@ export default function SingleComponent({
     </Row>
   );
 }
-const gstRateOptions = [
-  { value: "0", text: "00%" },
-  { value: "5", text: "05%" },
-  { value: "12", text: "12%" },
-  { value: "18", text: "18%" },
-  { value: "28", text: "28%" },
-];
+

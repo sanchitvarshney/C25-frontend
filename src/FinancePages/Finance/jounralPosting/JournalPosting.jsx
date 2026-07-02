@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from "react";
-import SingleDatePicker from "../../../Components/SingleDatePicker";
+import  { useState, useEffect } from "react";
 import { v4 } from "uuid";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
-import links from "./links";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Card, Col, DatePicker, Form, Input, Row } from "antd";
+import {  Col, DatePicker, Form, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
@@ -98,7 +95,7 @@ export default function JournalPosting() {
     });
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -294,7 +291,7 @@ export default function JournalPosting() {
       setLoading(false);
       if (response.success) {
         resetHandler();
-        showToast(data.message.msg, "success");
+        showToast(response.message, "success");
       } else {
         showToast(response.message?.msg || response.message, "error");
       }

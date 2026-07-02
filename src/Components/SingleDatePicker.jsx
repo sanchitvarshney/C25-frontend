@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
-import { useState } from "react";
 
 export default function SingleDatePicker({
   setDate,

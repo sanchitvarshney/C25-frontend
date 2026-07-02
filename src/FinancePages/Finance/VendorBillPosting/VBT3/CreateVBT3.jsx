@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import "../../../Accounts/accounts.css";
+import  { useState } from "react";
 import { useEffect } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import Loading from "../../../../Components/Loading";
@@ -31,11 +30,11 @@ export default function CreateVBT3({ editingVBT, setEditingVBT, setVBTData }) {
   ]);
 
   const checkInvoice = async (checkInvoiceId, vendorCode) => {
-    const data = await imsAxios.get(
+    const response = await imsAxios.get(
       `/tally/vbt/checkInvoice?vbtInvoiceNo=${checkInvoiceId}&vendor=${vendorCode}`
     );
-    if (data.status === 200 || response.success ) {
-      let arr = data.data;
+    if ( response.success ) {
+      let arr = response.data;
       if (arr.checkInvoice == true) {
         // setConfirmModal(true);
 
@@ -68,57 +67,57 @@ export default function CreateVBT3({ editingVBT, setEditingVBT, setVBTData }) {
     setEditingVBT(null);
   };
   const submitFunction = async () => {
-    let cgstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "cgst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(2);
+    // let cgstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "cgst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(2);
 
-    let sgstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "sgst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(2);
+    // let sgstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "sgst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(2);
 
-    let igstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "igst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(2);
-    let freightTotal = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "freight")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(2);
-    let valueTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "net amount")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(2);
+    // let igstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "igst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(2);
+    // let freightTotal = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "freight")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(2);
+    // let valueTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "net amount")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(2);
 
-    let totalValidatingData =
-      Number(cgstTotalData) +
-      Number(sgstTotalData) +
-      Number(igstTotalData) +
-      Number(freightTotal) +
-      Number(valueTotalData);
+    // let totalValidatingData =
+    //   Number(cgstTotalData) +
+    //   Number(sgstTotalData) +
+    //   Number(igstTotalData) +
+    //   Number(freightTotal) +
+    //   Number(valueTotalData);
     // if (roundOffSign == "-") {
     //   totalValidatingData = totalValidatingData - Number(roundOffValue);
     // } else if (roundOffSign == "+") {
     //   totalValidatingData = totalValidatingData + Number(roundOffValue);
     // }
-    totalValidatingData = Number(totalValidatingData).toFixed(2);
-    totalValidatingData = Number(totalValidatingData).toFixed(2);
+    // totalValidatingData = Number(totalValidatingData).toFixed(2);
+    // totalValidatingData = Number(totalValidatingData).toFixed(2);
     // if (Number(vendorData.bill_amount).toFixed(3) != totalValidatingData) {
     //   return toast.error("Bill Amount and total Vendor Amount are not equal");
     // }
@@ -207,7 +206,7 @@ export default function CreateVBT3({ editingVBT, setEditingVBT, setVBTData }) {
 
       if (row.tdsAmount == "0" || row.tdsAmount == "--") {
         totalVendor =
-          row.tdsAmount == "--" || "0" ? Number(row.vendorAmount) : a;
+          row.tdsAmount == "--" || row.tdsAmount == "0" ? Number(row.vendorAmount) : a;
       } else {
         totalVendor = a;
       }
@@ -279,8 +278,8 @@ export default function CreateVBT3({ editingVBT, setEditingVBT, setVBTData }) {
   const getGl = async () => {
     const response = await imsAxios.get("/tally/vbt03/vbt03_gl_options");
     let arr = [];
-    if (data.length > 0) {
-      arr = data.map((d) => {
+    if (response.success) {
+      arr = response?.data.map((d) => {
         return {
           text: d.text,
           value: d.id,
@@ -310,13 +309,13 @@ export default function CreateVBT3({ editingVBT, setEditingVBT, setVBTData }) {
   const calculateFinal = () => {
     let arr = rows;
 
-    let totalVendorAmount = arr.map(
-      (row) =>
-        +row.bill_qty * +row.in_po_rate * +Number(row.exchangeRate).toFixed(2)
-    );
-    totalVendorAmount = totalVendorAmount.reduce((partialSum, a) => {
-      return partialSum + Number(a);
-    }, 0);
+    // let totalVendorAmount = arr.map(
+    //   (row) =>
+    //     +row.bill_qty * +row.in_po_rate * +Number(row.exchangeRate).toFixed(2)
+    // );
+    // totalVendorAmount = totalVendorAmount.reduce((partialSum, a) => {
+    //   return partialSum + Number(a);
+    // }, 0);
     arr = arr.map((row) => {
       let obj = row;
 
@@ -372,7 +371,7 @@ export default function CreateVBT3({ editingVBT, setEditingVBT, setVBTData }) {
       if (obj.in_gst_type.toLowerCase() === "local") {
         taxAmount = taxAmount * 2;
       }
-      let amountAfterTax = gstAssValue + taxAmount;
+      // let amountAfterTax = gstAssValue + taxAmount;
 
       // let tdsApplied =
       //   obj.tdsCodeValue &&

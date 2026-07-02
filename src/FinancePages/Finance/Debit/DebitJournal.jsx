@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Card, Col, Input, Row } from "antd";
+import {  Col, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
 
@@ -97,7 +96,7 @@ export default function JournalPosting() {
     });
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -315,7 +314,7 @@ export default function JournalPosting() {
       setLoading(false);
       if (response.success) {
         resetHandler();
-        showToast(data.message.msg, "success");
+        showToast(response.message, "success");
       } else {
         showToast(response.message?.msg || response.message, "error");
       }

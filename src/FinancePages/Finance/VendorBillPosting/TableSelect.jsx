@@ -1,6 +1,4 @@
-import React from "react";
-import Select from "react-select";
-import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+
 import MySelect from "../../../Components/MySelect";
 
 export default function TableSelect({

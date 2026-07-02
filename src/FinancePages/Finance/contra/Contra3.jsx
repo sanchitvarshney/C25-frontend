@@ -3,7 +3,7 @@ import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Card, Col, Input, Row } from "antd";
+import { Col, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
 
@@ -276,10 +276,8 @@ export default function Contra3() {
       setLoading(false);
       if (response.success) {
         resetHandler();
-        if (data.message.msg.includes("completed")) {
-          return showToast("Contra Created", "success");
-        }
-        showToast(data.message.msg, "success");
+     
+        showToast(response.message.msg ?? response.message, "success");
       } else {
         showToast(response.message?.msg || response.message, "error");
       }

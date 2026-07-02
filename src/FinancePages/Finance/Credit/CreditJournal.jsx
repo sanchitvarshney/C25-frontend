@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
@@ -97,7 +97,7 @@ export default function CreditJournal() {
     });
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (!response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -179,6 +179,7 @@ export default function CreditJournal() {
       sortable: false,
       renderCell: ({ row }) => [
         <GridActionsCellItem
+        key={row.id ?? "delete"}
           icon={
             <Delete
               color="error"
@@ -329,7 +330,7 @@ export default function CreditJournal() {
       setLoading(false);
       if (response.success) {
         resetHandler();
-        showToast(data.message.msg, "success");
+        showToast(response.message.msg ?? response.message, "success");
       } else {
         showToast(response.message?.msg || response.message, "error");
       }

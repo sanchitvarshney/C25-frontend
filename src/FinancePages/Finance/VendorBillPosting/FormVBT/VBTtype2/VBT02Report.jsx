@@ -1,13 +1,9 @@
 import {
-  Card,
   Col,
   Drawer,
   Form,
-  Input,
   Modal,
-  Pagination,
   Row,
-  Typography,
 } from "antd";
 import { useState } from "react";
 import { imsAxios } from "../../../../../axiosInterceptor";
@@ -15,7 +11,6 @@ import { useEffect } from "react";
 import { useToast } from "../../../../../hooks/useToast.js";
 
 import validateResponse from "../../../../../Components/validateResponse";
-import { v4 } from "uuid";
 import VBTHeaders from "../VBT01/VBTHeaders.jsx";
 import NavFooter from "../../../../../Components/NavFooter.jsx";
 import SingleComponent from "../../SingleProduct.jsx";
@@ -23,9 +18,9 @@ import SingleComponent from "../../SingleProduct.jsx";
 function VBT02Report({
   editingVBT,
   setEditingVBT,
-  setVBTData,
+  // setVBTData,
   apiUrl,
-  setApiUrl,
+  // setApiUrl,
   editVbtDrawer,
 })  {
   const [Vbt01] = Form.useForm();
@@ -34,9 +29,9 @@ function VBT02Report({
   const [taxDetails, setTaxDetails] = useState([]);
   const [roundOffSign, setRoundOffSign] = useState("+");
   const [roundOffValue, setRoundOffValue] = useState(0);
-  const [tdsArray, setTdsArray] = useState([]);
-  const [allTdsOptions, setAllTdsOptions] = useState([]);
-  const [optionState, setOptionState] = useState([]);
+  // const [tdsArray, setTdsArray] = useState([]);
+  // const [allTdsOptions, setAllTdsOptions] = useState([]);
+  // const [optionState, setOptionState] = useState([]);
   const [glCodes, setGlCodes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currencies, setCurrencies] = useState([]);
@@ -48,7 +43,7 @@ function VBT02Report({
   const [allRowSws, setAllRowSws] = useState(false);
   // ---
   const [editVBTCode, setEditVBTCode] = useState([]);
-  const [editApiUrl, setEditApiUrl] = useState("");
+  // const [editApiUrl, setEditApiUrl] = useState("");
   const [isCreate, setIsCreate] = useState(false);
   const [glstate, setglState] = useState([]);
   const [paginate, setPaginate] = useState([]);
@@ -63,7 +58,7 @@ function VBT02Report({
   const [mAfreightValue, setMAFreightValue] = useState("");
   const [headerCal, setHeaderCal] = useState([]);
   const [mainArrs, setmainArrs] = useState([]);
-  const [mainUpdated, setMainUpdated] = useState(1);
+  // const [mainUpdated, setMainUpdated] = useState(1);
 
   const components = Form.useWatch("components", {
     form: Vbt01,
@@ -92,7 +87,7 @@ function VBT02Report({
 
       // resetForm();
     } else {
-      setEditVbtDrawer(null);
+      // setEditVbtDrawer(null);
       Vbt01.setFields([
         {
           name: "components",
@@ -152,15 +147,15 @@ function VBT02Report({
     if (editVbtDrawer) {
       let apiLink = getApiUrl(editVbtDrawer);
       // console.log("apilink", apiLink);
-      setEditApiUrl(apiLink);
+      // setEditApiUrl(apiLink);
       link = `/tally/${apiLink}/${apiLink}_gl_options`;
     } else {
       link = `/tally/${apiUrl}/${apiUrl}_gl_options`;
     }
     const response = await imsAxios.get(link);
     let arr = [];
-    if (data.length > 0) {
-      arr = data.map((d) => {
+    if (response.success) {
+      arr = response.data.map((d) => {
         return {
           text: d.text,
           value: d.id,
@@ -429,11 +424,11 @@ function VBT02Report({
     // return;
     let link = `/tally/${vbtCodeForEdit}/update`;
     const response = await imsAxios.put(link, finalData);
-    const { data } = response;
+
     // console.log("data", response);
-    if (response.status === 200) {
+    if (response.success) {
       showToast(response.data, "success");
-      setEditVbtDrawer(null);
+      // setEditVbtDrawer(null);
       setLoading(false);
     } else {
       showToast(response.data, "error");
@@ -510,13 +505,13 @@ function VBT02Report({
     if (response.status == 200) {
       const { data } = response;
       // console.log("response", response);
-      let newMin = response.data[0].minId;
+      // let newMin = response.data[0].minId;
       // console.log("newMin", newMin); // setVbtComponent(data);
       getGl();
-      let tdsName = {
-        label: data[0]?.tds?.glName,
-        Value: data[0]?.tds?.tdsGlKey,
-      };
+      // let tdsName = {
+      //   label: data[0]?.tds?.glName,
+      //   Value: data[0]?.tds?.tdsGlKey,
+      // };
 
       let arr = data.map((row) => ({
         ...row,
@@ -656,7 +651,7 @@ function VBT02Report({
         sgstAmount: row.sgst,
         igstAmount: row.igst,
         venAddress: row.venAddress,
-        igstAmount: row.igst,
+        // igstAmount: row.igst,
         ven_name: row.venName,
 
         tdsName: {
@@ -950,7 +945,7 @@ function VBT02Report({
                 <>
                   <Col>
                     {fields.map((field, index) => (
-                      <Form.Item noStyle>
+                      <Form.Item noStyle key={field.key ?? index}>
                         <SingleComponent
                           fields={fields}
                           field={field}
@@ -958,10 +953,10 @@ function VBT02Report({
                           add={add}
                           form={Vbt01}
                           remove={remove}
-                          tdsArray={tdsArray}
-                          allTdsOptions={allTdsOptions}
+                          // tdsArray={tdsArray}
+                          // allTdsOptions={allTdsOptions}
                           // setOptionState={setOptionState}
-                          optionState={optionState}
+                          // optionState={optionState}
                           // glstate={glstate}
                           // setglState={setglState}
                           getGl={getGl}
@@ -983,7 +978,7 @@ function VBT02Report({
                           setAllRowSws={setAllRowSws}
                           allRowSws={allRowSws}
                           loading={loading}
-                          setEditApiUrl={setEditApiUrl}
+                          // setEditApiUrl={setEditApiUrl}
                           isCreate={isCreate}
                           setIsCreate={setIsCreate}
                           setglState={setglState}

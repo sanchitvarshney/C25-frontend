@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function TableTextInput({ value, fun, name, id, placeholder }) {
   return (

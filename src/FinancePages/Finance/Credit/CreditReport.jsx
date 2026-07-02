@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import {
   Button,
   Col,
   Input,
   Row,
-  Tooltip,
-  Popconfirm,
   Space,
 } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
@@ -20,18 +18,14 @@ import {
   CloudDownloadOutlined,
   PrinterFilled,
   EyeFilled,
-  DeleteFilled,
   EditFilled,
 } from "@ant-design/icons";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import JounralPostingView from "../jounralPosting/JounralPostingView";
-import EditJournalVoucher from "../jounralPosting/EditJournalVoucher";
 import MySelect from "../../../Components/MySelect";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import DebitView from "../Debit/DebitView";
 import CreditView from "./CreditView";
 import CreditEdit from "./CreditEdit";
 // import DebitView from "./DebitView";
@@ -52,12 +46,10 @@ function CreditReport() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewDebitDetail, setViewDebitDetail] =
     useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [editDebit, setEditDebit] = useState(null);
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectedLedger, setSelectedLedger] =
-    useState(null);
+
 
   const getRows = async () => {
     setRows([]);
@@ -87,25 +79,25 @@ function CreditReport() {
     }
   };
 
-  const deleteFun = async () => {
-    setLoading(true);
-    if (deleteConfirm) {
-      const response = await imsAxios.post(
-        "/tally/jv/jv_delete",
-        {
-          jv_code: deleteConfirm,
-        }
-      );
-      setLoading(false);
-      if (response.success) {
-        setDeleteConfirm(null);
-        showToast(response.message, "success");
-        getRows();
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
-    }
-  };
+  // const deleteFun = async () => {
+  //   setLoading(true);
+  //   if (deleteConfirm) {
+  //     const response = await imsAxios.post(
+  //       "/tally/jv/jv_delete",
+  //       {
+  //         jv_code: deleteConfirm,
+  //       }
+  //     );
+  //     setLoading(false);
+  //     if (response.success) {
+  //       setDeleteConfirm(null);
+  //       showToast(response.message, "success");
+  //       getRows();
+  //     } else {
+  //       showToast(response.message?.msg || response.message, "error");
+  //     }
+  //   }
+  // };
 
   const columns = [
     {
@@ -184,6 +176,7 @@ function CreditReport() {
       getActions: ({ row }) => [
         // view voucher
         <GridActionsCellItem
+        key={row.id ?? "view"}
           disabled={loading}
           icon={<EyeFilled className="view-icon" />}
           onClick={() => {
@@ -193,6 +186,7 @@ function CreditReport() {
           label="view"
         />,
         <GridActionsCellItem
+          key={row.id ?? "print"}
           // print voucher
           disabled={loading}
           icon={<PrinterFilled className="view-icon" />}
@@ -202,6 +196,7 @@ function CreditReport() {
           label="print"
         />,
         <GridActionsCellItem
+          key={row.id ?? "download"}
           // download voucher
           disabled={loading}
           icon={
@@ -213,6 +208,7 @@ function CreditReport() {
           label="download"
         />,
         <GridActionsCellItem
+          key={row.id ?? "edit"}
           // edit voucher
           disabled={loading}
           icon={<EditFilled className="view-icon" />}
@@ -235,7 +231,7 @@ function CreditReport() {
       }
     );
     setLoading(false);
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
     // module_used
   };
   const handleDownload = async (id) => {
@@ -247,7 +243,7 @@ function CreditReport() {
     const response = await imsAxios.post(link, {
       cn_key: id,
     });
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
     setLoading(false);
   };
   const getLedgerName = async (e) => {
@@ -266,7 +262,6 @@ function CreditReport() {
           value: row.id,
         };
       });
-      console.log(data.data);
       setAsyncOptions(arr);
     } else {
       setAsyncOptions([]);

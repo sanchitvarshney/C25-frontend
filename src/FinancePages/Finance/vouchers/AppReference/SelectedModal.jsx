@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  {  useEffect } from "react";
 import { Button, Modal, Input } from "antd";
 import MyDataTable from "../../../../Components/MyDataTable";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
@@ -7,15 +7,12 @@ export default function SelectedModal({
   setOpen,
   open,
   selectedVBTRowsForModal,
-  setSelectedVBTRowsForModal,
   vbtRows,
   setVBTRows,
   setRowSelected,
   rowSelected,
-  osAmountModal,
   setOsAmountModal,
   setFinalListOfRow,
-  finalListOfRow,
 }) {
   //   const [open, setOpen] = useState(false);
 

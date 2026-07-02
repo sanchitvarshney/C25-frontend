@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import MyDatePicker from "../../../../Components/MyDatePicker";
-import axios from "axios";
-import "../../../Accounts/accounts.css";
 
 import { AiFillEdit } from "react-icons/ai";
 import CreateVBT6 from "./CreateVBT6";
@@ -13,7 +11,6 @@ import { GridActionsCellItem } from "@mui/x-data-grid";
 import { Button, Input, Row, Space } from "antd";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
-import ConfirmModal from "../Shared/ConfirmModal";
 import useApi from "../../../../hooks/useApi.ts";
 import { getVendorOptions } from "../../../../api/general.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
@@ -25,7 +22,7 @@ export default function VBT1() {
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [toggleCleared, setToggleCleared] = React.useState(false);
+  // const [toggleCleared, setToggleCleared] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [editingVBT, setEditingVBT] = useState(null);
@@ -33,11 +30,11 @@ export default function VBT1() {
   const [asyncOptions, setAsyncOptions] = useState([]);
 
   //////// confirm modal
-  const [checkInvoiceId, setCheckInvoiceId] = useState("");
+  // const [checkInvoiceId, setCheckInvoiceId] = useState("");
   const [confirmModal, setConfirmModal] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [createVBT, setCreateVBT] = useState(false);
-  const [selectedVendors, setSelectedVendors] = useState([]);
+  // const [open, setOpen] = useState(false);
+  // const [createVBT, setCreateVBT] = useState(false);
+  // const [selectedVendors, setSelectedVendors] = useState([]);
   const { executeFun, loading: loading1 } = useApi();
   const vbtTableColumsns = [
     {
@@ -90,6 +87,7 @@ export default function VBT1() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"edit"}
           icon={<AiFillEdit />}
           onClick={() => getVBTDetail(row.min_transaction)}
           label="Delete"
@@ -118,8 +116,8 @@ export default function VBT1() {
       min_id: minId,
     });
     if (response.success) {
-      setEditingVBT(data.data);
-      let arr = data.data;
+      setEditingVBT(response.data);
+      // let arr = response.data;
     } else {
       showToast( response.message?.msg || response.message, "error");
       setEditingVBT(null);
@@ -159,8 +157,7 @@ export default function VBT1() {
     });
     setLoading(false);
     if (response.success) {
-      console.log(data.data);
-      let arr = data.data;
+      let arr = response.data;
       arr = arr.map((row) => ({
         ...row,
         ven_tds: arr[0].ven_tds,
@@ -215,20 +212,20 @@ export default function VBT1() {
   };
 
   const submitHandler = () => {
-    if (createVBT) {
-      console.log("inside createvBt", createVBT);
-      console.log("inside createvBt", selectedVendors);
-      setEditingVBT(selectedVendors);
-      setConfirmModal(false);
-      setOpen(false);
-      // setCreateVBT(false);
-    } else {
-      setEditingVBT(null);
-    }
+    // if (createVBT) {
+    //   console.log("inside createvBt", createVBT);
+    //   console.log("inside createvBt", selectedVendors);
+    //   setEditingVBT(selectedVendors);
+    //   setConfirmModal(false);
+    //   setOpen(false);
+    //   // setCreateVBT(false);
+    // } else {
+    //   setEditingVBT(null);
+    // }
   };
   useEffect(() => {
     submitHandler();
-  }, [createVBT, selectedVendors]);
+  }, []);
 
   const wiseOptions = [
     { value: "date_wise", text: "Date Wise" },
@@ -244,9 +241,9 @@ export default function VBT1() {
     }
     setVBTData([]);
   }, [wise]);
-  useEffect(() => {
-    setToggleCleared((toggleCleared) => !toggleCleared);
-  }, [vbtData]);
+  // useEffect(() => {
+  //   setToggleCleared((toggleCleared) => !toggleCleared);
+  // }, [vbtData]);
   return (
     <div style={{ height: "95%" }}>
       <MapVBTModal mapVBT={mapVBT} setMapVBT={setMapVBT} />

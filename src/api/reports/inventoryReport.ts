@@ -17,6 +17,7 @@ interface GetR33Type {
   workHrsEnd: string;
   workHrsIn: string;
   remark: string;
+
 }
 export const getR33 = async (date: string, wise: string, data: string) => {
   const response: ResponseType = await imsAxios.post("report33/", {
@@ -27,7 +28,7 @@ export const getR33 = async (date: string, wise: string, data: string) => {
   let arr = [];
   if (response.success) {
     arr = response.data.map(
-      (row: GetR33Type, index: number): R33Type => ({
+      (row: any, index: number): any => ({
         id: index + 1,
         date: row.date,
         department: row.department,

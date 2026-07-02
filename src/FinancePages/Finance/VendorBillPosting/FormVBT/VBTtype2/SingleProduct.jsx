@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
   Form,
   Input,
   Row,
   Col,
   Typography,
-  Space,
-  Select,
-  Tooltip,
   message,
 } from "antd";
 import Loading from "../../../../../Components/Loading";
@@ -18,51 +14,21 @@ import { useToast } from "../../../../../hooks/useToast.js";
 export default function SingleComponent({
   index,
   field,
-  fields,
-  add,
-  remove,
   form,
-  allTdsOptions,
-  tdsArray,
-  optionState,
-  setOptionState,
   glCodes,
-  setGlCodes,
-  apiUrl,
   currencies,
-  setCurrencies,
   addFreightCalc,
-  setAddFreightCalc,
   addMiscCalc,
-  setAddMiscCalc,
-  setAddInsurCalc,
   addInsurCalc,
   allRowInsurance,
-  setAllRowInsurance,
   allRowFreight,
-  setAllRowFreight,
-  setAllRowSws,
   allRowSws,
   loading,
-
   isCreate,
-  setglState,
   glstate,
   lastRateArr,
-  paginate,
-  setPaginate,
-  setSingleArr,
-  singleArr,
-  mainArrs,
-  setmainArrs,
-  updateSingleArr,
-  setNewArrVenAm,
-  mainArrVenAm,
   mAVenAmValue,
   setMAFreightValue,
-  mAfreightValue,
-  headerCal,
-  setHeaderCal,
 }) {
   var lastRateFoundObj;
   const [showLastRateWarning, setShowLastRateWarning] = useState({
@@ -74,28 +40,28 @@ export default function SingleComponent({
   // lastOpVals.forEach((element) => {
   //   partArr.push(element.c_part_no);
   // });
-  const [inrowInsur, setInrowInsur] = useState("");
+  // const [inrowInsur, setInrowInsur] = useState("");
   // console.log("addInsurCalc in single component", addInsurCalc);
   // console.log("allRowInsurance in single component", allRowInsurance);
 
-  const [messageApi, contextHolder] = message.useMessage();
-  let lastOpVals = form.getFieldValue("components");
-  const component =
-    Form.useWatch(["components", field.name, "component"], form) ?? 0;
+  const [contextHolder] = message.useMessage();
+  // let lastOpVals = form.getFieldValue("components");
+  // const component =
+  //   Form.useWatch(["components", field.name, "component"], form) ?? 0;
 
   const qty =
     Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
   const rate =
     Form.useWatch(["components", field.name, "vbtInRate"], form) ?? 0;
-  const product =
-    Form.useWatch(["components", field.name, "product"], form) ?? 0;
+  // const product =
+  //   Form.useWatch(["components", field.name, "product"], form) ?? 0;
   const tcs = Form.useWatch(["components", field.name, "tcs"], form) ?? 0;
   // const freight =
   //   Form.useWatch(["components", field.name, "freightAmount"], form) ?? 0;
   const gstType = Form.useWatch(["components", field.name, "gstType"], form);
-  const minId = Form.useWatch(["components", field.name, "minID"], form);
+  // const minId = Form.useWatch(["components", field.name, "minID"], form);
   let amountWithFreight;
-  let value;
+  // let value;
   const taxableValue =
     Form.useWatch(["components", field.name, "taxableValue"], form) ?? 0;
   const vbtInRate =
@@ -155,7 +121,7 @@ export default function SingleComponent({
   const totalInsurance = Form.useWatch("totalInsurance", form);
   const totalbillAmmount = Form.useWatch("billAmmount", form);
   const totalFreight = Form.useWatch("totalFreight", form);
-  const rowIns = Form.useWatch("rowInsurance", form);
+  // const rowIns = Form.useWatch("rowInsurance", form);
   // const rowId = Form.useWatch("id", form);
 
   // // form.setFieldValue("components", singleArr);
@@ -164,12 +130,12 @@ export default function SingleComponent({
   // }, [rowId]);
 
   let totalVenAm = form.getFieldValue(["components", field.name, "venAmmount"]);
-  let arr = form.getFieldsValue("components");
+  // let arr = form.getFieldsValue("components");
   // console.log("arr in single ", arr);
-  let vendorAmount = arr.components?.reduce(
-    (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(2),
-    0
-  );
+  // let vendorAmount = arr.components?.reduce(
+  //   (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(2),
+  //   0
+  // );
   //  let vendorAmount = singleArr.components?.reduce(
   //    (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(2),
   //   0
@@ -178,16 +144,16 @@ export default function SingleComponent({
   //   (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(2),
   //   0
   // );
-  const options = [
-    {
-      text: "Local",
-      value: "L",
-    },
-    {
-      text: "Interstate",
-      value: "I",
-    },
-  ];
+  // const options = [
+  //   {
+  //     text: "Local",
+  //     value: "L",
+  //   },
+  //   {
+  //     text: "Interstate",
+  //     value: "I",
+  //   },
+  // ];
   // const getGstGlOptions = async () => {
   //   const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
   //   const { data } = response;
@@ -231,22 +197,22 @@ export default function SingleComponent({
     if (isCreate || totalInsurance) {
       // console.log("totalInsurance", totalInsurance);
       // console.log("inrowInsur", inrowInsur);
-      if (inrowInsur === "inRowInsurance") {
-        let newinsurance =
-          ((+Number(misc).toFixed(2) + +Number(value).toFixed(3)) * 1.125) /
-          100;
-        // console.log("newinsurance", newinsurance);
-        newinsurance = +Number(newinsurance).toFixed(2);
-        form.setFieldValue(
-          ["components", field.name, "insurance"],
-          newinsurance
-        );
-      } else {
-        // console.log("iscre", isCreate);
-        // console.log("iscre insurance", insurance);
-        !form.isFieldTouched(["components", field.name, "insurance"]) &&
-          form.isFieldTouched("components");
-      }
+      // if (inrowInsur === "inRowInsurance") {
+      //   let newinsurance =
+      //     ((+Number(misc).toFixed(2) + +Number(value).toFixed(3)) * 1.125) /
+      //     100;
+      //   // console.log("newinsurance", newinsurance);
+      //   newinsurance = +Number(newinsurance).toFixed(2);
+      //   form.setFieldValue(
+      //     ["components", field.name, "insurance"],
+      //     newinsurance
+      //   );
+      // } else {
+      //   // console.log("iscre", isCreate);
+      //   // console.log("iscre insurance", insurance);
+      //   !form.isFieldTouched(["components", field.name, "insurance"]) &&
+      //     form.isFieldTouched("components");
+      // }
     }
     if (customDuty) {
       let sws = (customDuty * 10) / 100;
@@ -301,8 +267,8 @@ export default function SingleComponent({
       +Number(cgst).toFixed(2) +
       +Number(sgst).toFixed(2) +
       +Number(igst).toFixed(2);
-    let amountAfterTax = amountWithFreight + taxAmount;
-    amountAfterTax = Math.round(amountAfterTax);
+    // let amountAfterTax = amountWithFreight + taxAmount;
+    // amountAfterTax = Math.round(amountAfterTax);
     if (isCreate) {
       if (
         !form.isFieldTouched(["components", field.name, "igstAmount"]) &&
@@ -318,8 +284,8 @@ export default function SingleComponent({
     tdsAmount = tds_key ? +Number(tdsAmount).toFixed(2) : 0;
 
     tdsAmount = Math.round(tdsAmount);
-    let valueAfterTDS = amountAfterTax - tdsAmount;
-    const gstAssesValue = +Number(vbtBillQty * rate + freightAmount).toFixed(2);
+    // let valueAfterTDS = amountAfterTax - tdsAmount;
+    // const gstAssesValue = +Number(vbtBillQty * rate + freightAmount).toFixed(2);
 
     // console.log("freightAmount -> is here for CifValue cal", freightAmount);
     // console.log("freightInclude -> is here for CifValue cal", freightInclude);
@@ -381,7 +347,7 @@ export default function SingleComponent({
     exchangeRate,
     foreignValues,
     Rcurrency,
-    inrowInsur,
+    // inrowInsur,
     otherDuty,
     sws,
     customDuty,
@@ -542,16 +508,16 @@ export default function SingleComponent({
   //   // var vendorAmount = vendorAmounts;
   // }, [mainArrs]);
 
-  const currencyOption = [
-    {
-      value: "$",
-      label: "$",
-    },
-    {
-      value: "₹",
-      label: "₹",
-    },
-  ];
+  // const currencyOption = [
+  //   {
+  //     value: "$",
+  //     label: "$",
+  //   },
+  //   {
+  //     value: "₹",
+  //     label: "₹",
+  //   },
+  // ];
 
   const showRateWarning = () => {
     // console.log("this is the last date arr iin single, ", lastRateArr);
@@ -1315,10 +1281,4 @@ export default function SingleComponent({
     </Row>
   );
 }
-const gstRateOptions = [
-  { value: "0", text: "00%" },
-  { value: "5", text: "05%" },
-  { value: "12", text: "12%" },
-  { value: "18", text: "18%" },
-  { value: "28", text: "28%" },
-];
+

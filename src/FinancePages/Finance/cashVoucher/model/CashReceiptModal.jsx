@@ -1,18 +1,13 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Col, Drawer, Row, Space, Tooltip } from "antd";
 import {
-  EyeFilled,
-  CloseCircleFilled,
   CloseOutlined,
 } from "@ant-design/icons";
-import axios from "axios";
 import { v4 } from "uuid";
 import MyDataTable from "../../../../Components/MyDataTable";
 import { imsAxios } from "../../../../axiosInterceptor";
 
 function CashReceiptModal({ open, setOpen }) {
-  const [cashReceiptRow, setCashReceiptRow] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [allData, setAllData] = useState([]);
   const [header, setHeader] = useState([]);
 
@@ -24,7 +19,7 @@ function CashReceiptModal({ open, setOpen }) {
       }
     );
     if (response.success) {
-      setHeader(data.header[0]);
+      setHeader(response.data.header);
 
       const arr = response.data.map((row) => {
         return {

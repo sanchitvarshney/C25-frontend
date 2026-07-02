@@ -6,7 +6,6 @@ import {
   Form,
   Input,
   Row,
-  Space,
   Typography,
 } from "antd";
 import MySelect from "../../../Components/MySelect";
@@ -223,7 +222,7 @@ const SingleComponent = ({
     }
   };
 
-  const getFreightGlOptions = async (vbtKey) => {
+  const getFreightGlOptions = async () => {
     // const vbtType = vbtCodes[0].split("/")[0].toLowerCase
     try {
       // setLoading("fetch");

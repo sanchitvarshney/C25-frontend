@@ -1,3 +1,4 @@
+//@ts-ignore
 import { imsAxios } from "../../axiosInterceptor";
 import { ResponseType } from "../../types/general";
 import { UOMType } from "../../types/master";

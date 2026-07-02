@@ -126,7 +126,6 @@ export const downloadRecoPdf = async (date, vendorCode) => {
 
   if (response.success) {
     downloadFunction(response.data.buffer.data, response.data.fileName);
-    // window.open(response.data, "_blank", "noreferrer");
   }
 
   return response;

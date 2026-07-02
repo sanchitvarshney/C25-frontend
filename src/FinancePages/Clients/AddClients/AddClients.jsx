@@ -2,54 +2,51 @@ import { useState, useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import {
   Col,
-  Descriptions,
-  Divider,
   Form,
   Input,
   Row,
   Modal,
-  Button,
   Card,
 } from "antd";
 
-import Loading from "../../../Components/Loading";
+// import Loading from "../../../Components/Loading";
 import ViewClients from "../ViewClients/ViewClients";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast";
 
 export default function AddClients() {
   const { showToast } = useToast();
-  const [countriesOptions, setCountriesOptions] = useState([]);
-  const [stateOptions, setStateOptions] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState(83);
+  // const [countriesOptions, setCountriesOptions] = useState([]);
+  // const [stateOptions, setStateOptions] = useState([]);
+  // const [selectedCountry, setSelectedCountry] = useState(83);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(false);
+  // const [pageLoading, setPageLoading] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [addClientForm] = Form.useForm();
 
-  const getCountries = async () => {
-    setPageLoading(true);
-    const response = await imsAxios.get("/tally/backend/countries");
-    setPageLoading(false);
-    let arr = [];
-    if (response.success && response.data[0]) {
-      arr = response.data.map((row) => ({ text: row.name, value: row.code }));
-      setCountriesOptions(arr);
-    }
-  };
-  const getState = async () => {
-    setPageLoading(true);
-    const response = await imsAxios.get("/tally/backend/states");
-    setPageLoading(false);
-    if (response.success && response.data[0]) {
-      let arr = response.data.map((row) => ({
-        text: row.name,
-        value: row.code,
-      }));
-      setStateOptions(arr);
-    }
-  };
+  // const getCountries = async () => {
+  //   setPageLoading(true);
+  //   const response = await imsAxios.get("/tally/backend/countries");
+  //   setPageLoading(false);
+  //   let arr = [];
+  //   if (response.success && response.data[0]) {
+  //     arr = response.data.map((row) => ({ text: row.name, value: row.code }));
+  //     setCountriesOptions(arr);
+  //   }
+  // };
+  // const getState = async () => {
+  //   setPageLoading(true);
+  //   const response = await imsAxios.get("/tally/backend/states");
+  //   setPageLoading(false);
+  //   if (response.success && response.data[0]) {
+  //     let arr = response.data.map((row) => ({
+  //       text: row.name,
+  //       value: row.code,
+  //     }));
+  //     setStateOptions(arr);
+  //   }
+  // };
   const submitHandler = async () => {
     const values = await addClientForm.validateFields();
     const newObj = {
@@ -100,7 +97,7 @@ export default function AddClients() {
     setShowResetConfirm(false);
   };
   useEffect(() => {
-    getCountries();
+    // getCountries();
     addClientForm.setFieldsValue({
       name: "",
       salesperson: "",
@@ -123,13 +120,13 @@ export default function AddClients() {
       ...obj,
       state: "",
     });
-    if (selectedCountry === 83) {
-      getState();
-    }
-  }, [selectedCountry]);
+    // if (selectedCountry === 83) {
+    //   getState();
+    // }
+  }, []);
   return (
     <div style={{ height: "100%", padding: "10px" }}>
-      {pageLoading && <Loading />}
+      {/* {pageLoading && <Loading />} */}
       {/* submit confirm modal */}
       <Modal
         open={showSubmitConfirm}

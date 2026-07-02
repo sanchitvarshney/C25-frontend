@@ -1,7 +1,6 @@
 import { imsAxios } from "@/axiosInterceptor";
 import { ResponseType, SelectOptionType } from "@/types/general";
-import { ApprovalType, ProductType } from "@/types/r&d";
-import { convertSelectOptions } from "@/utils/general";
+import { ProductType } from "@/types/r&d";
 
 interface GetProductListType {
   name: string;
@@ -23,7 +22,7 @@ export const getProductsList = async () => {
   let arr = [];
   if (response.success) {
     arr = response.data.map(
-      (row: GetProductListType, index: number): ProductType => ({
+      (row: any, index: number): ProductType => ({
         approvalStage: row.status,
         description: row.description,
         isActive: row.isActive,
@@ -59,10 +58,10 @@ export const createProduct = async (values: ProductType) => {
   formData.append("description", values.description);
   formData.append("projectCode", values.project);
   formData.append("costCenter", values.costCenter);
-  values.images?.map((row) => {
+  values.images?.map((row: any) => {
     formData.append("images", row.originFileObj);
   });
-  values.documents?.map((row) => {
+  values.documents?.map((row: any) => {
     formData.append("documents", row.originFileObj);
   });
 
@@ -74,18 +73,18 @@ export const createProduct = async (values: ProductType) => {
   return response;
 };
 
-export const updateProduct = async (values: ProductType,key) => {
+export const updateProduct = async (values: any,key: string) => {
   const formData = new FormData();
   formData.append("name", values.name);
-  formData.append("isActive", true);
+  formData.append("isActive", String(true));
   formData.append("description", values.description);
   formData.append("projectCode", values.projectCode?.value?values.projectCode?.value:values.projectCode);
   formData.append("costCenter", values.costCenter?.value?values.costCenter?.value:values.costCenter);
-  values.images?.map((row) => {
+  values.images?.map((row: any) => {
     formData.append("images", row.originFileObj);
   });
-  values.documents?.map((row) => {
-    formData.append("documents", row.originFileObj);
+    values.documents?.map((row: any) => {
+      formData.append("documents", row.originFileObj);
   });
 
   const response: ResponseType = await imsAxios.put(
@@ -131,8 +130,8 @@ export const getApprovalLogs = async (productKey: string) => {
   );
 
   if (response.success) {
-    const obj: GetLogs = response.data;
-    const final: ApprovalType = {
+    const obj: any = response.data;
+    const final: any = {
       name: obj.productName,
       product: productKey,
       stage: obj.status,

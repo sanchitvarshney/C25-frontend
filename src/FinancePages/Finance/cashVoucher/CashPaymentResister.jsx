@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import { Button, Col, Input, Row, Select } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -9,7 +9,6 @@ import MyDataTable from "../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { EyeFilled } from "@ant-design/icons";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
-import CashPaymentModal from "./model/CashPaymentModal";
 import CashEditModal from "./model/cashEditModal";
 import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import MyButton from "../../../Components/MyButton";
@@ -17,7 +16,7 @@ import MyButton from "../../../Components/MyButton";
 
 function CashPaymentResister() {
   const { showToast } = useToast();
-  const [open, setOpen] = useState(null);
+  // const [open, setOpen] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [datee, setDatee] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,7 +63,7 @@ function CashPaymentResister() {
         data: datee,
       });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response?.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -84,7 +83,7 @@ function CashPaymentResister() {
         data: datee,
       });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response?.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -104,7 +103,7 @@ function CashPaymentResister() {
         data: selectedValue?.code,
       });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response?.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -128,7 +127,7 @@ function CashPaymentResister() {
         }
       );
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response?.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -151,10 +150,12 @@ function CashPaymentResister() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row?.module_used ?? "view"}
           label="View"
-          icon={<EyeFilled onClick={() => setOpen(row?.module_used)} />}
+          icon={<EyeFilled  />}
         />,
         <TableActions
+          key={row?.module_used ?? "edit"}
           action="edit"
           onClick={() => setCashEdit(row.module_used)}
         />,

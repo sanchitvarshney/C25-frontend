@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import LinearProgress from "@mui/material/LinearProgress";
 import {
   DataGrid,
   GridToolbarContainer,
@@ -14,8 +13,6 @@ import {
   useGridSelector,
 } from "@mui/x-data-grid";
 import Pagination from "@mui/material/Pagination";
-import { v4 } from "uuid";
-
 // Enhanced Styled Components
 const StyledGridOverlay = styled("div")(({ theme }) => ({
   display: "flex",
@@ -233,7 +230,7 @@ function CustomNoRowsOverlay() {
 
 export default function MyDataTable(props) {
   // Omit 'rules' so it's never passed to DataGrid (Form.Item expects array; prevents rules.some error when used inside Form)
-  const { rules: _rules, components: userComponents = {}, ...dataTableProps } =
+  const { components: userComponents = {}, ...dataTableProps } =
     props;
 
   // Ensure every column has a unique `field` so DataGrid gets valid keys (fixes "unique key" warning)

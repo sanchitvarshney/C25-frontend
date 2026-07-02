@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from "react";
-import links from "./links";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Card, Col, Input, Row } from "antd";
+import { Col, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
 
@@ -281,10 +279,10 @@ export default function Contra1() {
       setLoading(false);
       if (response.success) {
         resetHandler();
-        if (data.message.msg.includes("completed")) {
+        if (response.success) {
           return showToast("Contra Created", "success");
         }
-        showToast(data.message.msg, "success");
+    
       } else {
         showToast(response.message?.msg || response.message, "error");
       }

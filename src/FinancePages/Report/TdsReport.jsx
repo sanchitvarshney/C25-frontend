@@ -1,5 +1,5 @@
-import { Button, Col, Row, Space, Card } from "antd";
-import React, { useState } from "react";
+import { Button, Col, Row, Card } from "antd";
+import  { useState } from "react";
 
 import MyDatePicker from "../../Components/MyDatePicker";
 import socket from "../../Components/socket";
@@ -11,7 +11,7 @@ import { v4 } from "uuid";
 const TdsReport = () => {
   const { showToast } = useToast();
   const [dateRange, setDateRange] = useState("");
-  const { user, notifications } = useSelector((state) => state.login);
+  const { user } = useSelector((state) => state.login);
   const emitDownloadEvent = () => {
     let newId = v4();
   
@@ -51,65 +51,65 @@ const TdsReport = () => {
 };
 
 export default TdsReport;
-const columns = [
-  {
-    headerName: "Section",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "VBT No.",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "Vendor Name",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "Pan No.",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "Invoice No.",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "Invoice Date",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "GST Assesable Value",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "TDS Assessable Value",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "TDS Rate.",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "To Be Deducted TDS On GST AV",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "TDS Duducted.",
-    field: "tcsCode",
-    flex: 1,
-  },
-  {
-    headerName: "Difference",
-    field: "tcsCode",
-    flex: 1,
-  },
-];
+// const columns = [
+//   {
+//     headerName: "Section",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "VBT No.",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Vendor Name",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Pan No.",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Invoice No.",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Invoice Date",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "GST Assesable Value",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "TDS Assessable Value",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "TDS Rate.",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "To Be Deducted TDS On GST AV",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "TDS Duducted.",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Difference",
+//     field: "tcsCode",
+//     flex: 1,
+//   },
+// ];

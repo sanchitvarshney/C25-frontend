@@ -1,38 +1,37 @@
-import React, { useEffect, useState } from "react";
-import MyDatePicker from "../../../../Components/MyDatePicker";
-import "../../../Accounts/accounts.css";
-import { useToast } from "../../../../hooks/useToast.js";
+import  { useEffect, useState } from "react";
 import { AiFillEdit } from "react-icons/ai";
 import CreateVBT4 from "./CreateVBT4";
 import MyDataTable from "../../../../Components/MyDataTable";
 import MapVBTModal from "../MapVBTModal";
-import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
+// import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../Components/MySelect";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Button, Input, Row, Space } from "antd";
+import { Button,  Row, Space } from "antd";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
-import useApi from "../../../../hooks/useApi.ts";
-import { getVendorOptions } from "../../../../api/general.ts";
+import { useToast } from "../../../../hooks/useToast.js";
+// import useApi from "../../../../hooks/useApi.ts";
+// import { getVendorOptions } from "../../../../api/general.ts";
 
 export default function VBT4() {
+  const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
   const [searchInput, setSearchInput] = useState("MIN/23-24/");
-  const [selectLoading, setSelectLoading] = useState(false);
-  const [searchDateRange, setSearchDateRange] = useState("");
+  // const [selectLoading, setSelectLoading] = useState(false);
+  // const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [toggleCleared, setToggleCleared] = React.useState(false);
+  // const [toggleCleared, setToggleCleared] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [editingVBT, setEditingVBT] = useState(null);
   const [mapVBT, setMapVBT] = useState(false);
-  const [asyncOptions, setAsyncOptions] = useState([]);
+  // const [asyncOptions, setAsyncOptions] = useState([]);
 
-  const { executeFun, loading: loading1 } = useApi();
-  const [open, setOpen] = useState(false);
-  const [createVBT, setCreateVBT] = useState(false);
-  const [selectedVendors, setSelectedVendors] = useState([]);
+  // const { executeFun, loading: loading1 } = useApi();
+  // const [open, setOpen] = useState(false);
+  // const [createVBT, setCreateVBT] = useState(false);
+  // const [selectedVendors, setSelectedVendors] = useState([]);
   const vbtTableColumsns = [
     {
       headerName: "Sr. No.",
@@ -84,6 +83,7 @@ export default function VBT4() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row?.id || "delete"}
           icon={<AiFillEdit />}
           onClick={() => getVBTDetail(row.min_transaction)}
           label="Delete"
@@ -93,7 +93,7 @@ export default function VBT4() {
     },
   ];
   //getting vendors list for filter by vendors
-  const getVendors = async (search) => {
+  // const getVendors = async (search) => {
     // console.log("these are the vendor search", search);
     // const response = await executeFun(() => getVendorOptions(search), "select");
     // let arr = [];
@@ -115,14 +115,14 @@ export default function VBT4() {
     //     setAsyncOptions([]);
     //   }
     // }
-  };
+  // };
   const getVBTDetail = async (minId) => {
     setLoading(true);
     const response = await imsAxios.post("/tally/vbt04/fetch_minData", {
       min_id: minId,
     });
     if (response.success) {
-      setEditingVBT(data.data);
+      setEditingVBT(response.data);
     } else {
       showToast(response.message?.msg || response.message, "error");
       setEditingVBT(null);
@@ -162,8 +162,7 @@ export default function VBT4() {
     });
     setLoading(false);
     if (response.success) {
-      console.log(data.data);
-      let arr = data.data;
+      let arr = response.data;
       arr = arr.map((row) => ({
         ...row,
         ven_tds: arr[0].ven_tds,
@@ -180,11 +179,11 @@ export default function VBT4() {
   const getRows = async () => {
     let d;
     if (wise === "date_wise") {
-      if (searchDateRange) {
-        d = searchDateRange;
-      } else {
-        showToast("Please select a time period", "error");
-      }
+      // if (searchDateRange) {
+      //   d = searchDateRange;
+      // } else {
+      //   showToast("Please select a time period", "error");
+      // }
     } else if (wise === "vendor_wise") {
       if (searchInput) {
         d = searchInput;
@@ -247,9 +246,9 @@ export default function VBT4() {
     }
     setVBTData([]);
   }, [wise]);
-  useEffect(() => {
-    setToggleCleared((toggleCleared) => !toggleCleared);
-  }, [vbtData]);
+  // useEffect(() => {
+  //   setToggleCleared((toggleCleared) => !toggleCleared);
+  // }, [vbtData]);
   return (
     <div style={{ height: "95%" }}>
       <MapVBTModal mapVBT={mapVBT} setMapVBT={setMapVBT} />
@@ -317,9 +316,7 @@ export default function VBT4() {
                 size="default"
                 disabled={
                   wise === "date_wise"
-                    ? searchDateRange === ""
-                      ? true
-                      : false
+                    ? true
                     : !searchInput
                     ? true
                     : false

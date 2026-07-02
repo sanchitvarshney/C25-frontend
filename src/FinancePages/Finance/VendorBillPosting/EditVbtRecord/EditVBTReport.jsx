@@ -1,4 +1,4 @@
-import { Card, Col, Drawer, Form, Input, Modal, Row, Typography } from "antd";
+import { Col, Drawer, Form, Modal, Row } from "antd";
 import { useState } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useEffect } from "react";
@@ -37,10 +37,7 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
 
       setVbtComponent(data);
       getGl();
-      let tdsName = {
-        label: data[0]?.tds?.glName,
-        Value: data[0]?.tds?.tdsGlKey,
-      };
+  
 
       const arr = data.map((row) => ({
         ...row,
@@ -190,13 +187,12 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
   };
   const updateVbt = async (finalData) => {
     const response = await imsAxios.put("/tally/vbt01/update", finalData);
-    const { data } = response;
-    console.log("data", response);
-    if (response.status === 200) {
-      showToast(response.data, "success");
+
+    if (response.success) {
+      showToast(response.message, "success");
       setEditVbtDrawer(null);
     } else {
-      showToast(response.data, "error");
+      showToast(response.message, "error");
     }
   };
   const resetForm = () => {
@@ -333,7 +329,7 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
                 <>
                   <Col>
                     {fields.map((field, index) => (
-                      <Form.Item noStyle>
+                      <Form.Item noStyle key={field.key ?? index}>
                         <SingleProduct
                           fields={fields}
                           field={field}

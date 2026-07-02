@@ -1,18 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button, Col, Menu, Row, Tooltip, Typography } from "antd";
+import { Menu, Tooltip } from "antd";
 import { useState, useEffect, useMemo } from "react";
-import { useSelector, useDispatch } from "react-redux/es/exports";
 import internalLinks from "../Pages/internalLinks";
 import { customColor } from "../utils/customColor";
 import { isShowIconsPath } from "../utils/general";
 import { triggerReportNavDetailedDownload } from "../utils/reportNavDetailedDownload";
 
-export default function InternalNav({
-  // links,
-  placeholder,
-  menuWidth,
-  additional,
-}) {
+export default function InternalNav() {
   const { pathname } = useLocation();
   const [linksList, setLinksList] = useState([]);
   const [current, setCurrent] = useState("");
@@ -75,7 +69,7 @@ const shouldShowIcon = useMemo(() => {
         items={
           linksList &&
           linksList?.map((link, index) => ({
-            key: link.key.toString(),
+            key: link.key.toString() ?? index.toString(),
             label: (
               <Tooltip
                 placement="bottomLeft"

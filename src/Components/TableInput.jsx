@@ -1,12 +1,11 @@
 import { Input } from "antd";
-
-import InputMask from "react-input-mask";
-import MySelect from "./MySelect";
+// import InputMask from "react-input-mask";
+// import MySelect from "./MySelect";
 import MyAsyncSelect from "./MyAsyncSelect";
-const gstTypeOptions = [
-  { value: "I", text: "INTER STATE" },
-  { value: "L", text: "LOCAL" },
-];
+// const gstTypeOptions = [
+//   { value: "I", text: "INTER STATE" },
+//   { value: "L", text: "LOCAL" },
+// ];
 
 export const asyncSelectComponent = ({
   row,

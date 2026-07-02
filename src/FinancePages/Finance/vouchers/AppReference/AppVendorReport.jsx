@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Button, Col, message, Divider, Popconfirm, Row, Space } from "antd";
-import axios from "axios";
+import { useState } from "react";
+import { Button, Col, Row, Space } from "antd";
 import { useToast } from "../../../../hooks/useToast.js";
 import MyDataTable from "../../../../Components/MyDataTable";
-import { DownloadOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownloadOutlined } from "@ant-design/icons";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
-import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
-import { DeleteTwoTone } from "@ant-design/icons";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
-import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../../Components/exportToCSV";
 import MySelect from "../../../../Components/MySelect";
 
@@ -18,13 +14,13 @@ function AppVendorReport() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [selectLoading, setSelectLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [asyncOptions, setAsyncOptions] = useState([]);
-  const [allRefData, setAllRefData] = useState({
-    vendorName: "",
-  });
-  const [selectedRows, setSelectedRows] = useState([]);
+  // const [selectLoading, setSelectLoading] = useState(false);
+  // const [deleteLoading, setDeleteLoading] = useState(false);
+  // const [asyncOptions, setAsyncOptions] = useState([]);
+  // const [allRefData, setAllRefData] = useState({
+  //   vendorName: "",
+  // });
+  // const [selectedRows, setSelectedRows] = useState([]);
   const [vbtOption, setVbtOption] = useState("VBT01");
   const vbtTypeOptions = [
     { text: "Purchase Goods", value: "VBT01" },
@@ -208,8 +204,8 @@ function AppVendorReport() {
           data={rows}
           columns={columns}
           checkboxSelection
-          onSelectionModelChange={(selected) => {
-            setSelectedRows(selected);
+          onSelectionModelChange={() => {
+            // setSelectedRows(selected);
           }}
         />
       </div>

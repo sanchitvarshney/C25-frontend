@@ -1,10 +1,10 @@
-import React from "react";
+// import React from "react";
 
 export default function TabledisabledTextInput({
   value,
-  fun,
-  name,
-  id,
+  // fun,
+  // name,
+  // id,
   height,
 }) {
   return (

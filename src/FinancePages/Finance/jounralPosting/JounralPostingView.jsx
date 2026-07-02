@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
-import axios from "axios";
 import { Button, Col, Drawer, Row, Space, Tooltip } from "antd";
 import { PrinterFilled, DownloadOutlined } from "@ant-design/icons";
 import printFunction, {
@@ -104,9 +103,9 @@ export default function JounralPostingView({ jvId, setJvId }) {
       });
       setLoading(false);
       if (response.success) {
-        setJournalDate(data.data[0].insert_date);
-        setRefDate(data.data[0].ref_date);
-        arr = data.data;
+        setJournalDate(response.data[0].insert_date);
+        setRefDate(response.data[0].ref_date);
+        arr = response.data;
         response.data.map((row) => {
           if (row.credit != "") {
             creditArr.push(row.credit);
@@ -148,7 +147,7 @@ export default function JounralPostingView({ jvId, setJvId }) {
       jv_key: jvId,
     });
     setPrintLoading(false);
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
   };
   const downloadFun = async () => {
     setDownloadLoading(true);
@@ -157,7 +156,7 @@ export default function JounralPostingView({ jvId, setJvId }) {
       jv_key: jvId,
     });
     setDownloadLoading(false);
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
   };
   useEffect(() => {
     getJVDetail();

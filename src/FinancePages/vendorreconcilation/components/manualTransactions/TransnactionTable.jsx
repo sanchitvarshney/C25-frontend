@@ -1,4 +1,4 @@
-import React from "react";
+
 import MyDataTable from "../../../../Components/MyDataTable";
 import { Col } from "antd";
 import { GridActionsCellItem } from "@mui/x-data-grid";
@@ -15,11 +15,13 @@ const TransnactionTable = ({
     width: 30,
     getActions: ({ row }) => [
       <GridActionsCellItem
+      key={row.id || "update"}
         showInMenu
         label="Update"
         onClick={() => handleSetUpdateTransaction(row)}
       />,
       <GridActionsCellItem
+      key={row.id || "delete"}
         showInMenu
         label="Delete"
         onClick={() => handleDelete(row.transactionId)}

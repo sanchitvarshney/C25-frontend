@@ -1,4 +1,4 @@
-import { Modal, Form, Col, Row, Input, Button, Space } from "antd";
+import { Form, Col, Row, Input, Button, Space } from "antd";
 import useApi from "../../../hooks/useApi.ts";
 import {
   getLedgerEmail,
@@ -14,7 +14,7 @@ const initialValues = {
   subject: "",
   bodu: "",
 };
-const RequestLedgerModal = ({ open, hide }) => {
+const RequestLedgerModal = ({ open }) => {
   const [form] = Form.useForm();
   const { executeFun, loading } = useApi();
 

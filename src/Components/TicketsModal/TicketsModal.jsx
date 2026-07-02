@@ -91,7 +91,6 @@ export default function TicketsModal({ open, handleClose }) {
       payload.append("name", user?.userName || user?.name || "");
       payload.append("message", feedbackData.description);
       payload.append("email_consent", feedbackData.emailConsent ? "1" : "0");
-      
 
       // ── Diagnostic fields ──────────────────────────────
       // Browser / environment
@@ -794,7 +793,12 @@ export default function TicketsModal({ open, handleClose }) {
                           placeholder="Select Topic"
                           options={topicOptions}
                           value={feedbackData.topic}
-                          onChange={(value) => setFeedbackData((prev) => ({ ...prev, topic: value }))}
+                          onChange={(value) =>
+                            setFeedbackData((prev) => ({
+                              ...prev,
+                              topic: value,
+                            }))
+                          }
                           loading={topicOptions.length === 0}
                         />
                       </div>
@@ -844,10 +848,10 @@ export default function TicketsModal({ open, handleClose }) {
                           placeholder="Enter subject"
                           value={feedbackData.subject}
                           onChange={(e) =>
-                           setFeedbackData((prev) => ({
-                             ...prev,
-                             subject: e.target.value,
-                           }))
+                            setFeedbackData((prev) => ({
+                              ...prev,
+                              subject: e.target.value,
+                            }))
                           }
                           maxLength={100}
                           showCount
@@ -909,7 +913,8 @@ export default function TicketsModal({ open, handleClose }) {
                           type="secondary"
                           style={{ fontSize: 12 }}
                         >
-                          Please don't include any sensitive information
+                          {`Please don't include any sensitive information
+ `}{" "}
                         </Typography.Text>
                       )}
                     </>

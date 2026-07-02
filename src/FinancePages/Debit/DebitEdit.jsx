@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Button, Col, Drawer, Input, Row } from "antd";
 import { v4 } from "uuid";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
-import moment from "moment";
 import Loading from "../../../Components/Loading";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../hooks/useToast";
@@ -162,7 +161,7 @@ const { showToast } =  useToast();
     );
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (response?.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -290,7 +289,7 @@ const { showToast } =  useToast();
         { id: v4(), total: true, debit: 0, credit: 0 },
       ];
       setJounralRows(arr);
-      setEffectiveDate(data.data[0].effective_date);
+      setEffectiveDate(response.data.effective_date);
     } else {
       showToast(response.message?.msg || response.message, "error");
     }

@@ -16,19 +16,19 @@ export const CreateDebitNote = () => {
 
   const [debitNoteForm] = Form.useForm();
 
-  const getTDSData = async () => {
-    const response = await imsAxios.get("/tally/tds/nature_of_tds");
-    const { data } = response;
-    if (data) {
-      if (response.success) {
-        let arr = data.data;
+  // const getTDSData = async () => {
+  //   const response = await imsAxios.get("/tally/tds/nature_of_tds");
+  //   const { data } = response;
+  //   if (data) {
+  //     if (response.success) {
+  //       let arr = data.data;
 
-        return arr;
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
-    }
-  };
+  //       return arr;
+  //     } else {
+  //       showToast(response.message?.msg || response.message, "error");
+  //     }
+  //   }
+  // };
   const getTdsOptions = async (minId) => {
     const response = await imsAxios.post("/tally/vbt01/fetch_minData", {
       min_id: minId,
@@ -67,12 +67,7 @@ export const CreateDebitNote = () => {
     // setLoading(false);
     const { data } = response;
     if (data) {
-      if (response.success) {
-        const tdsOptions = await getTDSData();
-        let tdsPerc = tdsOptions.filter(
-          (tds) => tds.tds_key === data.data[0].tds_code
-        )[0]?.percentage;
-        const tdsPercentage = +Number(tdsPerc).toFixed(2);
+      if (response.success) {      
 
         let arr = response.data.map((row) => {
           const value = +Number(

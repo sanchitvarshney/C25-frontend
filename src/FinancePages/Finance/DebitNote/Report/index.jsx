@@ -1,6 +1,6 @@
-import { Button, Input, Row, Space } from "antd";
+import {  Input, Row, Space } from "antd";
 import { CloudDownloadOutlined, PrinterFilled } from "@ant-design/icons";
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useEffect } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -82,7 +82,7 @@ function DebitNoteReport() {
       debit_code: id,
     });
 
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
     setLoading(false);
   };
   const handleSinblePrint = async (id) => {
@@ -93,7 +93,7 @@ function DebitNoteReport() {
         debit_code: id,
       }
     );
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
     setLoading(false);
   };
   const columns = [
@@ -104,12 +104,14 @@ function DebitNoteReport() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row.debitNo ??  "print"}
           disabled={loading === "tableLoading"}
           icon={<PrinterFilled className="view-icon" />}
           onClick={() => handleSinblePrint(row.debitNo)}
           label="Print"
         />,
         <GridActionsCellItem
+          key={row.debitNo ??  "download"}
           disabled={loading === "tableLoading"}
           icon={<CloudDownloadOutlined className="view-icon" />}
           onClick={() => {

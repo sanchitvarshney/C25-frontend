@@ -13,6 +13,7 @@ export interface R33Type {
   sku: string;
   uom: string;
   workHours: string;
+    shift: any;
 }
 export interface R34Type {
   id: string | number;

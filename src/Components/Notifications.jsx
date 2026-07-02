@@ -3,18 +3,14 @@ import {
   Empty,
   List,
   Progress,
-  Skeleton,
   Typography,
 } from "antd";
-import React from "react";
 import { Link } from "react-router-dom";
 import { CommonIcons } from "./TableActions.jsx/TableActions";
 import { getSocketLink } from "../axiosInterceptor";
-import { useEffect } from "react";
 
 export default function Notifications({
   notifications,
-  deleteNotification,
   source,
 }) {
   const EmptyList = () => (
@@ -36,10 +32,10 @@ export default function Notifications({
         <div style={{ background: "white" }} className="notifications">
           <List
             dataSource={notifications}
-            renderItem={(item) => (
+            renderItem={(item, index) => (
               <List.Item
                 actions={[
-                  <span>
+                  <span key={item.ID ?? index}> 
                     {item.type == "file" &&
                       (item.loading ||
                       (item.status == "pending" && item.total) ? (

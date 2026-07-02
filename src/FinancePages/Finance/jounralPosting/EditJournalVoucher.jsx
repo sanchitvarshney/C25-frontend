@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Col, Drawer, Input, Row } from "antd";
 import { v4 } from "uuid";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
@@ -147,7 +147,7 @@ export default function EditJournalVoucher({ editVoucher, setEditVoucher }) {
     });
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -294,8 +294,8 @@ export default function EditJournalVoucher({ editVoucher, setEditVoucher }) {
       });
       arr = [...arr, { id: v4(), total: true, debit: 0, credit: 0 }];
       setJounralRows(arr);
-      console.log(moment(data.data[0].effective_date));
-      setEffectiveDate(data.data[0].effective_date);
+      console.log(moment(response.data[0].effective_date));
+      setEffectiveDate(response.data[0].effective_date);
     } else {
       showToast(response.message?.msg || response.message, "error");
     }

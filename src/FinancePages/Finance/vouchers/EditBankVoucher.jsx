@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Button, Card, Col, Drawer, Input, Row, Space } from "antd";
 import { v4 } from "uuid";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
@@ -138,7 +138,7 @@ export default function EditBankVoucher({
     });
     setSelectLoading(false);
     let arr = [];
-    if (!data.msg) {
+    if (response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
@@ -153,7 +153,7 @@ export default function EditBankVoucher({
       search: search,
     });
     setSelectLoading(false);
-    const arr = data.map((row) => {
+    const arr = response?.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);
@@ -260,8 +260,8 @@ export default function EditBankVoucher({
       });
       arr = [...arr, { id: v4(), total: true, debit: 0, credit: 0 }];
       setJounralRows(arr);
-      setBank({ value: data.data[0].bank_key, label: data.data[0].bank_name });
-      setEffectiveDate(data.data[0].ref_date);
+      setBank({ value: response.data[0].bank_key, label: response.data[0].bank_name });
+      setEffectiveDate(response.data[0].ref_date);
     } else {
       showToast(response.message?.msg || response.message, "error");
       setEditVoucher(null);

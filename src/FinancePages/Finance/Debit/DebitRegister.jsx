@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Button, Col, Input, Row, Tooltip, Popconfirm, Space } from "antd";
+import { useState, useEffect } from "react";
+import {  Col, Input, Row, Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
@@ -12,12 +12,9 @@ import {
   CloudDownloadOutlined,
   PrinterFilled,
   EyeFilled,
-  DeleteFilled,
   EditFilled,
 } from "@ant-design/icons";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import JounralPostingView from "../jounralPosting/JounralPostingView";
-import EditJournalVoucher from "../jounralPosting/EditJournalVoucher";
 import MySelect from "../../../Components/MySelect";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
@@ -41,11 +38,9 @@ function DebitRegister() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewDebitDetail, setViewDebitDetail] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [editDebit, setEditDebit] = useState(null);
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectedLedger, setSelectedLedger] = useState(null);
 
   const getRows = async () => {
     setRows([]);
@@ -72,23 +67,7 @@ function DebitRegister() {
     }
   };
 
-  const deleteFun = async () => {
-    setLoading(true);
-    if (deleteConfirm) {
-      const response = await imsAxios.post("/tally/jv/jv_delete", {
-        jv_code: deleteConfirm,
-      });
-      setLoading(false);
-      if (response.success) {
-        setDeleteConfirm(null);
-        showToast(response.message, "success");
-        getRows();
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
-    }
-  };
-
+ 
   const columns = [
     {
       headerName: "Sr No.",
@@ -159,6 +138,7 @@ function DebitRegister() {
       getActions: ({ row }) => [
         // view voucher
         <GridActionsCellItem
+        key={row?.id ?? "view"}
           disabled={loading}
           icon={<EyeFilled className="view-icon" />}
           onClick={() => {
@@ -168,6 +148,7 @@ function DebitRegister() {
           label="view"
         />,
         <GridActionsCellItem
+        key={row?.id ?? "print"}
           // print voucher
           disabled={loading}
           icon={<PrinterFilled className="view-icon" />}
@@ -177,6 +158,7 @@ function DebitRegister() {
           label="print"
         />,
         <GridActionsCellItem
+        key={row?.id ?? "download"}
           // download voucher
           disabled={loading}
           icon={<CloudDownloadOutlined className="view-icon" />}
@@ -186,6 +168,7 @@ function DebitRegister() {
           label="download"
         />,
         <GridActionsCellItem
+        key={row?.id ?? "edit"}
           // edit voucher
           disabled={loading}
           icon={<EditFilled className="view-icon" />}
@@ -231,7 +214,7 @@ function DebitRegister() {
       dv_key: key,
     });
     setLoading(false);
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
     // module_used
   };
   const handleDownload = async (id) => {
@@ -243,7 +226,7 @@ function DebitRegister() {
     const response = await imsAxios.post(link, {
       dv_key: id,
     });
-    downloadFunction(data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
     setLoading(false);
   };
   const getLedgerName = async (e) => {
@@ -259,7 +242,6 @@ function DebitRegister() {
           value: row.id,
         };
       });
-      console.log(data.data);
       setAsyncOptions(arr);
     } else {
       setAsyncOptions([]);

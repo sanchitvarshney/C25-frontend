@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
@@ -177,6 +177,7 @@ export default function CreditJournal() {
       sortable: false,
       renderCell: ({ row }) => [
         <GridActionsCellItem
+        key={row?.id ?? "delete"}
           icon={
             <Delete
               color="error"

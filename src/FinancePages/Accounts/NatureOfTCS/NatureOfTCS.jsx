@@ -21,7 +21,6 @@ function NatureofTCS() {
     ledger: "",
   });
   const [loading, setLoading] = useState(false);
-  const [allGLDataa, setAllGLData] = useState([]);
   const [formLoading, setFormLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
@@ -87,6 +86,7 @@ function NatureofTCS() {
       width: 65,
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row.id ?? "edit"}
           icon={<AiFillEdit />}
           onClick={() => setEditingTCS(row)}
           // label="Delete"

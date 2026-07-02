@@ -1,6 +1,5 @@
 import {
   Col,
-  Drawer,
   Form,
   Input,
   Modal,
@@ -9,20 +8,20 @@ import {
   Space,
   Button,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
+import Loading from "../../../Components/Loading";
 
 
-function EditBranchModel({ setBranchId, branchId, setBranchModal, allBranch }) {
+function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
   const { showToast } = useToast();
   const [countries, setCountries] = useState([]);
   const [pageLoading, setPageLoading] = useState(false);
   const [statusBranch, setStatusBranch] = useState();
   const [updateBranchForm] = Form.useForm();
   const [stateOptions, setStateOptions] = useState([]);
-  const [country, setCountry] = useState("");
   updateBranchForm.setFieldsValue(branchId);
  
   let obj = {
@@ -141,7 +140,7 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal, allBranch }) {
       // onOk={branchId}
       onCancel={() => setBranchId(null)}
       footer={[
-        <Row style={{ width: "100%" }} align="middle" justify="space-between">
+        <Row style={{ width: "100%" }} align="middle" justify="space-between" key="footer">
           <Col>
             <Form style={{ padding: 0, margin: 0 }}>
               <Form.Item label="Active" style={{ padding: 0, margin: 0 }}>
@@ -173,6 +172,7 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal, allBranch }) {
         </Row>,
       ]}
     >
+      {pageLoading && <Loading />}
       <Form layout="vertical" form={updateBranchForm}>
         <Row>
           <Col span={24}>

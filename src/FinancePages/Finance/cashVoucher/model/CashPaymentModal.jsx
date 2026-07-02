@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { Drawer, Space, Tooltip } from "antd";
 import {
-  EyeFilled,
-  CloseCircleFilled,
   CloseOutlined,
 } from "@ant-design/icons";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { v4 } from "uuid";
 import MyDataTable from "../../../../Components/MyDataTable";
+import Loading from "../../../../Components/Loading.jsx"
 
 function CashPaymentModal({ setOpen, open }) {
   const [loading, setLoading] = useState(false);
@@ -22,7 +21,7 @@ function CashPaymentModal({ setOpen, open }) {
       }
     );
     if (response.success) {
-      setHeader(data.header[0]);
+      setHeader(response.data.header);
       const arr = response.data.map((row) => {
         return {
           ...row,
@@ -83,6 +82,7 @@ function CashPaymentModal({ setOpen, open }) {
           </Space>
         }
       >
+        {loading && <Loading />}
         <div
           style={{
             // border: "1px solid red",

@@ -1,3 +1,4 @@
+//@ts-ignore
 import { imsAxios } from "@/axiosInterceptor.js";
 import { convertSelectOptions } from "@/utils/general";
 

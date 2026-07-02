@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 
 import { PrinterFilled } from "@ant-design/icons";
-import axios from "axios";
 import printFunction from "../../../Components/printFunction";
-import { Button, Col, Drawer, Form, Modal, Row, Space, Typography } from "antd";
+import { Button, Col, Drawer, Form, Modal, Row, Space } from "antd";
 
-import ToolTipEllipses from "../../../Components/ToolTipEllipses";
+// import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 import SingleProduct from "./SingleProduct";
@@ -19,21 +18,18 @@ export default function ViewVBTReport({
   const [viewVbt] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [loading1, setLoading1] = useState(false);
-  const [totalValues, setTotalValues] = useState([
-    { label: "Net Amount", sign: "", values: [] },
-    { label: "cgst", sign: "+", values: [] },
-    { label: "sgst", sign: "+", values: [] },
-    { label: "igst", sign: "+", values: [] },
-    { label: "freight", sign: "+", values: [] },
-    { label: "Round Off", sign: "+", values: [] },
-  ]);
+  // const [totalValues, setTotalValues] = useState([
+  //   { label: "Net Amount", sign: "", values: [] },
+  //   { label: "cgst", sign: "+", values: [] },
+  //   { label: "sgst", sign: "+", values: [] },
+  //   { label: "igst", sign: "+", values: [] },
+  //   { label: "freight", sign: "+", values: [] },
+  //   { label: "Round Off", sign: "+", values: [] },
+  // ]);
   const [printLoading, setPrintLoading] = useState(false);
   const [showMoreData, setShowMoreData] = useState(null);
   const [viewEditComponents, setViewEditComponents] = useState([]);
-  const components = Form.useWatch("components", {
-    form: viewVbt,
-    preserve: true,
-  });
+ 
   useEffect(() => {
     // console.log("inside useefect", viewReportData);
     if (viewReportData?.length > 0) {
@@ -92,13 +88,9 @@ export default function ViewVBTReport({
       viewVbt.setFieldValue("components", arr);
       // console.log("componets", components);
     } else {
-      if (data.message.msg) {
-        showToast(response.message?.msg || response.message, "error");
-      } else if (data.message) {
-        showToast(response.message?.msg || response.message, "error");
-      } else {
-        showToast("Something wrong happened", "error");
-      }
+      
+        showToast(response.message||"Something wrong happened", "error");
+    
     }
   };
   const printFun = async () => {
@@ -108,248 +100,17 @@ export default function ViewVBTReport({
       vbt_key: viewReportData[0]?.vbt_code,
     });
     setPrintLoading(false);
-    printFunction(data.buffer.data);
+    printFunction(response.data.buffer.data);
 
     setLoading(false);
   };
   useEffect(() => {
     if (viewEditComponents?.length > 0) {
-      let arr = [
-        {
-          label: "Net Amount",
-          sign: "",
-          values: viewEditComponents.map((row) =>
-            Number(row?.value)?.toFixed(2)
-          ),
-        },
-        {
-          label: "CGST",
-          sign: "+",
-          values: viewEditComponents.map((row) =>
-            row?.cgst == "--" ? 0 : Number(row?.cgst)?.toFixed(2)
-          ),
-        },
-        {
-          label: "SGST",
-          sign: "+",
-          values: viewEditComponents.map((row) =>
-            row.sgst == "--" ? 0 : Number(row.sgst).toFixed(2)
-          ),
-        },
-        {
-          label: "IGST",
-          sign: "+",
-          values: viewEditComponents.map((row) =>
-            row.igst == "--" ? 0 : Number(row.igst).toFixed(2)
-          ),
-        },
-        {
-          label: "Freight",
-          sign: "+",
-          values: viewEditComponents.map((row) =>
-            Number(row.freight)?.toFixed(2)
-          ),
-        },
-
-        {
-          label: "Vendor Amount",
-          sign: "",
-          values: viewEditComponents.map((row) =>
-            Number(row.ven_amm)?.toFixed(2)
-          ),
-        },
-        // {
-        //   label: "Vendor Amount",
-        //   sign: "",
-        //   values: [totalVendorAmountWithRoundOff],
-        // },
-      ];
-      setTotalValues(arr);
+    
+      // setTotalValues(arr);
     }
   }, [setViewEditComponents]);
-  const vbtReportColumns = [
-    {
-      headerName: "Part Code",
-      width: 200,
-      field: "part_code",
-      sortable: false,
-    },
-    {
-      headerName: "Part Name",
-      field: "part",
-      renderCell: ({ row }) => <ToolTipEllipses text={row.part} />,
-      width: 200,
-    },
-    {
-      headerName: "MIN",
-      field: "min_id",
-      renderCell: ({ row }) => (
-        <ToolTipEllipses text={row.min_id} copy={true} />
-      ),
-      width: 150,
-    },
-    {
-      headerName: "Qty", //add uom in here
-      width: 100,
-      field: "qty",
-      sortable: false,
-    },
-    {
-      headerName: "Bill Qty", //add uom in here
-      width: 100,
-      field: "bill_qty",
-      sortable: false,
-    },
-    {
-      headerName: "Unit", //add uom in here
-      width: 100,
-      field: "unit",
-      sortable: false,
-    },
-    {
-      headerName: "In Rate",
-      width: 100,
-      field: "in_rate",
-      sortable: false,
-    },
-    {
-      headerName: "Value",
-      width: 200,
-      field: "value",
-      sortable: false,
-    },
-    {
-      headerName: "HSN/SAC",
-      field: "hsn_sac",
-      width: 200,
-      sortable: false,
-    },
 
-    {
-      headerName: "Freight",
-      field: "freight",
-      width: 100,
-      sortable: false,
-    },
-  ];
-  const vbtReportColumns2 = [
-    {
-      headerName: "Freight G/L",
-      field: "freight_gl",
-      width: 150,
-      sortable: false,
-    },
-    {
-      headerName: "Other Charges",
-      field: "other_charges",
-      width: 100,
-      sortable: false,
-    },
-    {
-      headerName: "GST Ass. Value",
-      field: "gst_ass_val",
-      width: 120,
-      sortable: false,
-    },
-    {
-      headerName: "CGST",
-      field: "cgst",
-      // field: 'row'),
-      width: 100,
-      sortable: false,
-    },
-    {
-      headerName: "CGST G/L",
-      field: "cgst_gl",
-      // field: 'row'),
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "SGST",
-      field: "sgst",
-      width: 100,
-      sortable: false,
-    },
-    {
-      headerName: "SGST G/L",
-      field: "sgst_gl",
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "IGST",
-      field: "igst",
-      width: 100,
-      sortable: false,
-    },
-    {
-      headerName: "IGST G/L",
-      field: "igst_gl",
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "Purchase G/L Code",
-      // field: 'c_name',
-      field: "glName",
-      width: 200,
-      sortable: false,
-    },
-  ];
-  const vbtReportColumns3 = [
-    {
-      headerName: "TDS Code",
-      // field: 'c_name',
-      field: "tds_code",
-      width: 150,
-      sortable: false,
-    },
-    {
-      headerName: "TDS GL",
-      // field: (row)'.'c_name,
-      field: "tds_gl",
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "TDS Ass. Value",
-      field: "tds_ass_val",
-      width: 120,
-      sortable: false,
-    },
-    {
-      headerName: "GST Type",
-      field: "gst_type",
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "GST Rate",
-      field: "gst_rate",
-      width: 100,
-      sortable: false,
-    },
-    {
-      headerName: "Custom Duty",
-      field: "custom_duty",
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "TDS Amount",
-      // field: 'c_name',
-      field: "tds_amm",
-      width: 200,
-      sortable: false,
-    },
-    {
-      headerName: "Ven Amount",
-      field: "ven_amm",
-      width: 200,
-      sortable: false,
-    },
-  ];
   const backFunction = () => {
     setViewReportData([]);
   };
@@ -410,7 +171,6 @@ export default function ViewVBTReport({
     if (response.status === 200) {
       getSearchResults();
       backFunction(null);
-      const { data } = response;
       showToast(response.data, "success");
     }
   };
@@ -424,8 +184,7 @@ export default function ViewVBTReport({
       verificationStatus: "false",
     });
     setLoading1(false);
-    if (response.status === 200) {
-      const { data } = response;
+    if (response.success) {
       getSearchResults();
       showToast("VBT marked as incorrect", "success");
       backFunction(null);
@@ -549,7 +308,7 @@ export default function ViewVBTReport({
               <>
                 <Col>
                   {fields.map((field, index) => (
-                    <Form.Item noStyle>
+                    <Form.Item noStyle key={field.key || index}>
                       <SingleProduct
                         fields={fields}
                         field={field}

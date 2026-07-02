@@ -1,6 +1,6 @@
 import { Button, Col, Drawer, Form, Input, Row } from "antd";
 import TextArea from "antd/lib/input/TextArea";
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -8,7 +8,6 @@ import { useToast } from "../../../hooks/useToast";
 
 export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
  const { showToast } = useToast();
-  const [ledgerOption, setLedgerOption] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [tdsData, setTdsData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -23,8 +22,7 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
   };
   const updateTDS = async () => {
     const {
-      ladger_name,
-      ledger,
+  
       tds_code,
       desc,
       tds_key,
@@ -245,9 +243,7 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
                 onBlur={() => setAsyncOptions([])}
                 optionsState={asyncOptions}
                 value={tdsData?.gl_code}
-                onChange={(value) => {
-                  setLedgerOption(value);
-                }}
+              
                 selectLoading={selectLoading}
                 loadOptions={getGLCodes}
                 placeholder="Select ax G/L"

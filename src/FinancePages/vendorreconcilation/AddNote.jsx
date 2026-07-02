@@ -1,5 +1,5 @@
-import { Form, Input, Modal, Row } from "antd";
-import React from "react";
+import { Form, Input, Modal } from "antd";
+
 
 const AddNote = ({ form, open, hide, submitHandler, loading }) => {
   return (

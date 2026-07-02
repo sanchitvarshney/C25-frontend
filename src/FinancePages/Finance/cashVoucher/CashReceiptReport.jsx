@@ -1,14 +1,13 @@
 import { Button, Col, Input, Row, Select } from "antd";
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDataTable from "../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { EyeFilled, CloseCircleFilled, EditFilled } from "@ant-design/icons";
+import { EyeFilled, EditFilled } from "@ant-design/icons";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import CashPaymentModal from "./model/CashPaymentModal";
 import CashReceiptModal from "./model/CashReceiptModal";
 import CashReceiptEdit from "./model/CashReceiptEdit";
 
@@ -62,7 +61,7 @@ function CashReceiptReport() {
         data: datee,
       });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -83,7 +82,7 @@ function CashReceiptReport() {
         data: datee,
       });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -102,9 +101,9 @@ function CashReceiptReport() {
       const response = await imsAxios.post("/tally/cash/cashreceipt_list", {
         wise: selectedValue.selType,
         data: selectedValue?.code,
-      });;
+      });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -125,7 +124,7 @@ function CashReceiptReport() {
         data: selectedValue?.pick,
       });
       if (response.success) {
-        let arr = data?.data?.map((row) => {
+        let arr = response.data?.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -148,10 +147,12 @@ function CashReceiptReport() {
       width: 100,
       type: "actions",
       getActions: ({ row }) => [
-        <GridActionsCellItem
+        <GridActionsCellItem 
+          key={row?.module_used ?? "view"}
           icon={<EyeFilled onClick={() => setOpen(row?.module_used)} />}
         />,
         <GridActionsCellItem
+          key={row?.module_used ?? "edit"}
           icon={
             <EditFilled
               onClick={() => setEdit(row)}

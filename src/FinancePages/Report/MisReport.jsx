@@ -1,4 +1,4 @@
-import React from "react";
+
 import MyDatePicker from "../../Components/MyDatePicker";
 import {
   Table,
@@ -7,14 +7,9 @@ import {
   TableHead,
   TableRow,
   TableContainer,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from "@mui/material";
 import {
   Button,
-  Card,
-  Form,
   Row,
   Space,
   Col,
@@ -22,7 +17,6 @@ import {
   Typography,
 } from "antd";
 import { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { imsAxios } from "../../axiosInterceptor";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
@@ -35,6 +29,7 @@ import {
 } from "../../Components/exportToCSV";
 import { useEffect } from "react";
 import { CommonIcons } from "../../Components/TableActions.jsx/TableActions";
+import { useToast } from "../../hooks/useToast";
 
 const initColumns = [
   { headerName: "Name", field: "name", width: 100 },
@@ -47,13 +42,12 @@ const initColumns = [
 ];
 function MisReport() {
   const [dateRange, setDateRange] = useState("");
-
+const {showToast} = useToast();
   const [loading, setLoading] = useState(false);
   const [allData, setAllData] = useState([]);
   const [incomeData, setIncomeData] = useState([]);
   const [months, setMonths] = useState([]);
   const [colm, setColm] = useState(initColumns);
-  const { user, notifications } = useSelector((state) => state.login);
   const [expanded, setExpanded] = useState({ panel1: false, panel2: false });
   const fetchMisReport = async () => {
     setLoading(true);
@@ -86,9 +80,7 @@ function MisReport() {
   const handleDownloadCSV = () => {
     console.log("this is the income data", incomeData);
     console.log("this is the columns data", allData);
-    let a = [...incomeData, ...allData];
-    console.log(" a", a);
-    return;
+  
     downloadCSV([...incomeData, ...allData], colm, "MIS Report");
     // downloadCSV([...incomeData, ...allData], colm, "MIS Report");
   };
@@ -111,81 +103,81 @@ function MisReport() {
     });
     return arr;
   };
-  const customFlatArrayforExpense = (row) => {
-    console.log("row->", row);
+  // const customFlatArrayforExpense = (row) => {
+  //   console.log("row->", row);
 
-    row &&
-      row.children?.map((row) => {
-        if (
-          row.type.toLowerCase() === "group" ||
-          row.type.toLowerCase() === "master"
-        ) {
-          arrs = [...arrs, row];
-          if (row.children) {
-            let children = row.children;
-            delete row["children"];
-            arrs = [...arrs, row];
-            customFlatArrayforExpense(arrs);
-            arrs = [...arr, ...children];
-            arrs.forEach((element) => {
-              customFlatArrayforExpense(element);
-              if (row.children) {
-                //   element.forEach((e) => {
-                //     arr = [...element, ...e];
-                customFlatArrayforExpense(arrs);
-                // });
-              }
-              // if (row.children) {
-              //   let children = row.children;
-              //   delete row["children"];
-              //   arr = [...arr, row];
-              //   customFlatArray(arr);
-              //   arr = [...arr, ...children];
-              //   arr.forEach((element) => {
-              //     customFlatArray(element);
-              //   });
-              // }
-              // let arrs = [...arr, ...element];
-              // arrs.forEach((e) => {
-              //   customFlatArray(e);
-              // });
-            });
-          }
-        } else {
-          let children = row;
-          arrs = [...arrs, children];
-          // console.log("row with ledger", children);
-          //   arr.forEach((element) => {
-          //     customFlatArray(element);
-          //   });
-        }
-        // } else if (row.type.toLowerCase() === "sub group") {
-        //   console.log("children in subgrp", row);
-        //   if (row.children) {
-        //     let children = row.children;
-        //     console.log("children in subgrp", children);
-        //     delete row["children"];
-        //     arr = [...arr, row];
-        //     customFlatArray(children);
-        //     arr = [...arr, ...children];
-        //     arr.forEach((element) => {
-        //       customFlatArray(element);
-        //     });
-        //     // }
-        //   } else {
-        //     arr = [...arr, row];
-        //   }
-        // } else {
-        // }
-      });
+  //   row &&
+  //     row.children?.map((row) => {
+  //       if (
+  //         row.type.toLowerCase() === "group" ||
+  //         row.type.toLowerCase() === "master"
+  //       ) {
+  //         arrs = [...arrs, row];
+  //         if (row.children) {
+  //           let children = row.children;
+  //           delete row["children"];
+  //           arrs = [...arrs, row];
+  //           customFlatArrayforExpense(arrs);
+  //           arrs = [...arr, ...children];
+  //           arrs.forEach((element) => {
+  //             customFlatArrayforExpense(element);
+  //             if (row.children) {
+  //               //   element.forEach((e) => {
+  //               //     arr = [...element, ...e];
+  //               customFlatArrayforExpense(arrs);
+  //               // });
+  //             }
+  //             // if (row.children) {
+  //             //   let children = row.children;
+  //             //   delete row["children"];
+  //             //   arr = [...arr, row];
+  //             //   customFlatArray(arr);
+  //             //   arr = [...arr, ...children];
+  //             //   arr.forEach((element) => {
+  //             //     customFlatArray(element);
+  //             //   });
+  //             // }
+  //             // let arrs = [...arr, ...element];
+  //             // arrs.forEach((e) => {
+  //             //   customFlatArray(e);
+  //             // });
+  //           });
+  //         }
+  //       } else {
+  //         let children = row;
+  //         arrs = [...arrs, children];
+  //         // console.log("row with ledger", children);
+  //         //   arr.forEach((element) => {
+  //         //     customFlatArray(element);
+  //         //   });
+  //       }
+  //       // } else if (row.type.toLowerCase() === "sub group") {
+  //       //   console.log("children in subgrp", row);
+  //       //   if (row.children) {
+  //       //     let children = row.children;
+  //       //     console.log("children in subgrp", children);
+  //       //     delete row["children"];
+  //       //     arr = [...arr, row];
+  //       //     customFlatArray(children);
+  //       //     arr = [...arr, ...children];
+  //       //     arr.forEach((element) => {
+  //       //       customFlatArray(element);
+  //       //     });
+  //       //     // }
+  //       //   } else {
+  //       //     arr = [...arr, row];
+  //       //   }
+  //       // } else {
+  //       // }
+  //     });
 
-    //   console.log("items", items);
-    // });
+  //   //   console.log("items", items);
+  //   // });
 
-    return arrs;
-  };
+  //   return arrs;
+  // };
   let arr = [];
-  let arrs = [];
+  // let arrs = [];
 
   const Accordion = styled((props) => (
     <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -390,7 +382,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q1
-                                  ? (row.quarters?.Q1).toFixed(2)
+                                  ? (row.quarters?.Q1 )?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -402,7 +394,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q2
-                                  ? (row.quarters?.Q2).toFixed(2)
+                                  ? (row.quarters?.Q2)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -414,7 +406,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q3
-                                  ? (row.quarters?.Q3).toFixed(2)
+                                  ? (row.quarters?.Q3)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -426,7 +418,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q4
-                                  ? (row.quarters?.Q4).toFixed(2)
+                                  ? (row.quarters?.Q4)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -593,7 +585,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q1
-                                  ? (row.quarters?.Q1).toFixed(2)
+                                  ? (row.quarters?.Q1)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -605,7 +597,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q2
-                                  ? (row.quarters?.Q2).toFixed(2)
+                                  ? (row.quarters?.Q2)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -617,7 +609,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q3
-                                  ? (row.quarters?.Q3).toFixed(2)
+                                  ? (row.quarters?.Q3)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>
@@ -629,7 +621,7 @@ function MisReport() {
                             >
                               {row.type === "ledger"
                                 ? row && row.quarters && row.quarters?.Q4
-                                  ? (row.quarters?.Q4).toFixed(2)
+                                  ? (row.quarters?.Q4)?.toFixed(2)
                                   : "-"
                                 : ""}
                             </TableCell>

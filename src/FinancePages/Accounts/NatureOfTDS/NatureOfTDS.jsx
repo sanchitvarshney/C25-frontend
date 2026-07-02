@@ -11,12 +11,9 @@ import {
   Input,
   Row,
   Space,
-  Tooltip,
-  Typography,
 } from "antd";
 import { v4 } from "uuid";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import links from "./links";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../Components/exportToCSV";
@@ -28,10 +25,8 @@ export default function NatureOfTDS() {
   const [editingTDS, setEditingTDS] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
-  const [search, setSearch] = useState("");
   const [selectLoading, setSelectLoading] = useState(false);
   const [TDSList, setTDSList] = useState([]);
-  const [filterData, setFilterData] = useState([]);
   const [newTDS, setNewTDS] = useState({
     code: "",
     name: "",
@@ -49,6 +44,7 @@ export default function NatureOfTDS() {
       width: 65,
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row.id ?? "edit"}
           icon={<AiFillEdit />}
           onClick={() => setEditingTDS(row)}
           label="Edit"
@@ -169,12 +165,12 @@ export default function NatureOfTDS() {
     setEditingTDS(null);
   }, []);
 
-  useEffect(() => {
-    const res = TDSList.filter((a) => {
-      return a.tds_code.toLowerCase().match(search.toLowerCase());
-    });
-    setFilterData(res);
-  }, [search]);
+  // useEffect(() => {
+  //   const res = TDSList.filter((a) => {
+  //     return a.tds_code.toLowerCase().match(search.toLowerCase());
+  //   });
+  //   setFilterData(res);
+  // }, [search]);
   return (
     <div style={{ height: "100%", padding:10 }}>
       <EditTDSMoal

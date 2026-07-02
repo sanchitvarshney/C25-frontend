@@ -1,5 +1,4 @@
-import { Button, Form, Row, Space } from "antd";
-import React from "react";
+import { Button, Row, Space } from "antd";
 
 export default function NavFooter({
   backFunction,
@@ -11,9 +10,7 @@ export default function NavFooter({
   nextDisabled,
   disabled,
   backLabel,
-  submithtmlType,
   submitButton,
-  formName,
   additional,
 }) {
   return (

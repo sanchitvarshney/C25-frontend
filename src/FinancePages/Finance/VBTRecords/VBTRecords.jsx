@@ -1,4 +1,4 @@
-import { Col, Form, Row, Space, Input, Button, Modal } from "antd";
+import { Col, Row, Space, Input, Button, Modal } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
 
@@ -11,7 +11,6 @@ import socket from "../../../Components/socket";
 import { getVendorOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "../../../utils/general.ts";
 import useApi from "../../../hooks/useApi.ts";
-import MyDataTable from "../../../Components/MyDataTable.jsx";
 import { getCurrentIndianFinancialYearSession } from "../../../utils/indianFinancialYear";
 
 function vbtMinSearchPrefix(sessionCode) {
@@ -21,7 +20,7 @@ function vbtMinSearchPrefix(sessionCode) {
 function VBTRecords() {
   const { showToast } = useToast();
   const [wise, setWise] = useState("datewise");
-  const [rows, setRows] = useState([]);
+  // const [rows, setRows] = useState([]);
 
   const [searchDateRange, setSearchDateRange] = useState("");
   const [searchInput, setSearchInput] = useState(() =>
@@ -31,8 +30,8 @@ function VBTRecords() {
   const [loading, setLoading] = useState(false);
   const [vbtOption, setVbtOption] = useState("ALL");
   const [openModal, setOpenModal] = useState(false);
-  const { user, notifications } = useSelector((state) => state.login);
-  const [selectLoading, setSelectLoading] = useState(false);
+  const { user } = useSelector((state) => state.login);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
 
   const wiseOptions = [
@@ -82,14 +81,7 @@ function VBTRecords() {
    
   };
   const downlaodReport = async () => {
-    setRows([]);
-  
-    let search;
-    if (wise === "datewise" || wise === "effectivewise") {
-      search = searchDateRange;
-    } else {
-      search = null;
-    }
+
 
     emitDownloadEvent();
     setOpenModal(false);
@@ -162,7 +154,7 @@ function VBTRecords() {
   };
 
   useEffect(() => {
-    setRows([]);
+    // setRows([]);
     if (wise == "minwise") {
       const session =
         user?.session ?? getCurrentIndianFinancialYearSession();

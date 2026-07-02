@@ -5,10 +5,8 @@ import {
   Input,
   Space,
   Row,
-  Card,
-  DatePicker,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -24,16 +22,12 @@ function CashReceiptEdit({
   selectValueWhenFetch,
 }) {
   const { showToast } = useToast();
-  // conso/le.log(selectValueWhenFetch);
   const [allData, setAllData] = useState([]);
-  const [header, setHeader] = useState([]);
   const [effectiveDate, setEffectiveDate] = useState("");
   const [cash, setCash] = useState(null);
   const [insertDate, setInsertDate] = useState("");
-  const [selectLoading, setSelectLoading] = useState(false);
 
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [submitLoading, setSubmitLoading] = useState(false);
 
   const callFunction = async () => {
     setEffectiveDate("");
@@ -44,12 +38,12 @@ function CashReceiptEdit({
       }
     );
     if (response.success) {
-      setInsertDate(data.header[0].insert_date);
-      setEffectiveDate(data.header[0].ref_date);
+      setInsertDate(response.data.header.insert_date);
+      setEffectiveDate(response.data.header.ref_date);
 
       let accountObj = {
-        label: data.header[0].account,
-        value: data.header[0].account_code,
+        label: response.data.header.account,
+        value: response.data.header.account_code,
       };
       setCash(accountObj);
       let arr = response.data.map((row, index) => {
@@ -87,29 +81,29 @@ function CashReceiptEdit({
   };
 
   const getAccount = async (search) => {
-    setSelectLoading(true);
+   
     const response = await imsAxios.post(
       "/tally/cash/fetch_cash",
       {
         search: search,
       }
     );
-    setSelectLoading(false);
-    const arr = data.map((row) => {
+
+    const arr = response.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);
   };
 
   const getParticulars = async (search) => {
-    setSelectLoading(true);
+  
     const response = await imsAxios.post(
       "/tally/ledger/ledger_options",
       {
         search: search,
       }
     );
-    setSelectLoading(false);
+
     if (response.success) {
       const arr = response.data.map((row) => {
         return { text: row.text, value: row.id };
@@ -229,7 +223,7 @@ function CashReceiptEdit({
       );
       if (response.success) {
         fetchData("date_wise");
-        showToast(data.code, "success");
+        showToast(response?.message, "success");
         setEdit(false);
       }  
     } else if (selectValueWhenFetch == "eff_wise") {
@@ -256,7 +250,7 @@ function CashReceiptEdit({
       );
       if (response.success) {
         fetchData("eff_wise");
-        showToast(data.code, "success");
+        showToast(response?.message, "success");
         setEdit(false);
       } 
     } else if (selectValueWhenFetch == "key_wise") {
@@ -283,7 +277,7 @@ function CashReceiptEdit({
       );
       if (response.success) {
         fetchData("key_wise");
-        showToast(data.code, "success");
+        showToast(response?.message, "success");
         setEdit(false);
       } 
     } else if (selectValueWhenFetch == "ledger_wise") {
@@ -310,7 +304,7 @@ function CashReceiptEdit({
       );
       if (response.success) {
         fetchData("ledger_wise");
-        showToast(data.code, "success");
+        showToast(response?.message, "success");
         setEdit(false);
       }
     }
@@ -334,7 +328,7 @@ function CashReceiptEdit({
         extra={
           <Button
             type="primary"
-            loading={submitLoading}
+            // loading={submitLoading}
             onClick={submitHandler}
           >
             Submit

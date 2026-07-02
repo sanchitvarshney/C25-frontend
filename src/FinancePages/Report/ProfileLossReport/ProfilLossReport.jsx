@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Space, Table, Typography } from "antd";
+import {  Card, Col, Row, Space, Table, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -7,7 +7,6 @@ import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { Link } from "react-router-dom";
 import EditSheet from "./EditSheet";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
-import { useSelector } from "react-redux";
 import { v4 } from "uuid";
 import socket from "../../../Components/socket";
 import MyButton from "../../../Components/MyButton";
@@ -34,7 +33,6 @@ function ProfilLossReport() {
   const [dateRange, setDateRange] = useState("");
   const [editingSheet, setEditingSheet] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { user } = useSelector((state) => state.login);
 
   const getRows = async () => {
     setLoading("fetch");

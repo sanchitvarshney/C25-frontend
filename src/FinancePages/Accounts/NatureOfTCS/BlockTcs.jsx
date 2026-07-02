@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useState } from "react";
 import MyDataTable from "../../../Components/MyDataTable";

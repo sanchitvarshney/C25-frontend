@@ -9,7 +9,7 @@ const UpdateEmail = ({ open, handleClose }) => {
 
   const [form] = Form.useForm();
 
-  const onFinish = (values) => {
+  const onFinish = () => {
 
     handleClose();
     form.resetFields();

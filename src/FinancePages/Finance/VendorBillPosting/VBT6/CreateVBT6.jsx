@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import "../../../Accounts/accounts.css";
+import  { useState } from "react";
 import { useEffect } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import Loading from "../../../../Components/Loading";
@@ -38,11 +37,11 @@ export default function CreateVBT6({ editingVBT, setEditingVBT, setVBTData }) {
     setRows(arr);
   };
   const checkInvoice = async (checkInvoiceId, vendorCode) => {
-    const data = await imsAxios.get(
+    const response = await imsAxios.get(
       `/tally/vbt/checkInvoice?vbtInvoiceNo=${checkInvoiceId}&vendor=${vendorCode}`
     );
-    if (data.status === 200 || response.success ) {
-      let arr = data.data;
+    if (response.success ) {
+      let arr = response.data;
       if (arr.checkInvoice == true) {
         // setConfirmModal(true);
 
@@ -69,58 +68,58 @@ export default function CreateVBT6({ editingVBT, setEditingVBT, setVBTData }) {
     setEditingVBT(null);
   };
   const submitFunction = async () => {
-    let cgstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "cgst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
-
-    let sgstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "sgst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
-
-    let igstTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "igst")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
-    // let freightTotal = Number(
+    // let cgstTotalData = Number(
     //   totalValues
-    //     .filter((row) => row.label.toLowerCase() == "freight")[0]
+    //     .filter((row) => row.label.toLowerCase() == "cgst")[0]
     //     ?.values.reduce((partialSum, a) => {
     //       return partialSum + Number(a);
     //     }, 0)
     // ).toFixed(3);
-    let freightTotal = rows.filter((row) => row.freight)[0]?.vendorAmount;
-    let valueTotalData = Number(
-      totalValues
-        .filter((row) => row.label.toLowerCase() == "net amount")[0]
-        ?.values.reduce((partialSum, a) => {
-          return partialSum + Number(a);
-        }, 0)
-    ).toFixed(3);
 
-    let totalValidatingData =
-      Number(cgstTotalData) +
-      Number(sgstTotalData) +
-      Number(igstTotalData) +
-      Number(freightTotal) +
-      Number(valueTotalData);
-    if (roundOffSign == "-") {
-      totalValidatingData = totalValidatingData - Number(roundOffValue);
-    } else if (roundOffSign == "+") {
-      totalValidatingData = totalValidatingData + Number(roundOffValue);
-    }
-    totalValidatingData = Number(totalValidatingData).toFixed(3);
-    totalValidatingData = Number(totalValidatingData).toFixed(3);
+    // let sgstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "sgst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
+
+    // let igstTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "igst")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
+    // // let freightTotal = Number(
+    // //   totalValues
+    // //     .filter((row) => row.label.toLowerCase() == "freight")[0]
+    // //     ?.values.reduce((partialSum, a) => {
+    // //       return partialSum + Number(a);
+    // //     }, 0)
+    // // ).toFixed(3);
+    // let freightTotal = rows.filter((row) => row.freight)[0]?.vendorAmount;
+    // let valueTotalData = Number(
+    //   totalValues
+    //     .filter((row) => row.label.toLowerCase() == "net amount")[0]
+    //     ?.values.reduce((partialSum, a) => {
+    //       return partialSum + Number(a);
+    //     }, 0)
+    // ).toFixed(3);
+
+    // let totalValidatingData =
+    //   Number(cgstTotalData) +
+    //   Number(sgstTotalData) +
+    //   Number(igstTotalData) +
+    //   Number(freightTotal) +
+    //   Number(valueTotalData);
+    // if (roundOffSign == "-") {
+    //   totalValidatingData = totalValidatingData - Number(roundOffValue);
+    // } else if (roundOffSign == "+") {
+    //   totalValidatingData = totalValidatingData + Number(roundOffValue);
+    // }
+    // totalValidatingData = Number(totalValidatingData).toFixed(3);
+    // totalValidatingData = Number(totalValidatingData).toFixed(3);
    
 
     let finalObj = {
@@ -195,8 +194,8 @@ export default function CreateVBT6({ editingVBT, setEditingVBT, setVBTData }) {
       let totalVendor = 0;
 
       if (row.tdsAmount == "0" || row.tdsAmount == "--") {
-        totalVendor =
-          row.tdsAmount == "--" || "0" ? Number(row.vendorAmount) : a;
+        // totalVendor =
+        //   row.tdsAmount == "--" || "0" ? Number(row.vendorAmount) : a;
       } else {
         totalVendor = a;
       }
@@ -246,7 +245,7 @@ export default function CreateVBT6({ editingVBT, setEditingVBT, setVBTData }) {
       };
     });
 
-    finalObj = { ...finalObj, ...compData, freight: [freightTotal] };
+    finalObj = { ...finalObj, ...compData, freight: [] };
 
     setLoading(true);
     const response = await imsAxios.post("/tally/vbt06/add_vbt06", {
@@ -255,7 +254,7 @@ export default function CreateVBT6({ editingVBT, setEditingVBT, setVBTData }) {
     });
     setLoading(false);
     if (response.success) {
-      toast.success(response.message);
+     showToast(response.message || "VBT Updated", "success");
       showToast( response.message || "VBT Updated", "success");
       setTimeout(() => {
         setEditingVBT(null);
@@ -263,14 +262,14 @@ export default function CreateVBT6({ editingVBT, setEditingVBT, setVBTData }) {
       setVBTData([]);
     } else {
       setLoading(false);
-      validateResponse(data);
+      validateResponse(response?.data);
     }
   };
   const getGl = async () => {
     const response = await imsAxios.get("/tally/vbt06/vbt06_gl_options");
     let arr = [];
-    if (data.length > 0) {
-      arr = data.map((d) => {
+    if (response.success) {
+      arr = response.data.map((d) => {
         return {
           text: d.text,
           value: d.id,

@@ -1,85 +1,81 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Button, Form, Input, Row, Col, Typography, Space } from "antd";
-import Loading from "../../../Components/Loading";
-import { imsAxios } from "../../../axiosInterceptor";
+// import {  useState } from "react";
+import {  Form, Input, Row, Col, Typography } from "antd";
+// import Loading from "../../../Components/Loading";
+// import { imsAxios } from "../../../axiosInterceptor";
 
 
 export default function SingleComponent({
   index,
   field,
-  fields,
-  add,
-  remove,
-  form,
-
+  // form,
 }) {
-  const [loading, setLoading] = useState(false);
-  const [glCodes, setGlCodes] = useState([]);
-  const [glstate, setglState] = useState([]);
-  console.log("hellllll0");
-  const component =
-    Form.useWatch(["components", field.name, "component"], form) ?? 0;
+  // const [loading, setLoading] = useState(false);
+  // const [glCodes, setGlCodes] = useState([]);
+  // const [glstate, setglState] = useState([]);
+  // console.log("hellllll0");
+  // const component =
+  //   Form.useWatch(["components", field.name, "component"], form) ?? 0;
 
-  const qty =
-    Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
-  const rate =
-    Form.useWatch(["components", field.name, "vbtInRate"], form) ?? 0;
-  const product =
-    Form.useWatch(["components", field.name, "product"], form) ?? 0;
-  const tcs = Form.useWatch(["components", field.name, "tcs"], form) ?? 0;
-  const freight =
-    Form.useWatch(["components", field.name, "freight"], form) ?? 0;
-  const gstType = Form.useWatch(["components", field.name, "gstType"], form);
-  const minId = Form.useWatch(["components", field.name, "minID"], form);
+  // const qty =
+  //   Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
+  // const rate =
+  //   Form.useWatch(["components", field.name, "vbtInRate"], form) ?? 0;
+  // const product =
+  //   Form.useWatch(["components", field.name, "product"], form) ?? 0;
+  // const tcs = Form.useWatch(["components", field.name, "tcs"], form) ?? 0;
+  // const freight =
+  //   Form.useWatch(["components", field.name, "freight"], form) ?? 0;
+  // const gstType = Form.useWatch(["components", field.name, "gstType"], form);
+  // const minId = Form.useWatch(["components", field.name, "minID"], form);
 
-  const taxableValue =
-    Form.useWatch(["components", field.name, "taxableValue"], form) ?? 0;
-  const vbtInRate =
-    Form.useWatch(["components", field.name, "vbtInRate"], form) ?? 0;
-  const freightAmount =
-    Form.useWatch(["components", field.name, "freightAmount"], form) ?? 0;
-  const gstAmount =
-    Form.useWatch(["components", field.name, "gstAmount"], form) ?? 0;
-  const tdsPercent =
-    Form.useWatch(["components", field.name, "tdsPercent"], form) ?? 0;
-  const gstAssValue =
-    Form.useWatch(["components", field.name, "gstAssValue"], form) ?? 0;
-  const tdsAssValue =
-    Form.useWatch(["components", field.name, "tdsAssValue"], form) ?? 0;
-  const tdsName =
-    Form.useWatch(["components", field.name, "tdsName"], form) ?? 0;
-  const glName = Form.useWatch(["components", field.name, "glName"], form) ?? 0;
-  const glCode =
-    Form.useWatch(["components", field.name, "tds_gl_code"], form) ?? 0;
-  const vbtBillQty =
-    Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
-  const gstRate =
-    Form.useWatch(["components", field.name, "gstRate"], form)?.replaceAll(
-      "%",
-      ""
-    ) ?? 0;
-  const options = [
-    {
-      text: "Local",
-      value: "L",
-    },
-    {
-      text: "Interstate",
-      value: "I",
-    },
-  ];
-  const getGstGlOptions = async () => {
-    const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
-    const { data } = response;
-    if (data) {
-      if (data[0]) {
-        let arr = data.map((row) => ({ value: row.id, text: row.text }));
-        setglState(arr);
-      }
-    }
-    // console.log("setglState", glstate);
-  };
+  // const taxableValue =
+  //   Form.useWatch(["components", field.name, "taxableValue"], form) ?? 0;
+  // const vbtInRate =
+  //   Form.useWatch(["components", field.name, "vbtInRate"], form) ?? 0;
+  // const freightAmount =
+  //   Form.useWatch(["components", field.name, "freightAmount"], form) ?? 0;
+  // const gstAmount =
+  //   Form.useWatch(["components", field.name, "gstAmount"], form) ?? 0;
+  // const tdsPercent =
+  //   Form.useWatch(["components", field.name, "tdsPercent"], form) ?? 0;
+  // const gstAssValue =
+  //   Form.useWatch(["components", field.name, "gstAssValue"], form) ?? 0;
+  // const tdsAssValue =
+  //   Form.useWatch(["components", field.name, "tdsAssValue"], form) ?? 0;
+  // const tdsName =
+  //   Form.useWatch(["components", field.name, "tdsName"], form) ?? 0;
+  // const glName = Form.useWatch(["components", field.name, "glName"], form) ?? 0;
+  // const glCode =
+  //   Form.useWatch(["components", field.name, "tds_gl_code"], form) ?? 0;
+  // const vbtBillQty =
+  //   Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
+  // const gstRate =
+  //   Form.useWatch(["components", field.name, "gstRate"], form)?.replaceAll(
+  //     "%",
+  //     ""
+  //   ) ?? 0;
+  // const options = [
+  //   {
+  //     text: "Local",
+  //     value: "L",
+  //   },
+  //   {
+  //     text: "Interstate",
+  //     value: "I",
+  //   },
+  // ];
+  // const getGstGlOptions = async () => {
+  //   const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
+  //   const { data } = response;
+  //   if (data) {
+  //     if (data[0]) {
+  //       let arr = data.map((row) => ({ value: row.id, text: row.text }));
+  //       setglState(arr);
+  //     }
+  //   }
+  //   // console.log("setglState", glstate);
+  // };
 
   // useEffect(() => {
   //   let updatedTdsPercentage = 0;
@@ -173,7 +169,7 @@ export default function SingleComponent({
       gutter={[6, -6]}
       key={field.key}
     >
-      {loading === field.key && <Loading />}
+      {/* {loading === field.key && <Loading />} */}
       <Col span={1}>
         <Typography.Text type="secondary" style={{ marginRight: 5 }} strong>
           {index + 1}.
@@ -374,10 +370,4 @@ export default function SingleComponent({
     </Row>
   );
 }
-const gstRateOptions = [
-  { value: "0", text: "00%" },
-  { value: "5", text: "05%" },
-  { value: "12", text: "12%" },
-  { value: "18", text: "18%" },
-  { value: "28", text: "28%" },
-];
+

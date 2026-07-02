@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import MyDatePicker from "../../../../Components/MyDatePicker";
-import "../../../Accounts/accounts.css";
 import { AiFillEdit } from "react-icons/ai";
 import CreateVBT7 from "./CreateVBT7";
 import MyDataTable from "../../../../Components/MyDataTable";
@@ -23,7 +22,7 @@ export default function VBT1() {
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [toggleCleared, setToggleCleared] = React.useState(false);
+  // const [toggleCleared, setToggleCleared] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [editingVBT, setEditingVBT] = useState(null);
@@ -81,6 +80,7 @@ export default function VBT1() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={row?.id || "delete"}
           icon={<AiFillEdit />}
           onClick={() => getVBTDetail(row.min_transaction)}
           label="Delete"
@@ -104,7 +104,7 @@ export default function VBT1() {
       min_id: minId,
     });
     if (response.success) {
-      setEditingVBT(data.data);
+      setEditingVBT(response.data);
     } else {
       showToast( response.message?.msg || response.message, "error");
       setEditingVBT(null);
@@ -120,8 +120,7 @@ export default function VBT1() {
     });
     setLoading(false);
     if (response.success) {
-      console.log(data.data);
-      let arr = data.data;
+      let arr = response.data;
       arr = arr.map((row) => ({
         ...row,
         ven_tds: arr[0].ven_tds,
@@ -172,7 +171,8 @@ export default function VBT1() {
     }
     setSearchLoading(false);
     // console.log(data);
-  };
+  }
+}
   const wiseOptions = [
     { value: "date_wise", text: "Date Wise" },
     { value: "min_wise", text: "MIN Wise" },
@@ -187,9 +187,9 @@ export default function VBT1() {
     }
     setVBTData([]);
   }, [wise]);
-  useEffect(() => {
-    setToggleCleared((toggleCleared) => !toggleCleared);
-  }, [vbtData]);
+  // useEffect(() => {
+  //   setToggleCleared((toggleCleared) => !toggleCleared);
+  // }, [vbtData]);
   return (
     <div style={{ height: "95%" }}>
       <MapVBTModal mapVBT={mapVBT} setMapVBT={setMapVBT} />
@@ -309,4 +309,4 @@ export default function VBT1() {
       </div>
     </div>
   );
-}}
+}

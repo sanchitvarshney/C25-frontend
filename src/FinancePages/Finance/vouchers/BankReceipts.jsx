@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { v4 } from "uuid";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import { Card, Col, DatePicker, Form, Input, Modal, Row } from "antd";
@@ -30,11 +29,9 @@ export default function BankReceits() {
       foreignValue: 0,
     },
   ]);
-  const [headerAccount, setHeaderAccount] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [effectiveDate, setEffectiveDate] = useState("");
   const [currencyOptions, setCurrencyOptions] = useState([]);
   const [projectDesc, setProjectDesc] = useState("");
   const [showSubmitConfirmModal, setShowSubmitConfirmModal] = useState(false);

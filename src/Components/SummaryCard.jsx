@@ -1,7 +1,6 @@
 import { Card, Col, Divider, Row, Skeleton, Typography } from "antd";
-import React from "react";
 
-function SummaryCard({ summary, title, type, loading }) {
+function SummaryCard({ summary, title, loading }) {
   return (
     <Card title={title} size="small">
       <Row gutter={[0, 8]}>

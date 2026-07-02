@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Button, Col, message, Divider, Popconfirm, Row, Space } from "antd";
-import axios from "axios";
+import  { useState } from "react";
+import { Button, Col,Row, Space } from "antd";
 import { useToast } from "../../../../hooks/useToast.js";
 import MyDataTable from "../../../../Components/MyDataTable";
-import { PlusOutlined } from "@ant-design/icons";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -34,7 +32,7 @@ function AppReport() {
       search: search,
     });
     setSelectLoading(false);
-    const arr = data.map((row) => {
+    const arr = response?.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);
@@ -46,7 +44,7 @@ function AppReport() {
     const response = await imsAxios.get(
       `/tally/ap/fetchApReport?vendor=${allRefData?.vendorName}`
     );
-    const arr = data?.map((row, index) => {
+    const arr = response?.data?.map((row, index) => {
       return {
         ...row,
         id: v4(),

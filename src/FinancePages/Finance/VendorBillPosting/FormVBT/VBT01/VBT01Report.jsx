@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Col, Drawer, Form, Modal, Row, Typography } from "antd";
+import { Col, Drawer, Form, Modal, Row } from "antd";
 import { imsAxios } from "../../../../../axiosInterceptor";
 import VBTHeaders from "./VBTHeaders";
 import { useToast } from "../../../../../hooks/useToast.js";
@@ -169,7 +169,6 @@ function VBT01Report({
         sgstAmount: row.sgst,
         igstAmount: row.igst,
         venAddress: row.venAddress,
-        igstAmount: row.igst,
         ven_name: row.venName,
 
         tdsName: {
@@ -436,22 +435,6 @@ function VBT01Report({
       }
       const editmodifiedArray =
         roundarr.length > 0 ? [...roundarr.slice(0, -1), a] : roundarr;
-      const tdsCodes = values.components.filter(
-        (component) =>
-          !component.tds_key ||
-          component.tds_key === "" ||
-          component.tds_key === "--",
-      )[0]
-        ? undefined
-        : values.components.map((component) => component.tds_key);
-      const tdsGlCodes = values.components.filter(
-        (component) =>
-          !component.glCode ||
-          component.glCode === "" ||
-          component.glCode === "--",
-      )[0]
-        ? undefined
-        : values.components.map((component) => component.glCode);
 
       let finalObj = {
         bill_amount: values.billAmmount,
@@ -782,7 +765,7 @@ function VBT01Report({
                 <>
                   <Col>
                     {fields.map((field, index) => (
-                      <Form.Item noStyle>
+                      <Form.Item noStyle key={field.key ?? index}>
                         <SingleComponent
                           fields={fields}
                           field={field}

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import {
   Button,
   Col,
@@ -47,24 +47,24 @@ function EditTCS({
     const response = await imsAxios.get(
       `/tally/tcs/tcsLedgerOptions?search=${search}`
     );
-    setSelectLoading(false);
+  
     let arr = [];
     if (response.success) {
       arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
+        setSelectLoading(false);
     } else {
       setAsyncOptions([]);
+        setSelectLoading(false);
     }
   };
 
   const updateTCS = async () => {
     const {
       desc,
-      glCode,
       glKey,
-      glName,
       name,
       percentage,
       tcsCode,
@@ -291,6 +291,7 @@ function EditTCS({
                 optionsState={asyncOptions}
                 defaultOptions
                 placeholder="Select G/L..."
+                selectLoading={selectLoading}
               />
             </Form.Item>
           </Form>

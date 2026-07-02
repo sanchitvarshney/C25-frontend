@@ -10,7 +10,7 @@ export default function ContraEdit({ contra, close }) {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const [contraEditForm] = Form.useForm();
 
@@ -114,7 +114,7 @@ export default function ContraEdit({ contra, close }) {
       headerName: "GL Code",
       renderCell: ({ row }) => (
         <MyAsyncSelect
-          selectLoading={loading === "select"}
+          // selectLoading={loading === "select"}
           loadOptions={getLedgerOptions}
           optionsState={asyncOptions}
           labelInValue

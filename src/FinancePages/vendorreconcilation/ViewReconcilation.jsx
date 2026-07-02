@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Form, Row, Col, Card, Space, Flex } from "antd";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import useApi from "../../hooks/useApi.ts";
@@ -68,7 +68,7 @@ const RecoReport = () => {
     setRows(response.data);
   };
   const handleConitnue = async (date, vendorCode, vendorName) => {
-    const values = await form.validateFields();
+ 
     navigate(
       `${routeConstants.finance.vendor.reco.create}?vendorCode=${vendorCode}&vendor=${vendorName}&date=${date}`
     );
@@ -97,6 +97,7 @@ const RecoReport = () => {
     getActions: ({ row }) => [
       // Edit icon
       <GridActionsCellItem
+      key={"view"}
         showInMenu
         // disabled={disabled}
         label="Continue"

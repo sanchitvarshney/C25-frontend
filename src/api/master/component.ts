@@ -1,6 +1,6 @@
-import { HSNType } from "@/types/master";
+//@ts-ignore
 import { imsAxios } from "../../axiosInterceptor";
-import { ResponseType } from "@/types/general";
+import { ResponseType, SelectOptionType } from "@/types/general";
 
 interface GetComponentsType {
   approvers: string[];
@@ -57,14 +57,14 @@ export const downloadServiceMaster = async () => {
   return response;
 };
 
-export const getAlternativePartCodes = async (componentKey) => {
+export const getAlternativePartCodes = async (componentKey: any) => {
   const response = await imsAxios.post("/component/fetchalternatePartcode", {
     componentKey,
   }) as any;
 
   let arr = [];
   if (response.success) {
-    arr = response.data.map((row, index) => ({
+    arr = response.data.map((row: any, index: number) => ({
       id: index + 1,
       partCode: row.alternatepartCode,
       componentKey: row.alternatepartKey,
@@ -92,7 +92,7 @@ export const getHsnList = async (key: string) => {
   let arr = [];
   if (response.success) {
     arr = response.data.map(
-      (row: GetHSNListType, index: number): HSNType => ({
+      (row: GetHSNListType, index: number) => ({
         code: row.hsncode,
         label: row.hsnlabel,
         tax: row.hsntax,
@@ -104,9 +104,9 @@ export const getHsnList = async (key: string) => {
   return response;
 };
 
-export const mapHsn = async (key: string, hsnRows: HSNType[]) => {
-  const hsn = hsnRows.map((row) => row.code);
-  const tax = hsnRows.map((row) => row.tax);
+export const mapHsn = async (key: string, hsnRows: any) => {
+  const hsn = hsnRows.map((row: any) => row.code);
+  const tax = hsnRows.map((row: any) => row.tax);
 
   const response = await imsAxios.post("/backend/mapHsn", {
     component: key,
@@ -304,7 +304,7 @@ export const getPendingApprovalList = async () => {
   );
   let arr = [];
   if (response.success) {
-    arr = response.data.map((row: GetPendingApprovalListType, index) => ({
+    arr = response.data.map((row: GetPendingApprovalListType,   index: number) => ({
       id: index + 1,
       key: row.componentKey,
       name: row.componentName,
