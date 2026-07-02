@@ -1,6 +1,7 @@
 import { createDepartment } from "@/api/production/mis";
 import useApi from "@/hooks/useApi";
 import { Flex, Form, Input, Modal } from "antd";
+//@ts-ignore
 import MyButton from "@/Components/MyButton/index.jsx";
 
 interface ModalProps {}
@@ -21,15 +22,7 @@ const AddDepartmentModal = ({}: ModalProps) => {
     }
   };
   return (
-    // <Modal
-    //   open={show}
-    //   onCancel={hide}
-    //   title="Add Department"
-    //   width={400}
-    //   okText="Add"
-    //   onOk={handleCreateDepartment}
-    //   confirmLoading={loading("submit")}
-    // >
+   
     <Form form={form} layout="vertical">
       <Form.Item name="name" label="Department Name">
         <Input />
@@ -42,7 +35,7 @@ const AddDepartmentModal = ({}: ModalProps) => {
         />
       </Flex>
     </Form>
-    // </Modal>
+    
   );
 };
 

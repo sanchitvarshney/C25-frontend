@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Button, Modal, Col, Row, Space, Input, Form, Typography } from "antd";
+import { useState, useRef } from "react";
+import { Button, Modal, Col, Row, Input, Form, Typography } from "antd";
 
 export default function CurrenceModal({ showCurrency, setShowCurrencyModal }) {
   const inputRef = useRef();

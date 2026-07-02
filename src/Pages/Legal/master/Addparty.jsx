@@ -1,9 +1,9 @@
 import { Button, Card, Col, Form, Input, Row } from "antd";
-import React from "react";
+// import React from "react";
 import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
-import { useEffect, useState } from "react";
-import { v4 } from "uuid";
+import {  useState } from "react";
+// import { v4 } from "uuid";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { useToast } from "../../../hooks/useToast.js";
 import { EditOutlined } from "@ant-design/icons";
@@ -16,15 +16,15 @@ function Addparty() {
   const [loading, setLoading] = useState("");
   const [partysearch, setpartysearch] = useState("");
   const [form] = Form.useForm();
-  const addRows = async (values) => {
-    console.log("values", values);
-    const response = await imsAxios.post("/qaProcessmaster/insert_Process", values);
+  // const addRows = async (values) => {
+  //   console.log("values", values);
+  //   const response = await imsAxios.post("/qaProcessmaster/insert_Process", values);
 
-    console.log("row Data", response);
-    if (response.success) {
-      // getRows();
-    }
-  };
+  //   console.log("row Data", response);
+  //   if (response.success) {
+  //     // getRows();
+  //   }
+  // };
 
   const getpartydetails = async () => {
     console.log(partysearch);
@@ -56,25 +56,25 @@ function Addparty() {
     }
   };
 
-  const getRows = async () => {
-    const response = await imsAxios.get("/qaProcessmaster/fetch_Process");
-    // console.log("datadata", data.data);
-    if (response.success) {
-      const { data } = response.data;
-      console.log("datadata", data);
-      const arr = data.map((row, index) => {
-        return {
-          ...row,
-          id: v4(),
-          index: index + 1,
-        };
-      });
-      setRows(arr);
-    }
-    else{
-      showToast(response.message, "error");
-    }
-  };
+  // const getRows = async () => {
+  //   const response = await imsAxios.get("/qaProcessmaster/fetch_Process");
+  //   // console.log("datadata", data.data);
+  //   if (response.success) {
+  //     const { data } = response.data;
+  //     console.log("datadata", data);
+  //     const arr = data.map((row, index) => {
+  //       return {
+  //         ...row,
+  //         id: v4(),
+  //         index: index + 1,
+  //       };
+  //     });
+  //     setRows(arr);
+  //   }
+  //   else{
+  //     showToast(response.message, "error");
+  //   }
+  // };
   const submitForm = async () => {
     try {
       setLoading("select" / "fetch");

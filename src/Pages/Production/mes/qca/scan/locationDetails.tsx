@@ -1,10 +1,8 @@
-import { ProcessDetailsType } from "@/Pages/Production/mes/qca/scan/types";
+
 import { Card, Flex, Typography } from "antd";
-import React from "react";
 
-type Props = { details?: ProcessDetailsType };
 
-const LocationDetails = ({ details }: Props) => {
+const LocationDetails = ({ details }: any) => {
   return (
     <Card size={"small"} title="Location Details">
       <Flex gap={5}>

@@ -74,16 +74,16 @@ const { showToast } =    useToast();
       });
       setSubmitLoading(false);
       if (response?.success) {
-        toast.success("SKU Opening Rate added successfully");
+        showToast("SKU Opening Rate added successfully", "success");
         form.resetFields();
         setProductOptions([]);
         fetchSKUOpeningRates(); // Refresh table after successful submission
       } else {
-        toast.error(response?.message || "Failed to add SKU Opening Rate");
+        showToast(response?.message, "error");
       }
     } catch (error) {
       setSubmitLoading(false);
-      toast.error(error?.response?.data?.message || "An error occurred");
+      showToast(error?.response?.data?.message, "error");
     }
   };
 

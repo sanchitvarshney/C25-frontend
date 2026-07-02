@@ -1,5 +1,4 @@
-import { Button, Col, Input, Popconfirm, Row, Space, Tooltip } from "antd";
-import React from "react";
+import { Button, Col, Input, Row, Space } from "antd";
 import { useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import MyDatePicker from "../../../../Components/MyDatePicker";
@@ -7,7 +6,7 @@ import { useEffect } from "react";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
-import TableActions, {
+import {
   CommonIcons,
 } from "../../../../Components/TableActions.jsx/TableActions";
 import MyDataTable from "../../../../Components/MyDataTable";
@@ -15,7 +14,6 @@ import PoDetailsView from "./PoDetailsView";
 import { downloadCSV } from "../../../../Components/exportToCSV";
 import PoRejectModa from "./PoRejectModa";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
-import { CloseOutlined, CheckOutlined, EyeOutlined } from "@ant-design/icons";
 import PoApprovalModel from "./PoApprovalModel";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import {
@@ -138,6 +136,7 @@ export default function PoApproval() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           onClick={() => {
             setViewPoDetails(row.po_transaction);
@@ -292,14 +291,14 @@ export default function PoApproval() {
                   disabled={selectedPo.length === 0}
                   onClick={ApproveSelectedPo}
                 >
-                  Approve Selected Po's
+                  {`Approve Selected Po's`}
                 </Button>
                 <Button
                   loading={loading === "fetch"}
                   disabled={selectedPo.length === 0}
                   onClick={RejectSelectedPo}
                 >
-                  Reject Selected Po's
+                  {`Reject Selected Po's`}
                 </Button>
               </Space>
             </Col>

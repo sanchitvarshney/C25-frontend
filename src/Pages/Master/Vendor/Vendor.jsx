@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import AddBranch from "./model/AddBranch.jsx";
 import EditBranch from "./model/EditBranch.jsx";
 import ViewModal from "./model/ViewModal.jsx";
@@ -59,24 +59,28 @@ const Vendor = () => {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"edit"}
           // icon={<SecurityIcon />}
           label="Edit Vendor"
           onClick={() => setEditVendor(row)}
           showInMenu
         />,
         <GridActionsCellItem
+        key={"add"}
           // icon={<FileCopyIcon />}
           label="Add Branch"
           onClick={() => setOpenBranch(row)}
           showInMenu
         />,
         <GridActionsCellItem
+        key={"view"}
           // icon={<FileCopyIcon />}
           label="Edit / View Branch Details"
           onClick={() => setViewVendor(row)}
           showInMenu
         />,
           <GridActionsCellItem
+          key={"update"}
           // icon={<SecurityIcon />}
           label="Update Location"
           onClick={() => setUpdateLocation(row)}

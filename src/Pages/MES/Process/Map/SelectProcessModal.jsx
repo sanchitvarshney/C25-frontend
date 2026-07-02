@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Col, Drawer, Radio, Row, Typography } from "antd";
 import { processApi } from "../../api";
 
-const SelectProcessModal = ({ open, close, form, value }) => {
+const SelectProcessModal = ({ open, close, form, }) => {
   const [processes, setProcesses] = useState([]);
   const [selected, setSelected] = useState("");
   const handleProcessOptions = async () => {
@@ -33,7 +33,7 @@ const SelectProcessModal = ({ open, close, form, value }) => {
         <Radio.Group value={selected?.id} onChange={handleChange}>
           <Col span={24}>
             {processes.map((row) => (
-              <Radio value={row.id}>
+              <Radio value={row.id} key={row.id}>
                 <Typography.Text strong>{row.name}</Typography.Text>
               </Radio>
             ))}

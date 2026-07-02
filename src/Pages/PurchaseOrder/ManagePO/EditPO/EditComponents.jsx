@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import CurrenceModal from "../CurrenceModal";
 import { useToast } from "../../../../hooks/useToast.js";
@@ -53,7 +53,7 @@ export default function EditComponent({
   const [totalTaxValue, setTotaTaxValue] = useState([]);
   const [showCurrencyUpdateConfirmModal, setShowCurrencyUpdateConfirmModal] =
     useState(false);
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const addRows = () => {
     const newRow = {
       index: rowCount.length + 1,

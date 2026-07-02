@@ -62,6 +62,7 @@ const RejectedPhysicalProduction = () => {
     getActions: ({ row }) => [
       // edit icon
       <GridActionsCellItem
+      key={"update"}
         showInMenu
         // disabled={disabled}
         label={"Update"}

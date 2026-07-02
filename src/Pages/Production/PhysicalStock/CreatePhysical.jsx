@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import { Col, Input, Row } from "antd";
 import { useToast } from "@/hooks/useToast.js";
@@ -18,19 +18,18 @@ function CreatePhysicalProduction() {
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [locationOpitons, setLocationOptions] = useState([]);
-  const [datee, setDatee] = useState([]);
   // const [availData, setAvailData] = useState({});
   const { executeFun, loading: loading1 } = useApi();
-  const [searchInput, setSearchInput] = useState("");
-  const [allData, setAllData] = useState({
-    selType: "",
+  // const [searchInput, setSearchInput] = useState("");
+  // const [allData, setAllData] = useState({
+  //   selType: "",
 
-    component: [],
-    existStock: [],
-    physicalStock: [],
-    uom: [],
-    remark: [],
-  });
+  //   component: [],
+  //   existStock: [],
+  //   physicalStock: [],
+  //   uom: [],
+  //   remark: [],
+  // });
 
   const getComponent = async (e) => {
     if (e?.length > 2) {
@@ -77,8 +76,8 @@ function CreatePhysicalProduction() {
           component: value,
           location: found?.location,
         });
-        qty = data?.data.available_qty;
-        unit = data?.data.unit;
+        qty = response?.data.available_qty;
+        unit = response?.data.unit;
       }
 
       // console.log(data.data);
@@ -126,8 +125,8 @@ function CreatePhysicalProduction() {
           location: value,
           component: found?.comp,
         });
-        qty = data?.available_qty;
-        unit = data?.unit;
+        qty = response?.available_qty;
+        unit = response?.unit;
       }
 
       // console.log(data.data);
@@ -250,7 +249,7 @@ function CreatePhysicalProduction() {
         <MyAsyncSelect
           style={{ width: "100%" }}
           onBlur={() => setAsyncOptions([])}
-          onInputChange={(e) => setSearchInput(e)}
+          // onInputChange={(e) => setSearchInput(e)}
           loadOptions={getComponent}
           selectLoading={loading1("select")}
           value={addrow?.comp}

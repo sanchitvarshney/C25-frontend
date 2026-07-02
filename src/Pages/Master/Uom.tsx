@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Card, Col, Form, Input, Row, Space } from "antd";
+//@ts-ignore
 import MyDataTable from "../../Components/MyDataTable";
+//@ts-ignore
 import MyButton from "../../Components/MyButton";
 //@ts-ignore
 import useApi from "../../hooks/useApi.ts";
 import { createUOM, getUOMList } from "../../api/master/uom";
+//@ts-ignore
 import { useToast } from "../../hooks/useToast.js";
 
 const Uom = () => {

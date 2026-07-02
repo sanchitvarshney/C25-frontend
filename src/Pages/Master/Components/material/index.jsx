@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
   Button,
@@ -25,7 +25,6 @@ import MyButton from "../../../../Components/MyButton";
 import { CloseOutlined } from "@ant-design/icons";
 import { v4 } from "uuid";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Link } from "react-router-dom";
 import TableActions from "../../../../Components/TableActions.jsx/TableActions";
 import Loading from "../../../../Components/Loading";
 import useApi from "../../../../hooks/useApi.ts";
@@ -35,6 +34,7 @@ import {
 } from "../../../../api/master/component.ts";
 
 const Material = () => {
+  const {showToast} = useToast();
   const [showImages, setShowImages] = useState();
   const [uomOptions, setUomOptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,7 +53,6 @@ const Material = () => {
   const [typeOfComp, setTypeOfComp] = useState("");
   const [valFromName, setValForName] = useState("");
   const { executeFun, loading: loading1 } = useApi();
-  const { showToast } = useToast();
   const [isEnabled, setIsEnabled] = useState(false);
   const [hsnForm] = Form.useForm();
   const [headerForm] = Form.useForm();
@@ -85,6 +84,7 @@ const Material = () => {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -153,6 +153,8 @@ const Material = () => {
         setAttrCategoryOptions([]);
       }
     } catch (error) {
+      setAttrCategoryOptions([]);
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -173,6 +175,7 @@ const Material = () => {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -194,6 +197,7 @@ const Material = () => {
         setAsyncOptions(arr);
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -363,11 +367,12 @@ const Material = () => {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
   };
-  const resetConfirmHandler = (async) => {
+  const resetConfirmHandler = () => {
     Modal.confirm({
       title: "Reset Confirm",
       content: "All the progess will be lost",
@@ -382,11 +387,13 @@ const Material = () => {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
+      key={"update"}
         showInMenu
         onClick={() => window.open(`/master/component/${row.key}`, "_blank")}
         label="Update"
       />,
       <GridActionsCellItem
+      key={"view"}
         showInMenu
         label="View Images"
         onClick={() =>
@@ -397,6 +404,7 @@ const Material = () => {
         }
       />,
       <GridActionsCellItem
+      key={"upload"}
         showInMenu
         label="Upload Images"
         onClick={() =>
@@ -735,7 +743,7 @@ const Material = () => {
                           >
                             <Row>
                               {hsnRows.map((row, index) => (
-                                <Col span={24}>
+                                <Col span={24} key={row.id || index}>
                                   <Row>
                                     <Col span={1}>
                                       <Typography.Text>
@@ -814,10 +822,10 @@ const Material = () => {
 
 export default Material;
 
-const categoryOptions = [
-  { text: "Component", value: "C" },
-  { text: "Other", value: "O" },
-];
+// const categoryOptions = [
+//   { text: "Component", value: "C" },
+//   { text: "Other", value: "O" },
+// ];
 
 const hsnInitialValues = {
   code: "",
@@ -858,23 +866,21 @@ const CategoryModal = ({
   generatedCompName,
   setGeneratedCompName,
   setValForName,
-  valFromName,
   form,
   headerForm,
   setManfCode,
-  manfCode,
   typeOfComp,
   setTypeOfComp,
 }) => {
+  const { showToast } = useToast();
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState("fetch");
   const [fieldSelectOptions, setFieldSelectOptions] = useState([]);
-  const [existingComponents, setExistingComponents] = useState([]);
+  const [existingComponents] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [stage, setStage] = useState(0);
   var alpha;
   var extractednum;
-  var getAlpha;
   var wholeVal;
   var result;
   const value = Form.useWatch("value", form);
@@ -902,6 +908,7 @@ const CategoryModal = ({
         showToast(response?.message, "error");
       }
     } catch (error) {
+      showToast(error?.message, "error");
     } finally {
       setLoading(false);
     }
@@ -930,8 +937,9 @@ const CategoryModal = ({
           ]);
         }
       });
-    } catch (error) {}
-    setLoading(false);
+    } catch (error) {
+      showToast(error?.message, "error");
+    }
   };
   const checkDecimal = (value) => {
     {
@@ -946,7 +954,7 @@ const CategoryModal = ({
       } else {
         let newNum = removeAndCountTrailingZeros(value);
         // console.log("newNum", newNum);
-        getAlpha = removeTrailingZerosUsingSwitch(newNum.count);
+        // getAlpha = removeTrailingZerosUsingSwitch(newNum.count);
         extractednum = newNum.stringWithoutTrailingZeros;
         // console.log("extractednum", extractednum);
       }
@@ -1112,39 +1120,39 @@ const CategoryModal = ({
     let result = "1" + "0".repeat(numZeros);
     return parseInt(result);
   }
-  function getLetterFromNumber(number) {
-    console.log("number number", number);
-    const mapping = {
-      1: "A",
-      10: "B",
-      100: "C",
-      1000: "D",
-      10000: "E",
-      100000: "F",
-      1000000: "G",
-      10000000: "H",
-      100000000: "I",
-      1000000000: "J",
-      10000000000: "K",
-    };
+  // function getLetterFromNumber(number) {
+  //   console.log("number number", number);
+  //   const mapping = {
+  //     1: "A",
+  //     10: "B",
+  //     100: "C",
+  //     1000: "D",
+  //     10000: "E",
+  //     100000: "F",
+  //     1000000: "G",
+  //     10000000: "H",
+  //     100000000: "I",
+  //     1000000000: "J",
+  //     10000000000: "K",
+  //   };
 
-    const result = Object.entries(mapping).find(
-      ([key, value]) => parseInt(key) === number
-    );
-    console.log("resultresult", result);
-    form.setFieldValue("multiplier", result[1]);
-    return result ? result[1] : "Number not found";
-  }
-  function removeTrailingZerosUsingSwitch(numbers, letter) {
-    let numberpowerOfTen;
+  //   const result = Object.entries(mapping).find(
+  //     ([key]) => parseInt(key) === number
+  //   );
+  //   console.log("resultresult", result);
+  //   form.setFieldValue("multiplier", result[1]);
+  //   return result ? result[1] : "Number not found";
+  // }
+  // function removeTrailingZerosUsingSwitch(numbers, letter) {
+  //   let numberpowerOfTen;
 
-    let number = addZerosToTen(numbers);
-    console.log("number ->", number);
-    alpha = getLetterFromNumber(number);
-    console.log("apl", alpha);
-    setAttributeValues({ multipler: alpha });
-    // form.setFieldValue("multiplier", alpha);
-  }
+  //   let number = addZerosToTen(numbers);
+  //   console.log("number ->", number);
+  //   alpha = getLetterFromNumber(number);
+  //   console.log("apl", alpha);
+  //   setAttributeValues({ multipler: alpha });
+  //   // form.setFieldValue("multiplier", alpha);
+  // }
   function removeAndCountTrailingZeros(number) {
     const numString = number.toString();
     let count = 0;
@@ -1215,20 +1223,21 @@ const CategoryModal = ({
     setValForName(a);
   }, [value]);
 
-  const submitHandler = async (payload) => {
-    try {
-      setUniqueId(uniqueId);
+  const submitHandler = async () => {
+    // try {
+    //   setUniqueId(uniqueId);
 
-      hide();
-      if (stage === 0) {
-      } else {
-        hide();
-        setStage(0);
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
+    //   hide();
+    //   if (stage === 0) {
+        
+    //   } else {
+    //     hide();
+    //     setStage(0);
+    //   }
+    // } catch (error) {
+    // } finally {
+    //   setLoading(false);
+    // }
   };
   const sortedFields = [...fields].sort((a, b) => {
     // console.log("ff", fields);
@@ -1251,7 +1260,6 @@ const CategoryModal = ({
       headerForm.setFieldValue("componentname", "");
       setUniqueId(null);
       setGeneratedCompName(null);
-    } else if (selectedCategory?.value === "348423984423") {
     }
   }, [typeOfComp]);
   useEffect(() => {
@@ -1316,8 +1324,8 @@ const CategoryModal = ({
       {stage === 0 && (
         <Form form={form} layout="vertical" style={{ marginTop: 10 }}>
           <Row gutter={10}>
-            {sortedFields.map((row) => (
-              <Col span={8}>
+            {sortedFields.map((row, idx) => (
+              <Col span={8} key={idx}>
                 <Flex>
                   {row.hasValue === "true" && (
                     <Form.Item
@@ -1395,7 +1403,7 @@ const CategoryModal = ({
                       style={{ maxHeight: 150, overflowY: "auto" }}
                     >
                       {existingComponents.map((row, index) => (
-                        <Col span={24}>
+                        <Col span={24} key={index}>
                           <Row>
                             <Col span={1}>{index + 1}.</Col>
                             <Col span={18}>{row.name}</Col>

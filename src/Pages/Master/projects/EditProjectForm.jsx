@@ -1,7 +1,6 @@
 import {
   Button,
   Col,
-  Descriptions,
   Divider,
   Form,
   Input,
@@ -13,10 +12,9 @@ import { useState } from "react";
 import CreateSubmitConfirmModal from "./CreateSubmitConfirmModal";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
-import { useEffect } from "react";
 
 export default function EditProjectForm({
-  editProject,
+  // editProject,
   setEditProject,
   getAllDetailFun,
 }) {
@@ -25,25 +23,25 @@ export default function EditProjectForm({
   const [loading, setLoading] = useState(false);
   const [editProjectForm] = Form.useForm();
 
-  const getDetails = async () => {
-    setLoading("fetch");
-    const response = await imsAxios.post("/ppr/fetchProjectInfo", {
-      project: editProject,
-    });
-    setLoading(false);
-    const { data } = response;
-    if (data) {
-      if (response.success) {
-        editProjectForm.setFieldsValue({
-          project_id: editProject,
-          project_name: data.detail,
-        });
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-        setEditProject(false);
-      }
-    }
-  };
+  // const getDetails = async () => {
+  //   setLoading("fetch");
+  //   const response = await imsAxios.post("/ppr/fetchProjectInfo", {
+  //     project: editProject,
+  //   });
+  //   setLoading(false);
+  //   const { data } = response;
+  //   if (data) {
+  //     if (response.success) {
+  //       editProjectForm.setFieldsValue({
+  //         project_id: editProject,
+  //         project_name: data.detail,
+  //       });
+  //     } else {
+  //       showToast(response.message?.msg || response.message, "error");
+  //       setEditProject(false);
+  //     }
+  //   }
+  // };
   const validateData = (values) => {
     let obj = {
       project: values.project_id,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Button, Col, Drawer, Input, Row, Space } from "antd";
 import { CloseCircleFilled } from "@ant-design/icons";
 import { v4 } from "uuid";
@@ -99,12 +99,7 @@ function BomComponentModal({
       return allDataComes.filter((row) => row.id != i);
     });
   };
-  const resetData = (i) => {
-    console.log(i);
-    // setAllData((allDataComes) => {
-    //   return allDataComes.filter((row) => row.id != i);
-    // });
-  };
+
 
   const columns = [
     // { field: "index", headerName: "S No.", width: 8 },
@@ -170,7 +165,7 @@ function BomComponentModal({
       field: "left_stock",
       headerName: "Left Stock",
       width: 80,
-      renderCell: ({ row }) => "--",
+      renderCell: () => "--",
     },
     {
       field: "popendingqty",
@@ -184,7 +179,8 @@ function BomComponentModal({
       headerName: "Delete",
       width: 80,
       getActions: ({ row }) => [
-        <CloseCircleTwoTone
+        <CloseCircleTwoTone 
+        key={"reset"}
           onClick={() => reset(row?.id)}
           // onClick={() => console.log(row.serial)}
           style={{ color: "#1890ff", fontSize: "15px" }}

@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import UpdateService from "./UpdateService";
 import { v4 } from "uuid";
 import MyDataTable from "../../../../Components/MyDataTable";
-import { Button, Card, Col, Form, Input, Row, Space } from "antd";
+import {  Card, Col, Form, Input, Row, Space } from "antd";
 import MySelect from "../../../../Components/MySelect";
 import TableActions from "../../../../Components/TableActions.jsx/TableActions";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -26,7 +25,7 @@ function Services() {
     notes: "",
   });
 
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const getServices = async () => {
     setLoading(true);
     const response = await imsAxios.get("/component/service");
@@ -104,6 +103,7 @@ function Services() {
       field: "action",
       getActions: ({ row }) => [
         <TableActions
+        key={"edit"}
           action="edit"
           onClick={() =>
             setEditService({

@@ -63,7 +63,7 @@ export const rateCell = ({ row }, inputHandler, currencies) => (
     </div>
   </Input.Group>
 );
-export const disabledCell = ({ row }, value, inputHandler, suffix) => (
+export const disabledCell = ({ row }, value, inputHandler) => (
   <Input
     disabled
     value={value}
@@ -104,7 +104,7 @@ export const HSNCell = ({ row }, inputHandler) => (
     placeholder="Enter HSN Code"
   />
 );
-export const gstTypeCell = ({ row }, inputHandler, stateCode) => (
+export const gstTypeCell = ({ row }, inputHandler) => (
   <MySelect
     value={row.gsttype || "L"} // Display the current GST type, default to "L"
     onChange={(value) => inputHandler("gsttype", value, row.id)}

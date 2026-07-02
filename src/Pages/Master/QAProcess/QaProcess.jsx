@@ -1,5 +1,4 @@
 import { Button, Form, Input } from "antd";
-import React from "react";
 import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useEffect, useState } from "react";

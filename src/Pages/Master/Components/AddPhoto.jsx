@@ -1,7 +1,6 @@
 import { Button, Col, Drawer, Form, Input, Row, Space, Typography } from "antd";
 import Dragger from "antd/lib/upload/Dragger";
 import { InboxOutlined } from "@ant-design/icons";
-import React from "react";
 import { useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useEffect } from "react";
@@ -9,15 +8,15 @@ import { useToast } from "../../../hooks/useToast.js";
 
 function AddPhoto({ updatingImage, setUpdatingImage }) {
   const { showToast } = useToast();
-  const [previousImages, setImagePreview] = useState([]);
+  // const [previousImages, setImagePreview] = useState([]);
   const [caption, setCaption] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [image, setImage] = useState(false);
-  const getImages = async () => {
-    const response = await imsAxios.post("/products/fetchImageProduct", {
-      product: updatingImage.key,
-    });
-  };
+  // const getImages = async () => {
+  //   const response = await imsAxios.post("/products/fetchImageProduct", {
+  //     product: updatingImage.key,
+  //   });
+  // };
   const submitHandler = async () => {
     const formData = new FormData();
     console.log(image);
@@ -50,7 +49,7 @@ function AddPhoto({ updatingImage, setUpdatingImage }) {
   };
   useEffect(() => {
     if (updatingImage) {
-      getImages();
+      // getImages();
       setImage(false);
     }
   }, [updatingImage]);

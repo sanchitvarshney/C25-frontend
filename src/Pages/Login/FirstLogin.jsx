@@ -1,6 +1,5 @@
 import { Button, Col, Form, Input, Row, Typography } from "antd";
 import { useForm } from "antd/lib/form/Form";
-import React from "react";
 import { imsAxios } from "../../axiosInterceptor";
 import { useNavigate } from "react-router-dom";
 import {

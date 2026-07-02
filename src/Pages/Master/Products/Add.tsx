@@ -1,12 +1,14 @@
 import React, { useEffect } from "react";
 import { Button, Card, Col, Form, Input, Row, Space } from "antd";
+//@ts-ignore
 import MySelect from "../../../Components/MySelect";
+//@ts-ignore
 import MyButton from "../../../Components/MyButton";
 import { addProduct } from "../../../api/master/products";
 import { ResponseType } from "../../../types/general";
 import useApi from "../../../hooks/useApi";
 
-const Add = ({ uomOptions, productType, getProductRows }) => {
+const Add = ({ uomOptions, productType, getProductRows }:any) => {
   const [addProductForm] = Form.useForm();
   const { executeFun, loading } = useApi();
   const category = [

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Button, Row, Space } from "antd";
+import  { useState } from "react";
+import { Row, Space } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
@@ -23,7 +23,7 @@ export default function MaterialTransferReport({ type }) {
     let link = "";
     if (type == "sftosf") {
       link = "/godown/report_rmsf_same";
-    } else if ((type = "sftorej")) {
+    } else if ((type == "sftorej")) {
       link = "/godown/report_sf_rej";
     }
     setSearchLoading(true);

@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { Drawer, Form, Input, Row, Upload } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
+//@ts-ignore
 import MyButton from "../../../Components/MyButton";
 import useApi from "../../../hooks/useApi";
 import { uploadImage } from "../../../api/master/products";
+//@ts-ignore
 import { ProductType } from "@/types/master";
 
 interface PropTypes {

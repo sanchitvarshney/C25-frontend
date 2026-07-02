@@ -10,8 +10,7 @@ import {
   Space,
   Typography,
 } from "antd";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -21,7 +20,6 @@ export default function ComponentImages({ showImages, setShowImages }) {
   const [skeletonLoading, setSkeletonLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [images, setImages] = useState([]);
-  const [ellipsis, setEllipsis] = useState(true);
 
   const getImages = async () => {
     setSkeletonLoading(true);
@@ -71,10 +69,10 @@ export default function ComponentImages({ showImages, setShowImages }) {
       <Row gutter={[8, 8]}>
         {!skeletonLoading && (
           <Image.PreviewGroup>
-            {images.map((image) => (
+            {images.map((image,idx) => (
               // <Col span={24}>
               // <Row style={{ margin: "20px 0px" }} justify="center">
-              <Col span={12}>
+              <Col span={12} key={image?.key || idx}>
                 <Card
                   style={{ position: "relative", height: 300 }}
                   bodyStyle={{ padding: 5, height: 300 }}

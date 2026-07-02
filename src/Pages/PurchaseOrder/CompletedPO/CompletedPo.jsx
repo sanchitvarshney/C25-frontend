@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import ViewComponentSideBar from "./ViewComponentSideBar";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Button, Col, Input, Row, Space } from "antd";
+import { Col, Input, Row, Space } from "antd";
 import printFunction, {
   downloadFunction,
 } from "../../../Components/printFunction";
@@ -26,10 +26,10 @@ const CompletedPo = () => {
   const [showComponentSideBar, setShowComponentSideBar] = useState(false);
   const [searchDateRange, setSearchDateRange] = useState("");
   const [searchInput, setSearchInput] = useState(null);
-  const [vendorSearchInput, setVendorSearchInput] = useState("");
+  // const [vendorSearchInput, setVendorSearchInput] = useState("");
   const [wise, setWise] = useState("po_wise");
   const [rows, setRows] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [viewLoading, seViewLoading] = useState(false);
 
@@ -201,11 +201,13 @@ const CompletedPo = () => {
       flex: 1,
       getActions: ({ row }) => [
         <TableActions
+        key="view"
           action="view"
           onClick={() => getComponentData(row.po_transaction_code)}
         />,
 
         <TableActions
+        key="print"
           action="print"
           onClick={() => {
             printFun(row.po_transaction_code);
@@ -213,6 +215,7 @@ const CompletedPo = () => {
         />,
 
         <TableActions
+        key="download"
           action="download"
           onClick={() => handleDownload(row.po_transaction_code)}
         />,
@@ -220,12 +223,12 @@ const CompletedPo = () => {
     },
   ];
 
-  useEffect(() => {
-    getVendors(vendorSearchInput);
-  }, [vendorSearchInput]);
-  const closeAllModal = () => {
-    setShowComponentSideBar(false);
-  };
+  // useEffect(() => {
+  //   getVendors(vendorSearchInput);
+  // }, [vendorSearchInput]);
+  // const closeAllModal = () => {
+  //   setShowComponentSideBar(false);
+  // };
   useEffect(() => {
     setSearchInput("");
     // console.log(filterData);

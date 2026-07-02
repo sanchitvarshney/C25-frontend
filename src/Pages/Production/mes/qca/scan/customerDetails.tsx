@@ -1,12 +1,7 @@
-import { PPRDetailsType } from "@/Pages/Production/mes/qca/scan/types";
+
 import { Card, Flex, Typography } from "antd";
-import React from "react";
 
-type Props = {
-  details: PPRDetailsType;
-};
-
-const CustomerName = ({ details }: Props) => {
+const CustomerName = ({ details }: any) => {
   return (
     <Card size={"small"} title="Customer Details">
       <Flex gap={5}>

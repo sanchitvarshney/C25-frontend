@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { BsFillQuestionCircleFill } from "react-icons/bs";
 import { imsAxios } from "../../../../axiosInterceptor";
 
-function DeleteModal({ viewModal, setViewModal, getProductDataFromType }) {
+function DeleteModal({ viewModal, setViewModal }) {
   const [addData, setAddData] = useState({ remark: "" });
 
   console.log(viewModal);
@@ -17,6 +17,10 @@ function DeleteModal({ viewModal, setViewModal, getProductDataFromType }) {
       accesstoken: viewModal?.prod_randomcode,
       remark: addData.remark,
     });
+    if (response.success) {
+      setViewModal(false);
+    }
+    
   };
   return (
     <>
@@ -43,13 +47,13 @@ function DeleteModal({ viewModal, setViewModal, getProductDataFromType }) {
               </div>
               <div className="col-md-12 p-1">
                 <span>
-                  Note: "Yes CLOSE" action is an irreversible action..
+                  {`Note: "Yes CLOSE" action is an irreversible action..`}
                 </span>
               </div>
               <div className="col-md-12 p-1 mt-2">
                 <span>
-                  type 'any remark' in the field below for close PPR #
-                  {viewModal?.prod_transaction}
+                  {`type 'any remark' in the field below for close PPR #
+                  ${viewModal?.prod_transaction}`}
                 </span>
                 <input
                   placeholder="Reason"

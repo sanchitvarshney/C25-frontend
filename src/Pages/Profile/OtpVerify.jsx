@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Button, Col, Input, Modal, Row, Typography } from "antd";
+import { Button, Col,  Modal, Row, Typography } from "antd";
 import "../../index.css";
 import validateResponse from "../../Components/validateResponse";
 import { imsAxios } from "../../axiosInterceptor";
@@ -103,10 +103,7 @@ function OtpVerify({
         }
       });
     } else {
-      if (value.length == 1) {
-        let num = current;
-        let val = "ref" + num;
-      }
+    
       if (value.length >= 1) {
         let add = 0;
         console.log(current);
@@ -213,7 +210,7 @@ function OtpVerify({
     }
     
   };
-  const inputBox = (current, ref) => {
+  const inputBox = (current) => {
     console.log(mobileRefs[current]);
     return (
       <input
@@ -233,7 +230,6 @@ function OtpVerify({
       otp: otp,
     });
     setLoading(false);
-    const { data } = response;
     if (response.success) {
       showToast(response.message, "success");
       setShowOTPVerifyModal(false);
@@ -279,11 +275,11 @@ function OtpVerify({
           {[...userNumber].map((char, index) => {
             if (char === "*") {
               let num = index + 1;
-              return <Col>{inputBox("ref" + num)}</Col>;
+              return <Col key={index}>{inputBox("ref" + num)}</Col>;
             } else {
               // console.log(char);
               return (
-                <Col>
+                <Col key={index}>
                   <Typography.Text>{char}</Typography.Text>
                 </Col>
               );

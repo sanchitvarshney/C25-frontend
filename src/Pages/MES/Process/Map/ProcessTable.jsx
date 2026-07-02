@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import FormTable2 from "../../../../Components/FormTable2";
-import { Button, Form, Input, Row, Space, Typography } from "antd";
+import { Button, Form, Input, Row, Typography } from "antd";
 import SelectProcessModal from "./SelectProcessModal";
 import { CloseOutlined } from "@ant-design/icons";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
@@ -141,7 +141,7 @@ const columns = (skuBomOptions, skuSfgOptions, locationOptions, form) => [
     name: "sfgSku",
     minWidth: 150,
     flex: true,
-    field: (row) => <MySelect options={skuSfgOptions} />,
+    field: () => <MySelect options={skuSfgOptions} />,
   },
 
   {
@@ -172,13 +172,13 @@ const columns = (skuBomOptions, skuSfgOptions, locationOptions, form) => [
     headerName: "Lot Size",
     name: "lotSize",
     width: 100,
-    field: (row) => <Input />,
+    field: () => <Input />,
   },
   {
     headerName: "Remark",
     name: "remark",
     width: 200,
-    field: (row) => <Input />,
+    field: () => <Input />,
   },
 ];
 

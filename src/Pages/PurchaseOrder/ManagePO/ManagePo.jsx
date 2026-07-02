@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Button, Col, Input, Row, Space } from "antd";
+import { useState } from "react";
+import {  Col, Input, Row, Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
 import printFunction, {
@@ -14,7 +14,7 @@ import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import UploadDoc from "./UploadDoc";
 import { downloadCSV } from "../../../Components/exportToCSV";
-import TableActions, {
+import {
   CommonIcons,
 } from "../../../Components/TableActions.jsx/TableActions";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
@@ -29,7 +29,7 @@ const ManagePO = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [viewLoading, setViewLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [showViewSidebar, setShowViewSideBar] = useState(false);
@@ -99,6 +99,7 @@ const ManagePO = () => {
       getActions: ({ row }) => [
         // Edit icon
         <GridActionsCellItem
+        key={"edit"}
           showInMenu
           // disabled={disabled}
           label={"Edit"}
@@ -106,6 +107,7 @@ const ManagePO = () => {
         />,
         // VIEW Icon
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           // disabled={disabled}
           label="View"
@@ -114,6 +116,7 @@ const ManagePO = () => {
 
         // Download icon
         <GridActionsCellItem
+          key={"download"}
           showInMenu
           // disabled={disabled}
           label="Download"
@@ -123,6 +126,7 @@ const ManagePO = () => {
 
         // Print Icon
         <GridActionsCellItem
+          key={"print"}
           showInMenu
           // disabled={disabled}
           label="Print"
@@ -132,6 +136,7 @@ const ManagePO = () => {
 
         // Close PO icon
         <GridActionsCellItem
+          key={"close"}
           showInMenu
           // disabled={disabled}
           label="Cancel"
@@ -141,6 +146,8 @@ const ManagePO = () => {
 
         // Upload DOC Icon
         <GridActionsCellItem
+          key={"upload"}
+          onClick={() => setShowUploadDocModal2(row.po_transaction)}
           showInMenu
           // disabled={disabled}
           label="Upload FIle"

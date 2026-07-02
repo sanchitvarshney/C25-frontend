@@ -20,6 +20,7 @@ import {
 } from "@ant-design/icons";
 
 import { imsAxios } from "../../../axiosInterceptor";
+import {useToast} from "../../../hooks/useToast";
 import useLoading from "../../../hooks/useLoading";
 import { v4 } from "uuid";
 
@@ -28,7 +29,7 @@ const { Text, Title } = Typography;
 const ViewPOLogs = ({ poId, setPoId }) => {
   const [loading, setLoading] = useLoading();
   const [poLogsData, setPoLogsData] = useState([]);
-
+const {showToast} = useToast();
   const getStatusConfig = (status) => {
     const statusUpper = (status || "").toUpperCase().trim();
 
@@ -89,13 +90,12 @@ const ViewPOLogs = ({ poId, setPoId }) => {
           // Reverse to show latest first
           setPoLogsData(arr.reverse());
         } else {
-          toast.error(response.message || "Failed to fetch PO logs");
+          showToast(response.message || "Failed to fetch PO logs");
           setPoLogsData([]);
         }
       
     } catch (error) {
-      console.error("Error fetching PO logs:", error);
-      toast.error(error?.message || "Error fetching PO logs");
+      showToast(error?.message || "Error fetching PO logs");
       setPoLogsData([]);
     } finally {
       setLoading("fetch", false);
@@ -115,7 +115,7 @@ const ViewPOLogs = ({ poId, setPoId }) => {
     setPoLogsData([]);
   };
 
-  const timelineItems = poLogsData.map((log, index) => {
+  const timelineItems = poLogsData.map((log) => {
     const statusConfig = getStatusConfig(log.po_log_status);
 
     return {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import {
   Button,
@@ -10,7 +10,6 @@ import {
   Drawer,
   Space,
   InputNumber,
-  Popconfirm,
   Modal,
 } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -48,7 +47,7 @@ const AddVendorSideBar = ({ setOpen, open }) => {
   });
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  // const [submitLoading, setSubmitLoading] = useState(false);
   const [files, setFiles] = useState([]);
 
   const [addVendorForm] = Form.useForm();
@@ -124,7 +123,7 @@ const AddVendorSideBar = ({ setOpen, open }) => {
     formData.append("uploadfile", files[0]);
 
     const response = await imsAxios.post("/vendor/addVendor", formData);
-    setSubmitLoading(false);
+    // setSubmitLoading(false);
     if (response.success) {
       // fetchVendor();
       reset();
@@ -133,9 +132,9 @@ const AddVendorSideBar = ({ setOpen, open }) => {
       // setShowAddVendorModal(false);
     } else {
       showToast(response.message?.msg || response.message, "error");
-      setSubmitLoading(false);
+      // setSubmitLoading(false);
     }
-    setSubmitLoading(false);
+    // setSubmitLoading(false);
   };
 
   const reset = () => {

@@ -1,5 +1,5 @@
 import { Button, Card, Col, Row, Space, Upload, Form } from "antd";
-import React, { useState } from "react";
+import  { useState } from "react";
 import { downloadCSVCustomColumns } from "../../../../Components/exportToCSV";
 import MyDataTable from "../../../../Components/MyDataTable";
 import { InboxOutlined } from "@ant-design/icons";
@@ -81,7 +81,7 @@ function StockControl() {
 
     maxCount: 1,
 
-    beforeUpload(file) {
+    beforeUpload() {
       return false;
     },
   };

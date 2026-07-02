@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import  { useState, useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import { Button, Col, Drawer, Form, Input, Row, Modal } from "antd";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -28,14 +27,13 @@ export default function CancelPO({
   setShowCancelPO,
   setRows,
   getSearchResults,
-  componentStatus,
   rows,
   variant = "cancel",
 }) {
   const labels = LABELS[variant] || LABELS.cancel;
   const { showToast } = useToast();
   const [reason, setReason] = useState("");
-  const [status, setStatus] = useState();
+  // const [status, setStatus] = useState();
   const [payment, setPayment] = useState(false);
   const [loading, setLoading] = useState(false);
   const getPOStatus = async () => {
@@ -44,10 +42,8 @@ export default function CancelPO({
         purchaseOrder: showCancelPO,
       });
       if (response.success) {
-        setStatus("okay");
+        // setStatus("okay");
         setPayment(response?.data?.advPayment == "1" ? true : false);
-      } else {
-        setStatus(response);
       }
     }
   };

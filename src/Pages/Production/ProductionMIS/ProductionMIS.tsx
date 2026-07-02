@@ -1,36 +1,30 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
   Card,
   Col,
   Collapse,
-  Flex,
   Form,
   Row,
   Space,
-  Typography,
 } from "antd";
 //components
 import SingleProduct from "@/Pages/Production/ProductionMIS/SingleProduct";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
+//@ts-ignore
 import MyButton from "@/Components/MyButton/index.jsx";
 //hooks
 import useApi from "@/hooks/useApi.js";
 // apis
 import {
   getComponenentAndProduct,
-  getComponentOptions,
-  getProductsOptions,
 } from "@/api/general.js";
 import { getDepartmentOptions } from "@/api/master/department.js";
 import { createEntry, fetchShiftLabels } from "@/api/production/mis";
 import { normalizeFormRules } from "@/utils/general";
 import AddDepartmentModal from "@/Pages/Production/ProductionMIS/AddDepartment";
-import dayjs from "dayjs";
 import { SelectOptionType } from "@/types/general";
 import UpdateShiftLabel from "@/Pages/Production/ProductionMIS/UpdateShiftLabelt";
-import { convertSelectOptions } from "@/utils/general";
-
 const typeOptions = [
   {
     text: "FG",
@@ -111,6 +105,7 @@ function ProductionMIS() {
             <Form.Item
               name="department"
               label="Department"
+              //@ts-ignore
               rules={normalizeFormRules(rules.department)}
             >
               <MyAsyncSelect

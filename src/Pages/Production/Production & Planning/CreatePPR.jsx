@@ -158,6 +158,7 @@ const CreatePPR = () => {
           showToast( response.message, "error");
         }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }

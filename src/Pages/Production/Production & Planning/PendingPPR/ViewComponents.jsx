@@ -6,12 +6,11 @@ import { useState } from "react";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 import MyDataTable from "../../../../Components/MyDataTable";
 import Loading from "../../../../Components/Loading";
-import SummaryCard from "../../../../Components/SummaryCard";
 
 export default function ViewComponents({ viewComponents, setViewComponents }) {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [summaryDetails, setSummaryDetails] = useState([]);
+  // const [summaryDetails, setSummaryDetails] = useState([]);
   const [rows, setRows] = useState([]);
 
   const getRows = async () => {
@@ -72,7 +71,7 @@ export default function ViewComponents({ viewComponents, setViewComponents }) {
       ];
 
       console.log(obj);
-      setSummaryDetails(obj);
+      // setSummaryDetails(obj);
     }
   }, [viewComponents]);
   return (

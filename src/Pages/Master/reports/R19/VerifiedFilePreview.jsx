@@ -1,5 +1,4 @@
 import { Button, Modal } from "antd";
-import React from "react";
 import MyDataTable from "../../../../Components/MyDataTable";
 
 function VerifiedFilePreview({
@@ -21,11 +20,12 @@ function VerifiedFilePreview({
       width={800}
       title="Confirm Uploading these records?"
       footer={[
-        <Button onClick={() => setVerifiedFile(false)}>Cancel</Button>,
+        <Button  key={"cancel"} onClick={() => setVerifiedFile(false)}>Cancel</Button>,
         <Button
           loading={loading === "2"}
           onClick={submitHandler}
           type="primary"
+          key={"submit"}
         >
           Submit
         </Button>,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { useToast } from "../../../../hooks/useToast.js";
 import Select from "react-select";
@@ -42,21 +42,6 @@ export default function PendingModal({
       id: v4(),
       name: "Other",
       data: [],
-    },
-  ]);
-
-  const [valueComesApi, setValueComesApi] = useState({
-    actualConsumption: [],
-    rejected: [],
-    remark: [],
-  });
-
-  const [changeValue, setChangeValue] = useState([
-    {
-      actQty: "",
-      rej: "",
-      rem: "",
-      type: "",
     },
   ]);
 
@@ -131,113 +116,79 @@ export default function PendingModal({
     //    );
     //  }
   };
-  const customStyles = {
-    rows: {
-      style: {
-        minHeight: "35px", // override the row height
-      },
-    },
-    headCells: {
-      style: {
-        background: "#4D636F",
-        color: "white",
-        // minHeight: "72px"
 
-        // fontSize: "12px",
-      },
-    },
-    cells: {
-      style: {
-        fontSize: "10px",
-        // minHeight: "5px",
-      },
-    },
-  };
+  const fetchDetailWhenClickModal = async () => {
+    try {
+      setLoading(true);
 
-  const columns = [
-    { name: "FG Type", selector: (row) => row.fgtype },
-    { name: "Part Code", selector: (row) => row.partcode },
-    { name: "Component", selector: (row) => row.component },
-    { name: "UoM", selector: (row) => row.unit },
-    { name: "Part Consumed", selector: (row) => row.cons_qty },
-    { name: "Consume Loc", selector: (row) => row.cons_loc },
-  ];
-
-const fetchDetailWhenClickModal = async () => {
-  try {
-    setLoading(true);
-
-    const response = await imsAxios.post(
-      "/ppr/fetchPprComponentDetails",
-      {
+      const response = await imsAxios.post("/ppr/fetchPprComponentDetails", {
         accesstoken: showModal?.prod_randomcode ?? "--",
         pprrequest: showModal?.prod_transaction,
-        sku: showModal?.prod_product_sku ,
-      }
-    );
-
-    let arr = tabs;
-
-    if (response.success) {
-      setHeaderData(response.data.header_data);
-
-      arr = arr.map((tab) => {
-        if (tab.name === "Part") {
-          return {
-            ...tab,
-            data: response.data.comp_data?.filter(
-              (item) => item?.type === "P"
-            ),
-          };
-        }
-
-        if (tab.name === "Packing") {
-          return {
-            ...tab,
-            data: response.data.comp_data?.filter(
-              (item) => item?.type === "PCK"
-            ),
-          };
-        }
-
-        if (tab.name === "Other") {
-          return {
-            ...tab,
-            data: response.data.comp_data?.filter(
-              (item) => item?.type === "O"
-            ),
-          };
-        }
-
-        return tab;
+        sku: showModal?.prod_product_sku,
       });
 
-      arr = arr.map((row) => ({
-        ...row,
-        data: row.data?.map((r) => ({
-          ...r,
-          actQty: "",
-          rej: "",
-          rem: "",
-        })) || [],
-      }));
+      let arr = tabs;
 
-      setTabs(arr);
+      if (response.success) {
+        setHeaderData(response.data.header_data);
+
+        arr = arr.map((tab) => {
+          if (tab.name === "Part") {
+            return {
+              ...tab,
+              data: response.data.comp_data?.filter(
+                (item) => item?.type === "P",
+              ),
+            };
+          }
+
+          if (tab.name === "Packing") {
+            return {
+              ...tab,
+              data: response.data.comp_data?.filter(
+                (item) => item?.type === "PCK",
+              ),
+            };
+          }
+
+          if (tab.name === "Other") {
+            return {
+              ...tab,
+              data: response.data.comp_data?.filter(
+                (item) => item?.type === "O",
+              ),
+            };
+          }
+
+          return tab;
+        });
+
+        arr = arr.map((row) => ({
+          ...row,
+          data:
+            row.data?.map((r) => ({
+              ...r,
+              actQty: "",
+              rej: "",
+              rem: "",
+            })) || [],
+        }));
+
+        setTabs(arr);
+      }
+    } catch (error) {
+      console.error("Error fetching component details:", error);
+
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch component details";
+
+      if (showToast) showToast(message, "error");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching component details:", error);
-
-    const message =
-      error?.response?.data?.message ||
-      error?.message ||
-      "Failed to fetch component details";
-
-    const showToast = getGlobalToast();
-    if (showToast) showToast(message, "error");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   const getLocation = async () => {
     const response = await imsAxios.get("/ppr/mfg_locations");
     const arr = [];
@@ -519,8 +470,7 @@ const fetchDetailWhenClickModal = async () => {
                       <tbody>
                         {tabs
                           .filter((tab) => tab?.name == activeTab)[0]
-                          ?.data?.map((data, i) => {
-                            console.log(data);
+                          ?.data?.map((data) => {
                             return (
                               <tr key={data?.slno}>
                                 <td scope="row">{`${data.name} / ${data.partno}`}</td>
@@ -536,7 +486,7 @@ const fetchDetailWhenClickModal = async () => {
                                         "actQty",
                                         e.target.value,
                                         data.key,
-                                        data.type
+                                        data.type,
                                       )
                                     }
                                   />
@@ -551,7 +501,7 @@ const fetchDetailWhenClickModal = async () => {
                                         "rej",
                                         e.target.value,
                                         data.key,
-                                        data.type
+                                        data.type,
                                       )
                                     }
                                   />
@@ -566,7 +516,7 @@ const fetchDetailWhenClickModal = async () => {
                                         "rem",
                                         e.target.value,
                                         data.key,
-                                        data.type
+                                        data.type,
                                       )
                                     }
                                   />

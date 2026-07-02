@@ -1,24 +1,20 @@
-import React from "react";
+
 import { useParams } from "react-router-dom";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useState } from "react";
-import { useCallback } from "react";
 import { useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
   Card,
   Col,
-  Divider,
   Form,
   Radio,
   Row,
   Space,
   Steps,
-  Typography,
 } from "antd";
 import MyButton from "../../../../Components/MyButton";
 import FormField from "./FormField";
-import { motion } from "framer-motion";
 import { v4 } from "uuid";
 import Loading from "../../../../Components/Loading";
 
@@ -28,10 +24,10 @@ const UpdateCategory = () => {
   const [stage, setStage] = useState(0);
   const [categories, setCategories] = useState([]);
   const [existingValues, setExistingValues] = useState(null);
-  const [component, setComponent] = useState({
-    partCode: null,
-    componentName: null,
-  });
+  // const [component, setComponent] = useState({
+  //   partCode: null,
+  //   componentName: null,
+  // });
   const [selectedCategory, setselectedCategory] = useState(null);
   const { componentKey } = useParams();
 
@@ -52,6 +48,7 @@ const UpdateCategory = () => {
         }
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -73,6 +70,7 @@ const UpdateCategory = () => {
         }
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -86,15 +84,16 @@ const UpdateCategory = () => {
       const { data } = response;
       if (data) {
         if (response.success) {
-          setComponent({
-            partCode: data.data.c_part_no,
-            componentName: data.data.c_name,
-          });
+          // setComponent({
+          //   partCode: data.data.c_part_no,
+          //   componentName: data.data.c_name,
+          // });
         } else {
           showToast(response.message?.msg || response.message, "error");
         }
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -172,7 +171,6 @@ const SelectCategory = ({
   categories,
   selectedCategory,
   setselectedCategory,
-  setStage,
   stage,
 }) => {
   return (
@@ -196,7 +194,7 @@ const SelectCategory = ({
                 >
                   <Space direction="vertical">
                     {categories.map((cat, index) => (
-                      <Radio value={cat.id}>{cat.category}</Radio>
+                      <Radio key={index} value={cat.id}>{cat.category}</Radio>
                     ))}
                   </Space>
                 </Radio.Group>
@@ -217,7 +215,7 @@ const Fields = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [fields, setFields] = useState([]);
-
+const { showToast } = useToast();
   const [categoryForm] = Form.useForm();
   const getFields = async (category) => {
     try {
@@ -256,6 +254,7 @@ const Fields = ({
         categoryForm.setFieldsValue(finalObj);
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -302,6 +301,7 @@ const Fields = ({
         }
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -341,8 +341,8 @@ const Fields = ({
             <Col span={24}>
               <Form layout="vertical" form={categoryForm}>
                 <Row gutter={6}>
-                  {fields.map((field) => (
-                    <Col span={8}>
+                  {fields.map((field,idx) => (
+                    <Col span={8} key={field.key ?? idx}>
                       <FormField field={field} />
                     </Col>
                   ))}

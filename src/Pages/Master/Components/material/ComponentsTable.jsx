@@ -4,9 +4,7 @@ import { Tag } from "antd";
 
 export default function ComponentsTable({
   actionColumn,
-
   components,
-  
   loading,
 
 }) {

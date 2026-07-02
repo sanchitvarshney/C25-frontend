@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Col, Row } from "antd";
 import AddProcessForm from "./AddProcessForm";
 import ProcessTable from "./ProcessTable";
@@ -10,7 +10,7 @@ const CreateProcess = () => {
 
   const getAllProcesses = async () => {
     setLoading("fetch");
-    const { data, success, error } = await processApi.getAllProcesses();
+    const { data } = await processApi.getAllProcesses();
     setLoading(false);
     setRows(data);
   };

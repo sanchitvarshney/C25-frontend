@@ -1,6 +1,5 @@
 import { Form, Upload } from "antd";
-import React from "react";
-import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
+import { InboxOutlined } from "@ant-design/icons";
 import { normalizeFormRules } from "../../../../utils/general";
 
 const UploadFile = ({ rules }) => {
@@ -10,7 +9,7 @@ const UploadFile = ({ rules }) => {
 
     maxCount: 1,
 
-    beforeUpload(file) {
+    beforeUpload() {
       return false;
     },
   };

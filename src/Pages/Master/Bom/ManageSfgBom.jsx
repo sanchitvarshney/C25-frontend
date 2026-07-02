@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ViewSFGModal from "./ViewSFGModal";
 import EditSFGModal from "./EditSFGModal";
 import { v4 } from "uuid";
@@ -38,8 +38,8 @@ function ManageSfgBom() {
       width: 200,
       type: "actions",
       getActions: ({ row }) => [
-        <TableActions action="view" onClick={() => setSfgViewModal(row)} />,
-        <TableActions action="edit" onClick={() => setSfgEditModal(row)} />,
+        <TableActions key={"view"} action="view" onClick={() => setSfgViewModal(row)} />,
+        <TableActions key={"edit"} action="edit" onClick={() => setSfgEditModal(row)} />,
       ],
     },
   ];

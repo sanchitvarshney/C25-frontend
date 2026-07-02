@@ -1,18 +1,22 @@
+//@ts-ignore
 import ToolTipEllipses from "../../../Components/ToolTipEllipses.jsx";
+//@ts-ignore
 import MyDataTable from "../../../Components/MyDataTable.jsx";
+//@ts-ignore
 import TableActions from "../../../Components/TableActions.jsx/TableActions.jsx";
-import { ProductType } from "@/types/master";
+//@ts-ignore
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
+//@ts-ignore
 import { downloadCSVnested2 } from "../../../Components/exportToCSV";
 import { Row } from "antd";
 
 interface PropTypes {
-  rows: ProductType[];
+  rows: any[];
   loading: boolean;
   setEditingProduct: React.Dispatch<React.SetStateAction<string | boolean>>;
-  setUpdatingImage: React.Dispatch<React.SetStateAction<false | ProductType>>;
-  productType: ProductType["type"];
-  setShowImages: React.Dispatch<React.SetStateAction<false | ProductType>>;
+  setUpdatingImage: React.Dispatch<React.SetStateAction<false | any>>;
+  productType: any;
+  setShowImages: React.Dispatch<React.SetStateAction<false | any>>;
 }
 function View({
   rows,
@@ -27,7 +31,7 @@ function View({
       headerName: "Actions",
       width: 100,
       type: "actions",
-      getActions: ({ row }: { row: ProductType }) => [
+      getActions: ({ row }: { row: any }) => [
         <TableActions
           action="edit"
           onClick={() => row.productKey && setEditingProduct(row.productKey)}
@@ -69,13 +73,13 @@ const columns = [
     headerName: "Product Name",
     field: "name",
     flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.name} />,
+    renderCell: ({ row }:any) => <ToolTipEllipses text={row.name} />,
   },
   {
     headerName: "SKU",
     field: "sku",
     width: 100,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.sku} copy={true} />,
+    renderCell: ({ row }:any) => <ToolTipEllipses text={row.sku} copy={true} />,
   },
   {
     headerName: "Unit",
@@ -86,7 +90,7 @@ const columns = [
     headerName: "Category",
     field: "category",
     width: 100,
-    renderCell: ({ row }) => (
+    renderCell: ({ row }:any) => (
       <>
         {row?.category == ""
           ? "--"

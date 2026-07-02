@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import CurrenceModal from "../ManagePO/CurrenceModal";
 import NavFooter from "../../../Components/NavFooter";
@@ -7,7 +7,6 @@ import {
   componentSelect,
   disabledCell,
   foreignCell,
-  gstRate,
   gstTypeCell,
   HSNCell,
   IGSTCell,
@@ -26,8 +25,7 @@ import { imsAxios } from "../../../axiosInterceptor";
 import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import FormTable from "../../../Components/FormTable.jsx";
-import { getInt } from "../../../utils/general.ts";
-
+import { useToast } from "../../../hooks/useToast.js";
 import MyButton from "../../../Components/MyButton/index.jsx";
 
 import { InboxOutlined } from "@ant-design/icons";
@@ -58,13 +56,12 @@ export default function AddComponents({
   totalValues,
   submitLoading,
   newPurchaseOrder,
-  setStateCode,
   gstState,
   open,
   setOpen,
 }) {
   const projectId = form.getFieldsValue()?.project_name?.value;
-
+const {showToast} = useToast();
   const venderCode = form.getFieldsValue()?.vendorname?.key;
   const [currencies, setCurrencies] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
@@ -394,7 +391,8 @@ export default function AddComponents({
     const values = uploadForm.getFieldsValue();
 
     if (!values.files?.length || !values.files[0]?.originFileObj) {
-      toast.error("Please select a file");
+
+      showToast("Please select a file", "error");
 
       setPreview(false);
 
@@ -487,9 +485,8 @@ export default function AddComponents({
 
         setPreviewRows(arr);
       } else {
-        toast.error(
-          response?.message?.msg ?? response?.message ?? "Upload failed",
-        );
+     
+        showToast(response?.message?.msg ?? response?.message ?? "Upload failed", "error");
 
         setLoading(false);
 
@@ -498,7 +495,7 @@ export default function AddComponents({
     } catch (error) {
       setLoading(false);
 
-      toast.error(error.message || "Excel upload failed");
+      showToast(error.message || "Excel upload failed", "error");
     }
   };
 
@@ -751,10 +748,10 @@ export default function AddComponents({
         if (row.id == id) {
           let obj = row;
           let newLastRate = Number(response.data.rate.toString().trim());
-          let percentage = response.data.gstrate;
+          // let percentage = response.data.gstrate;
 
           if (autoGstType == "L") {
-            percentage = response.data.gstrate / 2;
+            // percentage = response.data.gstrate / 2;
             obj = {
               ...obj,
               component: value,

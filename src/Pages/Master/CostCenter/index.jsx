@@ -4,8 +4,10 @@ import AddCostCenterForm from "./AddCostCenterForm";
 import CostCenterTable from "./CostCenterTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useState } from "react";
+import { useToast } from "../../../hooks/useToast";
 
 const CostCenter = () => {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [costCenteres, setCostCenteres] = useState([]);
   const getCostCenters = async () => {
@@ -23,6 +25,7 @@ const CostCenter = () => {
         setCostCenteres(arr);
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }

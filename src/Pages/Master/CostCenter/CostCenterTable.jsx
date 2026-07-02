@@ -1,4 +1,4 @@
-import React from "react";
+
 import MyDataTable from "../../../Components/MyDataTable";
 
 const CostCenterTable = ({ loading, rows }) => {

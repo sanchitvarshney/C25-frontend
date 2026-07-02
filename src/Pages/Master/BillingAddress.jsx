@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AddBilling from "./Modal/AddBilling";
 import MyDataTable from "../../Components/MyDataTable";
 import { v4 } from "uuid";
@@ -9,8 +9,8 @@ import { imsAxios } from "../../axiosInterceptor";
 const BillingAddress = () => {
   const [dataa, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filterData, setFilterData] = useState([]);
-  const [search, setSearch] = useState("");
+  // const [filterData, setFilterData] = useState([]);
+  // const [search, setSearch] = useState("");
   const [ShowAddBillingModal, setShowAddBillingModal] = useState(false);
 
   const fetchLocation = async () => {
@@ -42,12 +42,12 @@ const BillingAddress = () => {
     fetchLocation();
   }, []);
 
-  useEffect(() => {
-    const res = dataa.filter((a) => {
-      return a.company.toLowerCase().match(search.toLowerCase());
-    });
-    setFilterData(res);
-  }, [search]);
+  // useEffect(() => {
+  //   const res = dataa.filter((a) => {
+  //     return a.company.toLowerCase().match(search.toLowerCase());
+  //   });
+  //   setFilterData(res);
+  // }, [search]);
 
   return (
     <div style={{ height: "100%", padding:10 }}>

@@ -1,14 +1,11 @@
-import { ModalType, SelectOptionType } from "@/types/general";
+
 import { Button, Divider, Flex, Modal, Typography } from "antd";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import MySelect from "@/Components/MySelect.jsx";
 import { useEffect, useState } from "react";
 
-interface Props extends ModalType {
-  reasonOptions: SelectOptionType[];
-  submitHandler: (reason: string, status: "PASS" | "FAIL") => void;
-  loading: (name: string) => void;
-}
 
 const InsertModal = ({
   hide,
@@ -16,7 +13,7 @@ const InsertModal = ({
   loading,
   submitHandler,
   reasonOptions,
-}: Props) => {
+}: any) => {
   const [reason, setReason] = useState();
   const [failDanger, setFailDanger] = useState(false);
 

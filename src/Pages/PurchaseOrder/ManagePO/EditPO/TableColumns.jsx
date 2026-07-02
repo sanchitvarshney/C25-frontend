@@ -2,7 +2,6 @@ import { Input } from "antd";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import InputMask from "react-input-mask";
 import MySelect from "../../../../Components/MySelect";
-import SingleDatePicker from "../../../../Components/SingleDatePicker";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
   { value: "L", text: "LOCAL" },
@@ -53,7 +52,7 @@ export const rateCell = ({ row }, inputHandler, currencies) => (
     </div>
   </Input.Group>
 );
-export const disabledCell = (value, inputHandler) => (
+export const disabledCell = (value) => (
   <Input
     disabled={true}
     value={value}

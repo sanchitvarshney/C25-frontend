@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { AiFillDelete } from "react-icons/ai";
-import { v4 } from "uuid";
 import { useToast } from "../../../hooks/useToast.js";
 import {
   Button,
@@ -24,13 +23,13 @@ export default function UploadDoc({
 }) {
   const { showToast } = useToast();
   const [existingFiles, setExistinFiles] = useState([]);
-  const [fileToBeDeleted, setFileToBeDeleted] = useState(null);
+  // const [fileToBeDeleted, setFileToBeDeleted] = useState(null);
   const [fileName, setFileName] = useState("");
   const [uploadLoading, setUploadLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [showExistingFiles, setShowExistingFiles] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  // const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const getPoExistingDocuments = async () => {
     setLoading(true);
@@ -72,7 +71,7 @@ export default function UploadDoc({
       }
     );
     if (response.success) {
-      setFileToBeDeleted(null);
+      // setFileToBeDeleted(null);
       showToast(response.message, "success");
       await getPoExistingDocuments(showUploadDocModal2?.poId);
     } else {
@@ -86,7 +85,7 @@ export default function UploadDoc({
       setFileList([file]);
       return false;
     },
-    onRemove: (file) => {
+    onRemove: () => {
       setFileList([]);
     },
     fileList,
@@ -210,10 +209,11 @@ export default function UploadDoc({
                   <List.Item
                     actions={[
                       <Popconfirm
+                      key="delete"
                         title="Are you sure to delete this Document?"
                         onConfirm={() => deleteFun(item)}
                         onCancel={() => {
-                          setDeleteConfirm(null);
+                          // setDeleteConfirm(null);
                         }}
                         okText="Yes"
                         cancelText="No"

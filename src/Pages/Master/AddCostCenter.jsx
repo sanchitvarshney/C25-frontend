@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Form, Input, Row } from "antd";
+import { Button, Form, Input } from "antd";
 import PropTypes from "prop-types";
 import { imsAxios } from "../../axiosInterceptor";
 import MyDataTable from "../../Components/MyDataTable";

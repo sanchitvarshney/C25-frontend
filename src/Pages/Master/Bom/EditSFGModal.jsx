@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import Alter from "./Alter";
 import {
@@ -27,10 +27,10 @@ const EditSFGModal = ({ sfgEditModal, setSfgEditModal }) => {
   const [fetchData, setFetchData] = useState([]);
   const [secondData, setSecondData] = useState([]);
   const [pageLoading, setPageLoading] = useState(false);
-  const [searchInput, setSearchInput] = useState(null);
+  // const [searchInput, setSearchInput] = useState(null);
   const [altModal, setAltModal] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [addUpdateLoading, setAddUpdateLoading] = useState(false);
   const [updateRowLoading, setUpdateRowLoading] = useState(false);
   const [addingEmergingPart, setAddingEmergingPart] = useState(false);
@@ -56,7 +56,7 @@ const EditSFGModal = ({ sfgEditModal, setSfgEditModal }) => {
     const response = await imsAxios.post("/bom/fetchProductInBom", {
       subject_id: sfgEditModal?.subject_id,
     });
-    setFetchData(data.data);
+    setFetchData(response.data);
   };
   const selectInputHandler = (name, id, value) => {
     setSecondData((rows) =>
@@ -102,13 +102,13 @@ const EditSFGModal = ({ sfgEditModal, setSfgEditModal }) => {
 
   const loadData = async (e) => {
     if (e.length > 2) {
-      setSelectLoading(true);
+      // setSelectLoading(true);
       // const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
       //   search: e,
       // });
       const response = await executeFun(() => getComponentOptions(e), "select");
       const { data } = response;
-      setSelectLoading(false);
+      // setSelectLoading(false);
       let arr = [];
       arr = data.map((vList) => {
         return { text: vList.text, value: vList.id };
@@ -197,24 +197,24 @@ const EditSFGModal = ({ sfgEditModal, setSfgEditModal }) => {
       showToast(errorToast(response.message), "error");
     }
   };
-  const handlerEmergingMogal = (row) => {
-    let obj = {
-      subject: sfgEditModal.subject_id,
-      parent_part: row.compKey,
-      componentName: row.component + " / " + row.partcode,
-      bom: fetchData?.subject,
-    };
-    setAddingEmergingPart(obj);
-  };
-  const handleViewEmerging = async (row) => {
-    let obj = {
-      subject: sfgEditModal.subject_id,
-      parent_part: row.compKey,
-      componentName: row.component + " / " + row.partcode,
-      bom: fetchData?.subject,
-    };
-    setViewEmergingPart(obj);
-  };
+  // const handlerEmergingMogal = (row) => {
+  //   let obj = {
+  //     subject: sfgEditModal.subject_id,
+  //     parent_part: row.compKey,
+  //     componentName: row.component + " / " + row.partcode,
+  //     bom: fetchData?.subject,
+  //   };
+  //   setAddingEmergingPart(obj);
+  // };
+  // const handleViewEmerging = async (row) => {
+  //   let obj = {
+  //     subject: sfgEditModal.subject_id,
+  //     parent_part: row.compKey,
+  //     componentName: row.component + " / " + row.partcode,
+  //     bom: fetchData?.subject,
+  //   };
+  //   setViewEmergingPart(obj);
+  // };
   const columns = [
     {
       headerName: (
@@ -243,7 +243,7 @@ const EditSFGModal = ({ sfgEditModal, setSfgEditModal }) => {
             selectLoading={loading1("select")}
             optionsState={asyncOptions}
             loadOptions={loadData}
-            onInputChange={(e) => setSearchInput(e)}
+            // onInputChange={(e) => setSearchInput(e)}
             onChange={(value) => selectInputHandler("component", row.id, value)}
           />
         ) : (

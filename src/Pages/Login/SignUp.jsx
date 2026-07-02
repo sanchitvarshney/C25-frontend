@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Box } from "@mui/material";
 import { Row, Col, Typography, Form, Input, Button, Modal } from "antd";
@@ -16,7 +16,7 @@ const SignUp = () => {
   const { showToast } = useToast();
   const [captchaInput, setCaptchaInput] = useState("");
   const [expectedCaptchaCode, setExpectedCaptchaCode] = useState("");
-  const [captchaKey, setCaptchaKey] = useState(Math.random());
+  // const [captchaKey, setCaptchaKey] = useState(Math.random());
 
   const isCaptchaValid = () => captchaInput.trim() === expectedCaptchaCode;
 
@@ -186,7 +186,7 @@ const SignUp = () => {
             </Form>
             <div className="flex justify-center">
               <ImageCaptcha
-                key={captchaKey}
+              
                 value={captchaInput}
                 onChange={(e) => setCaptchaInput(e.target.value)}
                 onCodeChange={setExpectedCaptchaCode}

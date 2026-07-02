@@ -1,19 +1,11 @@
-import {
-  Button,
-  Card,
-  Col,
-  Flex,
-  Form,
-  Input,
-  InputNumber,
-  Row,
-  TimePicker,
-  Typography,
-} from "antd";
+import { Card, Flex, Form, Input, TimePicker, Typography } from "antd";
+//@ts-ignore
 import MySelect from "@/Components/MySelect";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect";
+//@ts-ignore
 import SingleDatePicker from "@/Components/SingleDatePicker";
-import { CommonIcons } from "@/Components/TableActions.jsx/TableActions";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
 import { normalizeFormRules } from "@/utils/general";
 import { useEffect } from "react";
@@ -33,7 +25,7 @@ export default function SingleProduct({
   shiftLabelOptions,
   shiftLabelOptionsRaw,
   typeOptions,
-}) {
+}: any) {
   const format = "HH";
   const format1 = "HH:mm";
   const workingHours = Form.useWatch(["shifts", field.name, "shiftHours"]);
@@ -47,7 +39,7 @@ export default function SingleProduct({
   ]);
 
   const handleShiftUpdate = (id: string) => {
-    const found = shiftLabelOptionsRaw.find((row) => row.id === id);
+    const found = shiftLabelOptionsRaw.find((row: any) => row.id === id);
     const arr = [];
     if (found) {
       arr.push(dayjs(found.start, format1));
@@ -80,12 +72,12 @@ export default function SingleProduct({
       if (workDdiff < diff) {
         form.setFieldValue(
           ["shifts", field.name, "overTime"],
-          dayjs(final, "HH:mm")
+          dayjs(final, "HH:mm"),
         );
       } else {
         form.setFieldValue(
           ["shifts", field.name, "overTime"],
-          dayjs("00:00", "HH:mm")
+          dayjs("00:00", "HH:mm"),
         );
       }
     }
@@ -94,7 +86,7 @@ export default function SingleProduct({
     if (workingHours?.length > 0) {
       form.setFieldValue(
         ["shifts", field.name, "workingTimings"],
-        workingHours
+        workingHours,
       );
     }
   }, [workingHours]);
@@ -105,7 +97,7 @@ export default function SingleProduct({
   }, [shift]);
 
   useEffect(() => {
-    const found = asyncOptions.find((row) => row.value === product);
+    const found = asyncOptions.find((row: any) => row.value === product);
 
     if (found) {
       form.setFieldValue(["shifts", field.name, "productType"], found.type);
@@ -121,6 +113,7 @@ export default function SingleProduct({
           style={{ width: 100 }}
           label="Shift"
           name={[field.name, "shiftLabel"]}
+          //@ts-ignore
           rules={normalizeFormRules(rules?.shiftLabel)}
         >
           <MySelect options={shiftLabelOptions} />
@@ -130,6 +123,7 @@ export default function SingleProduct({
           style={{ width: 140 }}
           label="Product Type"
           name={[field.name, "productType"]}
+          //@ts-ignore
           rules={normalizeFormRules(rules?.shiftLabel)}
         >
           <MySelect disabled options={typeOptions} />
@@ -138,6 +132,7 @@ export default function SingleProduct({
           style={{ width: 100 }}
           label="Line No."
           name={[field.name, "lineCount"]}
+          //@ts-ignore
           rules={normalizeFormRules(rules?.lineCount)}
         >
           <Input />
@@ -146,6 +141,7 @@ export default function SingleProduct({
           <Form.Item
             label="Product/Component"
             name={[field.name, "product"]}
+            //@ts-ignore
             rules={normalizeFormRules(rules?.product)}
           >
             <MyAsyncSelect
@@ -162,6 +158,7 @@ export default function SingleProduct({
           style={{ width: 100 }}
           label="Manpower"
           name={[field.name, "manPower"]}
+          //@ts-ignore
           rules={normalizeFormRules(rules?.manPower)}
         >
           <Input />
@@ -171,14 +168,20 @@ export default function SingleProduct({
           style={{ width: 100 }}
           label="Output"
           name={[field.name, "output"]}
+          //@ts-ignore
           rules={normalizeFormRules(rules?.output)}
         >
           <Input />
         </Form.Item>
 
-        <Form.Item label="Date" name={[field.name, "date"]} rules={normalizeFormRules(rules?.date)}>
+        <Form.Item
+          label="Date"
+          name={[field.name, "date"]}
+          //@ts-ignore
+          rules={normalizeFormRules(rules?.date)}
+        >
           <SingleDatePicker
-            setDate={(value) =>
+            setDate={(value: any) =>
               form.setFieldValue(["shifts", field.name, "date"], value)
             }
           />
@@ -187,6 +190,7 @@ export default function SingleProduct({
           <Form.Item
             label="Shift Timing"
             name={[field.name, "shiftHours"]}
+            //@ts-ignore
             rules={normalizeFormRules(rules?.shiftStart)}
           >
             <TimePicker.RangePicker format={"HH:mm"} order={false} />
@@ -197,6 +201,7 @@ export default function SingleProduct({
           <Form.Item
             label="Shift Start - End"
             name={[field.name, "workingTimings"]}
+            //@ts-ignore
             rules={normalizeFormRules(rules?.workingHoursHours)}
           >
             <TimePicker.RangePicker

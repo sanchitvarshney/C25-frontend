@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import SideModal from "./SideModal";
 import EditModal from "./EditModal";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -14,10 +14,9 @@ const ViewBom = () => {
   const [open, setOpen] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const [modalEditOpen, setModalEditOpen] = useState(false);
-  const [filter, setFilter] = useState([]);
-  const [search, setSearch] = useState("");
+  // const [filter, setFilter] = useState([]);
+  // const [search, setSearch] = useState("");
 
   const columns = [
     { field: "ID", headerName: "Serial No.", width: 80 },
@@ -30,12 +29,13 @@ const ViewBom = () => {
       type: "actions",
       getActions: ({ row }) => [
         <TableActions
+        key={"view"}
           action="view"
           onClick={() =>
             setOpen({ bomId: row.subject_id, bomName: row.subject_name })
           }
         />,
-        <TableActions action="edit" onClick={() => setModalEditOpen(row)} />,
+        <TableActions key={"edit"} action="edit" onClick={() => setModalEditOpen(row)} />,
       ],
     },
   ];
@@ -52,12 +52,12 @@ const ViewBom = () => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    const res = tableData.filter((a) => {
-      return a.subject_name.toLowerCase().match(search.toLowerCase());
-    });
-    setFilter(res);
-  }, [search]);
+  // useEffect(() => {
+  //   const res = tableData.filter((a) => {
+  //     return a.subject_name.toLowerCase().match(search.toLowerCase());
+  //   });
+  //   setFilter(res);
+  // }, [search]);
 
   useEffect(() => {
     fetchAllData();

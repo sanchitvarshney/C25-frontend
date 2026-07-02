@@ -1,39 +1,37 @@
-import React, { useState } from "react";
-import { Button, Col, Result, Row } from "antd";
+
+import {  Col, Result, Row } from "antd";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
-import printFunction, {
-  downloadFunction,
-} from "../../../Components/printFunction";
+// import printFunction, {
+//   downloadFunction,
+// } from "../../../Components/printFunction";
 import MyDataTable from "../../../Components/MyDataTable";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
-import { imsAxios } from "../../../axiosInterceptor";
+// import { imsAxios } from "../../../axiosInterceptor";
 
 export default function SuccessPage({
   po,
-  successColumns,
   setNewPO,
-  resetFunction,
 }) {
-  const [printLoading, setPringLoading] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false);
-  const printFun = async () => {
-    setPringLoading(true);
+  // const [printLoading, setPringLoading] = useState(false);
+  // const [downloadLoading, setDownloadLoading] = useState(false);
+  // const printFun = async () => {
+  //   setPringLoading(true);
 
-    const response = await imsAxios.post("/poPrint", {
-      poid: po.poId,
-    });
-    setPringLoading(false);
-    printFunction(data.data.buffer.data);
-  };
-  const handleDownload = async () => {
-    setDownloadLoading(true);
-    const response = await imsAxios.post("/poPrint", {
-      poid: po?.poId,
-    });
-    setDownloadLoading(false);
-    let filename = po?.poId;
-    downloadFunction(data.data.buffer.data, filename);
-  };
+  //   const response = await imsAxios.post("/poPrint", {
+  //     poid: po.poId,
+  //   });
+  //   setPringLoading(false);
+  //   printFunction(data.data.buffer.data);
+  // };
+  // const handleDownload = async () => {
+  //   setDownloadLoading(true);
+  //   const response = await imsAxios.post("/poPrint", {
+  //     poid: po?.poId,
+  //   });
+  //   setDownloadLoading(false);
+  //   let filename = po?.poId;
+  //   downloadFunction(data.data.buffer.data, filename);
+  // };
   const columns = [
     {
       headerName: "Component",
@@ -77,7 +75,7 @@ export default function SuccessPage({
           po?.components.length
         } component${po?.components.length > 1 ? "s" : ""}) `}
         extra={[
-          <Row  gutter={16}>
+          <Row  gutter={16} key={"btn"}>
             <Col>
               <CommonIcons action={"refreshButton"} onClick={setNewPO} />
             </Col>
@@ -96,7 +94,7 @@ export default function SuccessPage({
               />
             </Col> */}
           </Row>,
-          <Row style={{ marginTop: 15, height: "40vh" }}>
+          <Row style={{ marginTop: 15, height: "40vh" }} key={"table"}>
             <MyDataTable data={po.components} columns={columns} />
           </Row>,
         ]}

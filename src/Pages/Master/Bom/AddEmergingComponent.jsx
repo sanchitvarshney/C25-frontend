@@ -1,5 +1,5 @@
 import { Modal, Row, Typography } from "antd";
-import React, { useState } from "react";
+import  { useState } from "react";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useEffect } from "react";
@@ -63,7 +63,6 @@ export default function AddEmergingComponent({
       subject: confirm.subject,
     });
     setLoading(false);
-    const { data } = response;
     if (response.success) {
       showToast(response.message, "success");
       setConfirm(false);

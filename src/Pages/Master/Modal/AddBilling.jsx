@@ -1,5 +1,5 @@
 import { Button, Col, Drawer, Form, Input, Row, Space } from "antd";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import "./modal.css";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -22,7 +22,7 @@ const AddBilling = ({
     address: "",
   });
   const [selectLoading, setSelectLoading] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  // const [submitLoading, setSubmitLoading] = useState(false);
 
   const selectInputHandler = (name, value) => {
     setAddBilling((addBilling) => {
@@ -67,7 +67,7 @@ const AddBilling = ({
     } else if (!addBilling.address) {
       return showToast("Please Enter Address...", "error");
     } else {
-      setSubmitLoading(true);
+      // setSubmitLoading(true);
       const response = await imsAxios.post(
         "/billingAddress/saveBillingAddress",
         {
@@ -80,7 +80,7 @@ const AddBilling = ({
           address: addBilling.address,
         }
       );
-      setSubmitLoading(false);
+      // setSubmitLoading(false);
       if (response.success) {
         fetchLocation();
         setShowAddBillingModal(false);
@@ -131,7 +131,7 @@ const AddBilling = ({
                 <Input
                   value={addBilling.company}
                   onChange={(e) =>
-                    setAddBilling((company) => {
+                    setAddBilling(() => {
                       return { ...addBilling, company: e.target.value };
                     })
                   }

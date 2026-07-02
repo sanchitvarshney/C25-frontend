@@ -88,6 +88,7 @@ function ViewPhysicalProduction() {
     getActions: ({ row }) => [
       // show logs icon
       <GridActionsCellItem
+      key={"logs"}
         showInMenu
         // disabled={disabled}
         label={"View Logs"}

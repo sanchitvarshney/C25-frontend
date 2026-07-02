@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { Modal } from "antd";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";

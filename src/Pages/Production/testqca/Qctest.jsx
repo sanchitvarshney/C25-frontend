@@ -1,6 +1,6 @@
-import { Col, Form, Row, Space, Modal, Button, Card, Flex } from "antd";
+import { Col, Form, Row, Modal, Card, Flex } from "antd";
 import Input from "antd/es/input/Input";
-import React, { useState, useEffect, useRef } from "react";
+import  { useState, useEffect, useRef } from "react";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -109,7 +109,7 @@ const Qctest = () => {
   const [currentscan, setCurrentScan] = useState(0);
   const [passedscan, setPassedScan] = useState(0);
   const [failedscan, setFailedScan] = useState(0);
-  const [totallotscan, setTotalLotScan] = useState(0);
+  // const [totallotscan, setTotalLotScan] = useState(0);
   const [failbuttonfun, SetFailButtonFun] = useState(true);
   const [failreason, SetFailReason] = useState("");
   const [processid, setProcessId] = useState("");
@@ -131,37 +131,47 @@ const Qctest = () => {
     setPproptions(arr);
   };
   const fetchSinglePPR = async (e) => {
-    setProcessOptions("");
+try{
+      setProcessOptions("");
     const response = await imsAxios.post("createqca/fetchPprDetails", {
       ppr_no: e,
     });
-    setPprNo(e);
+   if(response.success) {
+     setPprNo(e);
     setCustomerDetails({
-      customerName: data.data[0].customer_name,
-      productName: data.data[0].product_name,
+      customerName: response.data[0].customer_name,
+      productName: response.data[0].product_name,
     });
     setProductDetails({
       scannedQuantity: "",
       passedQuantity: "",
       failedQuantity: "",
       remainingQuantity: "",
-      totalQuantity: data.data[0].total_qty,
+      totalQuantity: response.data[0].total_qty,
     });
-    setAccesstoken(data.data[0].access_token);
-    setSkuNumber(data.data[0].product_sku);
-    getProcessofSku(data.data[0].product_sku);
+    setAccesstoken(response.data[0].access_token);
+    setSkuNumber(response.data[0].product_sku);
+    getProcessofSku(response.data[0].product_sku);
+   }else{
+    showToast(response.message?.msg || response.message, "error");
+   }
+
+}catch(e){
+  showToast(e.message?.msg || e.message, "error");
+
+}
   };
   //2) PROCESS SEARCH API
   const getProcessofSku = async (skucode) => {
     const response = await imsAxios.post("qaProcessmaster/fetchQAProcess", {
       sku: skucode,
     });
-    if (data.status === "error") {
+    if (response.success) {
       showToast(response.message?.msg || response.message, "error");
       setProcessOptions([]);
       return;
     }
-    setProcessData(data.data);
+    setProcessData(response.data);
     let arr = [];
     arr = response.data.map((d) => {
       return { text: d.process.name, value: d.process.key };
@@ -212,7 +222,7 @@ const Qctest = () => {
     setbuttonstyle("pointer");
     if (response.success ) {
       setScanData([...ScanData, scaannn]);
-      showToast(data.message.msg, "success");
+      showToast(response.message.msg ?? response.message, "success");
       setCurrentScan(currentscan + 1);
       setPassedScan(passedscan + 1);
       var x = passedscan + 1;
@@ -264,7 +274,7 @@ const Qctest = () => {
     setbuttonstyle("pointer");
     if (response.success ) {
       setScanData([...ScanData, scaannn]);
-      showToast(data.message.msg, "success");
+      showToast(response.message, "success");
       setFailedScan(failedscan + 1);
       var x = failedscan + 1;
       setCurrentScan(currentscan + 1);
@@ -291,7 +301,7 @@ const Qctest = () => {
   const getfaillist = async () => {
     const response = await imsAxios.get("/createqca/getDefectNames");
     let arr = [];
-    arr = data.map((item) => {
+    arr = response?.data.map((item) => {
       return { text: item.defect_name, value: item.problem_key };
     });
     setfaillist(arr);
@@ -380,11 +390,10 @@ const Qctest = () => {
       qca_process: e,
     });
     setScanData([]);
-    const totalcounter = data.data.length;
-    let passarr = [];
-    let failarr = [];
-    const faillength = data.data.filter((item) => item.result === "FAIL");
-    const passlength = data.data.filter((item) => item.result === "PASS");
+    const totalcounter = response.data.length;
+
+    const faillength = response.data.filter((item) => item.result === "FAIL");
+    const passlength = response.data.filter((item) => item.result === "PASS");
     setFailedScan(faillength.length);
     setPassedScan(passlength.length);
     setCurrentScan(totalcounter);
@@ -604,9 +613,9 @@ const Qctest = () => {
                 <p>Current Scanned: {currentscan}</p>
                 <p>Passed Quantity: {passedscan}</p>
                 <p>Failed Quantity: {failedscan}</p>
-                <p>
+                {/* <p>
                   <b>Total Lot Scanned: {totallotscan}</b>
-                </p>
+                </p> */}
               </Card>
             </Flex>
           </Col>

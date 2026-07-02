@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import UpdateService from "./UpdateService";
 import { v4 } from "uuid";
@@ -99,6 +98,7 @@ function Services() {
       field: "action",
       getActions: ({ row }) => [
         <TableActions
+        key={"edit"}
           action="edit"
           onClick={() =>
             setEditService({

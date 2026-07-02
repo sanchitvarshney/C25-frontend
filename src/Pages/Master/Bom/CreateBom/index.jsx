@@ -1,5 +1,5 @@
   import { Col, Form, Modal, Row } from "antd";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ProductDetails from "./ProductDetails";
 import Components from "./Components";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -37,6 +37,7 @@ const CreateBom = () => {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     
     } finally {
       setLoading(false);

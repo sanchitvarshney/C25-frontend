@@ -1,5 +1,4 @@
 import {
-  Button,
   Col,
   Descriptions,
   Divider,
@@ -10,7 +9,6 @@ import {
   Space,
   Typography,
 } from "antd";
-import React from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "react-router";
@@ -20,7 +18,6 @@ import MySelect from "../../../Components/MySelect";
 import MyButton from "../../../Components/MyButton";
 import CategoryDrawer from "./CategoryDrawer";
 import Loading from "../../../Components/Loading";
-import { Link } from "react-router-dom";
 
 export default function UpdateComponent() {
   const { showToast } = useToast();
@@ -28,12 +25,12 @@ export default function UpdateComponent() {
   const [uomOptions, setuomOptions] = useState([]);
   const [groupOptions, setgroupOptions] = useState([]);
 
-  const [categoryData, setCategoryData] = useState({
-    name: "",
-    code: "",
-    key: "",
-    fields: [],
-  });
+  // const [categoryData, setCategoryData] = useState({
+  //   name: "",
+  //   code: "",
+  //   key: "",
+  //   fields: [],
+  // });
   const [showCategoryDetails, setShowCategoryDetails] = useState(false);
   const { componentKey } = useParams();
 
@@ -86,6 +83,7 @@ export default function UpdateComponent() {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -105,6 +103,7 @@ export default function UpdateComponent() {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -126,6 +125,7 @@ export default function UpdateComponent() {
         }
   
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export default function UpdateComponent() {
       confirmLoading: loading === "submit",
     });
   };
-  const getCategoryDetails = async () => {
+  // const getCategoryDetails = async () => {
     // try {
     //   const response = await imsAxios.post("/mfgcategory/editRmCategoryData", {
     //     component: componentKey,
@@ -203,7 +203,7 @@ export default function UpdateComponent() {
     // } finally {
     //   setLoading(false);
     // }
-  };
+  // };
 
   const submitHandler = async (payload) => {
     try {
@@ -222,6 +222,7 @@ export default function UpdateComponent() {
         }
      
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -301,8 +302,8 @@ export default function UpdateComponent() {
                     <MySelect options={groupOptions} />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
-                  <Form.Item label="Attribute Code">
+                {/* <Col span={8}>
+                  <Form.Item label="AttributeCode">
                     <Row justify="space-between">
                       {categoryData && <Col>{categoryData.name}</Col>}
                       {categoryData && (
@@ -321,7 +322,7 @@ export default function UpdateComponent() {
                       )}
                     </Row>
                   </Form.Item>
-                </Col>
+                </Col> */}
                 <Col span={8}>
                   <Form.Item name="isEnabled" label="is Enabled?">
                     <MySelect options={isEnabledOptions} />
@@ -455,35 +456,35 @@ export default function UpdateComponent() {
   );
 }
 
-const initialValues = {
-  partCode: "",
-  component: "",
-  uom: {
-    label: "",
-    value: "",
-  },
-  mrp: "",
-  group: "",
-  isEnabled: "Y",
-  jobWork: "",
-  qcStatus: "E",
-  description: "",
-  taxType: "L",
-  taxRate: "18",
-  brand: "",
-  ean: "",
-  weight: "",
-  height: "",
-  width: "",
-  volumetricWeight: "",
-  minStock: "",
-  maxStock: "",
-  minOrder: "",
-  leadTime: "",
-  enableAlert: "",
-  purchaseCost: "",
-  otherCost: "",
-};
+// const initialValues = {
+//   partCode: "",
+//   component: "",
+//   uom: {
+//     label: "",
+//     value: "",
+//   },
+//   mrp: "",
+//   group: "",
+//   isEnabled: "Y",
+//   jobWork: "",
+//   qcStatus: "E",
+//   description: "",
+//   taxType: "L",
+//   taxRate: "18",
+//   brand: "",
+//   ean: "",
+//   weight: "",
+//   height: "",
+//   width: "",
+//   volumetricWeight: "",
+//   minStock: "",
+//   maxStock: "",
+//   minOrder: "",
+//   leadTime: "",
+//   enableAlert: "",
+//   purchaseCost: "",
+//   otherCost: "",
+// };
 
 const isEnabledOptions = [
   { text: "Yes", value: "Y" },
@@ -507,8 +508,8 @@ const taxRateOptions = [
   { text: "18%", value: "18" },
   { text: "28%", value: "28" },
 ];
-const categoryOptions = [
-  { text: "Assembly", value: "assembly" },
-  { text: "Other", value: "other" },
-  { text: "SMT", value: "smt" },
-];
+// const categoryOptions = [
+//   { text: "Assembly", value: "assembly" },
+//   { text: "Other", value: "other" },
+//   { text: "SMT", value: "smt" },
+// ];

@@ -1,27 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import { Button, Row, Space, Tooltip, Popover, Form, Drawer } from "antd";
+import { Button, Row, Space,Form, Drawer } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
-import { v4 } from "uuid";
 import { downloadCSV } from "../../../Components/exportToCSV";
-import { DownloadOutlined, MessageOutlined } from "@ant-design/icons";
+import { DownloadOutlined } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";
-import { set } from "lodash";
 import { useEffect } from "react";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import Loading from "../../../Components/Loading";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import printFunction, {
-  downloadFunction,
-} from "../../../Components/printFunction";
+import printFunction from "../../../Components/printFunction";
 import MyButton from "../../../Components/MyButton";
 
 function MesQcaReport() {
   const { showToast } = useToast();
-  const [searchLoading, setSearchLoading] = useState(false);
+  // const [searchLoading, setSearchLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState();
   const [loading, setLoading] = useState(false);
   const [processOptions, setProcessOptions] = useState([]);
@@ -32,8 +28,6 @@ function MesQcaReport() {
   const [qcReportForm] = Form.useForm();
   const ppr = Form.useWatch("ppr", qcReportForm);
   const status = Form.useWatch("status", qcReportForm);
-  const processName = Form.useWatch("process", qcReportForm);
-  const [searchInput, setSearchInput] = useState("");
 
   const Generateqrforlot = async (row) => {
     try {
@@ -57,6 +51,7 @@ function MesQcaReport() {
       );
       printFunction(response.data.data.buffer.data);
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -69,6 +64,7 @@ function MesQcaReport() {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
+        key={"view"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -78,6 +74,7 @@ function MesQcaReport() {
         label="View"
       />,
       <GridActionsCellItem
+        key={"print"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -108,6 +105,7 @@ function MesQcaReport() {
         setAsyncOptions(arr);
       }
     } catch (error) {
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -293,7 +291,7 @@ function MesQcaReport() {
           <MyDataTable
             columns={[actionColumn, ...columns]}
             data={rows}
-            loading={searchLoading}
+            // loading={searchLoading}
           />
         </div>
       </div>

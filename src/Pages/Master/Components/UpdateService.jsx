@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import  { useState, useEffect } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import {
   Button,
@@ -49,7 +48,7 @@ export default function UpdateService({ editService, setEditService, units }) {
       componentKey: editService.componentKey,
     });
     if (response.success) {
-      const res = data.data[0];
+      const res = response.data[0];
       setServiceDetails({
         serviceName: res.name,
         uom: res.uomid,

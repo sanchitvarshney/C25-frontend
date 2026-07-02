@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import AddComponent from "./AddComponents";
 import { useToast } from "../../../hooks/useToast.js";
@@ -98,7 +98,7 @@ export default function CreatePo() {
   const [shipToOptions, setShipToOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
-  const [stateCode, setStateCode] = useState("");
+  // const [stateCode, setStateCode] = useState("");
   const [showQtyWarning, setShowQtyWarning] = useState(false);
   const [qtyWarningData, setQtyWarningData] = useState(null);
   const [pendingPOData, setPendingPOData] = useState(null);
@@ -1095,7 +1095,7 @@ export default function CreatePo() {
       const response = await imsAxios.post("/backend/shippingAddress", {
         shipping_code: shipaddressid,
       });
-      setStateCode(response?.data?.statecode);
+      // setStateCode(response?.data?.statecode);
       // console.log("stateCodeeeeeeeeeeeeee", data.data.statecode);
       return {
         gstin: response.data?.gstin,
@@ -1497,7 +1497,7 @@ export default function CreatePo() {
                       layout="vertical"
                       initialValues={newPurchaseOrder}
                       onFinish={finish}
-                      onFieldsChange={(value, allFields) => {
+                      onFieldsChange={(value) => {
                         if (value.length == 1) {
                           selectInputHandler(value[0].name[0], value[0].value);
                         }
@@ -2486,7 +2486,7 @@ export default function CreatePo() {
                       submitHandler={validatePO}
                       submitLoading={submitLoading}
                       totalValues={totalValues}
-                      setStateCode={setStateCode}
+                      // setStateCode={setStateCode}
                       open={open}
                       setOpen={setOpen}
                       gstState={

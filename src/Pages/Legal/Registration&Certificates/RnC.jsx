@@ -1,20 +1,17 @@
 import {
-  Card,
   Col,
   Descriptions,
   Divider,
   Form,
   Input,
-  InputNumber,
   Modal,
   Row,
-  Typography,
   Button,
   Space,
   Drawer,
   Upload,
 } from "antd";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import NavFooter from "../../../Components/NavFooter";
@@ -29,24 +26,24 @@ import {
 import Loading from "../../../Components/Loading";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 
-// gst type options
-const gstTypeOptions = [
-  { text: "Local", value: "L" },
-  { text: "Interstate", value: "I" },
-];
-const options = [
-  { text: "Date", value: "date" },
-  { text: "On Termination", value: "Ontermination" },
-];
+// // gst type options
+// const gstTypeOptions = [
+//   { text: "Local", value: "L" },
+//   { text: "Interstate", value: "I" },
+// ];
+// const options = [
+//   { text: "Date", value: "date" },
+//   { text: "On Termination", value: "Ontermination" },
+// ];
 
-// gst rate options
-const gstRateOptions = [
-  { text: "0%", value: "0" },
-  { text: "5%", value: "5" },
-  { text: "12%", value: "12" },
-  { text: "18%", value: "18" },
-  { text: "28%", value: "28" },
-];
+// // gst rate options
+// const gstRateOptions = [
+//   { text: "0%", value: "0" },
+//   { text: "5%", value: "5" },
+//   { text: "12%", value: "12" },
+//   { text: "18%", value: "18" },
+//   { text: "28%", value: "28" },
+// ];
 // initial values of the form
 const newPurchaseOrder = {
   pocreatetype: "N",
@@ -82,42 +79,41 @@ const newPurchaseOrder = {
   description: "",
 };
 
-export default function RnC({}) {
+export default function RnC() {
   // initialize loading state
   document.title = "Add Agreement";
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [ClientBranchOptions, setclientBranchOptions] = useState([]);
-  const [bomOptions, setBomOptions] = useState([]);
-  const [showAddProjectConfirm, setShowAddProjectConfirm] = useState(false);
-  const [showBranchModel, setShowBranchModal] = useState(false);
-  const [showBillingModel, setShowBillingModal] = useState(false);
-  const [showAddCostModal, setShowAddCostModal] = useState(false);
-  const [clientcode, setClientCode] = useState("");
-  const [showAddClientModal, setShowAddClientModal] = useState(false);
-  const [taxSummary, setTaxSummary] = useState({
-    value: "0",
-    sgst: "0",
-    cgst: "0",
-    igst: "0",
-    totalValue: "0",
-  });
-  const [uom, setUom] = useState("");
+  // const [ClientBranchOptions, setclientBranchOptions] = useState([]);
+  // const [bomOptions, setBomOptions] = useState([]);
+  // const [showAddProjectConfirm, setShowAddProjectConfirm] = useState(false);
+  // const [showBranchModel, setShowBranchModal] = useState(false);
+  // const [showBillingModel, setShowBillingModal] = useState(false);
+  // const [showAddCostModal, setShowAddCostModal] = useState(false);
+  // const [clientcode, setClientCode] = useState("");
+  // const [showAddClientModal, setShowAddClientModal] = useState(false);
+  // const [taxSummary, setTaxSummary] = useState({
+  //   value: "0",
+  //   sgst: "0",
+  //   cgst: "0",
+  //   igst: "0",
+  //   totalValue: "0",
+  // });
+  // const [uom, setUom] = useState("");
   const [addAgreementForm] = Form.useForm();
-  const [clientData, setClientData] = useState([]);
-  const [addOptions, setAddOptions] = useState([]);
+  // const [clientData, setClientData] = useState([]);
+  // const [addOptions, setAddOptions] = useState([]);
   const [showViewModel, setShowViewModal] = useState(false);
-  const [file, setfile] = useState(null);
+  // const [file, setfile] = useState(null);
   const [fileList, setFileList] = useState([]);
-  const [partysearch, setPartySearch] = useState("");
-  const [rows, setRows] = useState([]);
+  // const [partysearch, setPartySearch] = useState("");
+  // const [rows, setRows] = useState([]);
   const [dateType, setDateType] = useState("");
   const [natureofagreementOptions, setNatureofagreementOptions] = useState([]);
   const [typeofagreementOptions, settypeofagreementOptions] = useState([]);
   const getagrementtypes = async () => {
-    console.log(partysearch);
-    setRows([]);
+  
     const response = await imsAxios.get("/agreement/fetchagreementtypes");
     console.log(response.data.data);
     if (response.status === 200) {
@@ -277,10 +273,10 @@ export default function RnC({}) {
   };
 
   // add agreement
-  const addagreement = async () => {
-    const values = await addAgreementForm.validateFields();
-    console.log(values);
-  };
+  // const addagreement = async () => {
+  //   const values = await addAgreementForm.validateFields();
+  //   console.log(values);
+  // };
 
   // reset handlerd
   const resetHandler = () => {
@@ -814,55 +810,53 @@ export default function RnC({}) {
 
 const ViewModal = ({
   loading,
-  setLoading,
   show,
   setshow,
   detaildata,
-  status,
   component,
 }) => {
-  const viewcolumns = [
-    {
-      headerName: "#",
-      width: 50,
-      field: "index",
-    },
-    {
-      headerName: "first party",
-      width: 180,
-      field: "first_party",
-    },
-    {
-      headerName: "second party",
-      width: 180,
-      field: "second_party",
-    },
-    {
-      headerName: "Agreement Number",
-      width: 180,
-      field: "agreement_no",
-    },
-    {
-      headerName: "RnC Type",
-      width: 180,
-      field: "agreement_type",
-    },
-    {
-      headerName: "Effective Date",
-      width: 180,
-      field: "effective_date",
-    },
-    {
-      headerName: "Expiry Date",
-      width: 180,
-      field: "expiry_date",
-    },
-    {
-      headerName: "Date of Execution",
-      width: 180,
-      field: "date_of_execution",
-    },
-  ];
+  // const viewcolumns = [
+  //   {
+  //     headerName: "#",
+  //     width: 50,
+  //     field: "index",
+  //   },
+  //   {
+  //     headerName: "first party",
+  //     width: 180,
+  //     field: "first_party",
+  //   },
+  //   {
+  //     headerName: "second party",
+  //     width: 180,
+  //     field: "second_party",
+  //   },
+  //   {
+  //     headerName: "Agreement Number",
+  //     width: 180,
+  //     field: "agreement_no",
+  //   },
+  //   {
+  //     headerName: "RnC Type",
+  //     width: 180,
+  //     field: "agreement_type",
+  //   },
+  //   {
+  //     headerName: "Effective Date",
+  //     width: 180,
+  //     field: "effective_date",
+  //   },
+  //   {
+  //     headerName: "Expiry Date",
+  //     width: 180,
+  //     field: "expiry_date",
+  //   },
+  //   {
+  //     headerName: "Date of Execution",
+  //     width: 180,
+  //     field: "date_of_execution",
+  //   },
+  // ];
 
   return (
     <Drawer

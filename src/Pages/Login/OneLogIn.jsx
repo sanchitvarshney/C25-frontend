@@ -1,22 +1,6 @@
-import {
-  Card,
-  Col,
-  Drawer,
-  Flex,
-  Form,
-  Input,
-  Row,
-  Space,
-  Typography,
-} from "antd";
-import React from "react";
-// import Laptop from "./../../../src/Images/laptop.png";
-// import Notebook from "./../../../src/Images/notebook.jpg";
-// import Phone from "./../../../src/Images/phone.jpg";
-// import Tablet from "./../../../src/Images/tablet.png";
-// import LogoPage from "./../../../src/Images/LogoPage.png";
+
+
 import "./index.css";
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
 const OneLogIn = () => {
   document.addEventListener("DOMContentLoaded", function () {
     var myForm = document.getElementById("form");

@@ -52,7 +52,7 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
     setTabItems(newPanes);
     setActiveKey(newActiveKey);
   };
-  const onEdit = (targetKey, action) => {
+  const onEdit = (targetKey) => {
     remove(targetKey);
   };
   const getPPRData = async () => {
@@ -284,6 +284,7 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setSubmitLoading(false);
     }

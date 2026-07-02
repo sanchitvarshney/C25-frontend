@@ -1,10 +1,7 @@
 import { Button, Card, Col, Form, Input, Row } from "antd";
-import React from "react";
 import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useEffect, useState } from "react";
-import { v4 } from "uuid";
-import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { useToast } from "../../../hooks/useToast.js";
 import { EditOutlined } from "@ant-design/icons";
 import MyButton from "../../../Components/MyButton";
@@ -12,22 +9,21 @@ import MyButton from "../../../Components/MyButton";
 function AddAgreementType() {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
-  const [asyncOptions, setAsyncOptions] = useState([]);
-  const [loading, setLoading] = useState("");
-  const [partysearch, setpartysearch] = useState("");
+  // const [asyncOptions, setAsyncOptions] = useState([]);
+  // const [loading, setLoading] = useState("");
+  // const [partysearch, setpartysearch] = useState("");
   const [form] = Form.useForm();
-  const addRows = async (values) => {
-    console.log("values", values);
-    const response = await imsAxios.post("/qaProcessmaster/insert_Process", values);
+  // const addRows = async (values) => {
+  //   console.log("values", values);
+  //   const response = await imsAxios.post("/qaProcessmaster/insert_Process", values);
 
-    console.log("row Data", response);
-    if (response.success) {
-      // getRows();
-    }
-  };
+  //   console.log("row Data", response);
+  //   if (response.success) {
+  //     // getRows();
+  //   }
+  // };
 
   const getpartydetails = async () => {
-    console.log(partysearch);
     setRows([]);
     const response = await imsAxios.get("/agreement/fetchagreementtypes");
     console.log(response.data);
@@ -50,7 +46,7 @@ function AddAgreementType() {
 
   const submitForm = async () => {
     try {
-      setLoading("select" / "fetch");
+      // setLoading("select" / "fetch");
       const values = await form.validateFields();
       const response = await imsAxios.post("/agreement/addtypeofagreement", {
         type_of_agreement: values.type_of_agreement,
@@ -63,9 +59,7 @@ function AddAgreementType() {
       }
     } catch (error) {
       showToast(error, "error");
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   const columns = [
@@ -95,24 +89,24 @@ function AddAgreementType() {
     console.log(row);
   };
 
-  const getStateOptions = async (searchTerm) => {
-    setLoading("select");
-    const response = await imsAxios.post("/backend/stateList", {
-      search: searchTerm,
-    });
-    const { data } = response;
-    if (data[0]) {
-      let arr = data.map((row) => ({
-        value: row.text,
-        text: row.text,
-      }));
-      setAsyncOptions(arr);
-    } else {
-      setAsyncOptions([]);
-    }
-    setLoading(false);
-  };
-  const getpartyoptions = async (searchTerm) => {};
+  // const getStateOptions = async (searchTerm) => {
+  //   setLoading("select");
+  //   const response = await imsAxios.post("/backend/stateList", {
+  //     search: searchTerm,
+  //   });
+  //   const { data } = response;
+  //   if (data[0]) {
+  //     let arr = data.map((row) => ({
+  //       value: row.text,
+  //       text: row.text,
+  //     }));
+  //     setAsyncOptions(arr);
+  //   } else {
+  //     setAsyncOptions([]);
+  //   }
+  //   setLoading(false);
+  // };
+  // const getpartyoptions = async (searchTerm) => {};
 
   return (
     <div>

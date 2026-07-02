@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+
 import { Link, useLocation } from "react-router-dom";
 
 const ReqMain = () => {
   const { pathname } = useLocation();
-  const [activeTab, setActiveTab] = useState("tab1");
   return (
     <>
       <div

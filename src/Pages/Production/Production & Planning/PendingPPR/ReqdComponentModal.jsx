@@ -1,5 +1,4 @@
 import {
-  Button,
   Card,
   Col,
   Form,
@@ -25,7 +24,6 @@ import MyDataTable from "../../../../Components/MyDataTable.jsx";
 export default function ReqdComponentModal({
   editPPR,
   reqdKeys,
-  setReqdKeys,
   sqdComponents,
   setSqdComponents,
   asyncOptions,
@@ -189,6 +187,7 @@ export default function ReqdComponentModal({
         }
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -228,7 +227,6 @@ export default function ReqdComponentModal({
         ppr: reqdKeys.ppr,
         component: row.component,
       });
-      const { data } = response;
       if (response.success) {
         getDetails(true);
         showToast(response.message, "success");
@@ -236,6 +234,7 @@ export default function ReqdComponentModal({
         showToast(response.message?.msg || response.message, "error");
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -271,7 +270,6 @@ export default function ReqdComponentModal({
         rate: row.qty,
         component: row.component,
       });
-      const { data } = response;
       if (response.success) {
         inputHandler("saved", true, row.id);
       } else {
@@ -364,7 +362,7 @@ export default function ReqdComponentModal({
     },
     {
       headerName: "Last Order Left Stock",
-      renderCell: ({ row }) => "--",
+      renderCell: ( ) => "--",
     },
     {
       headerName: "PO QTY",
@@ -450,6 +448,7 @@ const NewComponentModal = ({
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const component = Form.useWatch("component", form);
+  const { showToast } = useToast();
 
   const handleGetComponentDetails = async (componentKey) => {
     setDetails({
@@ -505,6 +504,7 @@ const NewComponentModal = ({
         }
       }
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
       setLoading(false);
     }

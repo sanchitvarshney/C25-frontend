@@ -2,7 +2,6 @@ import { Drawer, Row, Col, Form, Button } from "antd";
 import useApi from "../../../../hooks/useApi.ts";
 import {
   getComponentOptions,
-  updateAlternatePartCode,
 } from "../../../../api/general.ts";
 import { useEffect, useState } from "react";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -70,13 +69,13 @@ const AlternatePartCode = ({ open, hide }) => {
 
   const handleUpdateAlternatives = async () => {
     setAsyncOptions([]);
-    const arr = [...addedPartCodes, ...newPartCodes].map(
-      (row) => row.componentKey
-    );
-    const response = await executeFun(
-      () => updateAlternatePartCode(arr, open),
-      "select"
-    );
+    // const arr = [...addedPartCodes, ...newPartCodes].map(
+    //   (row) => row.componentKey
+    // );
+    // const response = await executeFun(
+    //   () => updateAlternatePartCode(arr, open),
+    //   "select"
+    // );
     // console.log("response", response);
     // console.log("componentKey", componentKey);
     getAlternativePartCodes(open);
@@ -97,7 +96,7 @@ const AlternatePartCode = ({ open, hide }) => {
     width: 100,
     type: "actions",
     getActions: ({ row }) => [
-      <TableActions action="delete" onClick={() => handleDelete(row)} />,
+      <TableActions key={"delete"} action="delete" onClick={() => handleDelete(row)} />,
     ],
   };
   useEffect(() => {
@@ -144,8 +143,8 @@ const AlternatePartCode = ({ open, hide }) => {
       title="Update Similar Part Code"
       open={open}
       footer={[
-        <Row justify="end">
-          <Col>
+        <Row justify="end" key={"update"}>
+          <Col >
             <Button
               // loading={updateLoading}
               type="primary"

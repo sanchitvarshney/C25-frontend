@@ -1,5 +1,4 @@
-import { Card, Col, Drawer, Form, Input, Row, Typography } from "antd";
-import React from "react";
+import {  Col, Drawer, Form, Input, Row, Typography } from "antd";
 import MyButton from "../../../Components/MyButton";
 import { useLocation, useParams } from "react-router";
 import { Link } from "react-router-dom";
@@ -35,13 +34,15 @@ export default function CategoryDrawer({ show, hide }) {
           showToast(response.message?.msg || response.message, "error");
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message, "error");
+    }
   };
 
-  const getieldSelectOptions = async (fields) => {
+  const getieldSelectOptions = async () => {
     try {
       let optionsArr = [];
-      const arr = await fields.map(async (row) => {
+      await fields.map(async (row) => {
         const response = await imsAxios.post("/mfgcategory/getAttributeValue", {
           attribute: row.name,
         });
@@ -60,7 +61,9 @@ export default function CategoryDrawer({ show, hide }) {
           ]);
         }
       });
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message, "error");
+    }
   };
 
   const getFieldValues = async () => {
@@ -82,10 +85,12 @@ export default function CategoryDrawer({ show, hide }) {
 
           form.setFieldsValue(finalObj);
         } else {
-          toast.error(data.message);
+          showToast(response.message?.msg || response.message, "error");
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message, "error");
+    }
   };
   useEffect(() => {
     if (fields) {
@@ -118,8 +123,8 @@ export default function CategoryDrawer({ show, hide }) {
             <Typography.Text strong>Unique Id : </Typography.Text>
             <Typography.Text>{uniqueId}</Typography.Text>
           </Col>
-          {fields.map((row) => (
-            <Col span={12}>
+          {fields.map((row, idx) => (
+            <Col span={12} key={row.name || idx}>
               {row.type === "select" && (
                 <Form.Item name={row.name} label={row.label}>
                   <MySelect

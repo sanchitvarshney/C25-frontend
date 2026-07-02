@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import {
   Col,
@@ -109,6 +109,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -145,6 +146,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
 
       setAsyncOptions(response.data);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setSelectLoading(false);
     }
@@ -244,6 +246,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -471,8 +474,6 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
 };
 
 export default EditPPR;
-
-const notes = ["Product / SKU (Only if RQD is not set)"];
 
 // if the rqd is set then you cant change the product / SKU
 const initialValues = {

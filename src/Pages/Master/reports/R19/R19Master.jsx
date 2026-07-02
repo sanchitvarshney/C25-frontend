@@ -28,7 +28,7 @@ function R19Master() {
   const [fetchLoading, setFetchLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
 
   const [addSingleComponentForm] = Form.useForm();
 
@@ -79,6 +79,7 @@ function R19Master() {
       width: 120,
       getActions: ({ row }) => [
         <Popconfirm
+        key={row?.id || "delete"}
           placement="topRight"
           title="Are you sure you want to delete this component"
           onConfirm={() => deleteComponent(row.component_key)}
@@ -104,7 +105,7 @@ function R19Master() {
     );
     setLoading(false);
     if (response.success) {
-      let arr = data.response.data.map((row, index) => ({ ...row, id: index + 1 }));
+      let arr = response.data.map((row, index) => ({ ...row, id: index + 1 }));
       setVerifiedFile(arr);
     } else {
       showToast(response.message?.msg || response.message, "error");
@@ -143,7 +144,6 @@ function R19Master() {
     }
   };
   const getComponents = async (search) => {
-    setSelectLoading(true);
     // const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
     //   search: search,
     // });
@@ -151,7 +151,6 @@ function R19Master() {
       () => getComponentOptions(search),
       "select"
     );
-    setSelectLoading(false);
     let arr = [];
     if (response.data[0]) {
       arr = response.data.map((row) => ({
@@ -241,7 +240,7 @@ function R19Master() {
                           required: true,
                         },
                         () => ({
-                          validator(_, value) {
+                          validator() {
                             if (
                               !rows.filter(
                                 (row) =>

@@ -8,10 +8,8 @@ const Components = ({
   setAsyncOptions,
   getComponentOptions,
   loading,
-  selectLoading,
   form,
 }) => {
-  const calculation = (fieldName, watchValues) => {};
   const ComponentSelect = (
     <MyAsyncSelect
       optionsState={asyncOptions}
@@ -44,7 +42,6 @@ const Components = ({
       nonListWatchKeys={[]}
       componentRequiredRef={[]}
       form={form}
-      calculation={calculation}
     />
   );
 };

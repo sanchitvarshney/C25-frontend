@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import {
   Button,
   Col,
@@ -7,7 +7,6 @@ import {
   Input,
   Row,
   Space,
-  Upload,
   Select,
 } from "antd";
 
@@ -28,47 +27,47 @@ export default function MaterialUpdate({
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [allUpdateData, setAllUpdataData] = useState([]);
  
-  const [allData, setAllData] = useState({
-    partno: "",
-    name: "",
-    uom: {},
-    category: {},
-    mrp: "",
-    groupOpt: {},
-    enableValue: {},
-    jobwork: "",
-    status: {},
-    description: "",
+  // const [allData, setAllData] = useState({
+  //   partno: "",
+  //   name: "",
+  //   uom: {},
+  //   category: {},
+  //   mrp: "",
+  //   groupOpt: {},
+  //   enableValue: {},
+  //   jobwork: "",
+  //   status: {},
+  //   description: "",
 
-    local: "",
-    gst: "",
+  //   local: "",
+  //   gst: "",
 
-    brand: "",
-    ean: "",
-    weight: "",
-    volWeight: "",
-    heigh: "",
-    wid: "",
+  //   brand: "",
+  //   ean: "",
+  //   weight: "",
+  //   volWeight: "",
+  //   heigh: "",
+  //   wid: "",
 
-    minStock: "",
-    maxStock: "",
-    minOrder: "",
-    defStockLocation: "",
-    leadTime: "",
-    enableAlerts: "",
-    pucharseCost: "",
-    otherCost: "",
-  });
-  const [group, setGroup] = useState([]);
+  //   minStock: "",
+  //   maxStock: "",
+  //   minOrder: "",
+  //   defStockLocation: "",
+  //   leadTime: "",
+  //   enableAlerts: "",
+  //   pucharseCost: "",
+  //   otherCost: "",
+  // });
+  // const [group, setGroup] = useState([]);
   const [uom, setUom] = useState([]);
-  const [selComponent, setComponent] = useState([]);
+  // const [selComponent, setComponent] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const opt = [
-    { label: "Cat 1", value: "P" },
-    { label: "Cat 2", value: "PCK" },
-    { label: "Cat 3", value: "O" },
-  ];
+  // const opt = [
+  //   { label: "Cat 1", value: "P" },
+  //   { label: "Cat 2", value: "PCK" },
+  //   { label: "Cat 3", value: "O" },
+  // ];
 
   const getEnable = [
     { label: "Not Selected", value: "0" },

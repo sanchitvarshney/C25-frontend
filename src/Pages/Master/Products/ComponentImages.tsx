@@ -14,17 +14,16 @@ import { useEffect, useState } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
 import useApi from "@/hooks/useApi";
 import { deleteImage, getImages } from "@/api/master/products";
-import { ProductImageType, ProductType } from "@/types/master";
 
 interface PropTypes {
-  showImages: ProductType | false;
-  setShowImages: React.Dispatch<React.SetStateAction<false | ProductType>>;
+  showImages: any | false;
+  setShowImages: React.Dispatch<React.SetStateAction<false | any>>;
 }
 export default function ComponentImages({
   showImages,
   setShowImages,
 }: PropTypes) {
-  const [images, setImages] = useState<ProductImageType[]>([]);
+  const [images, setImages] = useState<any[]>([]);
 
   const { executeFun, loading } = useApi();
 

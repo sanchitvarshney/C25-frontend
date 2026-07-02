@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Col, Input, Row, Space, Tooltip } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker.jsx";
 import { useToast } from "../../../hooks/useToast.js";
@@ -298,7 +298,7 @@ const RequestPo = () => {
   };
 
   //getting component view data - now opens ViewPORequest modal
-  const getComponentData = async (poid, status) => {
+  const getComponentData = async (poid) => {
     setViewPoId(poid);
   };
 

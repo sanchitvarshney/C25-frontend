@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../hooks/useToast.js";
-import { Card, Col, Form, Input, Row, Space, Drawer, Button, message } from "antd";
+import { Card, Col, Form, Input, Row, Space, Drawer, Button, } from "antd";
 import MyDataTable from "../../Components/MyDataTable";
 import { v4 } from "uuid";
 import { imsAxios } from "../../axiosInterceptor";
@@ -75,7 +75,7 @@ const SubGroup = () => {
     } catch (error) {
       setTableLoading(false);
       setSubGroupData([]);
-      showToast(response?.message, "error");
+      showToast(error?.message, "error");
     }
   };
 
@@ -359,6 +359,7 @@ const SubGroup = () => {
               onChange={(value) => {
                 editForm.setFieldValue("group", value);
               }}
+            selectLoading={selectLoading}
             />
           </Form.Item>
 

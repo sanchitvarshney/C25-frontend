@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
@@ -43,13 +43,13 @@ const msmeActivityOptions = [
   { text: "Service", value: "Service" },
   { text: "Trading", value: "Trading" },
 ];
-const transactionTypeOptions = [
-  { text: "Cheque", value: "cheque" },
-  { text: "e-Fund Transfer", value: "transfer" },
-  { text: "UPI", value: "upi" },
-  { text: "Other", value: "other" },
-  { text: "N/A", value: "na" },
-];
+// const transactionTypeOptions = [
+//   { text: "Cheque", value: "cheque" },
+//   { text: "e-Fund Transfer", value: "transfer" },
+//   { text: "UPI", value: "upi" },
+//   { text: "Other", value: "other" },
+//   { text: "N/A", value: "na" },
+// ];
 
 const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
   const { showToast } = useToast();

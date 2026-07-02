@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
-import { Button, Input, Row, Space } from "antd";
+import { Input, Row, Space } from "antd";
 import MySelect from "../../../../Components/MySelect";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 import { v4 } from "uuid";
@@ -101,6 +101,7 @@ const PendingPPR = () => {
       getActions: ({ row }) => [
         // execute ppr
         <TableActions
+        key={row.id || "execute"}
           showInMenu={true}
           action="check"
           onClick={() => {
@@ -110,6 +111,7 @@ const PendingPPR = () => {
         />,
         // close ppr
         <TableActions
+        key={row.id || "close"}
           showInMenu={true}
           action="cancel"
           onClick={() => {
@@ -119,6 +121,7 @@ const PendingPPR = () => {
         />,
         // edit ppr
         <TableActions
+          key={row.id || "edit"}
           showInMenu={true}
           action="edit"
           // disabled={!row.rqd_status}
@@ -132,6 +135,7 @@ const PendingPPR = () => {
         />,
         // view component list
         <TableActions
+          key={row.id || "view"}
           showInMenu={true}
           action="view"
           disabled={!row.rqd_status}

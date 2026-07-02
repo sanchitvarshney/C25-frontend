@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Col, Divider, Drawer, Flex, Form, Input, Row, Typography } from "antd";
 import MyButton from "../../../../Components/MyButton";
 import { useParams } from "react-router";
@@ -9,11 +9,10 @@ import MySelect from "../../../../Components/MySelect";
 export default function CategoryDrawer({
   show,
   hide,
-  getDetails,
   setUniqueIdData,
 }) {
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [fields, setFields] = useState([]);
   const [uniqueId, setUniqueId] = useState("");
   const [fieldSelectOptions, setFieldSelectOptions] = useState([]);
@@ -24,13 +23,12 @@ export default function CategoryDrawer({
   const [form] = Form.useForm();
   var alpha;
   var extractednum;
-  var getAlpha;
   var wholeVal;
   var result;
   const value = Form.useWatch("value", form);
   const getCategoryFields = async (categoryKey) => {
     try {
-      setLoading("fetch");
+      // setLoading("fetch");
       const response = await imsAxios.post(
         "/mfgcategory/getAttributeListByCategory",
         {
@@ -48,13 +46,15 @@ export default function CategoryDrawer({
       } else {
         showToast(response.message, "error");
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message, "error");
+    }
   };
 
   const getieldSelectOptions = async (fields) => {
     try {
       let optionsArr = [];
-      setLoading("fetch");
+      // setLoading("fetch");
       setFieldSelectOptions([]);
       await fields.map(async (row) => {
         const response = await imsAxios.post("/mfgcategory/getAttributeValue", {
@@ -75,12 +75,14 @@ export default function CategoryDrawer({
           ]);
         }
       });
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
+    }
   };
 
   const getFieldValues = async () => {
     try {
-      setLoading("fetch");
+      // setLoading("fetch");
       const response = await imsAxios.post("/mfgcategory/getRmCategoryData", {
         component: params.componentKey,
       });
@@ -89,7 +91,7 @@ export default function CategoryDrawer({
   
         if (response.success) {
           let finalObj = {};
-          let arr = [];
+      
           setUniqueId(data.inputs.rm_cat_code);
           for (var key in data.inputs) {
             if (data.inputs[key].id) {
@@ -102,7 +104,9 @@ export default function CategoryDrawer({
           showToast(data.message, "error");
         }
     
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message, "error");
+    }
   };
 
   const validateHandler = async () => {
@@ -155,7 +159,7 @@ export default function CategoryDrawer({
   };
   const getCategoryOptions = async () => {
     try {
-      setLoading("fetch");
+      // setLoading("fetch");
       const response = await imsAxios.get("/mfgcategory/listCategories");
 
       const { data } = response;
@@ -167,8 +171,9 @@ export default function CategoryDrawer({
         }
    
     } catch (error) {
+      showToast(error.message, "error");
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -214,7 +219,7 @@ export default function CategoryDrawer({
         getWholeNumber(value, decimalVal);
       } else {
         let newNum = removeAndCountTrailingZeros(value);
-        getAlpha = removeTrailingZerosUsingSwitch(newNum.count);
+        // getAlpha = removeTrailingZerosUsingSwitch(newNum.count);
         extractednum = newNum.stringWithoutTrailingZeros;
       }
     }
@@ -272,34 +277,34 @@ export default function CategoryDrawer({
     let result = "1" + "0".repeat(numZeros);
     return parseInt(result);
   }
-  function getLetterFromNumber(number) {
-    const mapping = {
-      1: "A",
-      10: "B",
-      100: "C",
-      1000: "D",
-      10000: "E",
-      100000: "F",
-      1000000: "G",
-      10000000: "H",
-      100000000: "I",
-      1000000000: "J",
-      10000000000: "K",
-    };
+  // function getLetterFromNumber(number) {
+  //   const mapping = {
+  //     1: "A",
+  //     10: "B",
+  //     100: "C",
+  //     1000: "D",
+  //     10000: "E",
+  //     100000: "F",
+  //     1000000: "G",
+  //     10000000: "H",
+  //     100000000: "I",
+  //     1000000000: "J",
+  //     10000000000: "K",
+  //   };
 
-    const result = Object.entries(mapping).find(
-      ([key, value]) => parseInt(key) === number
-    );
-    return result ? result[1] : "Number not found";
-  }
-  function removeTrailingZerosUsingSwitch(numbers, letter) {
-    let numberpowerOfTen;
+  //   const result = Object.entries(mapping).find(
+  //     ([key]) => parseInt(key) === number
+  //   );
+  //   return result ? result[1] : "Number not found";
+  // }
+  // function removeTrailingZerosUsingSwitch(numbers, letter) {
+  //   let numberpowerOfTen;
 
-    let number = addZerosToTen(numbers);
-    alpha = getLetterFromNumber(number);
+  //   let number = addZerosToTen(numbers);
+  //   alpha = getLetterFromNumber(number);
 
-    form.setFieldValue("multiplier", alpha);
-  }
+  //   form.setFieldValue("multiplier", alpha);
+  // }
   function removeAndCountTrailingZeros(number) {
     const numString = number.toString();
     let count = 0;
@@ -415,10 +420,10 @@ export default function CategoryDrawer({
                 type="secondary"
                 style={{ textAlign: "center" }}
               >
-                Select a Category to continue
-                <br />
+                {`Select a Category to continue
+                ${<br />}
                 In Case of category "Others" no attributes will be required and
-                no unique Id will be generated
+                no unique Id will be generated`}
               </Typography.Text>
             </Row>
           </Col>

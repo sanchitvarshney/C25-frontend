@@ -94,18 +94,21 @@ const ManageBOM = () => {
       field: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           // disabled={disabled}
           label="View"
           onClick={() => setViewBom({ name: row.product, id: row.bomId })}
         />,
         <GridActionsCellItem
+        key={"edit"}
           showInMenu
           // disabled={disabled}
           label="Edit"
           onClick={() => setEditBom({ name: row.product, id: row.bomId })}
         />,
         <GridActionsCellItem
+        key={"download"}
           showInMenu
           // disabled={disabled}
           label="Download"

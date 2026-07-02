@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../../hooks/useToast.js";
-import errorToast from "../../Components/errorToast";
 import {
   Avatar,
   Button,
@@ -16,7 +15,6 @@ import {
   CheckCircleOutlined,
   UserOutlined,
   SafetyOutlined,
-  EditOutlined,
   RightOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";

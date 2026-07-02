@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { v4 } from "uuid";
 import { Button, Col, Input, Row, Select, Skeleton } from "antd";
@@ -8,7 +7,6 @@ import { PlusOutlined, MinusOutlined } from "@ant-design/icons";
 import MaterialUpdate from "../Modal/MaterialUpdate";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import ComponentImages from "./ComponentImages";
 import { imsAxios } from "../../../axiosInterceptor";
 import AddPhoto from "./AddPhoto";
@@ -34,8 +32,8 @@ const Material = () => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [component, setComponent] = useState([]);
   const [showImages, setShowImages] = useState();
-  const [searchInput, setSearchInput] = useState("");
-  const [searchResult, setSearchResult] = useState([]);
+  // const [searchInput, setSearchInput] = useState("");
+  // const [searchResult, setSearchResult] = useState([]);
   const [Uom, setUom] = useState([]);
   const [selectGroup, setSelectGroup] = useState([]);
   const [hsnData, setHsnData] = useState([
@@ -212,7 +210,6 @@ const Material = () => {
     }
   };
 
-  const redirectToUpdateCategory = () => {};
   const selectionOption = [
     { label: "Component", value: "C" },
     { label: "Other", value: "O" },
@@ -345,14 +342,14 @@ const Material = () => {
     allComponent();
 
     fetchSelectGropu();
-    if (searchInput.length > 1) {
-      let arr = component.filter(
-        (service) =>
-          service.c_part_no.toLowerCase() == searchInput.toLowerCase()
-      );
-      setSearchResult(arr);
-    }
-  }, [searchInput]);
+    // if (searchInput.length > 1) {
+    //   let arr = component.filter(
+    //     (service) =>
+    //       service.c_part_no.toLowerCase() == searchInput.toLowerCase()
+    //   );
+    //   setSearchResult(arr);
+    // }
+  }, []);
   useEffect(() => {
     console.log("fetching uom ");
     fetchUOM();

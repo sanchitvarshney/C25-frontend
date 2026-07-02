@@ -1,24 +1,13 @@
 import { Button, Col, Form, Input, Row, Upload } from "antd";
-import UploadDocs from "../../Store/MaterialIn/MaterialInWithPO/UploadDocs";
-import {  DeleteFilled, } from "@ant-design/icons";
 import { Add, Delete } from "@mui/icons-material";
 
 export default function SingleProduct({
-  index,
   field,
   fields,
   add,
   remove,
-  form,
-  setFiles,
-  files,
-  // allTdsOptions,
-  // tdsArray,
-  // optionState,
-  // setOptionState,
 }) {
-  const component =
-    Form.useWatch(["components", field.name, "component"], form) ?? 0;
+
   const normFile = (e) => {
     if (Array.isArray(e)) {
       return e;
@@ -96,10 +85,10 @@ export default function SingleProduct({
     </Row>
   );
 }
-const gstRateOptions = [
-  { value: "0", text: "00%" },
-  { value: "5", text: "05%" },
-  { value: "12", text: "12%" },
-  { value: "18", text: "18%" },
-  { value: "28", text: "28%" },
-];
+// const gstRateOptions = [
+//   { value: "0", text: "00%" },
+//   { value: "5", text: "05%" },
+//   { value: "12", text: "12%" },
+//   { value: "18", text: "18%" },
+//   { value: "28", text: "28%" },
+// ];

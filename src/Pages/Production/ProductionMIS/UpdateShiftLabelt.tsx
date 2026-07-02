@@ -1,6 +1,7 @@
 import { Flex, Form, TimePicker, Typography } from "antd";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import  { useEffect } from "react";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
 import useApi from "@/hooks/useApi";
 import { updateShiftLabels } from "@/api/production/mis";
@@ -59,7 +60,7 @@ const UpdateShiftLabel = ({ options, fetchLabels }: Props) => {
 
 export default UpdateShiftLabel;
 
-const Shift = ({ field, handleUpdate, loading }) => {
+const Shift = ({ field, handleUpdate, loading }:any) => {
   const shift = Form.useWatch(["shifts", field.name]);
   const updateHandler = () => {
     handleUpdate(shift.id, shift.range);

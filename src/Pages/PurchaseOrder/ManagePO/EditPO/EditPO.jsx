@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import EditComponents from "./EditComponents";
 import NavFooter from "../../../../Components/NavFooter";
@@ -10,7 +10,6 @@ import {
   Drawer,
   Form,
   Input,
-  InputNumber,
   Modal,
   Row,
   Tabs,
@@ -41,20 +40,19 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
   const [billingOptions, setBillingOptions] = useState([]);
   const [resestDetailsData, setResetDetailsData] = useState(null);
   const [resetRowsDetailsData, setResetRowsDetailsData] = useState(null);
-  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showDetailsCondirm, setShowDetailsConfirm] = useState(false);
   const [projectDesc, setProjectDesc] = useState("");
-  const [pageLoading, setPageLoading] = useState(false);
+  // const [pageLoading, setPageLoading] = useState(false);
   const [form] = Form.useForm();
   const { executeFun, loading: loading1 } = useApi();
-  const inputHandler = (name, value) => {
-    setPurchaseOrder((purchaseOrder) => {
-      return {
-        ...purchaseOrder,
-        [name]: value,
-      };
-    });
-  };
+  // const inputHandler = (name, value) => {
+  //   setPurchaseOrder((purchaseOrder) => {
+  //     return {
+  //       ...purchaseOrder,
+  //       [name]: value,
+  //     };
+  //   });
+  // };
 
   const selectInputHandler = async (name, value) => {
     if (value) {
@@ -401,11 +399,11 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
       projectname: projectValue,
     }));
 
-    setPageLoading(true);
+    // setPageLoading(true);
     const response = await imsAxios.post("/backend/projectDescription", {
       project_name: typeof value === "object" ? value.value : value,
     });
-    setPageLoading(false);
+    // setPageLoading(false);
     
     const data = response?.data;
     if (data) {
@@ -420,12 +418,12 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
   };
 
   const handleProjectCostCenter = async (projectName) => {
-    setPageLoading(true);
+    // setPageLoading(true);
     try {
       const response = await imsAxios.post("/purchaseOrder/costCenter", {
         project_name: projectName,
       });
-      setPageLoading(false);
+      // setPageLoading(false);
       const responseData = response?.success !== undefined ? response : response?.data || response;
 
       if (responseData && responseData.success && responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
@@ -444,7 +442,7 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
         showToast(responseData?.message || "Failed to fetch cost center", "error");
       }
     } catch (error) {
-      setPageLoading(false);
+      // setPageLoading(false);
       showToast("Error fetching project cost center", "error");
     }
   };
@@ -495,7 +493,7 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
             size="small"
             layout="vertical"
             style={{ height: "100%" }}
-            onFieldsChange={(value, allFields) => {
+            onFieldsChange={(value) => {
               if (value.length == 1) {
                 selectInputHandler(value[0].name[0], value[0].value);
               }

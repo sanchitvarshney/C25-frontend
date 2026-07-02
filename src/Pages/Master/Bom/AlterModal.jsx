@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { Button, Col, Drawer, Form, Row, Skeleton, Space } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
@@ -64,6 +64,7 @@ const AlterModal = ({
   };
 
   const fetchMappningComponent = async () => {
+    setSkeletonLoading(true);
     const response = await imsAxios.post("/bom/getAllAlternativeComponents", {
       subjectid: fetchData?.bomId,
       product_id: fetchData?.sku,
@@ -78,9 +79,11 @@ const AlterModal = ({
         };
       });
       setAllData(arr);
+      setSkeletonLoading(false);
     } else {
       setAllData([]);
       showToast(response.message?.msg || response.message, "error");
+      setSkeletonLoading(false);
     }
   };
 
@@ -143,7 +146,7 @@ const AlterModal = ({
           // }
         >
           {<Skeleton active loading={skeletonLoading} />}
-          {<Skeleton active loading={skeletonLoading} />}
+       
           {!skeletonLoading && (
             <Row gutter={16} style={{ height: "100%" }}>
               <Col span={8}>

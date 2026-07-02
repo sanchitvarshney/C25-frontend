@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import { Button, Col, Descriptions, Divider, Drawer, Form, Input, InputNumber, Modal, Row, Tabs, Radio, Card, message, Typography, Spin, Space } from "antd";
+import { Button, Col, Descriptions, Divider, Drawer, Form, Input, Modal, Row, Tabs, Radio, Card, message, Typography, Spin, Space } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import TextArea from "antd/lib/input/TextArea";
@@ -18,7 +18,7 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
   const [activeTab, setActiveTab] = useState("1");
   const [loading, setLoading] = useState(true);
   const [rowCount, setRowCount] = useState([]);
-  const [newPoLogs, setNewPoLogs] = useState([]);
+  // const [newPoLogs, setNewPoLogs] = useState([]);
   const [approveLoading, setApproveLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -188,10 +188,10 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
         obj.ship_vendor_branch = obj.ship_vendor_branch || null;
         
        
-        obj.addrshipid = obj.addrshipid; 
+        // obj.addrshipid = obj.addrshipid; 
       } else {
       
-        obj.addrshipid = obj.addrshipid;
+        // obj.addrshipid = obj.addrshipid;
         obj.ship_vendor_code = null;
         obj.ship_vendor_name = null;
         obj.ship_vendor_branch = null;
@@ -206,7 +206,7 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
 
       let arr = [];
       if (obj.materials && Array.isArray(obj.materials)) {
-        obj.materials.map((row, index) => {
+        obj.materials.map((row) => {
           
           let gstTypeValue = "L";
           if (row.gsttype) {
@@ -306,8 +306,8 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
         po_id,
       });
       if (response.success) {
-        let arr = response.data;
-        setNewPoLogs(arr.reverse());
+        // let arr = response.data;
+        // setNewPoLogs(arr.reverse());
       }
     } catch (error) {
       console.error("Error fetching PO logs:", error);
@@ -371,41 +371,41 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
       } else {
        
         if (response.data?.mismatch_components) {
-          const mismatches = response.data.data.mismatch_components;
+          // const mismatches = response.data.data.mismatch_components;
 
           // Create detailed error message
-          const errorLines = mismatches
-            .map((m) => {
-              const diff = parseFloat(m.difference);
-              const symbol = diff > 0 ? "↑" : "↓";
-              return `• ${m.part_no} (${m.component_name})\n  Order Rate: ₹${m.order_rate} | Last Rate: ₹${m.last_rate} ${symbol} ₹${Math.abs(diff)}`;
-            })
-            .join("\n\n");
+          // const errorLines = mismatches
+          //   .map((m) => {
+          //     const diff = parseFloat(m.difference);
+          //     const symbol = diff > 0 ? "↑" : "↓";
+          //     return `• ${m.part_no} (${m.component_name})\n  Order Rate: ₹${m.order_rate} | Last Rate: ₹${m.last_rate} ${symbol} ₹${Math.abs(diff)}`;
+          //   })
+          //   .join("\n\n");
 
-          toast.warn(
-            <div style={{ maxWidth: "500px" }}>
-              <strong style={{ fontSize: "14px" }}>⚠️ Rate Mismatch! Approval Blocked</strong>
-              <br />
-              <br />
-              <div
-                style={{
-                  fontSize: "12px",
-                  whiteSpace: "pre-line",
-                  backgroundColor: "#fff3cd",
-                  padding: "10px",
-                  borderRadius: "4px",
-                  border: "1px solid #ffc107",
-                }}
-              >
-                {errorLines}
-              </div>
-              <br />
-            </div>,
-            {
-              autoClose: 10000,
-              style: { minWidth: "500px" },
-            }
-          );
+          // toast.warn(
+          //   <div style={{ maxWidth: "500px" }}>
+          //     <strong style={{ fontSize: "14px" }}>⚠️ Rate Mismatch! Approval Blocked</strong>
+          //     <br />
+          //     <br />
+          //     <div
+          //       style={{
+          //         fontSize: "12px",
+          //         whiteSpace: "pre-line",
+          //         backgroundColor: "#fff3cd",
+          //         padding: "10px",
+          //         borderRadius: "4px",
+          //         border: "1px solid #ffc107",
+          //       }}
+          //     >
+          //       {errorLines}
+          //     </div>
+          //     <br />
+          //   </div>,
+          //   {
+          //     autoClose: 10000,
+          //     style: { minWidth: "500px" },
+          //   }
+          // );
         } else {
           showToast(response.message || "Failed to update status", "error");
         }
@@ -743,7 +743,7 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
                           },
                         ]}
                       >
-                        <MyAsyncSelect onBlur={() => setAsyncOptions([])} labelInValue disabled />
+                        <MyAsyncSelect labelInValue disabled />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
@@ -831,7 +831,7 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
                           },
                         ]}
                       >
-                        <MyAsyncSelect onBlur={() => setAsyncOptions([])} labelInValue disabled />
+                        <MyAsyncSelect  labelInValue disabled />
                       </Form.Item>
                     </Col>
                     <Col span={6}>
@@ -1462,7 +1462,7 @@ export default function ViewPORequest({ poId, setPoId, getRows }) {
                 fontWeight: 500,
               }}
             >
-              <strong>Auto Remark:</strong> "Rate Mismatch with Last Purchase Rate"
+              <strong>Auto Remark:</strong> {`Rate Mismatch with Last Purchase Rate`}
             </div>
           )}
 

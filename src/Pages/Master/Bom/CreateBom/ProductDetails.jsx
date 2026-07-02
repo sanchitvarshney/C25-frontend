@@ -1,5 +1,4 @@
 import { Button, Card, Col, Form, Input, Radio, Row, Space } from "antd";
-import React from "react";
 import MySelect from "../../../../Components/MySelect";
 import UploadFile from "./UploadFile";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -107,9 +106,9 @@ const ProductDetails = ({
         {uploadType === "file" && (
           <Col span={24} style={{ marginBottom: 10 }}>
             <Typography.Text type="secondary" strong>
-              Note: <br />
+              {`Note: ${<br />}
               Kindly don't do any changes with columns of the sample file, it
-              can lead to errors.
+              can lead to errors.`}
             </Typography.Text>
           </Col>
         )}

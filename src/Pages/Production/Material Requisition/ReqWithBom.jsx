@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import ReqWithBomModal from "./Modal/ReqWithBomModal";
 import { useToast } from "../../../hooks/useToast.js";
 import { Col, Descriptions, Divider, Form, Input, Row, Typography } from "antd";
@@ -151,7 +151,7 @@ const ReqWithBom = () => {
       getProductName();
     }
   }, [allBom.proSku]);
-  const { Title, Text } = Typography;
+  const { Text } = Typography;
   return (
     <>
       {/* {pageLoading && <Loading />} */}

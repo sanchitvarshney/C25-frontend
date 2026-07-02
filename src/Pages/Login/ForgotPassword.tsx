@@ -163,7 +163,7 @@ const ForgotPassword = (props: PropTypes) => {
               <ImageCaptcha
                 key={captchaKey}
                 value={captchaInput}
-                onChange={(e) => setCaptchaInput(e.target.value)}
+                onChange={(e: any) => setCaptchaInput(e.target.value)}
                 onCodeChange={setExpectedCaptchaCode}
                 placeholder="Enter letters above"
               />

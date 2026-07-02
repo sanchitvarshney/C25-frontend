@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import {
   Button,
   Col,
@@ -8,39 +8,38 @@ import {
   Input,
   Select,
   Divider,
-  Upload,
 } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 
 const { TextArea } = Input;
 function ProductModal({ productModal, setProductModal, fetchProductData }) {
   const [product, setProduct] = useState([]);
-  const [productAllData, setProductAllData] = useState({
-    uom: {},
-    productcategory: "",
-    producttype_name: "",
-    enablestatus_name: {},
+  // const [productAllData, setProductAllData] = useState({
+  //   uom: {},
+  //   productcategory: "",
+  //   producttype_name: "",
+  //   enablestatus_name: {},
 
-    tax_type_name: {},
-    gstrate_name: {},
-    hsncode: "",
+  //   tax_type_name: {},
+  //   gstrate_name: {},
+  //   hsncode: "",
 
-    brand: "",
-    ean: "",
-    weight: "",
-    vweight: "",
-    height: "",
-    width: "",
+  //   brand: "",
+  //   ean: "",
+  //   weight: "",
+  //   vweight: "",
+  //   height: "",
+  //   width: "",
 
-    minstock: "",
-    minrmstock: "",
-    batchstock: "",
-    loc: "",
-    laboutcost: "",
-    packingcost: "",
-    jobworkcost: "",
-    othercost: "",
-  });
+  //   minstock: "",
+  //   minrmstock: "",
+  //   batchstock: "",
+  //   loc: "",
+  //   laboutcost: "",
+  //   packingcost: "",
+  //   jobworkcost: "",
+  //   othercost: "",
+  // });
   const [uom, setUom] = useState([]);
   console.log(product);
 
@@ -77,12 +76,12 @@ function ProductModal({ productModal, setProductModal, fetchProductData }) {
   ];
 
   const getFetchExistingProduct = async () => {
-    setLoading(true);
+    // setLoading(true);
     const response = await imsAxios.post("/products/getProductForUpdate", {
       product_key: productModal?.product_key,
     });
     response.data.map((a) => setProduct(a));
-    setLoading(false);
+    // setLoading(false);
   };
 
   const inputHandler = (name, value) => {
@@ -122,7 +121,7 @@ function ProductModal({ productModal, setProductModal, fetchProductData }) {
       jobworkcost: product?.jobworkcost,
       description: product?.description,
     });
-    console.log(data);
+    
     if (response.success) {
       setProductModal(false);
       fetchProductData();

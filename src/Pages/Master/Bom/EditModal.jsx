@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { useToast } from "../../../hooks/useToast.js";
 import Alter from "./Alter";
@@ -29,17 +29,15 @@ const EditBranch = ({ modalEditOpen, setModalEditOpen }) => {
   const [fetchData, setFetchData] = useState([]);
   const [secondData, setSecondData] = useState([]);
   const [pageLoading, setPageLoading] = useState(false);
-  const [searchInput, setSearchInput] = useState(null);
+  // const [searchInput, setSearchInput] = useState(null);
   const [altModal, setAltModal] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [addUpdateLoading, setAddUpdateLoading] = useState(false);
   const [updateRowLoading, setUpdateRowLoading] = useState(false);
   const [addingEmergingPart, setAddingEmergingPart] = useState(false);
   const [viewEmergingPart, setViewEmergingPart] = useState(false);
-  const [editQty, setEditQty] = useState({
-    qty: "",
-  });
+
 
   const { executeFun, loading: loading1 } = useApi();
 
@@ -63,7 +61,7 @@ const EditBranch = ({ modalEditOpen, setModalEditOpen }) => {
     const response = await imsAxios.post("/bom/fetchProductInBom", {
       subject_id: modalEditOpen?.subject_id,
     });
-    setFetchData(data.data);
+    setFetchData(response?.data);
   };
 
   const selectInputHandler = (name, id, value) => {
@@ -109,13 +107,12 @@ const EditBranch = ({ modalEditOpen, setModalEditOpen }) => {
   };
   const loadData = async (e) => {
     if (e.length > 2) {
-      setSelectLoading(true);
       // const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
       //   search: e,
       // });
       const response = await executeFun(() => getComponentOptions(e), "select");
       const { data } = response;
-      setSelectLoading(false);
+      
       let arr = [];
       arr = data.map((vList) => {
         return { text: vList.text, value: vList.id };
@@ -175,7 +172,7 @@ const EditBranch = ({ modalEditOpen, setModalEditOpen }) => {
       setSecondData(arr);
       showToast(response.message, "success");
     } else {
-      showToast(errorToast(data.message), "error");
+      showToast(errorToast(response.message), "error");
     }
   };
 
@@ -206,24 +203,24 @@ const EditBranch = ({ modalEditOpen, setModalEditOpen }) => {
       showToast(response.message?.msg || response.message, "error");
     }
   };
-  const handlerEmergingMogal = (row) => {
-    let obj = {
-      subject: modalEditOpen.subject_id,
-      parent_part: row.compKey,
-      componentName: row.component + " / " + row.partcode,
-      bom: fetchData?.subject,
-    };
-    setAddingEmergingPart(obj);
-  };
-  const handleViewEmerging = async (row) => {
-    let obj = {
-      subject: modalEditOpen.subject_id,
-      parent_part: row.compKey,
-      componentName: row.component + " / " + row.partcode,
-      bom: fetchData?.subject,
-    };
-    setViewEmergingPart(obj);
-  };
+  // const handlerEmergingMogal = (row) => {
+  //   let obj = {
+  //     subject: modalEditOpen.subject_id,
+  //     parent_part: row.compKey,
+  //     componentName: row.component + " / " + row.partcode,
+  //     bom: fetchData?.subject,
+  //   };
+  //   setAddingEmergingPart(obj);
+  // };
+  // const handleViewEmerging = async (row) => {
+  //   let obj = {
+  //     subject: modalEditOpen.subject_id,
+  //     parent_part: row.compKey,
+  //     componentName: row.component + " / " + row.partcode,
+  //     bom: fetchData?.subject,
+  //   };
+  //   setViewEmergingPart(obj);
+  // };
   const columns = [
     {
       headerName: (
@@ -253,7 +250,7 @@ const EditBranch = ({ modalEditOpen, setModalEditOpen }) => {
             selectLoading={loading1("select")}
             optionsState={asyncOptions}
             loadOptions={loadData}
-            onInputChange={(e) => setSearchInput(e)}
+            // onInputChange={(e) => setSearchInput(e)}
             onChange={(value) => selectInputHandler("component", row.id, value)}
           />
         ) : (

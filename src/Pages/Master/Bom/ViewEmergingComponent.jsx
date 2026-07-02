@@ -1,8 +1,7 @@
-import { Button, Col, Modal, Popconfirm, Row, Space, Typography } from "antd";
-import React, { useEffect, useState } from "react";
+import { Button, Col, Modal, Popconfirm, Row, } from "antd";
+import  { useEffect, useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
-import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import SummaryCard from "../../../Components/SummaryCard";
 import { DeleteFilled } from "@ant-design/icons";
 import Loading from "../../../Components/Loading";
@@ -125,10 +124,11 @@ export default function ViewEmergingComponent({
       onCancel={handleCancel}
       cancelText={"Back"}
       footer={[
-        <Button key="back" onClick={handleCancel}>
+        <Button key="back" onClick={handleCancel} >
           Back
         </Button>,
         <Popconfirm
+          key="delete"
           title="Are you sure you want to delete this emerging component?"
           description="Are you sure to delete this task?"
           onConfirm={handleDeleteEmergingConfirm}

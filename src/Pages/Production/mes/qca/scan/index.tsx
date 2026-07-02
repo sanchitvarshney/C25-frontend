@@ -16,9 +16,12 @@ import {
   Row,
   Typography,
 } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
+//@ts-ignore
 import MySelect from "@/Components/MySelect.jsx";
 import {
   currentScanDetails,
@@ -27,7 +30,6 @@ import {
   ProcessDetailsType,
 } from "@/Pages/Production/mes/qca/scan/types";
 import {
-  fetchEntriesfromCount,
   fetchFailReasonOptions,
   fetchPreviousData,
   getPprDetails,
@@ -39,7 +41,9 @@ import {
 import { SelectOptionType } from "@/types/general";
 import InsertModal from "@/Pages/Production/mes/qca/scan/InsertModal";
 import TransferModal from "@/Pages/Production/mes/qca/scan/TransferModal";
+//@ts-ignore
 import Loading from "@/Components/Loading.jsx";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
 
 type Props = {};
@@ -79,10 +83,10 @@ const QcScan = (props: Props) => {
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm<headerType>();
   const [scanForm] = Form.useForm();
-  const scanInputRef = useRef(null);
+  const scanInputRef = useRef<any>(null);
 
-  const selectedPpr = Form.useWatch("ppr", form);
-  const selectedProcess = Form.useWatch("process", form);
+  const selectedPpr:any = Form.useWatch("ppr", form);
+  const selectedProcess:any = Form.useWatch("process", form);
 
   const handleFetchFailReasonOptions = async () => {
     const response = await executeFun(
@@ -134,7 +138,6 @@ const QcScan = (props: Props) => {
           Are you sure you want to delete the selected entries?
         </Typography.Text>
       ),
-      confirmLoading: loading === "remove",
       okText: "Delete",
       cancelText: "Back",
       onOk: () => deleteSelected(),
@@ -150,7 +153,7 @@ const QcScan = (props: Props) => {
       return;
     }
 
-    const payload = {
+    const payload:any = {
       qr: scanValues.qr,
       ppr: values.ppr,
       process: values.process,
@@ -229,11 +232,11 @@ const QcScan = (props: Props) => {
       );
     }
   };
-  const filterTheCheckedRows = (selected, rows) => {
-    let arr = [];
+  const filterTheCheckedRows = (selected:any, rows:any) => {
+    let arr:any = [];
     let matched = [];
-    selected.map((row) => {
-      matched = rows.filter((r) => r.id === row)[0];
+    selected.map((row:any) => {
+      matched = rows.filter((r:any) => r.id === row)[0];
 
       if (matched) {
         arr.push(matched);
@@ -246,8 +249,8 @@ const QcScan = (props: Props) => {
     let payload = {
       sku: form.getFieldValue("sku"),
       qca_process: selectedProcess.key,
-      bar_code: deleteRow.map((r) => r?.qr),
-      result: deleteRow.map((r) => r?.status),
+      bar_code: deleteRow.map((r:any) => r?.qr),
+      result: deleteRow.map((r:any) => r?.status),
     };
 
     const response = await executeFun(() => deleteQcaRows(payload), "select");
@@ -464,7 +467,7 @@ const QcScan = (props: Props) => {
             checkboxSelection
             rows={rows}
             columns={columns}
-            onSelectionModelChange={(selected) => {
+            onSelectionModelChange={(selected:any) => {
               console.log(selected);
               console.log(rows);
               // setSelectedPo(selected);
@@ -496,7 +499,7 @@ export default QcScan;
 const getCurrentProcess = (
   key: string,
   proccesses: ProcessDetailsType[]
-): ProcessDetailsType => {
+): any => {
   return proccesses.find((row) => row.process.value === key);
 };
 

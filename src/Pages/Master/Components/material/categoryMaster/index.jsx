@@ -39,6 +39,7 @@ const CategoryMaster = () => {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -66,6 +67,7 @@ const CategoryMaster = () => {
         }
       });
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -99,6 +101,7 @@ const CategoryMaster = () => {
         });
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -158,8 +161,9 @@ const CategoryMaster = () => {
                       loading !== field.name &&
                       fieldSelectOptions
                         .filter((opt) => opt.name === field.name)[0]
-                        ?.options.map((opt) => (
+                        ?.options.map((opt, idx) => (
                           <Popover
+                          key={opt?.id || idx}
                             content={
                               <Row>
                                 <Col span={24}>
@@ -184,8 +188,8 @@ const CategoryMaster = () => {
                           </Popover>
                         ))}
                     {(loading === "fetch" || loading === field.name) &&
-                      [1, 1, 1, 1].map(() => (
-                        <Col>
+                      [1, 1, 1, 1].map((_, idx) => (
+                        <Col key={idx}>
                           <Skeleton.Button style={{ width: 30 }} active />
                         </Col>
                       ))}
@@ -215,8 +219,8 @@ const CategoryMaster = () => {
 export default CategoryMaster;
 
 const AddOptionModal = ({ show, hide, getSingleFieldSelectOptions }) => {
-  const [loading, setLoading] = useState(false);
-
+  // const [loading, setLoading] = useState(false);
+const { showToast } = useToast();
   const validateHander = async () => {
     const values = await form.validateFields();
     const payload = {
@@ -236,7 +240,6 @@ const AddOptionModal = ({ show, hide, getSingleFieldSelectOptions }) => {
 
   const submitHandler = async (payload) => {
     try {
-      setLoading("submit");
       const response = await imsAxios.post(
         "/mfgcategory/insertAttributesData",
         payload
@@ -250,9 +253,8 @@ const AddOptionModal = ({ show, hide, getSingleFieldSelectOptions }) => {
         showToast(response.message, "error");
       }
     } catch (error) {
-    } finally {
-      setLoading(false);
-    }
+      showToast(error.message || "Something went wrong", "error");
+    } 
   };
   const [form] = Form.useForm();
 

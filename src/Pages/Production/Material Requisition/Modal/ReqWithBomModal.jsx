@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import { useToast } from "../../../../hooks/useToast.js";
 import { Input, Skeleton, Tabs, Typography } from "antd";
@@ -8,7 +8,7 @@ import MyDataTable from "../../../../Components/MyDataTable.jsx";
 
 const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [tableData, setTableData] = useState([]);
   const [submitLoading, setsubmitLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
@@ -27,7 +27,8 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
     });
   
     if (response.success) {
-      let dataArray = [...response?.data?.filter((a) => a?.type == "P")];
+      const data = response?.data?.filter((a) => a?.type == "P")
+      let dataArray = [...data];
       dataArray = dataArray.map((row) => {
         return {
           ...row,
@@ -36,8 +37,8 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
           id: v4(),
         };
       });
-
-      let dataArray1 = [...response?.data?.filter((aa) => aa?.type == "PCK")];
+const data2 = response?.data?.filter((a) => a?.type == "PCK")
+      let dataArray1 = [...data2];
       dataArray1 = dataArray1.map((row) => {
         return {
           ...row,
@@ -46,7 +47,8 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
           remark: "",
         };
       });
-      let dataArray2 = [...response?.data?.filter((aaa) => aaa?.type == "O")];
+const data3 = response?.data?.filter((aaa) => aaa?.type == "O")
+      let dataArray2 = [...data3];
       dataArray2 = dataArray2.map((row) => {
         return {
           ...row,
@@ -55,7 +57,8 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
           id: v4(),
         };
       });
-      let dataArray3 = [...response?.data?.filter((aaa) => aaa?.type == "PCB")];
+      const data4 = response?.data?.filter((aaa) => aaa?.type == "PCB")
+      let dataArray3 = [...data4];
       dataArray3 = dataArray3.map((row) => {
         return {
           ...row,
@@ -207,7 +210,7 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
   const onChange = (newActiveKey) => {
     setActiveKey(newActiveKey);
   };
-  const onEdit = (targetKey, action) => {
+  const onEdit = (targetKey) => {
     remove(targetKey);
   };
 
@@ -259,10 +262,10 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
       showToast(response.message, "success");
       setTab(true);
       reset();
-      setLoading(false);
+      // setLoading(false);
     } else {
       showToast(response.message?.msg || response.message, "error");
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

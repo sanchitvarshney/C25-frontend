@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import {
   Button,
@@ -6,61 +6,54 @@ import {
   Row,
   Space,
   Tooltip,
-  Popover,
   Form,
   Drawer,
   Input,
   Col,
-  Descriptions,
   Modal,
   Collapse,
 } from "antd";
 import MySelect from "../../../Components/MySelect";
-import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
-import { downloadCSV } from "../../../Components/exportToCSV";
 import {
   DownloadOutlined,
-  MessageOutlined,
   UploadOutlined,
-  EyeOutlined,
 } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";
-import { set } from "lodash";
+// import { set } from "lodash";
 import { useEffect } from "react";
-import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import Loading from "../../../Components/Loading";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
-import printFunction, {
-  downloadFunction,
-} from "../../../Components/printFunction";
-import NavFooter from "../../../Components/NavFooter";
-import useApi from "../../../hooks/useApi.ts";
-import { getVendorOptions } from "../../../api/general.ts";
-import { convertSelectOptions } from "../../../utils/general.ts";
+// import printFunction, {
+//   downloadFunction,
+// } from "../../../Components/printFunction";
+// import NavFooter from "../../../Components/NavFooter";
+// import useApi from "../../../hooks/useApi.ts";
+// import { getVendorOptions } from "../../../api/general.ts";
+// import { convertSelectOptions } from "../../../utils/general.ts";
 
 function ViewRnC() {
   const { showToast } = useToast();
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [asyncOptions, setAsyncOptions] = useState();
+  // const [searchLoading, setSearchLoading] = useState(false);
+  // const [asyncOptions, setAsyncOptions] = useState();
   const [loading, setLoading] = useState(false);
-  const [processOptions, setProcessOptions] = useState([]);
+  // const [processOptions, setProcessOptions] = useState([]);
   const [rows, setRows] = useState([]);
   const [showViewModel, setShowViewModal] = useState(false);
-  const [detailData, setDetailData] = useState([]);
+  // const [detailData, setDetailData] = useState([]);
 
   const [qcReportForm] = Form.useForm();
   const ppr = Form.useWatch("ppr", qcReportForm);
   const status = Form.useWatch("status", qcReportForm);
-  const processName = Form.useWatch("process", qcReportForm);
-  const [searchInput, setSearchInput] = useState("");
+  // const processName = Form.useWatch("process", qcReportForm);
+  // const [searchInput, setSearchInput] = useState("");
   const [rowdata, setrowdata] = useState("");
   const [docview, setdocview] = useState(false);
   const [viewdata, setviewdata] = useState([]);
-  const { executeFun, loading: loading1 } = useApi();
+  // const { executeFun } = useApi();
   const actionColumn = {
     headerName: "",
     field: "actions",
@@ -68,6 +61,7 @@ function ViewRnC() {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
+      key="view"
         showInMenu
         disabled={loading}
         onClick={() => {
@@ -84,6 +78,7 @@ function ViewRnC() {
       //   label="Print"
       // />,
       <GridActionsCellItem
+        key="addendum"
         showInMenu
         disabled={loading}
         onClick={() => {
@@ -110,28 +105,26 @@ function ViewRnC() {
     setShowViewModal(true);
   };
 
-  const downloadattachment = () => {
-    console.log("attachment");
-  };
+
 
   const statusOptions = [
     { text: "Date Wise", value: "date" },
     { text: "Party Wise", value: "vendor" },
   ];
 
-  const getVendors = async (search) => {
-    if (search?.length > 2) {
-      const response = await executeFun(
-        () => getVendorOptions(search),
-        "select"
-      );
-      let arr = [];
-      if (response.success) {
-        arr = convertSelectOptions(response.data);
-      }
-      setAsyncOptions(arr);
-    }
-  };
+  // const getVendors = async (search) => {
+  //   if (search?.length > 2) {
+  //     const response = await executeFun(
+  //       () => getVendorOptions(search),
+  //       "select"
+  //     );
+  //     let arr = [];
+  //     if (response.success) {
+  //       arr = convertSelectOptions(response.data);
+  //     }
+  //     setAsyncOptions(arr);
+  //   }
+  // };
   const getPPRDetails = async (ppr) => {
     try {
       setLoading("fetch");
@@ -154,12 +147,12 @@ function ViewRnC() {
       );
       const { data: processData } = processResponse;
       if (processData) {
-        const arr = processData.data.map((row) => ({
-          text: row.process.name,
-          value: row.process.key,
-        }));
+        // const arr = processData.data.map((row) => ({
+        //   text: row.process.name,
+        //   value: row.process.key,
+        // }));
 
-        setProcessOptions(arr);
+        // setProcessOptions(arr);
       }
     } catch (error) {
       showToast(error, "error");
@@ -223,12 +216,12 @@ function ViewRnC() {
       getPPRDetails(ppr);
     }
   }, [ppr]);
-  const extraColumn = {
-    headerName: "Fail reason",
-    width: 350,
-    field: "failReason",
-    renderCell: ({ row }) => <ToolTipEllipses text={row.failReason} />,
-  };
+  // const extraColumn = {
+  //   headerName: "Fail reason",
+  //   width: 350,
+  //   field: "failReason",
+  //   renderCell: ({ row }) => <ToolTipEllipses text={row.failReason} />,
+  // };
   return (
     <>
       <div style={{ height: "90%", marginTop: 10 }}>
@@ -314,7 +307,7 @@ function ViewRnC() {
           <MyDataTable
             columns={[actionColumn, ...columns]}
             data={rows}
-            loading={searchLoading}
+            // loading={searchLoading}
           />
         </div>
       </div>
@@ -402,12 +395,13 @@ const AddAddendumModal = ({
   show,
   setshow,
   detaildata,
-  status,
-  component,
+  // status,
+  // component,
 }) => {
   const [addaddendumform] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const [dateType, setDateType] = useState("");
+  const {showToast} = useToast();
   const options = [
     {
       text: "Date",
@@ -463,7 +457,7 @@ const AddAddendumModal = ({
     const response = await imsAxios.post("agreement/addaddendum", formdata);
     addaddendumform.resetFields();
     setFileList([]);
-    showToast(response.data.msg, "success");
+    showToast(response.message, "success");
     setshow(false);
     setLoading(false);
   };

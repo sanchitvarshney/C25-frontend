@@ -9,6 +9,7 @@ const createProcess = async (values) => {
     };
 
     const response = await imsAxios.post(url, finalObj);
+    return response;
     // TODO
   } catch (error) {
     console.log("error while creating process", error);

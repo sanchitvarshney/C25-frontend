@@ -1,12 +1,10 @@
-import { ModalType } from "@/types/general";
-import { Flex, Modal, Typography } from "antd";
-import MyButton from "@/Components/MyButton/index.jsx";
-interface Props extends ModalType {
-  submitHandler: (status: "PASS" | "FAIL") => void;
-  loading: (name: string) => void;
-}
 
-const TransferModal = ({ hide, show, loading, submitHandler }: Props) => {
+import { Flex, Modal, Typography } from "antd";
+//@ts-ignore
+import MyButton from "@/Components/MyButton/index.jsx";
+
+
+const TransferModal = ({ hide, show, loading, submitHandler }: any) => {
   return (
     <Modal
       open={show}

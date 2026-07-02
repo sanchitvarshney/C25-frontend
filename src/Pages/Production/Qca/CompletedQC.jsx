@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Button, Input, Popconfirm, Row, Space, Popover } from "antd";
+import { useEffect, useState } from "react";
+import { Button, Input, Popconfirm, Row, Space } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
 import MySelect from "../../../Components/MySelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
@@ -8,7 +8,6 @@ import { v4 } from "uuid";
 import {
   CheckOutlined,
   CloseOutlined,
-  MessageOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
 import { downloadCSV } from "../../../Components/exportToCSV";
@@ -26,7 +25,7 @@ function CompletedQC() {
   const [searchInput, setSearchInput] = useState("");
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [rows, setRows] = useState([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -155,14 +154,7 @@ function CompletedQC() {
     }
   };
 
-  const content1 = (row) => (
-    // <div>
-    <span
-      style={{ fontWeight: "bold", fontSize: "14px" }}
-      dangerouslySetInnerHTML={{ __html: row }}
-    />
-    // </div>
-  );
+
 
   const columns = [
     {
@@ -333,7 +325,7 @@ function CompletedQC() {
               title={`Are you sure to pass Sample ${row.part}?`}
               onConfirm={() => submitSample(row)}
               onCancel={() => {
-                setShowConfirmModal(null);
+                // setShowConfirmModal(null);
               }}
               okText="Yes"
               loading={submitLoading === row.id}
@@ -352,7 +344,7 @@ function CompletedQC() {
               title={`Are you sure to reject Sample ${row.transaction}?`}
               onConfirm={() => rejectSample(row)}
               onCancel={() => {
-                setShowConfirmModal(null);
+                // setShowConfirmModal(null);
               }}
               loading={submitLoading === row.id}
               okText="Yes"

@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Drawer, Space } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../axiosInterceptor";
 
 export default function ViewSFGModal({ sfgViewModal, setSfgViewModal }) {
-  console.log(sfgViewModal);
   const [loading, setLoading] = useState(false);
   const [storeData, setStoreData] = useState([]);
-  const [filterData, setFilterData] = useState([]);
+  // const [filterData, setFilterData] = useState([]);
 
   const fetchDataFromViewBom = async () => {
     setLoading(true);
@@ -39,9 +38,9 @@ export default function ViewSFGModal({ sfgViewModal, setSfgViewModal }) {
     }
   }, [sfgViewModal]);
 
-  useEffect(() => {
-    // console.log(filterData);
-  }, [filterData]);
+  // useEffect(() => {
+  //   // console.log(filterData);
+  // }, [filterData]);
 
   return (
     <Space>

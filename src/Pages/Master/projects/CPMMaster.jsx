@@ -130,6 +130,7 @@ function CPMMaster() {
       getActions: ({ row }) => [
         // Edit icon
         <TableActions
+        key={"edit"}
           action="edit"
           onClick={() => {
             setIsModalVisible(true);
@@ -137,6 +138,7 @@ function CPMMaster() {
           }}
         />,
         <TableActions
+        key={"view"}
           action="view"
           onClick={() => {
             setIsViewModalVisible(true);

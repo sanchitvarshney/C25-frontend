@@ -1,10 +1,8 @@
 import { Button, Card, Col, Form, Row, Space, Typography } from "antd";
-import React from "react";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 
 const HeaderDetails = ({
   loading,
-  setLoading,
   asyncOptions,
   setAsyncOptions,
   handleProductOptions,
@@ -36,13 +34,13 @@ const HeaderDetails = ({
         </Col>
         <Col span={24}>
           <Typography.Text strong style={{ fontSize: "0.8rem" }}>
-            You can click on "Create Process" to create a new process.
+            {`You can click on "Create Process" to create a new process.`}
           </Typography.Text>
         </Col>
         <Col span={24}>
           <Typography.Text strong style={{ fontSize: "0.8rem" }}>
-            After entering all the required processes click on "Map Processes"
-            to finish.
+            {`After entering all the required processes click on "Map Processes"
+            to finish.`}
           </Typography.Text>
         </Col>
 

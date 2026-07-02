@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import NavFooter from "../..//../../Components/NavFooter";
 import {
   Button,
@@ -8,7 +8,6 @@ import {
   Modal,
   Row,
   Skeleton,
-  Space,
   Typography,
 } from "antd";
 import {
@@ -56,7 +55,7 @@ export default function MateirialInward({
     { label: "Sub-Total value before Taxes", sign: "", values: [] },
   ]);
   const [currencies, setCurrencies] = useState([]);
-  const [locationSearchInput, setLocationSearchInput] = useState("");
+  // const [locationSearchInput, setLocationSearchInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [successPageData, setSuccessPageData] = useState(false);
@@ -233,7 +232,7 @@ export default function MateirialInward({
   };
   const getLocation = async () => {
     const response = await imsAxios.post("/transaction/getLocationInMin", {
-      search: locationSearchInput,
+      search: "",
     });
     let arr = [];
     if (response.success && response.data?.data) {
