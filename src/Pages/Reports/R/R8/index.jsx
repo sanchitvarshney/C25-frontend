@@ -10,6 +10,7 @@ import { CommonIcons } from "../../../../Components/TableActions.jsx/TableAction
 import socket from "../../../../Components/socket";
 import { v4 } from "uuid";
 import MyButton from "../../../../Components/MyButton";
+import dayjs from "dayjs";
 
 function R8() {
   const [searchInput, setSearchInput] = useState("");
@@ -156,7 +157,11 @@ function R8() {
         />
       </div>
 
-      <DetailsModal show={seeDetails} close={() => setSeeDetails(false)} />
+      <DetailsModal show={seeDetails} close={() => setSeeDetails(false)} end_date={
+          searchInput
+            ? dayjs(searchInput.substring(11, 21), "DD-MM-YYYY").format("YYYY-MM-DD")
+            : null
+        }/>
     </div>
   );
 }
