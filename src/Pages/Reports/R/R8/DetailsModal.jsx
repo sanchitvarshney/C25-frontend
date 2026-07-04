@@ -5,12 +5,12 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../../Components/exportToCSV";
-import { showToast } from "../../../../hooks/useToast";
+import { useToast } from "../../../../hooks/useToast";
 
 const DetailsModal = ({ show, close }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-
+const { showToast } = useToast();
   const getRows = async (mfgId) => {
     try {
       setRows([]);
