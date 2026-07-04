@@ -1,7 +1,5 @@
 import { Card, Col, Row, Tooltip, Typography, Space } from "antd";
-import React from "react";
 import {
-  EyeOutlined,
   UserOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
@@ -9,7 +7,6 @@ import {
 const LocationCard = ({
   location,
   value,
-  opening,
   unit,
   owner,
   locationAddress,

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyDataTable from "../../../Components/MyDataTable";
 import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import { v4 } from "uuid";
 import { useToast } from "../../../hooks/useToast.js";
+import {Drawer, Flex, Typography} from "antd"
 const AttachementList = ({
   
   attachlist,
@@ -11,10 +12,10 @@ const AttachementList = ({
 }) => {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
-  const [documentRow, setDocumentRow] = useState([]);
+  // const [documentRow, setDocumentRow] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [imageRow, setImageRow] = useState([]);
+  // const [imageRow, setImageRow] = useState([]);
   const handleFetchProductList = async (val) => {
     setLoading(true);
     const response = await imsAxios.get(`/products/view/attachment/${val}`);
@@ -22,7 +23,7 @@ const AttachementList = ({
     if (response.success) {
       //   setRows(response.data);
       let arr = response.data.documents;
-      let a = arr.map((r, index) => {
+      let a = arr.map((r) => {
         return {
           id: v4(),
           type: "Document",
@@ -30,19 +31,17 @@ const AttachementList = ({
         };
       });
       console.log("a", a);
-      setDocumentRow(a);
+      // setDocumentRow(a);
       let arrs = response.data.images;
-      let b = arrs.map((r, index) => {
+      let b = arrs.map((r) => {
         return {
           id: v4(),
           type: "Image",
           ...r,
         };
       });
-      console.log("a", b);
-      setImageRow(b);
+      // setImageRow(b);
       let rowing = [...a, ...b];
-      console.log("rows", rowing);
       setRows(rowing);
       showToast(response.message, "success");
       setLoading(false);

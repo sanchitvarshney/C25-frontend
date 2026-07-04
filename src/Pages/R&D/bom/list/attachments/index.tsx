@@ -1,6 +1,7 @@
 import { ModalType } from "@/types/general";
 import { BOMTypeExtended } from "@/types/r&d";
 import { Card, Divider, Drawer, Flex, Modal, Typography } from "antd";
+//@ts-ignore
 import { CommonIcons } from "@/Components/TableActions.jsx/TableActions";
 
 interface PropTypes extends ModalType {
@@ -34,7 +35,7 @@ const Attachments = (props: PropTypes) => {
               {props.bom.documents.length} found
             </Typography.Text>
           </Flex>
-          {props.bom.documents.map((row) => (
+          {props.bom.documents.map((row:any) => (
             <Card size="small">
               <Flex align="center" justify={"space-between"}>
                 <Typography.Text strong>{row.fileName}</Typography.Text>

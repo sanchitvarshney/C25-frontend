@@ -3,9 +3,13 @@ import { getR34Details } from "@/api/reports/inventoryReport";
 import useApi from "@/hooks/useApi";
 import { R34ComponentType, R34Type } from "@/types/reports";
 import { Drawer, Flex, Row, Typography } from "antd";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable";
+//@ts-ignore
 import { CommonIcons } from "@/Components/TableActions.jsx/TableActions.jsx";
+//@ts-ignore
 import { downloadCSV } from "@/Components/exportToCSV.jsx";
+//@ts-ignore
 import ToolTipEllipses from "@/Components/ToolTipEllipses.jsx";
 
 interface PropTypes {

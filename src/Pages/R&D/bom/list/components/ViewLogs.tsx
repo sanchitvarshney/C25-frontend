@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Card, Col, Drawer, Flex, Row } from "antd";
-import ToolTipEllipses from "@/Components/ToolTipEllipses";
+import { Col, Drawer, Flex, Row } from "antd";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
-import { downloadBom, getComponents, getComponentsLogs } from "@/api/r&d/bom";
+import { getComponentsLogs } from "@/api/r&d/bom";
 import useApi from "@/hooks/useApi";
 import { ModalType } from "@/types/general";
 import { BOMType, BOMTypeExtended } from "@/types/r&d";
+//@ts-ignore
 import { CommonIcons } from "../../../../../Components/TableActions.jsx/TableActions";
-import BOMApproval from "@/Pages/R&D/bom/list/approval";
 
 interface Proptypes extends ModalType {
   selectedBOM: BOMTypeExtended;

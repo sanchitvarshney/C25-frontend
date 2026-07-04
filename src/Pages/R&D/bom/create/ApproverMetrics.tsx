@@ -14,17 +14,10 @@ import {
   Typography,
 } from "antd";
 import { useEffect, useState } from "react";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
 import { getUserOptions } from "@/api/general";
 import { getFixedApprovers } from "@/api/r&d/bom";
-
-interface Props extends ModalType {
-  approvers: any[];
-  setApprovers: React.Dispatch<React.SetStateAction<MultiStageApproverType[]>>;
-  submitLoading: boolean;
-  submitHandler: (action: "draft" | "final") => void;
-  saveType: "draft" | "final" | null|any;
-}
 
 const ApproverMetrics = ({
   approvers,
@@ -35,20 +28,11 @@ const ApproverMetrics = ({
   submitLoading,
   saveType,
   // initialApprovers,
-}: Props) => {
+}: any) => {
   const [asyncOptions, setAsyncOptions] = useState<any>([]);
 
   const { executeFun, loading } = useApi();
-  function getLastDigit(input) {
-    // Match all digits in the string
-    const match = input.match(/\d+/g);
-    // If matches are found, return the last digit of the last match
-    if (match) {
-      const lastMatch = match[match.length - 1]; // Get the last numeric string
-      return lastMatch[lastMatch.length - 1]; // Return the last digit of the last numeric string
-    }
-    return null; // Return null if no digits are found
-  }
+
   const handleFetchUserOptions = async (search: string) => {
     const response = await executeFun(() => getUserOptions(search), "select");
     setAsyncOptions(response.data ?? []);
@@ -60,8 +44,10 @@ const ApproverMetrics = ({
     // console.log("response for fixed", response);
 
     let arr = approvers;
-    arr = arr.map((row) => {
-      const found = response.data.find((resRow) => resRow.stage === row.stage);
+    arr = arr.map((row: any) => {
+      const found = response.data.find(
+        (resRow: any) => resRow.stage === row.stage,
+      );
       // console.log("response", found);
 
       if (found) {
@@ -87,7 +73,7 @@ const ApproverMetrics = ({
   };
 
   const handleDeleteApprover = (stage: number, line: number) => {
-    const arr = approvers.map((row) => {
+    const arr = approvers.map((row: any) => {
       let obj = row;
       // console.log("row in delate", obj);
 
@@ -95,7 +81,7 @@ const ApproverMetrics = ({
         //remove logic here
         obj = {
           ...obj,
-          approvers: obj.approvers.filter((lineRow) => {
+          approvers: obj.approvers.filter((lineRow: any) => {
             return lineRow.line !== line;
           }),
         };
@@ -118,14 +104,14 @@ const ApproverMetrics = ({
   const handleUpdateApprover = (
     stage: number,
     line: number,
-    value: SelectOptionType
+    value: SelectOptionType,
   ) => {
     let arr = approvers;
-    arr = approvers.map((row) => {
+    arr = approvers.map((row: any) => {
       if (row.stage === stage) {
         return {
           ...row,
-          approvers: row.approvers.map((appRow) => {
+          approvers: row.approvers.map((appRow: any) => {
             if (appRow.line === line) {
               return {
                 ...appRow,
@@ -145,12 +131,11 @@ const ApproverMetrics = ({
       const updatedData = convertStageToNumber(arr);
       setApprovers(updatedData);
     }
- 
   };
 
   const handleAddApprover = (stage: number) => {
     let arr = approvers;
-    let found = approvers.find((row) => row.stage === stage);
+    let found = approvers.find((row: any) => row.stage === stage);
     let last = found?.approvers[found.approvers.length - 1];
 
     if (!found || !last) return;
@@ -170,7 +155,7 @@ const ApproverMetrics = ({
       user: undefined,
     };
 
-    arr = approvers.map((row) => {
+    arr = approvers.map((row: any) => {
       if (row.stage === stage) {
         return found;
       }
@@ -202,10 +187,10 @@ const ApproverMetrics = ({
   //   }
   //   return null; // Return null if no digits are found
   // }
-  function convertStageToNumber(data) {
+  function convertStageToNumber(data: any) {
     // console.log("data ub ", data);
 
-    return data.map((item) => {
+    return data.map((item: any) => {
       if (typeof item.stage === "string") {
         // console.log(" item.stage", item.stage);
 
@@ -219,15 +204,6 @@ const ApproverMetrics = ({
       return item;
     });
   }
-  // useEffect(() => {
-  //   if (approvers) {
-  //     const updatedData = convertStageToNumber(approvers);
-  //     setApprovers(updatedData);
-  //     setApprovers(updatedData);
-  //   }
-  // }, [approvers]);
-
-  // console.log("approvaers fr modal dsiable", approvers);
 
   return (
     <Modal
@@ -242,7 +218,7 @@ const ApproverMetrics = ({
       footer={null}
     >
       <Flex vertical style={{ minHeight: "70vh" }}>
-        {approvers.map((approver) => (
+        {approvers.map((approver: any) => (
           <Stage
             asyncOptions={asyncOptions}
             handleFetchUserOptions={handleFetchUserOptions}
@@ -253,7 +229,6 @@ const ApproverMetrics = ({
             handleDeleteApprover={handleDeleteApprover}
             handleAddApprover={handleAddApprover}
             handleUpdateApprover={handleUpdateApprover}
-            convertStageToNumber={convertStageToNumber}
           />
         ))}
       </Flex>
@@ -294,7 +269,7 @@ interface StageProps {
   handleUpdateApprover: (
     stage: number,
     line: number,
-    value: SelectOptionType
+    value: SelectOptionType,
   ) => void;
 }
 const Stage = ({
@@ -306,13 +281,13 @@ const Stage = ({
   handleDeleteApprover,
   handleAddApprover,
   handleUpdateApprover,
-  convertStageToNumber,
 }: StageProps) => {
   return (
     <Flex vertical>
       <Flex justify="space-between">
         <Typography.Title level={5}>L-{stage?.stage}</Typography.Title>
         <IconButton
+          //@ts-ignore
           onClick={() => handleAddApprover(stage.stage)}
           icon={
             <PlusCircleFilled
@@ -334,12 +309,13 @@ const Stage = ({
                 selectLoading={selectLoading}
                 value={approver.user}
                 labelInValue={true}
-                onChange={(value) =>
+                onChange={(value:any) =>
                   handleUpdateApprover(stage.stage, approver.line, value)
                 }
               />
               {!approver.fixed && (
                 <IconButton
+                  //@ts-ignore
                   onClick={() =>
                     handleDeleteApprover(stage.stage, approver.line)
                   }

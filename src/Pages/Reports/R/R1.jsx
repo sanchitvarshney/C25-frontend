@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./r.css";
 import "../../Store/MaterialTransfer/Modal/viewModal.css";
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";

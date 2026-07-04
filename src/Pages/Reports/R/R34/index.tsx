@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, Col, Form, Row, Space } from "antd";
 import { R34Type } from "@/types/reports";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
-
+//@ts-ignore
 import ToolTipEllipses from "@/Components/ToolTipEllipses";
 import { getR34 } from "@/api/reports/inventoryReport";
+//@ts-ignore
 import { CommonIcons } from "@/Components/TableActions.jsx/TableActions";
+//@ts-ignore
 import { downloadCSV } from "@/Components/exportToCSV";
+//@ts-ignore
 import MyDatePicker from "@/Components/MyDatePicker";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import Details from "@/Pages/Reports/R/R34/Details";
@@ -33,8 +38,9 @@ function R34() {
       type: "actions",
       width: 30,
       getActions: ({ row }: { row: R34Type }) => [
-        // Edit icon
+       //@ts-ignore
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           // disabled={disabled}
           label={"Details"}
@@ -54,7 +60,7 @@ function R34() {
           <Form form={form} layout="vertical">
             <Form.Item name="date" label="Date">
               <MyDatePicker
-                setDateRange={(value) => form.setFieldValue("date", value)}
+                setDateRange={(value:any) => form.setFieldValue("date", value)}
               />
             </Form.Item>
             <Row justify="end">

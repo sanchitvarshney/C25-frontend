@@ -3,36 +3,114 @@ import useApi from "@/hooks/useApi";
 import { ModalType } from "@/types/general";
 import { BOMApprovalType, BOMTypeExtended } from "@/types/r&d";
 import {
-  Button,
   Collapse,
   Divider,
-  Drawer,
   Flex,
   Form,
   Input,
   Modal,
-  Space,
   Typography,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux/es/exports";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+//@ts-ignore
 import Loading from "@/Components/Loading.jsx";
-import { height } from "@mui/system";
 
-interface PropTypes extends ModalType {
-  selectedBom: BOMTypeExtended | null;
-}
 
-const BOMApproval = (props: PropTypes) => {
-  const [logs, setLogs] = useState<BOMApprovalType | {}>({});
+const RemarksModal = (props: any) => {
+  const [form] = Form.useForm();
+  const { executeFun, loading } = useApi();
+
+  const handleUpdateStatus = async () => {
+    const values = await form.validateFields();
+
+    const response = await executeFun(
+      () =>
+        updateStatus(
+          props.details?.bom?.key ?? "",
+          props?.details?.stage,
+          props.details?.line,
+          props.details?.type,
+          values.remarks,
+        ),
+      "submit"
+    );
+
+    if (response.success) {
+      props.hide();
+
+      // if (response?.data?.type == true) {
+        props.handleFetchLogs(props.details?.bom.key ?? "");
+      // } else {
+      //   props.handleRejectedFetchLogs(props.details?.bom.key ?? "");
+      // }
+    }
+  };
+
+  useEffect(() => {
+    if (!props.show) {
+      form.setFieldValue("remarks", undefined);
+    }
+  }, [props.show]);
+
+  return (
+    <Modal
+      open={props.show}
+      onCancel={props.hide}
+      okButtonProps={{
+        danger: props.details?.type === "Rejected",
+        icon:
+          props.details?.type === "Rejected" ? (
+            <CloseOutlined />
+          ) : (
+            <CheckOutlined />
+          ),
+      }}
+      okText={props.details?.type === "Approved" ? "Approve" : "Reject"}
+      title={
+        props.details?.type === "Approved"
+          ? `Approving ${props.details?.bom?.productName}`
+          : `Rejecting ${props.details?.bom?.productName}`
+      }
+      onOk={handleUpdateStatus}
+      confirmLoading={loading("submit")}
+    >
+      <Flex justify="center">
+        <Typography.Text
+          style={{
+            textTransform: "capitalize",
+            textAlign: "center",
+            margin: "5px 0px",
+          }}
+          strong
+        >
+          Are you sure you want to {props.details?.type === "Approved" ? "Approve" : "Reject"}
+          <span>{props.details?.bom.name}</span>?
+        </Typography.Text>
+      </Flex>
+
+      <Form form={form} layout="vertical">
+        <Form.Item label="Remarks" name="remarks" rules={rules.remarks}>
+          <Input.TextArea rows={4} />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+
+
+const BOMApproval = (props: any) => {
+  const [logs, setLogs] = useState<any >({});
   const [rejlogs, setRejLogs] = useState({});
   const [isRejlen, setIsRejlen] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
-  const [approvalModalDetails, setApprovalModalDetails] = useState(null);
+  const [approvalModalDetails, setApprovalModalDetails] = useState<any>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
-  const { user } = useSelector((state) => state.login);
+  const { user } = useSelector((state:any) => state.login);
   const { loading, executeFun } = useApi();
 
   const handleFetchLogs = async (bomKey: string) => {
@@ -47,7 +125,7 @@ const BOMApproval = (props: PropTypes) => {
     let a = response.data[0].description;
 
     // Group the rejected logs by line, then by stage
-    const grouped = a.reduce((acc, item) => {
+    const grouped = a.reduce((acc: any, item: any) => {
       if (!acc[item.line]) {
         acc[item.line] = {};  // Group by line first
       }
@@ -75,13 +153,13 @@ const BOMApproval = (props: PropTypes) => {
     }
   }, [props.show]);
 
-  const collapseItems = Object.entries(rejlogs).map(([line, stages]) => ({
+  const collapseItems = Object.entries(rejlogs).map(([line, stages]: any) => ({
     key: line,
     label: `Line ${line}`,
-    children: Object.entries(stages).map(([stage, logs]) => ({
+    children: Object.entries(stages).map(([stage, logs]:any) => ({
       key: stage,
       label: `Stage ${stage}`,
-      children: logs.map((log) => ({
+      children: logs.map((log:any) => ({
         key: log.id, // Unique key for each log
         label: (
           <div>
@@ -126,12 +204,12 @@ const BOMApproval = (props: PropTypes) => {
         </Collapse>
       ) : (
         <Collapse
-          items={logs?.logs?.map((log) => ({
+          items={logs?.logs?.map((log:any) => ({
             key: log.line,
             label: `L${log.line}`,
             children: (
               <Collapse
-                items={log.approvers.map((row) => ({
+                items={log.approvers.map((row:any) => ({
                   key: row.stageLabel,
                   label: `${row.stageLabel}`,
                   children: (
@@ -256,7 +334,7 @@ const BOMApproval = (props: PropTypes) => {
                   width: 10,
                   marginTop: 7,
                   borderRadius: "100%",
-                  background: log.approvers.find((row) => row.currentApprover)
+                  background: log.approvers.find((row:any) => row.currentApprover)
                     ? isRejected
                       ? "brown"
                       : "green"
@@ -292,97 +370,7 @@ const SingleDetail = ({
   );
 };
 
-interface ModalProps extends ModalType {
-  details: {
-    stage: number;
-    line: number;
-    type: "Rejected" | "Approved";
-    bom: BOMTypeExtended;
-  } | null;
-  handleFetchLogs: (bomKey: string) => void;
-  handleRejectedFetchLogs: (bomKey: string) => void;
-}
 
-const RemarksModal = (props: ModalProps) => {
-  const [form] = Form.useForm();
-  const { executeFun, loading } = useApi();
-
-  const handleUpdateStatus = async () => {
-    const values = await form.validateFields();
-
-    const response = await executeFun(
-      () =>
-        updateStatus(
-          props.details?.bom?.key ?? "",
-          props?.details?.stage,
-          props.details?.line,
-          props.details?.type,
-          values.remarks,
-        ),
-      "submit"
-    );
-
-    if (response.success) {
-      props.hide();
-
-      // if (response?.data?.type == true) {
-        props.handleFetchLogs(props.details?.bom.key ?? "");
-      // } else {
-      //   props.handleRejectedFetchLogs(props.details?.bom.key ?? "");
-      // }
-    }
-  };
-
-  useEffect(() => {
-    if (!props.show) {
-      form.setFieldValue("remarks", undefined);
-    }
-  }, [props.show]);
-
-  return (
-    <Modal
-      open={props.show}
-      onCancel={props.hide}
-      okButtonProps={{
-        danger: props.details?.type === "Rejected",
-        icon:
-          props.details?.type === "Rejected" ? (
-            <CloseOutlined />
-          ) : (
-            <CheckOutlined />
-          ),
-      }}
-      okText={props.details?.type === "Approved" ? "Approve" : "Reject"}
-      title={
-        props.details?.type === "Approved"
-          ? `Approving ${props.details?.bom?.productName}`
-          : `Rejecting ${props.details?.bom?.productName}`
-      }
-      onOk={handleUpdateStatus}
-      confirmLoading={loading("submit")}
-    >
-      <Flex justify="center">
-        <Typography.Text
-          style={{
-            textTransform: "capitalize",
-            textAlign: "center",
-            margin: "5px 0px",
-          }}
-          strong
-        >
-          Are you sure you want to {props.details?.type === "Approved" ? "Approve" : "Reject"}
-          <span>{props.details?.bom.name}</span>?
-        </Typography.Text>
-      </Flex>
-
-      <Form form={form} layout="vertical">
-        <Form.Item label="Remarks" name="remarks" rules={rules.remarks}>
-          <Input.TextArea rows={4} />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
 
 const rules = {
   remarks: [

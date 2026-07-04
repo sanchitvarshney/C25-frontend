@@ -1,4 +1,4 @@
-import { Button, Col, Row, Space, Select, Input } from "antd";
+import { Space, Select, Input } from "antd";
 import { useState } from "react";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
@@ -10,9 +10,11 @@ import { CommonIcons } from "../../../../Components/TableActions.jsx/TableAction
 import socket from "../../../../Components/socket";
 import { v4 } from "uuid";
 import MyButton from "../../../../Components/MyButton";
+import { useToast } from "../../../../hooks/useToast";
 
 function R8() {
   const [searchInput, setSearchInput] = useState("");
+  const {showToast} = useToast();
   const [skuInput, setSkuInput] = useState("");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,7 +55,7 @@ function R8() {
         setRows(arr);
       }
       else{
-        toast.error(response.message);
+        showToast(response.message, "error");
       }
     } catch (error) {
       console.log("Some error occurred while fetching rows", error);
@@ -69,6 +71,7 @@ function R8() {
     getActions: ({ row }) => [
       // View
       <GridActionsCellItem
+      key={"view"}
         showInMenu
         label="View"
         onClick={() => setSeeDetails(row.mfg_id)}

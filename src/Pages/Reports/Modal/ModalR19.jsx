@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { Col, Modal, Row, Select } from "antd";
-import axios from "axios";
+import  { useEffect, useState } from "react";
+import { Col, Modal, Row } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 
-function ModalR19({ modalOpen, setModalOpen, allData, fetchData }) {
+function ModalR19({ modalOpen, setModalOpen, fetchData }) {
   const { showToast } = useToast();
   const [allSelectedValue, setAllSelectedValue] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const getExist = async () => {
     const response = await imsAxios.post("/report19/getSelectedValue");
-    const arr = data.data.part_options.map((d) => {
+    const arr = response.data.part_options.map((d) => {
       return { value: d.id, label: d.text };
     });
     setAllSelectedValue(arr);

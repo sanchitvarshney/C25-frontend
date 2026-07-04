@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { Card, Col, Flex, Form, Input, Modal, Row, Upload } from "antd";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import ToolTipEllipses from "@/Components/ToolTipEllipses.jsx";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
 import ProductDocuments from "@/Pages/R&D/products/documents";
 import useApi from "@/hooks/useApi";
@@ -11,6 +14,7 @@ import { ModalType, SelectOptionType } from "@/types/general";
 import { ProductType } from "@/types/r&d";
 import { getCostCentresOptions, getProjectOptions } from "@/api/general";
 import { convertSelectOptions } from "@/utils/general";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
 import UpdateProduct from "@/Pages/R&D/products/UpdateProduct";
 
@@ -31,14 +35,14 @@ export default function Products() {
     const response = await executeFun(() => getProductsList(), "fetch");
     setRdsfg(response.newSkuCode);
     setRows(response.data ?? [])
-      .filter(
-        (row:any) => row.approvalStage !== "PEN"
-        // || row.approvalStage === "1"
-      )
-      .map((row, index) => ({
-        ...row,
-        id: index + 1,
-      }));
+      // .filter(
+      //   (row:any) => row.approvalStage !== "PEN"
+      //   // || row.approvalStage === "1"
+      // )
+      // .map((row, index) => ({
+      //   ...row,
+      //   id: index + 1,
+      // }));
   };
 
   const handleCostCenterOptions = async (search: string) => {
@@ -99,7 +103,9 @@ export default function Products() {
       type: "actions",
       width: 30,
       getActions: ({ row }: { row: ProductType }) => [
+        //@ts-ignore
         <GridActionsCellItem
+        key="update"
         showInMenu
         placeholder="Update"
         label={"Update"}
@@ -108,7 +114,9 @@ export default function Products() {
           setSelectedProduct(row);
         }}
       />,
+      //@ts-ignore
         <GridActionsCellItem
+          key={"attachment"}
           showInMenu
           placeholder="See Attachments"
           label={"Attachments"}
@@ -367,7 +375,7 @@ const columns = [
   {
     headerName: "Approval Stage",
     field: "approvalStage",
-    renderCell: ({ row }: { row: ProductType }) => (
+    renderCell: ({ row }: { row: any }) => (
       <ToolTipEllipses
         text={
           row?.approvalStage == "PEN"

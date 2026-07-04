@@ -1,12 +1,15 @@
 import { ProductType } from "@/types/r&d";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
+//@ts-ignore
 import ToolTipEllipses from "@/Components/ToolTipEllipses.jsx";
 import useApi from "@/hooks/useApi";
 import { Col, Row } from "antd";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
 import { getProductsList } from "@/api/r&d/products";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import Approval from "@/Pages/R&D/products/approval";
+//@ts-ignore
 import AttachementList from "./AttachementList.jsx";
 
 type Props = {};
@@ -18,7 +21,7 @@ const ApprovalList = (props: Props) => {
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
     null
   );
-  const [attachlist, setAttachLsit] = useState([]);
+  const [attachlist, setAttachLsit] = useState<any>([]);
   const { executeFun, loading } = useApi();
 
   const handleFetchProductList = async () => {
@@ -26,10 +29,10 @@ const ApprovalList = (props: Props) => {
     setRows(
       (response.data ?? [])
         .filter(
-          (row) => row.approvalStage === "PEN"
+          (row:any) => row.approvalStage === "PEN"
           // || row.approvalStage === "1"
         )
-        .map((row, index) => ({
+        .map((row:any, index:any) => ({
           ...row,
           id: index + 1,
         }))
@@ -41,8 +44,10 @@ const ApprovalList = (props: Props) => {
       headerName: "",
       type: "actions",
       width: 30,
-      getActions: ({ row }) => [
+      getActions: ({ row }:any) => [
+        //@ts-ignore
         <GridActionsCellItem
+        key={"attachment"}
           showInMenu
           placeholder="See Attachments"
           // disabled={disabled}
@@ -52,7 +57,9 @@ const ApprovalList = (props: Props) => {
             setAttachLsit(row);
           }}
         />,
+        //@ts-ignore
         <GridActionsCellItem
+        key={"approval"}
           showInMenu
           placeholder="Approval"
           label={"Approval"}
@@ -147,7 +154,7 @@ const columns = [
     headerName: "Approval Stage",
     field: "approvalStage",
     width: 120,
-    renderCell: ({ row }: { row: ProductType }) => (
+    renderCell: ({ row }: { row: any }) => (
       <ToolTipEllipses
         text={
           row?.approvalStage == "PEN"

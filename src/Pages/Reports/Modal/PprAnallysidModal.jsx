@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import {
   Col,
@@ -6,20 +6,15 @@ import {
   Row,
   Select,
   Space,
-  Layout,
   Button,
-  DatePicker,
 } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
-import { CloseCircleFilled, CheckCircleFilled } from "@ant-design/icons";
+import { CloseCircleFilled } from "@ant-design/icons";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import moment from "moment";
-import axios from "axios";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import useApi from "../../../hooks/useApi.ts";
 import { getProductsOptions } from "../../../api/general.ts";
-const { Footer } = Layout;
-const { RangePicker } = DatePicker;
+import { imsAxios } from "../../../axiosInterceptor.js";
 
 function PprAnallysidModal({
   pprModal,
@@ -28,7 +23,7 @@ function PprAnallysidModal({
   setAllDataComesFromDatabase,
 }) {
   const { showToast } = useToast();
-  const { executeFun, loading } = useApi();
+  const { executeFun } = useApi();
   const [allData, setAllData] = useState({
     projectName: "",
     productName: "",
@@ -44,7 +39,7 @@ function PprAnallysidModal({
         search: e,
       });
       let arr = [];
-      arr = data.map((d) => {
+      arr = response.data.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
@@ -68,7 +63,7 @@ function PprAnallysidModal({
     });
     //  console.log(data.data);
 
-    const arr = data?.data?.map((d) => {
+    const arr = response.data?.data?.map((d) => {
       return { label: d.bomname, value: d.bomid };
     });
     setBomName(arr);
@@ -83,7 +78,7 @@ function PprAnallysidModal({
       date: dateSelect,
     });
     if (response.success) {
-      let arr = data.response.data0.map((row) => {
+      let arr = response.data.map((row) => {
         return {
           ...row,
           id: v4(),
@@ -93,7 +88,7 @@ function PprAnallysidModal({
       setPprModal(false);
       setLoading(false);
     } else if (!response.success) {
-      showToast(data.message, "error");
+      showToast(response.message, "error");
       setLoading(false);
     }
     // console.log(data.response.data0);

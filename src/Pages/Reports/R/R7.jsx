@@ -16,7 +16,7 @@ import { useToast } from "../../../hooks/useToast.js";
 
 const R7 = () => {
   const { showToast } = useToast();
-  const [seacrh, setSearch] = useState(null);
+  // const [seacrh, setSearch] = useState(null);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
 
@@ -29,7 +29,7 @@ const R7 = () => {
   });
   const [resData, setResData] = useState([]);
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const columns = [
     { field: "serial_no", headerName: "S.No.", width: 60 },
     {
@@ -129,9 +129,7 @@ const R7 = () => {
       showToast("Please select a product", "error");
     } else if (!allData.selectBomWise) {
       showToast("Please select a bom", "error");
-    } else if (!allData.selectBomWise) {
-      showToast("Please select a bomwise", "error");
-    } else if (!selectDate[0]) {
+    }  else if (!selectDate[0]) {
       showToast("Please select a valid date", "error");
     } else {
       setResData([]);
@@ -174,7 +172,7 @@ const R7 = () => {
                 optionsState={asyncOptions}
                 placeholder="Select Product"
                 loadOptions={getDataBySearch}
-                onInputChange={(e) => setSearch(e)}
+                // onInputChange={(e) => setSearch(e)}
                 value={allData.selectProduct.value}
                 onChange={(e) =>
                   setAllData((allData) => {

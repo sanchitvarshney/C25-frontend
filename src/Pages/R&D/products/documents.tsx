@@ -1,7 +1,8 @@
-import React from "react";
+
 import { ModalType } from "@/types/general";
 import { ProductType } from "@/types/r&d";
 import { Card, Divider, Drawer, Flex, Image, Typography } from "antd";
+//@ts-ignore
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 
 interface DrawerProps extends ModalType {

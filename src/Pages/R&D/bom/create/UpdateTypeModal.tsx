@@ -13,7 +13,6 @@ const UpdateTypeModal = ({
   setIsBomUpdating,
   setUpdateType,
   show,
-  loading,
   submitHandler,
 }: Props) => {
   const handleSelectType = (type: bomUpdateType) => {

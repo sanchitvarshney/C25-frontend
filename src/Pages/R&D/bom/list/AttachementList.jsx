@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyDataTable from "../../../../Components/MyDataTable";
 import TableActions from "../../../../Components/TableActions.jsx/TableActions";
 import { v4 } from "uuid";
 import { useToast } from "../../../../hooks/useToast.js";
+import { Drawer, Flex, Typography } from "antd";
 const AttachementList = ({
- 
   attachlist,
   setAttachLsit,
-  showDocs,
-  setShowDocs,
 }) => {
    const { showToast } = useToast();
   const [rows, setRows] = useState([]);
-  const [documentRow, setDocumentRow] = useState([]);
+  // const [documentRow, setDocumentRow] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleFetchProductList = async (val) => {
@@ -27,14 +25,14 @@ const AttachementList = ({
     if (response.success) {
       //   setRows(response.data);
       let arr = response.data;
-      let a = arr?.map((r, index) => {
+      let a = arr?.map((r) => {
         return {
           id: v4(),
           type: "Document",
           ...r,
         };
       });
-      setDocumentRow(a);
+      // setDocumentRow(a);
 
       // console.log("rows", rowing);
       setRows(a);

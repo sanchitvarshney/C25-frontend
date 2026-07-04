@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./r.css";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import { Button, Col, Row } from "antd";
