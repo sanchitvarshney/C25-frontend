@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import "./r.css";
 import OpenR29Modal from "../Modal/OpenR29Modal";
 import "../../Store/MaterialTransfer/Modal/viewModal.css";
@@ -6,8 +6,6 @@ import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
 import { Row, Col, Button, Spin } from "antd";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import {
-  PlusCircleFilled,
-  ArrowRightOutlined,
   FilterOutlined,
 } from "@ant-design/icons";
 import MyDataTable from "../../../Components/MyDataTable";

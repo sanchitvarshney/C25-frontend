@@ -1,5 +1,5 @@
 import { Button, Col, Row, Typography } from "antd";
-import React, { useState } from "react";
+import { useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
@@ -9,7 +9,7 @@ import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 
 function R21() {
   const [columns, setColumns] = useState([]);
-  const [columnsName, setColumnsName] = useState([]);
+  // const [columnsName, setColumnsName] = useState([]);
   const [rows, setRows] = useState([]);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [closing, setClosing] = useState("");
@@ -25,11 +25,11 @@ function R21() {
       let arr = response.data.map((row) => {
         let obj = JSON.parse(row.locations);
         for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
+          // if (obj.hasOwnProperty(key)) {
             let headerName = key.replaceAll("\n", " - ");
             headerArr.push(key);
             location = { ...location, [headerName]: obj[key] };
-          }
+          // }
         }
 
         return {
@@ -40,12 +40,12 @@ function R21() {
         };
       });
       setClosing(response.closingDate);
-      setColumnsName(headerArr);
+      // setColumnsName(headerArr);
       let locations = JSON.parse(response.data[0].locations);
       for (const key in locations) {
-        if (locations.hasOwnProperty(key)) {
+        // if (locations.hasOwnProperty(key)) {
           location = { headerName: key };
-        }
+        // }
         headers.push(location);
       }
       console.log("headerName", headers);

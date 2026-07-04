@@ -1,14 +1,11 @@
-import { Button, Card, Col, Drawer, Form, Row, Space, Typography } from "antd";
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { Button, Card, Col, Drawer, Form, Row, Space } from "antd";
+import { useState, useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components//exportToCSV";
 import Loading from "../../../Components/Loading";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyDatePicker from "../../../Components/MyDatePicker";
-import MySelect from "../../../Components/MySelect";
-import SummaryCard from "../../../Components/SummaryCard";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { getVendorOptions } from "../../../api/general.ts";
@@ -20,7 +17,7 @@ import { useToast } from "../../../hooks/useToast.js";
 function R30() {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [locationOptions, setLocationOptions] = useState([]);
@@ -91,6 +88,7 @@ function R30() {
         // />,
 
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           // disabled={loading}
           onClick={() => {
@@ -134,27 +132,27 @@ function R30() {
     setAsyncOptions(arr);
   };
 
-  const getAsyncOptions = async (url, search) => {
-    setSelectLoading(true);
-    const response = await imsAxios.post(url, {
-      search: search,
-      searchTerm: search,
-    });
-    setSelectLoading(false);
-    let arr = [];
-    if (response.success) {
-      arr = response.data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-    } else {
-      arr = response.data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-    }
-    setAsyncOptions(arr);
-  };
+  // const getAsyncOptions = async (url, search) => {
+  //   setSelectLoading(true);
+  //   const response = await imsAxios.post(url, {
+  //     search: search,
+  //     searchTerm: search,
+  //   });
+  //   setSelectLoading(false);
+  //   let arr = [];
+  //   if (response.success) {
+  //     arr = response.data.map((row) => ({
+  //       value: row.id,
+  //       text: row.text,
+  //     }));
+  //   } else {
+  //     arr = response.data.map((row) => ({
+  //       value: row.id,
+  //       text: row.text,
+  //     }));
+  //   }
+  //   setAsyncOptions(arr);
+  // };
   const getVendorLocation = async () => {
     let vendor = searchForm.getFieldsValue().vendor;
     if (vendor) {

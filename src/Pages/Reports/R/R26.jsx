@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Col, Form, Row,Input, Space } from "antd";
-import React from "react";
+import { Card, Col, Form, Row,Input, Space } from "antd";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import MySelect from "../../../Components/MySelect";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -89,18 +88,18 @@ const R26 = () => {
       notificationId: v4(),
     });
   };
-  const searchVendor = async () => {
-    const filter = await filterForm.validateFields();
-    const otherdata = JSON.stringify({
-      type: filter.wise,
-      date: filter.date,
-      ...(filter.wise === "fg-dismantle" && { txnId: filter.txnId }),
-    });
-    socket.emit("generate_xml_report", {
-      otherdata,
-      notificationId: v4(),
-    });
-  };
+  // const searchVendor = async () => {
+  //   const filter = await filterForm.validateFields();
+  //   const otherdata = JSON.stringify({
+  //     type: filter.wise,
+  //     date: filter.date,
+  //     ...(filter.wise === "fg-dismantle" && { txnId: filter.txnId }),
+  //   });
+  //   socket.emit("generate_xml_report", {
+  //     otherdata,
+  //     notificationId: v4(),
+  //   });
+  // };
     useEffect(() => {
     if (wiseOption) {
       setRows([]);

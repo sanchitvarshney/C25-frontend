@@ -1,6 +1,5 @@
-import { Button, Card, Col, Form, Row, Space, Typography } from "antd";
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { Card, Col, Form, Row, Space } from "antd";
+import { useState, useEffect } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components//exportToCSV";
@@ -18,7 +17,7 @@ import MyButton from "../../../Components/MyButton";
 function R17() {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [summaryData, setSummaryData] = useState([
@@ -41,16 +40,16 @@ function R17() {
     const response = await imsAxios.post("/report17", values);
     setFetchLoading(false);
     if (response.success) {
-      let arr = data.response.data2.map((row, index) => ({
+      let arr = response.data2.map((row, index) => ({
         ...row,
         id: index,
       }));
       setRows(arr);
       let summaryArr = [
-        { title: "Component", description: data.response.data1.component },
+        { title: "Component", description: response.data1.component },
         {
           title: "Closing Quantity",
-          description: `${data.response.data1.closingqty} ${data.response.data1.uom}`,
+          description: `${response.data1.closingqty} ${response.data1.uom}`,
         },
       ];
       setSummaryData(summaryArr);
@@ -111,27 +110,27 @@ function R17() {
     setAsyncOptions(arr);
   };
 
-  const getAsyncOptions = async (url, search) => {
-    setSelectLoading(true);
-    const response = await imsAxios.post(url, {
-      search: search,
-      searchTerm: search,
-    });
-    setSelectLoading(false);
-    let arr = [];
-    if (data.code) {
-      arr = response.data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-    } else {
-      arr = data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-    }
-    setAsyncOptions(arr);
-  };
+  // const getAsyncOptions = async (url, search) => {
+  //   setSelectLoading(true);
+  //   const response = await imsAxios.post(url, {
+  //     search: search,
+  //     searchTerm: search,
+  //   });
+  //   setSelectLoading(false);
+  //   let arr = [];
+  //   if (data.code) {
+  //     arr = response.data.map((row) => ({
+  //       value: row.id,
+  //       text: row.text,
+  //     }));
+  //   } else {
+  //     arr = data.map((row) => ({
+  //       value: row.id,
+  //       text: row.text,
+  //     }));
+  //   }
+  //   setAsyncOptions(arr);
+  // };
   const getVendors = async (search) => {
     const response = await executeFun(() => getVendorOptions(search), "select");
     let arr = [];
@@ -216,7 +215,7 @@ function R17() {
                     ]}
                   >
                     <MyAsyncSelect
-                      selectLoading={selectLoading}
+                      // selectLoading={selectLoading}
                       optionsState={asyncOptions}
                       onBlur={() => setAsyncOptions([])}
                       loadOptions={(search) => getVendors(search)}
