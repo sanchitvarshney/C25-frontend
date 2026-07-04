@@ -1,6 +1,6 @@
 import { Card, Col, Divider, Drawer, Row, Typography } from "antd";
 import { CChart } from "@coreui/react-chartjs";
-import { customColor } from "../../../Utils/CustomColor";
+import { customColor } from "../../../utils/customColor";
 
 function PaytmGraph({
   showGraph,
