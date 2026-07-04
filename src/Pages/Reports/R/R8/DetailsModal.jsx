@@ -7,7 +7,7 @@ import { CommonIcons } from "../../../../Components/TableActions.jsx/TableAction
 import { downloadCSV } from "../../../../Components/exportToCSV";
 import { useToast } from "../../../../hooks/useToast";
 
-const DetailsModal = ({ show, close }) => {
+const DetailsModal = ({ show, close, end_date }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 const { showToast } = useToast();
@@ -19,6 +19,7 @@ const { showToast } = useToast();
         "/report8/getMfgConsumptionComponent",
         {
           mfg_no: mfgId,
+          end_date: end_date
         }
       );
 
