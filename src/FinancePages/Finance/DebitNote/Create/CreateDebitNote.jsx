@@ -61,17 +61,15 @@ export const CreateDebitNote = () => {
   };
   const getDetails = async (vbtCodes) => {
     // setLoading("fetch");
-    const response = await imsAxios.post("/tally/vbt01/vbt_edit", {
-      vbt_code: vbtCodes,
-    });
-    // setLoading(false);
-    const { data } = response;
-    if (data) {
-      if (response.success) {      
+    try {
+      const response = await imsAxios.post("/tally/vbt01/vbt_edit", {
+        vbt_code: vbtCodes,
+      });
 
+      if (response.success) {
         let arr = response.data.map((row) => {
           const value = +Number(
-            +Number(row.inrate).toFixed(3) * +Number(row.vbt_qty).toFixed(3)
+            +Number(row.inrate).toFixed(3) * +Number(row.vbt_qty).toFixed(3),
           ).toFixed(3);
           return {
             minId: row.min_id,
@@ -94,21 +92,11 @@ export const CreateDebitNote = () => {
           };
         });
         setMinId(arr?.minI);
-        // getTdsOptions(arr?.minId);
-
-        // setRows(arr);
-        // let summaryDetailsArr = [
-        //     { title: "Vendor", description: data.data[0].ven_name },
-        //     { title: "Vendor GSTIN", description: data.data[0].gstin },
-        //     {
-        //       title: "Vendor Address",
-        //       description: data.data[0].ven_address.replaceAll("<br>", "\n"),
-        //     },
-        //   ];
-        // setSummaryDetails(summaryDetailsArr);
       } else {
         showToast(response.message?.msg || response.message, "error");
       }
+    } catch (error) {
+      showToast(error.message || "Failed to get GL options", "error");
     }
   };
   useEffect(() => {

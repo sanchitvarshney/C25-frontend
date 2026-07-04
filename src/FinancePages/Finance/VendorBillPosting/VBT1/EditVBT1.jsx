@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { useEffect } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import InputMask from "react-input-mask";
@@ -55,7 +55,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
         .filter((row) => row.label.toLowerCase() == "cgst")[0]
         ?.values.reduce((partialSum, a) => {
           return partialSum + Number(a);
-        }, 0)
+        }, 0),
     ).toFixed(2);
 
     let sgstTotalData = Number(
@@ -63,7 +63,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
         .filter((row) => row.label.toLowerCase() == "sgst")[0]
         ?.values.reduce((partialSum, a) => {
           return partialSum + Number(a);
-        }, 0)
+        }, 0),
     ).toFixed(2);
 
     let igstTotalData = Number(
@@ -71,21 +71,21 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
         .filter((row) => row.label.toLowerCase() == "igst")[0]
         ?.values.reduce((partialSum, a) => {
           return partialSum + Number(a);
-        }, 0)
+        }, 0),
     ).toFixed(2);
     let freightTotal = Number(
       totalValues
         .filter((row) => row.label.toLowerCase() == "freight")[0]
         ?.values.reduce((partialSum, a) => {
           return partialSum + Number(a);
-        }, 0)
+        }, 0),
     ).toFixed(2);
     let valueTotalData = Number(
       totalValues
         .filter((row) => row.label.toLowerCase() == "net amount")[0]
         ?.values.reduce((partialSum, a) => {
           return partialSum + Number(a);
-        }, 0)
+        }, 0),
     ).toFixed(2);
 
     let totalValidatingData =
@@ -105,7 +105,10 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
     totalValidatingData = Number(totalValidatingData).toFixed(2);
     totalValidatingData = Number(totalValidatingData).toFixed(2);
     if (Number(vendorData.bill_amount).toFixed(2) != totalValidatingData) {
-      return showToast("Bill Amount and total Vendor Amount are not equal", "error");
+      return showToast(
+        "Bill Amount and total Vendor Amount are not equal",
+        "error",
+      );
     }
 
     let finalObj = {
@@ -166,14 +169,19 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
     };
     rows.map((row) => {
       if (!row.glCodeValue) {
-        return showToast("Please select a GL for all of the components", "error");
+        return showToast(
+          "Please select a GL for all of the components",
+          "error",
+        );
       }
       let a = Number(row.vendorAmount);
       let totalVendor = 0;
 
       if (row.tdsAmount == "0" || row.tdsAmount == "--") {
         totalVendor =
-          (row.tdsAmount == "--" || row.tdsAmount == "0") ? Number(row.vendorAmount) : a;
+          row.tdsAmount == "--" || row.tdsAmount == "0"
+            ? Number(row.vendorAmount)
+            : a;
       } else {
         totalVendor = a;
       }
@@ -238,17 +246,23 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
   };
 
   const getGl = async () => {
-    const response = await imsAxios.get("/tally/vbt01/vbt01_gl_options");
-    let arr = [];
-   
-    if (response?.data.length > 0) {
-      arr = response?.data.map((d) => {
-        return {
-          text: d.text,
-          value: d.id,
-        };
-      });
-      setGlCodes(arr);
+    try {
+      const response = await imsAxios.get("/tally/vbt01/vbt01_gl_options");
+      let arr = [];
+
+      if (response?.success) {
+        arr = response?.data.map((d) => {
+          return {
+            text: d.text,
+            value: d.id,
+          };
+        });
+        setGlCodes(arr);
+      } else {
+        showToast(response.message || "Failed to get GL options", "error");
+      }
+    } catch (error) {
+      showToast(error.message || "Failed to get GL options", "error");
     }
   };
   const inputHandler = (name, value, id) => {
@@ -268,7 +282,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
           if (obj.in_gst_type.toLowerCase() == "local") {
             tax =
               parseFloat(
-                +obj.in_gst_rate.toFixed(2) * amountWithFreight
+                +obj.in_gst_rate.toFixed(2) * amountWithFreight,
               ).toFixed(2) / 200;
             tax = parseFloat(tax).toFixed(2) * 2;
           } else {
@@ -307,7 +321,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
           };
         } else if (name == "freight") {
           let amountWithFreight = (Number(value) + Number(obj.value)).toFixed(
-            2
+            2,
           );
           let amountPercentage = (amountWithFreight * tdsPercent) / 100;
           let tax = (obj.in_gst_rate * amountWithFreight) / 100;
@@ -353,13 +367,13 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
           if (obj.in_gst_type.toLowerCase() == "local") {
             tax =
               parseFloat(
-                +obj.in_gst_rate.toFixed(2) * amountWithFreight
+                +obj.in_gst_rate.toFixed(2) * amountWithFreight,
               ).toFixed(2) / 200;
             tax = parseFloat(tax).toFixed(2) * 2;
           } else {
             tax =
               parseFloat(
-                +obj.in_gst_rate.toFixed(2) * amountWithFreight
+                +obj.in_gst_rate.toFixed(2) * amountWithFreight,
               ).toFixed(2) / 100;
           }
 
@@ -389,7 +403,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
           } else {
             tax =
               parseFloat(
-                +obj.in_gst_rate.toFixed(2) * amountWithFreight
+                +obj.in_gst_rate.toFixed(2) * amountWithFreight,
               ).toFixed(2) / 100;
           }
 
@@ -528,7 +542,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
         Number(row.in_gst_sgst) +
         Number(row.in_gst_igst) +
         Number(row.freight) -
-        Number(row.tdsAmount)
+        Number(row.tdsAmount),
     );
 
     // let totalVendorAmount = rows.map((row) => {
@@ -545,11 +559,11 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
     let totalVendorAmountWithRoundOff;
     if (roundOffSign == "-") {
       totalVendorAmountWithRoundOff = Number(
-        Number(totalVendorAmount) - Number(roundOffValue)
+        Number(totalVendorAmount) - Number(roundOffValue),
       ).toFixed(2);
     } else if (roundOffSign == "+") {
       totalVendorAmountWithRoundOff = Number(
-        Number(totalVendorAmount) + Number(roundOffValue)
+        Number(totalVendorAmount) + Number(roundOffValue),
       ).toFixed(2);
     }
 
@@ -563,21 +577,21 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
         label: "CGST",
         sign: "+",
         values: rows.map((row) =>
-          row.in_gst_cgst == "--" ? 0 : Number(row.in_gst_cgst)?.toFixed(2)
+          row.in_gst_cgst == "--" ? 0 : Number(row.in_gst_cgst)?.toFixed(2),
         ),
       },
       {
         label: "SGST",
         sign: "+",
         values: rows.map((row) =>
-          row.in_gst_sgst == "--" ? 0 : Number(row.in_gst_sgst).toFixed(2)
+          row.in_gst_sgst == "--" ? 0 : Number(row.in_gst_sgst).toFixed(2),
         ),
       },
       {
         label: "IGST",
         sign: "+",
         values: rows.map((row) =>
-          row.in_gst_igst == "--" ? 0 : Number(row.in_gst_igst).toFixed(2)
+          row.in_gst_igst == "--" ? 0 : Number(row.in_gst_igst).toFixed(2),
         ),
       },
       {
@@ -639,7 +653,7 @@ export default function EditVBT1({ editingVBT, setEditingVBT }) {
                       name="termscondition"
                       value={vendorData?.in_vendor_addr?.replaceAll(
                         "<br>",
-                        " "
+                        " ",
                       )}
                       onChange={(e) =>
                         vendorInputHandler("in_vendor_addr", e.target.value)

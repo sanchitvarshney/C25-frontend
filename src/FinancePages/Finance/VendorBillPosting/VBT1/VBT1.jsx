@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import MyDatePicker from "../../../../Components/MyDatePicker";
 
@@ -46,7 +46,6 @@ export default function VBT1() {
       flex: 1,
       id: "serial-no",
       width: "8vw",
-      
     },
     {
       headerName: "Vendor Code",
@@ -89,7 +88,7 @@ export default function VBT1() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={row?.id || "delete"}
+          key={row?.id || "delete"}
           icon={<AiFillEdit />}
           // onClick={() => getVBTDetail(row.min_transaction)}
           label="Delete"
@@ -108,23 +107,23 @@ export default function VBT1() {
     setAsyncOptions(arr);
   };
   // const getVBTDetail = async (minId, vbtKey) => {
-    // setLoading(true);
-    // console.log("minid", minId);
-    // const response = await imsAxios.post("/tally/vbt01/fetch_minData", {
-    //   min_id: minId,
-    // });
-    // if (response.success) {
-    //   setEditingVBT(data.data);
-    //   // if (isEditVBT) {
-    //   //   const arr = data.data;
-    //   //   setEditingVBT([...arr]);
-    //   //   editExistingVbt(vbtKey);
-    //   // }
-    // } else {
-    //   toast.error(response.message?.msg || response.message);
-    //   setEditingVBT(null);
-    // }
-    // setLoading(false);
+  // setLoading(true);
+  // console.log("minid", minId);
+  // const response = await imsAxios.post("/tally/vbt01/fetch_minData", {
+  //   min_id: minId,
+  // });
+  // if (response.success) {
+  //   setEditingVBT(data.data);
+  //   // if (isEditVBT) {
+  //   //   const arr = data.data;
+  //   //   setEditingVBT([...arr]);
+  //   //   editExistingVbt(vbtKey);
+  //   // }
+  // } else {
+  //   toast.error(response.message?.msg || response.message);
+  //   setEditingVBT(null);
+  // }
+  // setLoading(false);
   // };
   // console.log("seteditingvBt", editingVBT);
   // const { editVBT } = useSelector((state) => state.login);
@@ -165,27 +164,37 @@ export default function VBT1() {
   //   }
   // };
   const getMultipleVBTDetail = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    let mins = selectedRows.map((row) => vbtData.filter((r) => r.id == row)[0]);
-    // console.log(mins);
-    const response = await imsAxios.post("/tally/vbt01/fetch_multi_min_data", {
-      mins: mins.map((row) => row.min_transaction),
-    });
-    setLoading(false);
-    if (response.success) {
-      let arr = response.data;
-      arr = arr.map((row) => ({
-        ...row,
-        ven_tds: arr[0].ven_tds,
-      }));
+      let mins = selectedRows.map(
+        (row) => vbtData.filter((r) => r.id == row)[0],
+      );
+      // console.log(mins);
+      const response = await imsAxios.post(
+        "/tally/vbt01/fetch_multi_min_data",
+        {
+          mins: mins.map((row) => row.min_transaction),
+        },
+      );
+      if (response.success) {
+        let arr = response.data;
+        arr = arr.map((row) => ({
+          ...row,
+          ven_tds: arr[0].ven_tds,
+        }));
 
-      setEditingVBT(arr);
-    } else {
-      showToast(response.message?.msg || response.message, "error");
-      setEditingVBT(null);
+        setEditingVBT(arr);
+      } else {
+        showToast(response.message, "error");
+        setEditingVBT(null);
+        setLoading(false);
+      }
+    } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   const getRows = async () => {
     let d;
@@ -329,8 +338,8 @@ export default function VBT1() {
                       ? true
                       : false
                     : !searchInput
-                    ? true
-                    : false
+                      ? true
+                      : false
                 }
                 loading={searchLoading}
                 type="primary"

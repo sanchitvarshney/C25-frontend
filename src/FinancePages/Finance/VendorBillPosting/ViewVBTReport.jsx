@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import { PrinterFilled } from "@ant-design/icons";
 import printFunction from "../../../Components/printFunction";
@@ -29,7 +29,7 @@ export default function ViewVBTReport({
   const [printLoading, setPrintLoading] = useState(false);
   const [showMoreData, setShowMoreData] = useState(null);
   const [viewEditComponents, setViewEditComponents] = useState([]);
- 
+
   useEffect(() => {
     // console.log("inside useefect", viewReportData);
     if (viewReportData?.length > 0) {
@@ -88,25 +88,37 @@ export default function ViewVBTReport({
       viewVbt.setFieldValue("components", arr);
       // console.log("componets", components);
     } else {
-      
-        showToast(response.message||"Something wrong happened", "error");
-    
+      showToast(response.message || "Something wrong happened", "error");
     }
   };
   const printFun = async () => {
     // setLoading(true);
-    setPrintLoading(true);
-    const response = await imsAxios.post("/tally/vbt_report/print_vbt_report", {
-      vbt_key: viewReportData[0]?.vbt_code,
-    });
-    setPrintLoading(false);
-    printFunction(response.data.buffer.data);
+    try {
+      setPrintLoading(true);
+      const response = await imsAxios.post(
+        "/tally/vbt_report/print_vbt_report",
+        {
+          vbt_key: viewReportData,
+        },
+      );
+      console.log(response,"response");
+      if (response?.success) {
+        setPrintLoading(false);
+        printFunction(response.data.buffer.data);
 
-    setLoading(false);
+        setLoading(false);
+      } else {
+        showToast(response.message || "Something wrong happened", "error");
+        setPrintLoading(false);
+      }
+    } catch (error) {
+      showToast(error.message || "Something wrong happened", "error");
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => {
     if (viewEditComponents?.length > 0) {
-    
       // setTotalValues(arr);
     }
   }, [setViewEditComponents]);
@@ -326,7 +338,6 @@ export default function ViewVBTReport({
                       />
                     </Form.Item>
                   ))}
-                
                 </Col>
               </>
             )}

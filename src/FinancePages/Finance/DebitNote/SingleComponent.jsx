@@ -10,7 +10,7 @@ import {
 } from "antd";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
-
+import { useToast } from "../../../hooks/useToast";
 
 const SingleComponent = ({
   field,
@@ -27,6 +27,7 @@ const SingleComponent = ({
   vbtType,
 }) => {
   // console.log("addRateDiff", addRateDiff);
+  const { showToast } = useToast();
   const [newValue, setNewValue] = useState("");
   const [allTdsOptions, setAllTdsOptions] = useState([]);
   const [tdsArray, setTdsArray] = useState([]);
@@ -229,9 +230,10 @@ const SingleComponent = ({
       const response = await imsAxios.post("/tally/vbt/fetch_freight_group", {
         search: vbtType,
       });
-      const { data } = response;
+    
       let arr = [];
       if (response.success) {
+          const { data } = response;
         arr = data.map((row) => ({
           value: row.id,
           text: row.text,
@@ -240,6 +242,7 @@ const SingleComponent = ({
       }
     } catch (error) {
       // toast.error("Some error occured while fetching freight Gls");
+      showToast(  error?.message || "Some error occured while fetching freight Gls", "error");
       // console.log("Some error occured while fetching freight Gls", error);
     } finally {
       // setLoading(false);

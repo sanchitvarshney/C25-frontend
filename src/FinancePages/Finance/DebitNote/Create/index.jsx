@@ -115,8 +115,9 @@ const CreateDebitNote = ({ setDebitNoteDrawer, debitNoteDrawer }) => {
         vbt_key: vbtType,
       });
 
-      const { data } = response;
-      if (data) {
+     
+      if (response.success) {
+         const { data } = response;
         const arr = data.map((row) => ({
           value: row.id,
           text: row.text,
@@ -126,7 +127,6 @@ const CreateDebitNote = ({ setDebitNoteDrawer, debitNoteDrawer }) => {
       }
     } catch (error) {
       showToast("Some error occured while fetching freight Gls", "error");
-      console.log("Some error occured while fetching freight Gls", error);
     } finally {
       setLoading(false);
     }

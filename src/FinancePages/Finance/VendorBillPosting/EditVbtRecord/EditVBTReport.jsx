@@ -7,7 +7,6 @@ import VBTHeaders from "./VBTHeaders";
 import NavFooter from "../../../../Components/NavFooter";
 import { useToast } from "../../../../hooks/useToast.js";
 
-
 function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
   const { showToast } = useToast();
   const [editVbt] = Form.useForm();
@@ -29,15 +28,13 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
   };
 
   const getEditVbtDetails = async (vbtCode) => {
-    const response = await imsAxios.get(
-      `/tally/vbt/getData?vbtKey=${vbtCode}`
-    );
-    if (response.status == 200) {
+   try {
+     const response = await imsAxios.get(`/tally/vbt/getData?vbtKey=${vbtCode}`);
+    if (response?.success) {
       const { data } = response;
 
       setVbtComponent(data);
       getGl();
-  
 
       const arr = data.map((row) => ({
         ...row,
@@ -61,7 +58,14 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
       }));
       editVbt.setFieldValue("components", arr);
       getTdsOptions(response.data[0]?.minId);
+    } else {
+      showToast(response.message || "Failed to fetch Data", "error");
     }
+    
+   } catch (error) {
+    showToast(error.message || "Failed to fetch Data", "error");
+
+   }
   };
   const getTdsOptions = async (minId) => {
     const response = await imsAxios.post("/tally/vbt01/fetch_minData", {
@@ -94,18 +98,23 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
     }
   };
   const getGl = async () => {
-    const {data} = await imsAxios.get("/tally/vbt01/vbt01_gl_options");
-    let arr = [];
-    if (data.length > 0) {
-      arr = data.map((d) => {
-        return {
-          text: d.text,
-          value: d.id,
-        };
-      });
-      setOptionState(arr);
+    try {
+      const res = await imsAxios.get("/tally/vbt01/vbt01_gl_options");
+      let arr = [];
+      if (res?.success) {
+        arr = res?.data?.map((d) => {
+          return {
+            text: d.text,
+            value: d.id,
+          };
+        });
+        setOptionState(arr);
+      } else {
+        showToast(res.message || "Failed to get GL options", "error");
+      }
+    } catch (error) {
+      showToast(error.message || "Failed to get GL options", "error");
     }
-    console.log("setOptionState", optionState);
   };
 
   const submitFunction = async () => {
@@ -115,7 +124,7 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
       (component) =>
         !component.tds_key ||
         component.tds_key === "" ||
-        component.tds_key === "--"
+        component.tds_key === "--",
     )[0]
       ? undefined
       : values.components.map((component) => component.tds_key);
@@ -123,7 +132,7 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
       (component) =>
         !component.tds_gl_code ||
         component.tds_gl_code === "" ||
-        component.tds_gl_code === "--"
+        component.tds_gl_code === "--",
     )[0]
       ? undefined
       : values.components.map((component) => component.tds_gl_code);
@@ -137,7 +146,7 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
       eff_date: values.effectiveDate,
       freight: values.components.map((component) => component.freightAmount),
       g_l_codes: values.components.map(
-        (component) => component.purchase_gl.value
+        (component) => component.purchase_gl.value,
       ),
       gst_ass_vals: values.components.map((component) => component.gstAssValue),
       hsn_code: values.components.map((component) => component.hsnCode),
@@ -150,16 +159,16 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
       invoice_no: values.invoiceNo,
       // invoice_no: values.components.map((component) => component.invoiceNo),
       item_description: values.components.map(
-        (component) => component.itemDescription
+        (component) => component.itemDescription,
       ),
       min_key: values.components.map((component) => component.minId),
       part_code: values.components.map((component) => component.partCode),
       sgst_gl: values.components.map((component) => component.sgst?.value),
       sgsts: values.components.map((component) => component.sgstAmount),
       taxable_values: values.components.map(
-        (component) => component.taxableValue
+        (component) => component.taxableValue,
       ),
-      
+
       tds_amounts: values.components.map((component) => component.tdsAmount),
       tds_ass_vals: values.components.map((component) => component.tdsAssValue),
       tds_codes: tdsCodes,
@@ -218,31 +227,31 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
   useEffect(() => {
     const value = components?.reduce(
       (partialSum, a) => partialSum + +Number(a.taxableValue).toFixed(3),
-      0
+      0,
     );
     const freight = components?.reduce(
       (partialSum, a) => partialSum + +Number(a.freightAmount).toFixed(3),
-      0
+      0,
     );
     const cgst = components?.reduce(
       (partialSum, a) => partialSum + +Number(a.cgstAmount).toFixed(3),
-      0
+      0,
     );
     const sgst = components?.reduce(
       (partialSum, a) => partialSum + +Number(a.sgstAmount).toFixed(3),
-      0
+      0,
     );
     const igst = components?.reduce(
       (partialSum, a) => partialSum + +Number(a.igstAmount).toFixed(3),
-      0
+      0,
     );
     let vendorAmount = components?.reduce(
       (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(3),
-      0
+      0,
     );
     const tds = components?.reduce(
       (a, b) => a + +Number(b.tdsAmount ?? 0).toFixed(3),
-      0
+      0,
     );
 
     if (roundOffSign === "+") {
@@ -347,7 +356,6 @@ function EditVBTReport({ editVbtDrawer, setEditVbtDrawer }) {
                         />
                       </Form.Item>
                     ))}
-          
                   </Col>
                 </>
               )}

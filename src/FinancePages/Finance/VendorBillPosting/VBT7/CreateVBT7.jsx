@@ -351,14 +351,17 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
     setValuesChanged(false);
   };
   const getGstGlOptions = async () => {
-    const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
-    const { data } = response;
-    if (data) {
-      if (data[0]) {
+    try {
+      const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
+      if (response?.success) {
+        const { data } = response;
         let arr = data.map((row) => ({ value: row.id, text: row.text }));
-        console.log(arr);
         setGstGlOptions(arr);
+      } else {
+        showToast(response.message || "Failed to get GST GL options", "error");
       }
+    } catch (error) {
+      showToast(error.message || "Failed to get GST GL options", "error");
     }
   };
   const additional = [

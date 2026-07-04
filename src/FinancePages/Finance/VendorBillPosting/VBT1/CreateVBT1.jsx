@@ -262,16 +262,22 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
     }
   };
   const getGl = async () => {
-    const response = await imsAxios.get("/tally/vbt01/vbt01_gl_options");
-    let arr = [];
-    if (response.success) {
-      arr = response.data.map((d) => {
-        return {
-          text: d.text,
-          value: d.id,
-        };
-      });
-      setGlCodes(arr);
+    try {
+      const response = await imsAxios.get("/tally/vbt01/vbt01_gl_options");
+      if (response?.success) {
+        let arr = [];
+        arr = response?.data?.map((d) => {
+          return {
+            text: d.text,
+            value: d.id,
+          };
+        });
+        setGlCodes(arr);
+      } else {
+        showToast(response.message || "Failed to get GL options", "error");
+      }
+    } catch (error) {
+      showToast(error.message || "Failed to get GL options", "error");
     }
   };
   const inputHandler = (name, value, id) => {
@@ -345,13 +351,17 @@ export default function CreateVBT1({ editingVBT, setEditingVBT, setVBTData }) {
     setValuesChanged(false);
   };
   const getGstGlOptions = async () => {
-    const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
-    const { data } = response;
-    if (data) {
-      if (data[0]) {
+    try {
+      const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
+      if (response?.success) {
+        const { data } = response;
         let arr = data.map((row) => ({ value: row.id, text: row.text }));
         setGstGlOptions(arr);
+      } else {
+        showToast(response.message || "Failed to get GST GL options", "error");
       }
+    } catch (error) {
+      showToast(error.message || "Failed to get GST GL options", "error");
     }
   };
   const additional = [

@@ -98,16 +98,27 @@ export default function VBTReport() {
    }
   };
   const handleDownload = async (id) => {
-    setLoading(true);
-    let link = "/tally/vbt_report/print_vbt_report";
-    let filename = id;
-
-    const response = await imsAxios.post(link, {
-      vbt_key: id,
-    });
-
-    downloadFunction(response.data?.buffer.data, filename);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const response = await imsAxios.post(
+        "/tally/vbt_report/download_vbt_report",
+        {
+          vbt_key: id,
+        },
+      );
+      if (response?.success) {
+        downloadFunction(response?.data.buffer?.data);
+        setLoading(false);
+      } else {
+        showToast(response.message || "Something wrong happened", "error");
+        setLoading(false);
+      }
+    } catch (error) {
+      showToast(error.message || "Something wrong happened", "error");
+      setLoading(false);
+    }finally {
+      setLoading(false);
+    }
   };
 
   // const getEditVBTDetails = async (code) => {

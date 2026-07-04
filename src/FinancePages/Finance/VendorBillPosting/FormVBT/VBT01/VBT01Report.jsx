@@ -77,41 +77,53 @@ function VBT01Report({
   };
   //edit vbt fn
   const getEditVbtDetails = async (vbtCode) => {
-    setLoading(true);
-    const response = await imsAxios.get(`/tally/vbt/getData?vbtKey=${vbtCode}`);
+    try {
+      setLoading(true);
+      const response = await imsAxios.get(
+        `/tally/vbt/getData?vbtKey=${vbtCode}`,
+      );
 
-    if (response.data.length > 0) {
-      const { data } = response;
-      getGl();
+      if (response?.success) {
+        const { data } = response;
+        getGl();
 
-      const arr = data.map((row) => ({
-        ...row,
-        tdsAssValue: row.tdsAssValue,
-        venAmmount: row.venAmmount,
-        poNumber: row.poNumber,
-        projectID: row.projectID,
-        partCode: row.part.partCode,
-        partName: row.part.partName,
-        glName: row.tds?.tdsName,
-        tds_gl_code: row?.tds?.tdsGlKey,
-        tdsName: {
-          label: row.tds?.tdsName,
-          value: row?.tds?.tdsKey,
-        },
-        tds_key: row?.tds?.tdsKey,
-        tdsPercent: row?.tds?.tdsPercent,
-        tdsAmount: row.tdsAmount,
-        gstType: row.gstType === "L" ? "L" : "I",
-        insertDate: row.insertDate,
-        insertBy: row.insertBy,
-        roundOffSigns: row.roundOffSign,
-        roundOffValue: row.roundOffValue,
-        purchase_gl: row?.purchase_gl,
-        billAmm: row?.taxableValue,
-      }));
-      setEditVBTCode(arr);
-      setVbtComponent(arr);
-      Vbt01.setFieldValue("components", arr);
+        const arr = data.map((row) => ({
+          ...row,
+          tdsAssValue: row.tdsAssValue,
+          venAmmount: row.venAmmount,
+          poNumber: row.poNumber,
+          projectID: row.projectID,
+          partCode: row.part.partCode,
+          partName: row.part.partName,
+          glName: row.tds?.tdsName,
+          tds_gl_code: row?.tds?.tdsGlKey,
+          tdsName: {
+            label: row.tds?.tdsName,
+            value: row?.tds?.tdsKey,
+          },
+          tds_key: row?.tds?.tdsKey,
+          tdsPercent: row?.tds?.tdsPercent,
+          tdsAmount: row.tdsAmount,
+          gstType: row.gstType === "L" ? "L" : "I",
+          insertDate: row.insertDate,
+          insertBy: row.insertBy,
+          roundOffSigns: row.roundOffSign,
+          roundOffValue: row.roundOffValue,
+          purchase_gl: row?.purchase_gl,
+          billAmm: row?.taxableValue,
+        }));
+        setEditVBTCode(arr);
+        setVbtComponent(arr);
+        Vbt01.setFieldValue("components", arr);
+        setLoading(false);
+      } else {
+        showToast(response.message || "Failed to get VBT details", "error");
+        setLoading(false);
+      }
+    } catch (error) {
+      showToast(error.message, "error");
+      setLoading(false);
+    } finally {
       setLoading(false);
     }
   };
@@ -225,13 +237,20 @@ function VBT01Report({
     setLoading(false);
   };
   const getGstGlOptions = async () => {
-    const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
-    const { data } = response;
-    if (data) {
-      if (data[0]) {
-        let arr = data.map((row) => ({ value: row.id, text: row.text }));
-        setglState(arr);
+    try {
+      const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
+
+      if (response?.success) {
+        const { data } = response;
+        if (data[0]) {
+          let arr = data.map((row) => ({ value: row.id, text: row.text }));
+          setglState(arr);
+        }
+      } else {
+        showToast(response.message || "Failed to get GL options", "error");
       }
+    } catch (error) {
+      showToast(error.message || "Failed to get GL options", "error");
     }
   };
 
@@ -242,9 +261,10 @@ function VBT01Report({
       const response = await imsAxios.post("/tally/vbt/fetch_freight_group", {
         search: vbtCode,
       });
-      const { data } = response;
+
       let arr = [];
-      if (data.length > 0) {
+      if (response.success) {
+        const { data } = response;
         arr = data.map((row) => ({
           value: row.id,
           text: row.text,
@@ -556,26 +576,24 @@ function VBT01Report({
   };
 
   const getLastPrice = async (venCode, partArr) => {
-    const response = await imsAxios.post(
-      // `/tally/vbt/lastOptions?vendorCode=${venCode}&partCode=${partCode}`
-      "/tally/vbt/lastOptions",
-      {
+    try {
+      const response = await imsAxios.post("/tally/vbt/lastOptions", {
         partCode: partArr,
         vendorCode: venCode,
-      },
-    );
-    const { data } = response;
-    if (typeof data === "object" && data?.length) {
-      setLastRateArr(data);
-    } else {
+      });
+
+      if (response?.success) {
+        const { data } = response;
+        setLastRateArr(data);
+      } else {
+        setLastRateArr([]);
+      }
+    } catch (error) {
       setLastRateArr([]);
+      showToast(error?.message || "Failed to get last price", "error");
     }
   };
 
-  //   if (editVbtDrawer) {
-  //     getEditVbtDetails(editVbtDrawer);
-  //   }
-  // }, [editVbtDrawer]);
   useEffect(() => {
     if (editingVBT?.length > 0) {
       getVBTDetail(editingVBT);
