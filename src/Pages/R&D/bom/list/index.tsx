@@ -1,20 +1,18 @@
 import { useEffect, useState } from "react";
 import { Col, Row } from "antd";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
+//@ts-ignore
 import ToolTipEllipses from "@/Components/ToolTipEllipses";
+//@ts-ignore
 import AttachementList from "./AttachementList.jsx";
-
 import Components from "@/Pages/R&D/bom/list/components";
-
 import { getBOMList } from "@/api/r&d/bom";
-
 import useApi from "@/hooks/useApi";
-
 import { BOMTypeExtended } from "@/types/r&d";
-import Attachments from "@/Pages/R&D/bom/list/attachments";
 import { useLocation, useNavigate } from "react-router-dom";
+//@ts-ignore
 import routeConstants from "@/Routes/routeConstants.js";
 import IconButton from "@/Components/IconButton";
 import { ArrowRightOutlined, EyeOutlined } from "@ant-design/icons";
@@ -53,8 +51,10 @@ const BOMList = () => {
       headerName: "",
       type: "actions",
       width: 30,
-      getActions: ({ row }: { row: BOMTypeExtended }) => [
+      getActions: ({ row }: { row: any }) => [
+        //@ts-ignore
         <GridActionsCellItem
+        key={"components"}
           showInMenu
           placeholder="Components and Logs"
           label={"Components and Logs"}
@@ -63,7 +63,9 @@ const BOMList = () => {
             setSelectedBOM(row);
           }}
         />,
+             //@ts-ignore
         <GridActionsCellItem
+          key={"attachments"}
           showInMenu
           placeholder="Attachments"
           label={"Attachments"}
@@ -76,7 +78,9 @@ const BOMList = () => {
           }}
           // }}
         />,
+             //@ts-ignore
         <GridActionsCellItem
+          key={"update"}
           showInMenu
           placeholder="Update"
           label={"Update"}
@@ -87,12 +91,13 @@ const BOMList = () => {
             );
           }}
         />,
+             //@ts-ignore
         <GridActionsCellItem
+          key={"logs"}
           showInMenu
           placeholder="View Logs"
           label={"View Logs"}
           onClick={() => {
-            console.log(row);
             setShowLogs(true);
             setSelectedLogs(row);
           }}
@@ -106,7 +111,8 @@ const BOMList = () => {
       headerName: "Actions",
       type: "actions",
       width: 130,
-      getActions: ({ row }: { row: BOMTypeExtended }) => [
+      getActions: ({ row }: { row: any }) => [
+        //@ts-ignore
         <GridActionsCellItem
           icon={
             <IconButton
@@ -121,6 +127,7 @@ const BOMList = () => {
             setAttachLsit(row);
           }}
         />,
+        //@ts-ignore
         <GridActionsCellItem
           icon={
             <IconButton
@@ -148,7 +155,7 @@ const BOMList = () => {
   }, []);
   return (
     <Row style={{ height: "calc(100vh - 120px)", padding: 10 }}>
-      {attachlist?.key && (
+      {attachlist && (
         // <Attachments
         //   show={showAttachments}
         //   hide={() => {

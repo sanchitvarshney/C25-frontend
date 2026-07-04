@@ -1,27 +1,17 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
-
-import moment from "moment";
-import { DatePicker } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
-import waiting from "../../../animation/waiting.json";
-import makeAnimated from "react-select/animated";
 import Loading from "../../../Components/Loading";
 import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
-// import MultiSelect from "react-multiple-select-dropdown-lite";
-// import "react-multiple-select-dropdown-lite/dist/index.css";
+import { imsAxios } from "../../../axiosInterceptor.js";
 
-const animatedComponents = makeAnimated();
 
 const OpenModal10 = ({
   viewModal,
   setViewModal,
-  setAllResponseData,
   loading,
-  setLoading,
 }) => {
   const { showToast } = useToast();
   const [allData, setAllData] = useState({
@@ -29,18 +19,12 @@ const OpenModal10 = ({
     selectLocation: "",
     selectName: "",
   });
-  const [seacrh, setSearch] = useState("");
+  // const [seacrh, setSearch] = useState("");
 
-  console.log(allData);
-
-  const [locDataTo, setloctionDataTo] = useState([]);
-  const [allDetails, setallDetails] = useState([]);
-  const [value, setvalue] = useState("");
   const [allArray, setAllArray] = useState([]);
   const [allLocation, setAllLocation] = useState([]);
 
-  const [searchInput, setSearchInput] = useState("");
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const getSearchByProduct = async (e) => {
     // const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
     //   search: "e",
@@ -62,7 +46,7 @@ const OpenModal10 = ({
 
     // console.log(data);
 
-    let arr = data.map((row) => {
+    let arr = response.data.map((row) => {
       return { label: row.text, value: row.id };
     });
     setAllLocation(arr);
@@ -74,7 +58,7 @@ const OpenModal10 = ({
         search: e,
       });
       let arr = [];
-      arr = data.map((d) => {
+      arr = response.data.map((d) => {
         return { label: d.text, value: d.id };
       });
       return arr;
@@ -157,7 +141,7 @@ const OpenModal10 = ({
                   <AsyncSelect
                     placeholder="Select Name"
                     loadOptions={getFetchAllName}
-                    onInputChange={(e) => setSearch(e)}
+                    // onInputChange={(e) => setSearch(e)}
                     value={allData.selectName}
                     onChange={(e) =>
                       setAllData((allData) => {

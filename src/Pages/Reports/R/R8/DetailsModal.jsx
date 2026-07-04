@@ -5,11 +5,12 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../../Components/exportToCSV";
+import { useToast } from "../../../../hooks/useToast";
 
 const DetailsModal = ({ show, close, end_date }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-
+const { showToast } = useToast();
   const getRows = async (mfgId) => {
     try {
       setRows([]);
@@ -30,10 +31,10 @@ const DetailsModal = ({ show, close, end_date }) => {
         setRows(arr);
       }
       else{
-        toast.error(response.message);
+        showToast(response.message, "error");
       }
     } catch (error) {
-      console.log("some error occurred while fetching the components", error);
+      showToast("Something went wrong, Please contact administrator", "error");
     } finally {
       setLoading(false);
     }

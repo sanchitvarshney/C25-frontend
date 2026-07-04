@@ -1,18 +1,12 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-
-import moment from "moment";
-import { DatePicker, Select } from "antd";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { v4 } from "uuid";
-import { Button, Modal, Row, Col, Input } from "antd";
+import { Modal, Row, Col,Select } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { getProductsOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
-
-const { RangePicker } = DatePicker;
 
 const OpenR29Modal = ({
   viewModal,
@@ -20,11 +14,11 @@ const OpenR29Modal = ({
   setAllResponseData,
   // loading,
   setLoading,
-  setFilterData,
+  // setFilterData,
 }) => {
   const { showToast } = useToast();
-  const [seacrh, setSearch] = useState(null);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [seacrh, setSearch] = useState(null);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [date, setDate] = useState("");
   const [dataa, setData] = useState({
@@ -32,10 +26,9 @@ const OpenR29Modal = ({
     bom: "",
   });
 
-  const { executeFun, loading } = useApi();
+  const { executeFun } = useApi();
   // console.log(dataa);
   const [bomName, setBomName] = useState([]);
-  const opt = [{ label: "Bom Wise", value: "Bom Wise" }];
 
   const getProductNameFecth = async (searchInput) => {
     if (searchInput?.length > 2) {
@@ -117,11 +110,11 @@ const OpenR29Modal = ({
         <Row  gutter={16}>
           <Col span={12}>
             <MyAsyncSelect
-              selectLoading={selectLoading}
+              // selectLoading={selectLoading}
               style={{ width: "100%" }}
               loadOptions={getProductNameFecth}
               onBlur={() => setAsyncOptions([])}
-              onInputChange={(e) => setSearch(e)}
+              // onInputChange={(e) => setSearch(e)}
               value={dataa.selectProduct.value}
               placeholder="Product Name / SKU"
               optionsState={asyncOptions}

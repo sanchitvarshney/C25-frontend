@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { Card, Col, Drawer, Flex, Row } from "antd";
+//@ts-ignore
 import ToolTipEllipses from "@/Components/ToolTipEllipses";
+//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
 import { downloadBom, getComponents } from "@/api/r&d/bom";
 import useApi from "@/hooks/useApi";
-import { ModalType } from "@/types/general";
-import { BOMType, BOMTypeExtended } from "@/types/r&d";
+import { BOMType } from "@/types/r&d";
+//@ts-ignore
 import { CommonIcons } from "../../../../../Components/TableActions.jsx/TableActions";
 import BOMApproval from "@/Pages/R&D/bom/list/approval";
 
-interface Proptypes extends ModalType {
-  selectedBOM: BOMTypeExtended;
-}
-const Components = (props: Proptypes) => {
+const Components = (props: any) => {
   const [rows, setRows] = useState<BOMType["components"]>([]);
 
   const { loading, executeFun } = useApi();
@@ -26,7 +25,7 @@ const Components = (props: Proptypes) => {
     if (props.selectedBOM && props.selectedBOM.key) {
       const response = await executeFun(
         () => downloadBom(props.selectedBOM.key),
-        "download"
+        "download",
       );
     }
   };
@@ -143,7 +142,7 @@ const columns = [
     headerName: "Vendor",
     width: 200,
     field: "vendor",
-    renderCell: ({ row }: { row: BOMType["components"][0] }) => (
+    renderCell: ({ row }: { row: any }) => (
       <ToolTipEllipses text={row.vendor?.toUpperCase()} />
     ),
   },
@@ -152,7 +151,7 @@ const columns = [
     minWidth: 100,
     flex: 1,
     field: "subName",
-    valueGetter: ({ row }: { row: BOMType["components"][0] }) => {
+    valueGetter: ({ row }: { row: any }) => {
       if (typeof row.substituteOf === "object" && row.substituteOf?.name) {
         return row.substituteOf?.name;
       }

@@ -1,10 +1,10 @@
-import React, { useState, useeffect } from "react";
+import { useState } from "react";
 import { BsFillCloudArrowUpFill } from "react-icons/bs";
 import { useToast } from "../../hooks/useToast.js";
 import MyDataTable from "../../Components/MyDataTable";
 import NavFooter from "../../Components/NavFooter";
 import { v4 } from "uuid";
-import { Button, Card, Col, Row, Space } from "antd";
+import { Card, Col, Row, Space } from "antd";
 import { downloadCSVCustomColumns } from "../../Components/exportToCSV";
 import { imsAxios } from "../../axiosInterceptor";
 import MyButton from "../../Components/MyButton";
@@ -24,7 +24,7 @@ export default function VendorPricingUpload() {
     const response = await imsAxios.post(api, formData);
     setPreviewLoading(false);
     if (response.success) {
-      let arr = data.response.data.map((row) => {
+      let arr = response.data.map((row) => {
         return {
           ...row,
           id: v4(),

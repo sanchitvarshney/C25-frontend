@@ -1,4 +1,4 @@
-import React from "react";
+
 import { AiOutlineCloseCircle } from "react-icons/ai";
 
 export default function Popover({ setPopover, popover, allData1 }) {

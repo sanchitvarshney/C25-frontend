@@ -1,6 +1,6 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { Space, Drawer, Row, Col, Button } from "antd";
+
+import  { useEffect, useState } from "react";
+import { Row, Col, Button } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import { v4 } from "uuid";
@@ -8,8 +8,6 @@ import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
 
 export default function AllComponent({
   component,
-  setComponentData,
-  setOpen,
   open,
 }) {
   console.log(open);

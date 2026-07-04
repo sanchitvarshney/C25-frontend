@@ -3,25 +3,22 @@ import { ModalType, SelectOptionType } from "@/types/general";
 import { ProductType } from "@/types/r&d";
 import { Drawer, Upload } from "antd";
 import { Col, Flex, Form, Input, Row } from "antd";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
 import useApi from "@/hooks/useApi";
 import { getCostCentresOptions, getProjectOptions } from "@/api/general";
 import { convertSelectOptions } from "@/utils/general";
 import { getProductdata, updateProduct } from "@/api/r&d/products";
+//@ts-ignore
 import Loading from "../../../Components/Loading";
-import { imsAxios } from "../../../axiosInterceptor";
+//@ts-ignore
 import { useToast } from "@/hooks/useToast";
+//@ts-ignore
 import useLoading from "../../../hooks/useLoading";
 
-
-
-interface DrawerProps extends ModalType {
-  product: ProductType|null;
-  id: string|undefined;
-  handleFetchProductList: () => void;
-}
-const ProductDocuments = (props: DrawerProps) => {
+const ProductDocuments = (props: any) => {
   const { showToast } = useToast();
   const [form] = Form.useForm();
   const [asyncOptions, setAsyncOptions] = useState<SelectOptionType[]>([]);
@@ -34,7 +31,7 @@ const ProductDocuments = (props: DrawerProps) => {
       () => getCostCentresOptions(search),
       "select"
     );
-    let arr: SelectOptionType[] = [];
+    let arr: any = [];
     if (response.success) {
       arr = convertSelectOptions(response.data);
     }

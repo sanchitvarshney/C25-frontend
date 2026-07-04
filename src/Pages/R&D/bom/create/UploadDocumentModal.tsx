@@ -1,6 +1,7 @@
 import React from 'react'
 import { Modal, Upload, Button, Typography } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
+//@ts-ignore
 import Loading from "../../../../Components/Loading.jsx";
 
 export default function UploadDocumentModal({
@@ -10,9 +11,9 @@ export default function UploadDocumentModal({
   fileList,
   setFileList,
   loading
-}) {
+}:any) {
   // Handle file change (multiple files)
-  const handleFileChange = ({ fileList }) => {
+  const handleFileChange = ({ fileList }:any) => {
     // Update the file list (Ant Design automatically handles adding/removing files)
     setFileList(fileList)
   }

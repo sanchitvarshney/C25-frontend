@@ -14,8 +14,11 @@ import {
   Typography,
   Upload,
 } from "antd";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
+//@ts-ignore
 import MySelect from "@/Components/MySelect.jsx";
 import { UploadOutlined } from "@ant-design/icons";
 import { SelectOptionType } from "@/types/general";
@@ -103,7 +106,7 @@ const AddComponent = ({
   const handleFetchVendorOptions = async (search: string) => {
     const response = await executeFun(() => getVendorOptions(search), "select");
 
-    let arr: SelectOptionType[] = [];
+    let arr: any = [];
     if (response.success) {
       arr = convertSelectOptions(response.data);
     }
@@ -115,7 +118,7 @@ const AddComponent = ({
     maxCount: 1,
     fileList: selectedFile ? [selectedFile] : [],
     beforeUpload: () => false,
-    onChange: (info) =>
+    onChange: (info:any) =>
       info.file ? setSelectedFile(info.file) : setSelectedFile(null),
   };
   // useEffect(() => {
@@ -152,7 +155,7 @@ const AddComponent = ({
           variant="downloadSample"
           onClick={handleDownloadComponentSampleFile}
         />
-        <Upload {...props}>
+        <Upload>
           <Button block icon={<UploadOutlined />}>
             Select File
           </Button>

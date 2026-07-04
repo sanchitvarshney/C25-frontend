@@ -10,12 +10,16 @@ import {
   Row,
   Tooltip,
   Typography,
-  Upload,
 } from "antd";
+//@ts-ignore
 import { useToast } from "@/hooks/useToast.js";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
+//@ts-ignore
 import TableActions from "@/Components/TableActions.jsx/TableActions";
+//@ts-ignore
 import MyDataTable from "../../../../Components/MyDataTable";
 import useApi from "@/hooks/useApi";
 import { ModalType, SelectOptionType } from "@/types/general";
@@ -23,7 +27,6 @@ import { convertSelectOptions } from "@/utils/general";
 import { getComponentMfgCodeAndType, getComponentOptions } from "@/api/general";
 import { getProductOptions } from "@/api/r&d/products";
 import {
-  createBOM,
   createBomRND,
   createDraftBomRND,
   downloadSampleComponentFile,
@@ -33,11 +36,13 @@ import {
   uploadDocs,
 } from "@/api/r&d/bom";
 import { useNavigate, useSearchParams } from "react-router-dom";
+//@ts-ignore
 import Loading from "@/Components/Loading.jsx";
 import ApproverMetrics from "@/Pages/R&D/bom/create/ApproverMetrics";
 import { bomUpdateType, MultiStageApproverType } from "@/types/r&d";
 import UpdateTypeModal from "@/Pages/R&D/bom/create/UpdateTypeModal";
 import AddComponent from "@/Pages/R&D/bom/create/AddComponent";
+//@ts-ignore
 import routeConstants from "@/Routes/routeConstants.js";
 import UploadDocumentModal from "@/Pages/R&D/bom/create/UploadDocumentModal";
 import React from "react";
@@ -69,6 +74,7 @@ interface ComponentType {
 }
 
 const BOMCreate = () => {
+  const { showToast } = useToast();
   const [visible, setVisible] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
@@ -81,10 +87,10 @@ const BOMCreate = () => {
   const [isBomUpdating, setIsBomUpdating] = useState(false);
   const [updateType, setUpdateType] = useState<bomUpdateType | null>(null);
   const [showUpdateTypeModal, setShowUpdateTypeModal] = useState(false);
-  const [latestVersion, setLatestVersion] = useState(null);
+  // const [latestVersion, setLatestVersion] = useState(null);
   const [saveType, setSaveType] = useState<null | "draft" | "final">(null);
   const [showRedirectModal, setShowRedirectModal] = useState(false);
-  const [isBomRej, setIsBomRej] = useState(false);
+  // const [isBomRej, setIsBomRej] = useState(false);
   const [bomId, setBomId] = useState("");
   const navigate = useNavigate();
   const [approvers, setApprovers] = useState<MultiStageApproverType[]>(
@@ -108,7 +114,8 @@ const BOMCreate = () => {
       () => getComponentOptions(search),
       "select"
     );
-    setAsyncOptions(convertSelectOptions(response.data ?? []));
+    const arr:any = convertSelectOptions(response.data ?? []);
+    setAsyncOptions(arr);
   };
 
   const handleFetchComponentsFromFile = async () => {
@@ -122,7 +129,7 @@ const BOMCreate = () => {
       }
       setSelectedFile(null);
 
-      const updatedArr = response.data.map((row) => ({
+      const updatedArr = response.data.map((row:any) => ({
         component: { ...row.partCode, label: row.partCode.text },
         qty: row.quantity,
         type:
@@ -145,9 +152,9 @@ const BOMCreate = () => {
             }
           : null,
       }));
-      const mainComponents = updatedArr.filter((row) => row.type === "main");
+      const mainComponents = updatedArr.filter((row:any) => row.type === "main");
       const alternateComponents = updatedArr.filter(
-        (row) => row.type === "substitute"
+        (row:any) => row.type === "substitute"
       );
 
       setMainComponents((curr) => [...curr, ...mainComponents]);
@@ -185,10 +192,11 @@ const BOMCreate = () => {
     let verifyArr = [...mainComponents, ...subComponents];
     const found = verifyArr.find((row) => row.value === values.component.value);
     if (verifyArr.find((row) => row.value === values.component.value)) {
-      return showToast(
+       showToast(
         `Component already added in ${found?.type} components with Qty: ${found?.qty}`,
         "error"
       );
+      return
     }
 
     if (values.type === "main") {
@@ -306,7 +314,7 @@ const BOMCreate = () => {
     setAsyncOptions(response.data ?? []);
   };
 
-  const validateHandler = async (action: "final" | "draft" | "updateDraft") => {
+  const validateHandler = async (action: any) => {
     await form.validateFields(["name", "version", "product", "bomRef"]);
     setSaveType(action);
     if (action === "final") {
@@ -332,10 +340,10 @@ const BOMCreate = () => {
       });
     }
   };
-  function convertStageToNumber(data) {
+  function convertStageToNumber(data: any) {
     // console.log("data ub ", data);
 
-    return data.map((item) => {
+    return data.map((item: any) => {
       if (typeof item.stage === "string") {
         const match = item.stage.match(/\d+/);
         item.stage = match ? parseInt(match[0], 10) : item.stage;
@@ -424,7 +432,7 @@ const BOMCreate = () => {
 
     if (response?.success) {
       setBomId("");
-      setIsBomRej(false);
+      // setIsBomRej(false);
       setShowApproverMetrics(false);
       resetHandler();
       showConfirmation(response?.message, action);
@@ -435,12 +443,7 @@ const BOMCreate = () => {
       }
     }
   };
-  const normFile = (e) => {
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e?.fileList;
-  };
+
 
   const handleFetchExistingBom = async (sku: any, version: string = "1.0") => {
     const response = await executeFun(
@@ -476,32 +479,32 @@ const BOMCreate = () => {
           // form.setFieldValue("version", "1.0");
         } else {
           setBomId(response.data.id);
-          setIsBomRej(response.data.isRejected);
+          // setIsBomRej(response.data.isRejected);
           if (!queryParams.get("sku") && !queryParams.get("version")) {
             // setShowRedirectModal(true);
             return;
           }
           form.setFieldsValue(response.data);
-          setLatestVersion(response.data.latestVersion);
+          // setLatestVersion(response.data.latestVersion);
 
           setMainComponents(
-            response.data.components.filter((row) => row.type === "main")
+            response.data.components.filter((row: any) => row.type === "main")
           );
           setSubComponents(
-            response.data.components.filter((row) => row.type === "substitute")
+            response.data.components.filter((row: any) => row.type === "substitute")
           );
         }
       }
     }
   };
 
-  const handleUpload = async (files) => {
+  const handleUpload = async (files: any) => {
     setUploadLoading(true);
     // Create a FormData object
     const formData = new FormData();
 
     // Append each file to FormData
-    files.forEach((file) => {
+    files.forEach((file: any) => {
       formData.append("documents", file.originFileObj); // Use 'originFileObj' for actual file object
     });
 
@@ -771,7 +774,7 @@ const BOMCreate = () => {
                 <UploadDocumentModal
                   open={visible}
                   close={() => setVisible(false)}
-                  handleUpload={(files) => handleUpload(files)}
+                  handleUpload={(files: any) => handleUpload(files)}
                   fileList={fileList} // Pass the selected file list to the modal
                   setFileList={setFileList}
                   loading={uploadLoading}
