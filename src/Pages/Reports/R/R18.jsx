@@ -1,5 +1,5 @@
 import { Button, Col, Row, Space, Typography, Form } from "antd";
-import React, { useState } from "react";
+import  { useState } from "react";
 import socket from "../../../Components/socket"; // Reuse existing socket from R6.jsx
 import { imsAxios } from "../../../axiosInterceptor";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -46,11 +46,11 @@ function R18() {
         let arr = response.data.map((row) => {
           let obj = JSON.parse(row.locations);
           for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
+            // if (obj.hasOwnProperty(key)) {
               let headerName = key; // Use loc_name directly (e.g., RMO21)
               headerArr.push(key);
               location = { ...location, [headerName]: obj[key] };
-            }
+            // }
           }
 
           return {

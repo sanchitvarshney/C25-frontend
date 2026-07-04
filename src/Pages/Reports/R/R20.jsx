@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
-import TableActions, {
+import  {
   CommonIcons,
 } from "../../../Components/TableActions.jsx/TableActions";
 import {
@@ -14,7 +14,6 @@ import {
   Form,
   Input,
   Row,
-  Space,
   Typography,
   Upload,
   message,
@@ -22,11 +21,9 @@ import {
 } from "antd";
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import Dragger from "antd/es/upload/Dragger";
-import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
+import {  UploadOutlined } from "@ant-design/icons";
 import { useToast } from "../../../hooks/useToast.js";
-import printFunction, {
-  downloadFunction,
+import  {
   downloadExcel,
 } from "../../../Components/printFunction";
 import useApi from "../../../hooks/useApi.ts";
@@ -38,16 +35,16 @@ function R20() {
   const [closing, setClosing] = useState("");
   const [openDrawer, setOpenDrawer] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [verifiedFile, setVerifiedFile] = useState(false);
+  // const [verifiedFile, setVerifiedFile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewed, setPreviewed] = useState([]);
-  const [singleUpload, setSingleUpload] = useState(false);
-  const [multipleUpload, setmultipleUpload] = useState(false);
+  // const [singleUpload, setSingleUpload] = useState(false);
+  // const [multipleUpload, setmultipleUpload] = useState(false);
   const [showModalData, setShowModalData] = useState(false);
   const [previewDT, setPreviewDT] = useState(false);
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
   const [uploadForm] = Form.useForm();
   const [compKey, setCompKey] = useState([]);
   const [stdPrice, setStdPrice] = useState([]);
@@ -68,15 +65,15 @@ function R20() {
         };
       });
       setRows(arr);
-      setClosing(data.closingDate);
+      setClosing(response?.data?.closingDate);
     }
   };
   const handleDownloadCSV = () => {
     downloadCSVCustomColumns(rows, "Report20");
   };
-  const handleOk = () => {
-    setShowModalData(true);
-  };
+  // const handleOk = () => {
+  //   setShowModalData(true);
+  // };
   const handleCancel = () => {
     setIsModalOpen(false);
   };
@@ -201,14 +198,14 @@ function R20() {
       let compkey = [];
       let stdP = [];
       setPreviewed(arr);
-      setmultipleUpload(true);
+      // setmultipleUpload(true);
       arr.map((r) => {
         compkey.push(r.componentKey);
         stdP.push(r.standardPrice);
       });
       setCompKey(compkey);
       setStdPrice(stdP);
-      setmultipleUpload(true);
+      // setmultipleUpload(true);
     } else {
       showToast(data.statusText, "error");
     }
@@ -235,7 +232,7 @@ function R20() {
     const values = await uploadForm.validateFields();
     const componentKey = values.component;
     const standardPrice = values.standardPrice;
-    setSingleUpload(true);
+    // setSingleUpload(true);
     previewSingleData(componentKey, standardPrice);
   };
   useEffect(() => {

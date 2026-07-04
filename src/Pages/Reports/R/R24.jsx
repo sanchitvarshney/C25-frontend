@@ -1,5 +1,4 @@
 import {
-  Button,
   Card,
   Col,
   Form,
@@ -33,7 +32,7 @@ const R24 = () => {
   const [userComponents, setUserComponents] = useState([]);
   const [filterForm] = Form.useForm();
 
-  const { executeFun, loading: loading1 } = useApi();
+const { executeFun } = useApi();
   const user = Form.useWatch("user", filterForm);
 
   const getUserOptions = async (search) => {
@@ -42,7 +41,7 @@ const R24 = () => {
       search: search,
     });
     setLoading(false);
-    let arr = data.map((row) => ({ text: row.text, value: row.id }));
+    let arr = response?.data.map((row) => ({ text: row.text, value: row.id }));
     setAsyncOptions(arr);
   };
 
@@ -281,7 +280,7 @@ const R24 = () => {
                           row.text.toString().toLowerCase().includes(filterTerm)
                         )
                         .map((row) => (
-                          <Col span={24}>
+                          <Col span={24} key={row.value}>
                             <Row gutter={4}>
                               <Col span={22}>
                                 <Typography.Text
@@ -307,8 +306,9 @@ const R24 = () => {
                         ))}
 
                     {loading === "components" &&
-                      [1, 1, 1, 1, 1].map(() => (
+                      [1, 1, 1, 1, 1].map((_,idx) => (
                         <Skeleton.Input
+                          key={idx}
                           block
                           active={true}
                           size="small"

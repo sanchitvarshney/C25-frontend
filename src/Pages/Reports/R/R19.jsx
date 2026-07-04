@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button, Col, Row, Select } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
-import { CaretRightOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined } from "@ant-design/icons";
 import ModalR19 from "../Modal/ModalR19";
 import { imsAxios } from "../../../axiosInterceptor";
 import {
-  getComponentOptions,
   getProductsOptions,
 } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
@@ -20,7 +18,7 @@ function R19() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [mainData, setMainData] = useState([]);
-  const [search, setSearch] = useState("");
+  // const [search, setSearch] = useState("");
   const [bomName, setBomName] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [allData, setAllData] = useState({
@@ -28,7 +26,7 @@ function R19() {
     selectBom: "",
   });
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const getDataBySearch = async (searchInput) => {
     if (searchInput?.length > 2) {
       const response = await executeFun(
@@ -114,7 +112,7 @@ function R19() {
             optionsState={asyncOptions}
             placeholder="Select Product"
             loadOptions={getDataBySearch}
-            onInputChange={(e) => setSearch(e)}
+            // onInputChange={(e) => setSearch(e)}
             value={allData.selectProduct.value}
             onChange={(e) =>
               setAllData((allData) => {

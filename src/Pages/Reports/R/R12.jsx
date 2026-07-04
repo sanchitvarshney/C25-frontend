@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import "./r.css";
-import axios from "axios";
 import { useToast } from "../../../hooks/useToast.js";
 import {
-  downloadCSV,
   downloadCSVCustomColumns,
 } from "../../../Components/exportToCSV";
-import InternalNav from "../../../Components/InternalNav";
 import { Button, Col, Input, Row } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
@@ -20,7 +17,7 @@ import MyButton from "../../../Components/MyButton";
 
 const R12 = () => {
   const { showToast } = useToast();
-  const [search, setSearch] = useState("");
+  // const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [bomName, setBomName] = useState([]);
@@ -32,7 +29,7 @@ const R12 = () => {
 
   const [resData, setResData] = useState([]);
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const columns = [
     // { field: "dt", headerName: "S.No.", width: 150 },
     { field: "serial_no", headerName: "S.No.", width: 80 },
@@ -137,7 +134,7 @@ const R12 = () => {
             optionsState={asyncOptions}
             placeholder="Select Product"
             loadOptions={getDataBySearch}
-            onInputChange={(e) => setSearch(e)}
+            // onInputChange={(e) => setSearch(e)}
             value={allData.selectProduct.value}
             onChange={(e) =>
               setAllData((allData) => {

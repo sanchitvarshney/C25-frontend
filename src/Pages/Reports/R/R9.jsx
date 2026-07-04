@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./r.css";
 import { Button, Col, Input, Row, Skeleton } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
@@ -21,7 +21,7 @@ function R9() {
   const [locDataTo, setloctionDataTo] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
 
-  const [seacrh, setSearch] = useState("");
+  // const [seacrh, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [bomName, setBomName] = useState([]);
@@ -34,7 +34,7 @@ function R9() {
   const [resData, setResData] = useState([]);
   const [locationDetail, setLocationDetail] = useState("");
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const handleDownloadingCSV = () => {
     downloadCSV(resData, columns, "Location Wise BOM Report");
   };
@@ -246,7 +246,7 @@ const getDataByLocation = async (e) => {
                 optionsState={locDataTo}
                 placeholder="Select Location"
                 loadOptions={getDataByLocation}
-                onInputChange={(e) => setSearch(e)}
+                // onInputChange={(e) => setSearch(e)}
                 value={allData.selectLocation.value}
                 onChange={(e) =>
                   setAllData((allData) => {

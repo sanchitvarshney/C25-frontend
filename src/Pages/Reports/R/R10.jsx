@@ -1,11 +1,7 @@
-import React, { useState, useEffect } from "react";
-import InternalNav from "../../..//Components/InternalNav";
-import axios from "axios";
+import  { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Button, Col, Form, Modal, Row, Space } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import MySelect from "../../../Components/MySelect";
-import validateResponse from "../../../Components/validateResponse";
 import MyDataTable from "../../../Components/MyDataTable";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
@@ -24,7 +20,7 @@ const R10 = () => {
     label: user?.userName,
   });
   const [selectLoading, setSelectLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(false);
+  // const [pageLoading, setPageLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
@@ -36,7 +32,7 @@ const R10 = () => {
   const [rows, setrows] = useState([]);
   const { executeFun, loading: loading1 } = useApi();
   const getDataOnLoad = async () => {
-    setPageLoading(true);
+    // setPageLoading(true);
     setTableLoading(true);
     // table data fetch
     const response = await imsAxios.post("/report10", {
@@ -47,7 +43,7 @@ const R10 = () => {
     const res = await imsAxios.post("/report10/getSelectedValue", {
       user_id: selectedUser.value,
     });
-    setPageLoading(false);
+    // setPageLoading(false);
     let arr = [];
     if (!response.success || !response.data) {
       setColumns([]);
@@ -163,7 +159,6 @@ const R10 = () => {
 
     // selected data
     if (res.success) {
-      let i;
       let partsArr = [];
       let locationArr = [];
       partsArr = res.data.part_options.map((row) => ({
@@ -201,11 +196,11 @@ const R10 = () => {
     setAsyncOptions(arr);
   };
   const getLocation = async () => {
-    setPageLoading(true);
+    // setPageLoading(true);
     const response = await imsAxios.post("/backend/fetchLocation");
     let arr = response.data.map((row) => ({ value: row.id, text: row.text }));
     setLocationOptions(arr);
-    setPageLoading(false);
+    // setPageLoading(false);
   };
   const searchLocation = async (search) => {
     const response = await imsAxios.post("/backend/fetchLocation", {
@@ -223,7 +218,7 @@ const R10 = () => {
     let arr = response.data.map((row) => ({ text: row.text, value: row.id }));
     setAsyncOptions(arr);
   };
-  const updateDataTable = async (userId) => {
+  const updateDataTable = async () => {
     // true;
   
     if (updateData.locations.length > 0) {
@@ -251,7 +246,6 @@ const R10 = () => {
     });
     setModalLoading(false);
     if (res.success) {
-      let i;
       let partsArr = [];
       let locationArr = [];
       partsArr = res.data.part_options.map((row) => ({
@@ -283,17 +277,6 @@ const R10 = () => {
   useEffect(() => {
     console.log(updateData);
   }, [updateData]);
-  const additional = () => (
-    <Space style={{ width: 120 }}>
-      <Button onClick={() => setShowUpdateModal(true)} type="primary">
-        Update
-      </Button>
-      <CommonIcons
-        onClick={() => downloadCSV(rows, columns, "Location Wise Report")}
-        action="downloadButton"
-      />
-    </Space>
-  );
   return (
     <div style={{ height: "100%" }}>
       <Row
@@ -316,7 +299,7 @@ const R10 = () => {
         title="Location Wise Report"
         open={showUpdatModal}
         footer={[
-          <Row justify="space-between">
+          <Row justify="space-between" key={1}>
             <Col span={4}>
               <MyAsyncSelect
                 optionsState={asyncOptions}

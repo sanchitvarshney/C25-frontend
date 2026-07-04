@@ -16,9 +16,7 @@ import MyDataTable from "../../../Components/MyDataTable";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
-import { v4 } from "uuid";
 import Loading from "../../../Components/Loading";
-import { set } from "lodash";
 import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import MyButton from "../../../Components/MyButton";
@@ -132,9 +130,9 @@ const R25 = () => {
 
     downloadCSV(rows, columns, `R25 Report`, [newRow]);
   };
-  const reset = () => {
-    filterForm.resetFields();
-  };
+  // const reset = () => {
+  //   filterForm.resetFields();
+  // };
   const toggleEdit = () => {
     const values = filterForm.getFieldsValue();
     setIsEditing(values.report.value);
@@ -175,7 +173,6 @@ const R25 = () => {
     setLoading(false);
 
     let obj = {};
-    let components = [];
     let arr = [];
     const { data } = response;
     if (data) {
@@ -371,7 +368,7 @@ const R25 = () => {
                         .includes(filterText.toLowerCase())
                     )
                     .map((row, index) => (
-                      <Col span={24}>
+                      <Col span={24} key={row.id || index}>
                         <Row gutter={6} justify="space-between">
                           <Col span={1}>{index + 1}</Col>
                           <Col span={18}>

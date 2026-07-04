@@ -1,5 +1,5 @@
-import { Button, Col, Form, Row, Skeleton } from "antd";
-import React, { useState } from "react";
+import { Col, Row, Skeleton } from "antd";
+import  { useState } from "react";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
@@ -14,7 +14,7 @@ import MyButton from "../../../Components/MyButton";
 function R22() {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [search, setSearch] = useState("");
+  // const [search, setSearch] = useState("");
   const [selectDate, setSelectDate] = useState("");
   const [bomName, setBomName] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ function R22() {
   });
   const [resData, setResData] = useState([]);
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const getDataBySearch = async (searchInput) => {
     if (searchInput?.length > 2) {
       const response = await executeFun(
@@ -101,7 +101,7 @@ function R22() {
               loadOptions={getDataBySearch}
               onBlur={() => setAsyncOptions([])}
               optionsState={asyncOptions}
-              onInputChange={(e) => setSearch(e)}
+              // onInputChange={(e) => setSearch(e)}
               placeholder="Select Product"
               value={allData.selectProduct.value}
               onChange={(e) =>

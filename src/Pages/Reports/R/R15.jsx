@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Col, Row, Select } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import axios from "axios";
 import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
 import { DownloadOutlined } from "@ant-design/icons";
@@ -33,7 +32,7 @@ function R15() {
         search: e,
       });
       let arr = [];
-      arr = data.map((d) => {
+      arr = response?.data.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
