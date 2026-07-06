@@ -215,7 +215,7 @@ const [fileName, setFileName] = useState("");
         materialResetFunction();
         setPreviewRows([]);
         setPreview(false);
-
+        setFileName("");
         setSubmitLoading(false);
       } else {
         showToast(response.message, "error");
