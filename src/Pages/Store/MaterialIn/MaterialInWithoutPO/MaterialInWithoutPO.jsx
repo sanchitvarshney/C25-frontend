@@ -9,7 +9,6 @@ import {
   Input,
   Modal,
   Row,
-  Tabs,
   Flex,
   Typography,
   Upload,
@@ -90,7 +89,7 @@ export default function MaterialInWithoutPO() {
   const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
   const [isScan, setIsScan] = useState(false);
   const [open, setOpen] = useState(false);
-
+const [fileName, setFileName] = useState("");
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -104,6 +103,7 @@ export default function MaterialInWithoutPO() {
   const [isApplicable, setIsApplicable] = useState(false);
   const [vendorBranchOptions, setVendorBranchOptions] = useState([]);
   const [uplaoaClicked, setUploadClicked] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -147,6 +147,11 @@ export default function MaterialInWithoutPO() {
 
   const handleValidatingInvoices = async () => {
     const values = await form.validateFields();
+      if(!fileName) {
+    showToast("Please upload a Document", "error");
+    setSubmitLoading(false);
+    return
+  }
 
     const response = await executeFun(() => validateInvoice(values), "submit");
 
@@ -169,32 +174,20 @@ export default function MaterialInWithoutPO() {
         submitMIN(values);
       }
     } else {
-      submitMIN(values);
+      showToast(response.message || "Invoice Id not found", "error");
     }
   };
   const submitMIN = async () => {
-    let fileName;
-    const formData = new FormData();
+    setSubmitLoading(true);
     const vendorType = form.getFieldValue("vendorType");
     const values = await form.validateFields();
-    // console.log("values", values);
-    values?.fileComponents?.map((comp) => {
-      formData.append("files", comp.file[0]?.originFileObj);
-    });
-    let fileResponse;
-    if (vendorType !== "p01") {
-      fileResponse = await executeFun(
-        () => uploadMinInvoice(formData),
-        "submit"
-      );
-    }
 
-    if (fileResponse?.success || vendorType == "p01") {
-      fileName = fileResponse?.data;
+
+    if (fileName || vendorType == "p01") {
 
       const response = await executeFun(
         () => materialInWithoutPo(values, fileName, vendorType),
-        "submit"
+        "submit",
       );
 
       if (response?.success) {
@@ -203,7 +196,6 @@ export default function MaterialInWithoutPO() {
         // The transaction ID is nested: response.data.data.txn
         const transactionId =
           data?.data?.txn || response?.data?.data?.txn || data?.txn;
-        console.log("Transaction ID:", transactionId);
         setShowSuccessPage({
           materialInId: transactionId,
           vendor: { vendorname: values.vendorName.label },
@@ -223,8 +215,11 @@ export default function MaterialInWithoutPO() {
         materialResetFunction();
         setPreviewRows([]);
         setPreview(false);
+
+        setSubmitLoading(false);
       } else {
         showToast(response.message, "error");
+        setSubmitLoading(false);
       }
     }
   };
@@ -232,7 +227,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchComponentOptions = async (search) => {
     const response = await executeFun(
       () => getComponentOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response.success) {
@@ -240,7 +235,7 @@ export default function MaterialInWithoutPO() {
       if (response.data[0].piaStatus == "Y") {
         showToast(
           `PIA Status is enabled for ${response.data[0].newPart} Part Code.`,
-          "success"
+          "success",
         );
       }
       arr = convertSelectOptions(response.data);
@@ -303,7 +298,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchComponentDetails = async (row, rowId, value) => {
     const response = await executeFun(
       () => getComponentDetail(value.value),
-      "fetch"
+      "fetch",
     );
     if (response.success) {
       const data = response?.data;
@@ -320,12 +315,12 @@ export default function MaterialInWithoutPO() {
     const vendorType = form.getFieldValue("vendorType");
     if (formVendor && component && vendorType === "v01") {
       const response = await executeFun(() =>
-        getComponentDetail(component.value, formVendor.value)
+        getComponentDetail(component.value, formVendor.value),
       );
       if (response.success) {
         form.setFieldValue(
           ["components", rowId, "previousRate"],
-          response.data.rate
+          response.data.rate,
         );
       }
     }
@@ -346,7 +341,7 @@ export default function MaterialInWithoutPO() {
   const getVendorBracnch = async (vendorCode) => {
     const response = await executeFun(
       () => getVendorBranchOptions(vendorCode),
-      "fetch"
+      "fetch",
     );
 
     let arr = [];
@@ -364,7 +359,7 @@ export default function MaterialInWithoutPO() {
 
     const response = await executeFun(
       () => getVendorBranchDetails(vendorCode.value, branchCode),
-      "fetch"
+      "fetch",
     );
 
     if (response?.success) {
@@ -376,7 +371,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchCostCenterOptions = async (search) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response?.success) arr = convertSelectOptions(response?.data);
@@ -385,7 +380,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchProjectOptions = async (search) => {
     const response = await executeFun(
       () => getProjectOptions(search),
-      "select"
+      "select",
     );
     setAsyncOptions(response?.data);
   };
@@ -438,19 +433,19 @@ export default function MaterialInWithoutPO() {
     form.setFieldValue(["components", rowId, "value"], getInt(inrValue));
     form.setFieldValue(
       ["components", rowId, "cgst"],
-      gstType === "L" ? gst : 0
+      gstType === "L" ? gst : 0,
     );
     form.setFieldValue(
       ["components", rowId, "sgst"],
-      gstType === "L" ? gst : 0
+      gstType === "L" ? gst : 0,
     );
     form.setFieldValue(
       ["components", rowId, "igst"],
-      gstType === "L" ? 0 : gst
+      gstType === "L" ? 0 : gst,
     );
     form.setFieldValue(
       ["components", rowId, "foreignValue"],
-      currency === "364907247" ? 0 : foreignValue
+      currency === "364907247" ? 0 : foreignValue,
     );
   };
 
@@ -485,7 +480,7 @@ export default function MaterialInWithoutPO() {
   }, [costCenter]);
   useEffect(() => {
     let grandTotal = components?.map((row) =>
-      Number(row?.cgst + row?.sgst + row?.igst + row?.value)
+      Number(row?.cgst + row?.sgst + row?.igst + row?.value),
     );
     let cgsttotal = components?.map((row) => Number(row?.cgst));
     let sgsttotal = components?.map((row) => Number(row?.sgst));
@@ -561,21 +556,21 @@ export default function MaterialInWithoutPO() {
       name: "mfg",
       width: 100,
       // renderCell: ({ row }) => ,
-      field: (_, index) => <Input disabled />,
+      field: () => <Input disabled />,
     },
     {
       headerName: "Manual MFG",
       name: "mfgCode",
       width: 100,
       // renderCell: ({ row }) => ,
-      field: (_, index) => <Input type="string" />,
+      field: () => <Input type="string" />,
     },
     {
       headerName: "Qty",
       name: "qty",
       width: 100,
       // renderCell: ({ row }) => ,
-      field: (_, index) => <Input type="number" />,
+      field: () => <Input type="number" />,
     },
     {
       headerName: "Rate",
@@ -583,7 +578,7 @@ export default function MaterialInWithoutPO() {
       rules: [
         {
           warningOnly: true,
-          validator: (first, value) => {
+          validator: (first) => {
             let fieldName = first.field.split(".");
             fieldName = fieldName.map((row) => {
               if (!isNaN(row)) {
@@ -608,7 +603,7 @@ export default function MaterialInWithoutPO() {
       ],
       field: (row, index) => (
         <Input
-        type="number"
+          type="number"
           onChange={(e) => compareRates(e.target.value, index)}
           addonAfter={
             <div style={{ width: 50 }}>
@@ -622,14 +617,14 @@ export default function MaterialInWithoutPO() {
                           price: row.value,
                           exchangeRate: row.exchangeRate,
                           symbol: currencies.filter(
-                            (cur) => cur.value == value
+                            (cur) => cur.value == value,
                           )[0].text,
                           rowId: index,
                           form: form,
                         })
                       : form.setFieldValue(
                           ["components", index, "exchangeRate"],
-                          1
+                          1,
                         );
                   }}
                 />
@@ -692,7 +687,7 @@ export default function MaterialInWithoutPO() {
     {
       headerName: "IGST",
 
-      field: (row) => <Input disabled />,
+      field: () => <Input disabled />,
       name: "igst",
 
       width: 120,
@@ -745,7 +740,7 @@ export default function MaterialInWithoutPO() {
 
     maxCount: 1,
 
-    beforeUpload(file) {
+    beforeUpload() {
       return false;
     },
   };
@@ -847,7 +842,7 @@ export default function MaterialInWithoutPO() {
     formData.append("file", file);
     const response = await executeFun(
       () => uplaodFileInMINInward(formData),
-      "fetch"
+      "fetch",
     );
     if (response?.success) {
       let data = response?.data;
@@ -861,9 +856,9 @@ export default function MaterialInWithoutPO() {
       const formattedHeaders = data.headers.map((header) =>
         header
           .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) =>
-            index === 0 ? match.toUpperCase() : match.toLowerCase()
+            index === 0 ? match.toUpperCase() : match.toLowerCase(),
           )
-          .replace(/\s+/g, "")
+          .replace(/\s+/g, ""),
       );
 
       // Map the row values to headers
@@ -899,6 +894,37 @@ export default function MaterialInWithoutPO() {
     } else {
       showToast(response.message, "error");
       setPreview(false);
+    }
+  };
+
+  const handleUploadDocument = async () => {
+    try {
+      setUploadLoading(true);
+      const formData = new FormData();
+      const vendorType = form.getFieldValue("vendorType");
+      const values = await form.validateFields();
+      values?.fileComponents?.map((comp) => {
+        formData.append("files", comp.file[0]?.originFileObj);
+      });
+      let fileResponse;
+      if (vendorType !== "p01") {
+        fileResponse = await uploadMinInvoice(formData);
+      }
+      if (fileResponse?.success) {
+
+        setFileName(fileResponse?.data);
+        setUploadClicked(false);
+        showToast(fileResponse?.message || "Upload Document success", "success");
+        setUploadLoading(false);
+      } else {
+        showToast(fileResponse?.message || "Upload Document failed", "error");
+        setUploadLoading(false);
+      }
+    } catch (error) {
+      showToast(error?.message || "Upload Document failed", "error");
+      setUploadLoading(false);
+    }finally {
+      setUploadLoading(false);
     }
   };
   return (
@@ -954,7 +980,7 @@ export default function MaterialInWithoutPO() {
               span={6}
               style={{ height: "100%", overflowY: "auto", overflowX: "hidden" }}
             >
-              {loading("fetch") && <Loading />}
+              {(loading("fetch") || selectLoading) && <Loading />}
               <Flex vertical gap={6}>
                 <Card size="small">
                   <Row gutter={4}>
@@ -1003,29 +1029,29 @@ export default function MaterialInWithoutPO() {
                     <Col span={12} style={{ marginBottom: -10 }}>
                       <Form.Item
                         name="vendorBranch"
-                        extra={
-                          <p
-                            onClick={() => {
-                              vendorDetails.vendorName
-                                ? setShowBranchModal({
-                                    vendor_code: vendorDetails.vendorName,
-                                  })
-                                : showToast(
-                                    "Please Select a vendor first",
-                                    "error"
-                                  );
-                            }}
-                            style={{
-                              color: "#1890FF",
-                              cursor: "pointer",
-                              fontSize: 12,
-                              textAlign: "end",
-                              marginTop: 5,
-                            }}
-                          >
-                            Add Branch
-                          </p>
-                        }
+                        // extra={
+                        //   <p
+                        //     onClick={() => {
+                        //       vendorDetails.vendorName
+                        //         ? setShowBranchModal({
+                        //             vendor_code: vendorDetails.vendorName,
+                        //           })
+                        //         : showToast(
+                        //             "Please Select a vendor first",
+                        //             "error",
+                        //           );
+                        //     }}
+                        //     style={{
+                        //       color: "#1890FF",
+                        //       cursor: "pointer",
+                        //       fontSize: 12,
+                        //       textAlign: "end",
+                        //       marginTop: 5,
+                        //     }}
+                        //   >
+                        //     Add Branch
+                        //   </p>
+                        // }
                         label="Vendor Branch"
                         // rules={[
                         //   {
@@ -1226,7 +1252,7 @@ export default function MaterialInWithoutPO() {
                                 {Number(
                                   row.values?.reduce((partialSum, a) => {
                                     return partialSum + Number(a);
-                                  }, 0)
+                                  }, 0),
                                 ).toFixed(2)}
                               </Typography.Text>
                             </span>
@@ -1281,10 +1307,9 @@ export default function MaterialInWithoutPO() {
               open={uplaoaClicked}
               width={700}
               title={"Upload Document"}
-              // destroyOnClose={true}
-              onOk={() => setUploadClicked(false)}
+              onOk={handleUploadDocument}
               onCancel={() => setUploadClicked(false)}
-              // style={{ maxHeight: "50%", height: "50%", overflowY: "scroll" }}
+              loading={uploadLoading}
             >
               {" "}
               <Card style={{ height: "20rem", overflowY: "scroll" }}>
@@ -1301,7 +1326,7 @@ export default function MaterialInWithoutPO() {
                         <>
                           <Col>
                             {fields.map((field, index) => (
-                              <Form.Item noStyle>
+                              <Form.Item noStyle key={field.key || index}>
                                 <SingleProduct
                                   fields={fields}
                                   field={field}
@@ -1314,7 +1339,6 @@ export default function MaterialInWithoutPO() {
                                 />
                               </Form.Item>
                             ))}
-                      
                           </Col>
                         </>
                       )}
@@ -1437,7 +1461,7 @@ export default function MaterialInWithoutPO() {
         resetFunction={() => setShowResetConfirm(true)}
         submitFunction={handleSubmit}
         nextLabel="Submit"
-        loading={submitLoading}
+        loading={submitLoading || uploadLoading}
       />
       {showSuccessPage !== null && (
         <SuccessPage
