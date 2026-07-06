@@ -110,4 +110,4 @@ export function mergeMsmeYearOptions(legacyOptions, now = new Date()) {
 }
 
 /** Default sessions always retained in the header switcher; current FY is appended automatically when it advances. */
-export const LEGACY_SESSION_CODES = ["25-26"];
+export const LEGACY_SESSION_CODES = ["26-27"];

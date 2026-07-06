@@ -230,7 +230,7 @@ const loginSlice = createSlice({
 
       // Update axios headers with selected branch and session
       const company_branch =
-        action.payload?.company_branch ?? obj.company_branch ?? "BRALWR36";
+        action.payload?.company_branch ?? obj.company_branch ?? "BROAKTRC25";
       const session =
         action.payload?.session ??
         obj.session ??

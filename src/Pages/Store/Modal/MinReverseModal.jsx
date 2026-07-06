@@ -23,7 +23,7 @@ function MinReverseModal({
     mainData.map((aa) => compArray.push(aa.componentKey));
 
     const response = await imsAxios.post("/reversal/saveMINReversal", {
-      branch: "BRALWR36",
+      branch: "BROAKTRC25",
       authentication: authArray,
       component: compArray,
       remark: remark,

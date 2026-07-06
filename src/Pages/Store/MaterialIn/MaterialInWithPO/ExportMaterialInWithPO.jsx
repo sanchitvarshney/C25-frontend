@@ -361,7 +361,7 @@ export default function ExportMaterialInWithPO({}) {
       );
       if (response?.success) {
         let final = {
-          companybranch: "BRALWR36",
+          companybranch: "BROAKTRC25",
           invoices: response?.data,
           poid: searchData.poNumber,
           manual_mfg_code: poData.materials.map((row) => row.manualMfgCode),

@@ -252,7 +252,7 @@ export default function MaterialInWithPO({}) {
 
       if (response?.success && data) {
         let final = {
-          companybranch: "BRALWR36",
+          companybranch: "BROAKTRC25",
           invoices: data,
           poid: poData.headers.transaction,
           manual_mfg_code: poData.materials.map((row) => row.mfgCode),

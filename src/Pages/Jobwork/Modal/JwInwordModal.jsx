@@ -645,7 +645,7 @@ export default function JwInwordModal({ editModal, setEditModal }) {
     let pickLocation = value.pickLocation;
     let payload = {
       attachment: fetchAttachment,
-      companybranch: "BRALWR36",
+      companybranch: "BROAKTRC25",
       cost_center: header.costCenter,
       documentName: filedata.map((r) => r.documentName),
       component: mainData[0].component.value ?? mainData[0].component,
@@ -1813,7 +1813,7 @@ const defaultValues = {
   gstin: "",
   vendorAddress: "",
   ewaybill: "",
-  companybranch: "BRALWR36",
+  companybranch: "BROAKTRC25",
   projectID: "",
   costCenter: "",
   components: [

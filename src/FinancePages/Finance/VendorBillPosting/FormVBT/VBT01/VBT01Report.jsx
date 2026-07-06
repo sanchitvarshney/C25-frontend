@@ -121,7 +121,7 @@ function VBT01Report({
         setLoading(false);
       }
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error.message || "Failed to get VBT details", "error");
       setLoading(false);
     } finally {
       setLoading(false);
@@ -162,7 +162,6 @@ function VBT01Report({
     const response = await imsAxios.post(link, payload);
 
     if (response.success) {
-      const data = response?.data;
       setVbtComponent(response.data);
       const arr = response.data.map((row) => ({
         ...row,
@@ -205,7 +204,7 @@ function VBT01Report({
         freightAmount: 0,
       }));
       getGl();
-      const venTds = data[0]?.tds ? [...data[0].tds] : [];
+      const venTds = response.data[0]?.tds ? [...response.data[0].tds] : [];
       venTds.push({
         ladger_name: "--",
         ledger_key: "--",

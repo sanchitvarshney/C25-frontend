@@ -112,7 +112,7 @@ export default function ProductMIN() {
     gstin: "",
     vendorAddress: "",
     ewaybill: "",
-    companybranch: "BRALWR36",
+    companybranch: "BROAKTRC25",
     projectID: "",
     costCenter: "",
   });
@@ -303,7 +303,7 @@ export default function ProductMIN() {
           );
         } else {
           let final = {
-            companybranch: "BRALWR36",
+            companybranch: "BROAKTRC25",
             attachment: fileData ? fileData : "",
           };
           let venDetails = {

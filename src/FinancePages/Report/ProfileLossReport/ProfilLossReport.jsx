@@ -35,14 +35,16 @@ function ProfilLossReport() {
   const [loading, setLoading] = useState(false);
 
   const getRows = async () => {
-    setLoading("fetch");
+try {
+      setLoading("fetch");
     const response = await imsAxios.post("/tally/reports/plReport", {
       date: dateRange,
     });
    
-    const { data, success } = response;
+
  
-      if (success) {
+      if (response?.success) {
+        let {data} = response;
         let incomeMaster = data.income_master;
         let indirectIncomes = incomeMaster[0].children.filter(
           (row) => row.code === "8030000"
@@ -134,6 +136,13 @@ function ProfilLossReport() {
         setIncomeRows([]);
         setExpenseRows([]);
       }
+  
+} catch (error) {
+    showToast(error.message ?? "Failed to get Trial Balance Report", "error");
+    setIncomeRows([]);
+    setExpenseRows([]);
+  
+}
 
   };
   const customFlatArray = (array) => {

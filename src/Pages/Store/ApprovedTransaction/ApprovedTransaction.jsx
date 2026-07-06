@@ -83,7 +83,7 @@ const ApprovedTransaction = () => {
       "/storeApproval/fetchTransactionForApproval",
       {
         status: componentData.selType,
-        branch: "BRALWR36",
+        branch: "BROAKTRC25",
       }
     );
     // console.log(data)

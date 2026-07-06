@@ -58,7 +58,7 @@ const Login = () => {
   const [inpVal, setInpVal] = useState({
     username: "",
     password: "",
-    company_branch: "BRALWR36",
+    company_branch: "BROAKTRC25",
   });
   const { Title, Link: AntLink } = Typography;
   const [loginForm] = Form.useForm();
@@ -128,7 +128,7 @@ const Login = () => {
             mobileConfirmed: payload.other?.m_v,
             emailConfirmed: payload.other?.e_v,
             passwordChanged: payload.other?.c_p ?? "C",
-            company_branch: inpVal.company_branch,
+            company_branch: inpVal.company_branch ?? payload.company_id,
             currentLink: JSON.parse(localStorage.getItem("branchData"))?.currentLink,
             id: payload.crn_id,
             showlegal: payload.department === "legal" ? true : false,

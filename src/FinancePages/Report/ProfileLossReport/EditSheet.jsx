@@ -1,5 +1,5 @@
 import { Col, Drawer, Input, Row, Skeleton, Typography } from "antd";
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -12,14 +12,22 @@ function EditSheet({ editingSheet, setEditingSheet }) {
   const [loading, setLoading] = useState(false);
 
   const getEditingData = async () => {
-    setLoading("fetch");
-    const response = await imsAxios.get("/tally/reports/editPl");
-    setLoading(false);
-    let { data } = response;
-    if (data) {
+    try {
+      setLoading("fetch");
+      const response = await imsAxios.get("/tally/reports/editPl");
+      setLoading(false);
+
       if (response.success) {
-        setEditingData(data.data);
+        let { data } = response;
+        setEditingData(data);
+      } else {
+        showToast(response.message?.msg || response.message, "error");
+        setEditingData([]);
+        setLoading(false);
       }
+    } catch (error) {
+      setLoading(false);
+      showToast(error.message ?? "Failed to get Trial Balance Report", "error");
     }
   };
   const getSubGroup = async (search) => {
@@ -75,7 +83,7 @@ function EditSheet({ editingSheet, setEditingSheet }) {
     setLoading(groupCode);
     const response = await imsAxios.post(
       "/tally/reports/updatePlReport",
-      finalObj
+      finalObj,
     );
     setLoading(false);
     const { data } = response;
@@ -100,11 +108,15 @@ function EditSheet({ editingSheet, setEditingSheet }) {
       width="100vw"
     >
       {loading !== "fetch" &&
-        editingData.map((row) => (
+        editingData?.map((row) => (
           <Row key={row.code}>
             <Typography.Title level={4}>{row.name}</Typography.Title>
             {row.children.map((group, idx) => (
-              <Col span={24} style={{ margin: "0 20px" }} key={group.key || idx}>
+              <Col
+                span={24}
+                style={{ margin: "0 20px" }}
+                key={group.key || idx}
+              >
                 <Row gutter={8} style={{ margin: 10 }}>
                   <Col span={4}>
                     <Typography.Title level={5}>{group.name}</Typography.Title>
@@ -117,7 +129,7 @@ function EditSheet({ editingSheet, setEditingSheet }) {
                           row.code,
                           group.key,
                           "note",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Note"
@@ -127,7 +139,7 @@ function EditSheet({ editingSheet, setEditingSheet }) {
                     <MyAsyncSelect
                       mode="multiple"
                       labelInValue={true}
-                      value={group.children}
+                      value={group?.children}
                       loadOptions={getSubGroup}
                       onChange={(value) =>
                         inputHandler(row.code, group.key, "children", value)

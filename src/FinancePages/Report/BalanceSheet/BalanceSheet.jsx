@@ -19,7 +19,8 @@ function BalanceSheet() {
   const { showToast } = useToast();
 
   const getRows = async () => {
-    setRows([]);
+  try {
+      setRows([]);
     arr = [];
     setLoading("fetchLoading");
     const response = await imsAxios.post("/tally/reports/balanceSheet", {
@@ -35,6 +36,12 @@ function BalanceSheet() {
       setLoading(false);
       showToast(response.message, "error");
     }
+    
+  } catch (error) {
+    setLoading(false);
+    showToast(error.message || "Failed to get Trial Balance Report", "error");
+    
+  }
   };
   const columns = [
     {

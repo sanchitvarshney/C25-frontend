@@ -431,7 +431,7 @@ const App = () => {
       imsAxios.defaults.headers["Authorization"] = `${tokenToUse}`;
 
       imsAxios.defaults.headers["Company-Branch"] =
-        user.company_branch || "BRALWR36";
+        user.company_branch || "BROAKTRC25";
       imsAxios.defaults.headers["Session"] =
         user.session || getCurrentIndianFinancialYearSession();
       socket.emit("fetch_notifications", {
@@ -632,11 +632,12 @@ const App = () => {
     // }
   };
 
-  const options = [{ label: " C25", value: " C25" }];
+  const options = [{ label: "C25 (Oakter)", value: "BROAKTRC25" }];
   const sessionOptions = buildMergedSessionSelectOptions(LEGACY_SESSION_CODES);
 
   const locationBranchOptions = {
     alwar: [{ label: "B36 [ALWAR]", value: "BRALWR36" }],
+      c25: [{ label: "C25 (Oakter)", value: "BROAKTRC25" }],
     noida: [
       { label: "A-21 [BRMSC012]", value: "BRMSC012" },
       { label: "B-29 [BRMSC029]", value: "BRMSC029" },
@@ -1003,6 +1004,7 @@ const App = () => {
                   options={[
                     { label: "Alwar", value: "alwar" },
                     { label: "Noida", value: "noida" },
+                    { label: "C25 (Oakter)", value: "c25" }, 
                   ]}
                   value={switchLocation}
                   onChange={(value) => {

@@ -848,7 +848,7 @@ const SidebarInner = ({
             style={{
               height: "100%",
               width: secondSidebarWidth,
-              background: "#f2e0b9",
+              background: "#fff5e0",
               borderRight: "1px solid #e0e0e0",
               position: "absolute",
               top: 0,

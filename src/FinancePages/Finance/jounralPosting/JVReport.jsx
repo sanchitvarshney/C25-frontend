@@ -252,6 +252,8 @@ function JVReport() {
   useEffect(() => {
     setSearchTerm("");
   }, [wise]);
+
+  console.log("rows", searchTerm);
   return (
     <div style={{ height: "100%", padding: 10 }}>
       <Row justify="space-between" >

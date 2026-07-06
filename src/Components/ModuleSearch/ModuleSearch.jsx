@@ -1,9 +1,12 @@
-import  { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input, Empty } from "antd";
 import { SearchOutlined, CloseCircleFilled } from "@ant-design/icons";
 import menuConfig from "../../new/Sidebar/menu.json";
-import { buildIndexedModuleOptions, filterModuleOptions } from "./moduleSearchUtils";
+import {
+  buildIndexedModuleOptions,
+  filterModuleOptions,
+} from "./moduleSearchUtils";
 
 const PALETTE_STYLES = `
   .cmd-palette-overlay {
@@ -98,10 +101,11 @@ export default function ModuleSearch() {
     const isTypingElement = (target) => {
       if (!target) return false;
       const tag = target.tagName?.toLowerCase?.() || "";
-      if (tag === "input" || tag === "textarea" || tag === "select") return true;
+      if (tag === "input" || tag === "textarea" || tag === "select")
+        return true;
       return Boolean(
         target.isContentEditable ||
-          target.closest?.("[contenteditable='true']"),
+        target.closest?.("[contenteditable='true']"),
       );
     };
 
@@ -150,7 +154,7 @@ export default function ModuleSearch() {
           width: 200,
           height: 34,
           borderRadius: 20,
-          border: "1px solid rgba(255,255,255,0.3)",
+          border: "1px solid rgba(0,0,0,0.6)",
           background: "#ffffce",
           color: "#000",
           display: "flex",
@@ -161,9 +165,7 @@ export default function ModuleSearch() {
           justifyContent: "space-between",
         }}
       >
-        <span
-          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-        >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <SearchOutlined />
           <span style={{ opacity: 0.85 }}>Search</span>
         </span>

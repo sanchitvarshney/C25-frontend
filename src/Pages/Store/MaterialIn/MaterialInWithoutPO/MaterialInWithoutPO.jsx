@@ -58,7 +58,7 @@ const defaultValues = {
   gstin: "",
   vendorAddress: "",
   ewaybill: "",
-  companybranch: "BRALWR36",
+  companybranch: "BROAKTRC25",
   projectID: "",
   costCenter: "",
   components: [

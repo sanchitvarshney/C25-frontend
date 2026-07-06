@@ -193,7 +193,7 @@ function UpdateRM() {
     mainData.map((rem) => remarkArray.push(rem.remark));
 
     const response = await imsAxios.post("/transaction/updateMIN", {
-      branch: "BRALWR36",
+      branch: "BROAKTRC25",
       key: keyArray,
       component: compKeyArray,
       invoice: invoiceArray,

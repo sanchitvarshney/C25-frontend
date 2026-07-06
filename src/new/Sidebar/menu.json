@@ -2035,35 +2035,7 @@
           }
         ]
       },
-      {
-        "key": "E",
-        "label": "CPM",
-        "icon": "CalculatorFilled",
-        "children": [
-          {
-            "key": "cpm-internal-links",
-            "label": "CPM",
-            "icon": "CalculatorFilled",
-            "isHeading": true,
-            "children": [
-              {
-                "key": "E11",
-                "label": "CPM Analysis",
-                "icon": "AnalyticsIcon",
-                "path": "/cpm/analysis",
-                "isShown": true
-              },
-              {
-                "key": "reports/cpm",
-                "label": "CPM Finance",
-                "icon": "AccountBalanceIcon",
-                "path": "/cpm/reports",
-                "isShown": true
-              }
-            ]
-          }
-        ]
-      },
+   
 
       {
         "key": "/invoice/create",
