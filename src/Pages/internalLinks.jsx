@@ -40,11 +40,7 @@ const links = [
     //   routePath: "/vendor-pricing",
     //   key: 3,
     // },
-    {
-      routeName: "Approval",
-      routePath: "/procurement/approval",
-      key: 4,
-    },
+
   ],
   // accounts master links
   [

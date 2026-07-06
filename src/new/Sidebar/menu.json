@@ -789,15 +789,9 @@
                 "icon": "CheckCircleIcon",
                 "path": "/procurement/completed",
                 "isShown": true
-              },
-
-              {
-                "key": "B25",
-                "label": "Approval",
-                "icon": "ApprovalIcon",
-                "path": "/procurement/approval",
-                "isShown": true
               }
+
+            
             ]
           },
           {

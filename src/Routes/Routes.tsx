@@ -851,11 +851,11 @@ const Routes = [
     path: "/procurement/completed",
     main: () => <CompletedPo />,
   },
-  {
-    path: "/procurement/approval",
-    main: () => <PoApproval />,
-    text: "Po Approval",
-  },
+  // {
+  //   path: "/procurement/approval",
+  //   main: () => <PoApproval />,
+  //   text: "Po Approval",
+  // },
   {
     path: "/vendor-pricing",
     main: () => <VendorPricingUpload />,

@@ -175,14 +175,12 @@ const ManagePO = () => {
       flex: 1,
       minWidth: 150,
     },
-    {
-      headerName:"PO ACCEPTANCE",
-      field:"poacceptstatus",
-      renderCell:({row})=>(
-        <ToolTipEllipses text={row.poacceptstatus} />
-      ),
-      flex:1,
-      minWidth:150
+       {
+      headerName: "Approval Status",
+      field: "approval_status",
+      renderCell: ({ row }) => <ToolTipEllipses text={row.approval_status} />,
+      flex: 1,
+      minWidth: 150,
     },
 
     {
@@ -242,13 +240,6 @@ const ManagePO = () => {
       headerName: "Created By",
       field: "po_reg_by",
       renderCell: ({ row }) => <ToolTipEllipses text={row.po_reg_by} />,
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      headerName: "Approval Status",
-      field: "approval_status",
-      renderCell: ({ row }) => <ToolTipEllipses text={row.approval_status} />,
       flex: 1,
       minWidth: 150,
     },
