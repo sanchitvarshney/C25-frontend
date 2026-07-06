@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import {
   Col,
   Descriptions,
@@ -53,7 +53,7 @@ export default function CreateBranchTransferChallan() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [billToOptions, setBillTopOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState();
@@ -181,11 +181,11 @@ export default function CreateBranchTransferChallan() {
 
   // gettig billing address
   const getBillTo = async () => {
-    setSelectLoading(true);
+    // setSelectLoading(true);
     const response = await imsAxios.post("/backend/billingAddressList", {
       search: "",
     });
-    setSelectLoading(false);
+    // setSelectLoading(false);
     let arr = [];
     arr = response?.data.map((d) => {
       return { text: d.text, value: d.id };

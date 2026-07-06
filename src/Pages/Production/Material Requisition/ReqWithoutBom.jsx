@@ -256,12 +256,16 @@ export default function ReqWithoutBom() {
       component: componentKey,
       location: location,
     });
-    setLoading(false);
+
+    console.log("response", response);
+  
     if (response.success) {
+        setLoading(false);
       return response.data;
+      
     } else {
       showToast(response.message?.msg || response.message, "error");
-      // return {};
+      
     }
   };
 

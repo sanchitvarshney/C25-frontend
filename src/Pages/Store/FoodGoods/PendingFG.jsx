@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import PendingFGModal from "./Modal/PendingFGModal";
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
-import { Button, Col, Row, Select, Skeleton } from "antd";
+import { Button, Col, Row } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { GoArrowRight } from "react-icons/go";
@@ -54,7 +54,7 @@ const PendingFG = () => {
       const warRate = data?.war ?? 0;
       setFGModal({ ...row, warRate });
     } catch (err) {
-      toast.error("Failed to fetch WAR rate");
+      showToast(err?.message || "Failed to fetch WAR rate", "error");
       setFGModal(row);
     } finally {
       setWarLoading(null);

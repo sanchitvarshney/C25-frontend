@@ -5,7 +5,7 @@ import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 import { Drawer, Form, Input, Modal, Row, Space } from "antd/es";
 import MyDataTable from "../../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Button, Col, Select } from "antd";
+import { Col } from "antd";
 import MySelect from "../../../../Components/MySelect";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 import useApi from "../../../../hooks/useApi.ts";
@@ -151,6 +151,7 @@ function SalesORderRegister() {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
+        key={"update"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -159,12 +160,14 @@ function SalesORderRegister() {
         label="Update"
       />,
       <GridActionsCellItem
+        key={"cancel"}
         showInMenu
         // disabled={loading}
         onClick={() => setCancelRowSelected(row)}
         label="Cancel"
       />,
       <GridActionsCellItem
+        key={"view"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -174,6 +177,7 @@ function SalesORderRegister() {
         label="Components list"
       />,
       <GridActionsCellItem
+        key={"shipment"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -183,6 +187,7 @@ function SalesORderRegister() {
         label="Create Shipment"
       />,
       <GridActionsCellItem
+        key={"print"}
         showInMenu
         // disabled={loading}
         onClick={() => {

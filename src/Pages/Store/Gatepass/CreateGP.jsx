@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { v4 } from "uuid";
@@ -123,19 +123,6 @@ export default function CreateGP() {
     { text: "RGP (Returnable Gate Pass)", value: "R" },
     { text: "NRGP (Non-Returnable Gate Pass)", value: "NR" },
   ];
-  const getComponents = async (searchInputText) => {
-    const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
-      search: searchInputText,
-    });
-    let arr = response?.data;
-    arr = arr.map((row) => {
-      return {
-        text: row.text,
-        value: row.value,
-      };
-    });
-    setAsyncOptions(arr);
-  };
 
   const columns = [
     {

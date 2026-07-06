@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { Button, Col, Row, Select } from "antd";
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
@@ -29,7 +29,7 @@ const CompletedFG = () => {
   ];
   // filter date
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const getOption = async (searchInput) => {
     const response = await executeFun(
       () => getProductsOptions(searchInput, true),

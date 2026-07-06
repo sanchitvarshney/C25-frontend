@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { Button, Col, Result, Row } from "antd";
-import axios from "axios";
+import { useState } from "react";
+import {  Col, Result, Row } from "antd";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import printFunction, {
   downloadFunction,
@@ -11,7 +10,6 @@ import { imsAxios } from "../../../axiosInterceptor";
 
 export default function SuccessPage({
   successInfo,
-  successColumns,
   createNewDC,
 }) {
   const [printLoading, setPringLoading] = useState(false);
@@ -22,7 +20,7 @@ export default function SuccessPage({
       transaction: successInfo.id,
     });
     setPringLoading(false);
-    printFunction(data.data.buffer.data);
+    printFunction(response.data.buffer.data);
   };
   const handleDownload = async () => {
     setDownloadLoading(true);
@@ -31,7 +29,7 @@ export default function SuccessPage({
     });
     setDownloadLoading(false);
     let filename = successInfo.id;
-    downloadFunction(data.data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
   };
   const columns = [
     {
@@ -77,7 +75,7 @@ export default function SuccessPage({
           successInfo?.components.length
         } component${successInfo?.components.length > 1 ? "s" : ""}) `}
         extra={[
-          <Row justify="center" gutter={16}>
+          <Row justify="center" gutter={16} key={"actions"}>
             <Col>
               <CommonIcons action={"refreshButton"} onClick={createNewDC} />
             </Col>
@@ -96,7 +94,7 @@ export default function SuccessPage({
               />
             </Col>
           </Row>,
-          <Row style={{ marginTop: 15, height: "40vh" }}>
+          <Row style={{ marginTop: 15, height: "40vh" }} key={"table"}>
             <MyDataTable data={successInfo.components} columns={columns} />
           </Row>,
         ]}

@@ -1,4 +1,4 @@
-import React from "react";
+
 import SalesOrderForm from "../SalesOrderForm";
 
 const EditSalesOrder = () => {
