@@ -672,7 +672,7 @@ const App = () => {
 
   const path = window.location.hostname;
   const isTestServer =
-    path.includes("dev.mscorpres") || path.includes("localhost");
+    path.includes("mscorpres.net") || path.includes("localhost");
 
   const refreshConnection = () => {
     setIsLoading(true);
