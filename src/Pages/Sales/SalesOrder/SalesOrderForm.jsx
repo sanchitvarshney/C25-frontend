@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Col,
   Descriptions,
@@ -18,7 +18,6 @@ import { v4 } from "uuid";
 import AddComponent from "./Create/AddComponents";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { imsAxios } from "../../../axiosInterceptor";
 import { useNavigate, useParams } from "react-router-dom";
 
 import NavFooter from "../../../Components/NavFooter";
@@ -36,7 +35,7 @@ import {
   getCostCentresOptions,
   getProjectDetails,
   getProjectOptions,
-  getUsersOptions,
+  // getUsersOptions,
 } from "../../../api/general.ts";
 import {
   createOrder,
@@ -58,7 +57,7 @@ const SalesOrderForm = () => {
   const [billToOptions, setBillTopOptions] = useState([]);
   const [projectDesc, setProjectDesc] = useState([]);
   const [totalValues, setTotalValues] = useState([]);
-  const [branchAddOpen, setBranchAddOpen] = useState(null);
+  // const [branchAddOpen, setBranchAddOpen] = useState(null);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [rowCount, setRowCount] = useState([
     {
@@ -89,7 +88,7 @@ const SalesOrderForm = () => {
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [showAddCostModal, setShowAddCostModal] = useState(false);
   const [showDetailsCondirm, setShowDetailsConfirm] = useState(false);
-  const [pageLoading, setPageLoading] = useState(false);
+  // const [pageLoading, setPageLoading] = useState(false);
   const [copyinfo, setCopyInfo] = useState("");
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -167,18 +166,18 @@ const SalesOrderForm = () => {
     }
     setAsyncOptions([]);
   };
-  const handleFetchUsersOptions = async (search) => {
-    const response = await executeFun(
-      () => getUsersOptions(search),
-      "fetchUsers"
-    );
-    let arr = [];
-    if (response.success) {
-      arr = convertSelectOptions(response.data);
-      setAsyncOptions(arr);
-    }
-    setAsyncOptions(arr);
-  };
+  // const handleFetchUsersOptions = async (search) => {
+  //   const response = await executeFun(
+  //     () => getUsersOptions(search),
+  //     "fetchUsers"
+  //   );
+  //   let arr = [];
+  //   if (response.success) {
+  //     arr = convertSelectOptions(response.data);
+  //     setAsyncOptions(arr);
+  //   }
+  //   setAsyncOptions(arr);
+  // };
   // add
   const getBillingAddress = async (billaddressid) => {
     const response = await executeFun(
@@ -225,17 +224,17 @@ const SalesOrderForm = () => {
     setProjectDesc(desc);
   };
 
-  const getShippingAddress = async (shipaddressid) => {
-    setPageLoading(true);
-    const response = await imsAxios.post("/backend/shippingAddress", {
-      shipping_code: shipaddressid,
-    });
-    setPageLoading(false);
-    form.setFieldValue("shipPan", data.data.pan);
-    form.setFieldValue("shipGST", data.data.gstin);
-    let newStringaddress = removeHtml(data.data.address);
-    form.setFieldValue("shipaddress", newStringaddress);
-  };
+  // const getShippingAddress = async (shipaddressid) => {
+  //   setPageLoading(true);
+  //   const response = await imsAxios.post("/backend/shippingAddress", {
+  //     shipping_code: shipaddressid,
+  //   });
+  //   setPageLoading(false);
+  //   form.setFieldValue("shipPan", data.data.pan);
+  //   form.setFieldValue("shipGST", data.data.gstin);
+  //   let newStringaddress = removeHtml(data.data.address);
+  //   form.setFieldValue("shipaddress", newStringaddress);
+  // };
 
   // getting order details
   const handleFetchOrderDetails = async (orderId) => {
@@ -498,7 +497,7 @@ const SalesOrderForm = () => {
                     overflow:"hidden"
                   }}
                 >
-                  {pageLoading && <Loading />}
+                  {/* {pageLoading && <Loading />} */}
                   {/* vendor */}
 
                   <Row>

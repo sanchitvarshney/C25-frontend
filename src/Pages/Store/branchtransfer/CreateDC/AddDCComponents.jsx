@@ -19,7 +19,6 @@ export default function AddDCComponents({
   newGatePass,
   setActiveTab,
   detailsResetFunction,
-  setSuccessPage,
   setPageLoading,
   pickuplocs,
   droplocs,
@@ -37,7 +36,6 @@ export default function AddDCComponents({
     },
   ]);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);

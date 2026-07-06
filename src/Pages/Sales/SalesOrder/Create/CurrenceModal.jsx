@@ -1,9 +1,7 @@
-import React, { useState, useRef } from "react";
+import  { useState, useRef } from "react";
 import { Modal, Row, Col, Typography, Input, Button } from "antd";
 
 export default function CurrenceModal({
-  currency,
-  price,
   showCurrency,
   inputHandler,
   setShowCurrencyModal,

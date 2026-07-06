@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
-import { Col, Row, Select, Button, Input, Card } from "antd";
+import { Col, Row, Select, Input } from "antd";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../../axiosInterceptor";
 import NavFooter from "../../../../Components/NavFooter";
@@ -23,7 +23,7 @@ function ReToRej() {
   const [locationFrom, setLocationFrom] = useState([]);
   const [branch, setBranch] = useState([]);
   const [locDataTo, setloctionDataTo] = useState([]);
-  const [seacrh, setSearch] = useState(null);
+  // const [seacrh, setSearch] = useState(null);
   const [rows, setRows] = useState([
     {
       component: "",
@@ -34,7 +34,7 @@ function ReToRej() {
     },
   ]);
   const [hoveredRow, setHoveredRow] = useState(null);
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
 
   const getLocationFunction = async () => {
     const response = await imsAxios.post("/godown/fetchLocationForRM2REJ_from");
@@ -334,7 +334,7 @@ function ReToRej() {
                               <MyAsyncSelect
                                 style={{ width: "100%" }}
                                 loadOptions={getComponentList}
-                                onInputChange={(e) => setSearch(e)}
+                                // onInputChange={(e) => setSearch(e)}
                                 onBlur={() => setAsyncOptions([])}
                                 placeholder="Part Name/Code"
                                 optionsState={asyncOptions}

@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import "../Modal/viewModal.css";
-import { AiFillCloseCircle } from "react-icons/ai";
-import { CloseCircleFilled, CheckCircleFilled } from "@ant-design/icons";
+import { CloseCircleFilled } from "@ant-design/icons";
 import { useToast } from "../../../../hooks/useToast.js";
-import axios from "axios";
 import { Button, Col, Drawer, Input, Row, Space } from "antd";
 import { imsAxios } from "../../../../axiosInterceptor";
 
@@ -23,11 +21,11 @@ function ViewModal({ viewModal, setViewModal }) {
         qty: allPenData.quantity,
         transaction: viewModal.transaction_id,
       });
-      if (data.success) {
+      if (response.success) {
         setViewModal(false);
         setPendingLoading(false);
       } else {
-        showToast(data.message?.msg || data.message, "error");
+        showToast(response.message?.msg || response.message, "error");
         setPendingLoading(false);
       }
     }

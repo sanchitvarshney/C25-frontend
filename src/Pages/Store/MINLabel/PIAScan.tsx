@@ -12,9 +12,13 @@ import {
   Typography,
 } from "antd";
 import { InfoCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+//@ts-ignore
 import { useToast } from "@/hooks/useToast";
+//@ts-ignore
 import MyButton from "@/Components/MyButton";
+//@ts-ignore
 import Loading from "@/Components/Loading.jsx";
+//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect";
 //module components
 import SingleProduct from "./SingleProduct";
@@ -23,6 +27,7 @@ import { ModalType, SelectOptionType } from "@/types/general";
 //hooks
 import useApi from "@/hooks/useApi";
 //apis
+//@ts-ignore
 import { fetchBoxDetails, updateBoxQty } from "@/api/store/material-in.js";
 import { getComponentOptions, getComponentStock } from "@/api/general";
 
@@ -31,11 +36,11 @@ function PIAScan() {
   const [ready, setReady] = useState(false);
   const [selectedPartCode, setSelectedPartCode] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState<SelectOptionType[]>([]);
-  const [successData, setSuccessData] = useState(null);
+  const [successData, setSuccessData] = useState<any>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [stock, setStock] = useState(0);
   const [showResetHandler, setShowResetHandler] = useState(false);
-  const [scannedData, setScannedData] = useState({
+  const [scannedData, setScannedData] = useState<any>({
     string: "",
     loading: false,
   });
@@ -43,7 +48,7 @@ function PIAScan() {
   const { executeFun, loading } = useApi();
 
   const [scan] = Form.useForm();
-  const ref = useRef(null);
+  const ref = useRef<any>(null);
 
   const components = Form.useWatch("components", {
     form: scan,
@@ -57,7 +62,7 @@ function PIAScan() {
       const parsed = JSON.parse(value.toString().split("/n")[0]);
       if (
         components.find(
-          (row) =>
+          (row:any) =>
             row.label === parsed["label"] && row["MIN ID"] === parsed["MIN ID"]
         )
         ) {
@@ -92,7 +97,7 @@ function PIAScan() {
       const components = scan.getFieldValue("components");
       scan.setFieldValue(
         "components",
-        components.map((row) => {
+        components.map((row:any) => {
           if (row.label === boxLabel && row["MIN ID"] === minId) {
             return {
               ...row,
@@ -121,7 +126,7 @@ function PIAScan() {
 
   // calculating total available qty
   const getTotalAvailableQty = (components: []) => {
-    return components?.reduce((partialSum, a) => {
+    return components?.reduce((partialSum, a:any) => {
       return partialSum + +Number(a.availabelQty ?? 0).toFixed(2);
     }, 0);
   };
@@ -168,7 +173,7 @@ function PIAScan() {
   };
   // storing part code in state to validate same part code after scanning labels
   const handleGetPartCode = (componentKey: string) => {
-    const foundComponent = asyncOptions.find(
+    const foundComponent:any = asyncOptions.find(
       (row: SelectOptionType) => row.value === componentKey
     );
     setSelectedPartCode(foundComponent?.partCode);
@@ -180,7 +185,7 @@ function PIAScan() {
     );
 
     if (response.success) {
-      const arr = response.data.map((row) => ({
+      const arr = response.data.map((row:any) => ({
         text: row.text,
         value: row.id,
         partCode: row.part_code,
@@ -355,7 +360,7 @@ function PIAScan() {
             onBlur={() => {
               setReady(false);
             }}
-            onKeyDown={(e) => {
+            onKeyDown={(e:any) => {
               if (e.target.value.length === 1) {
                 setScanLoading(true);
               }
@@ -516,7 +521,7 @@ const SingleDetail = ({
   value,
 }: {
   label: string;
-  value?: string | React.ReactNodez;
+  value?: any ;
 }) => {
   return (
     <Flex vertical gap={5}>

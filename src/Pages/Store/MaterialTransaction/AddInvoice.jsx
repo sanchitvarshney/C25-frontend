@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, } from "react";
 import { BsFillCloudArrowUpFill } from "react-icons/bs";
 
-export default function ({ showAddInvoice, setShowAddInvoice }) {
+export default function AddInvoice ({ showAddInvoice, setShowAddInvoice }) {
   const [files, setFiles] = useState([]);
 
   return (

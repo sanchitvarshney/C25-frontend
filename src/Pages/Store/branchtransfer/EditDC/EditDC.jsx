@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Col,
   Descriptions,
@@ -15,7 +15,6 @@ import {
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../Components/MySelect";
 import NavFooter from "../../../../Components/NavFooter";
-import axios from "axios";
 import EditDCComponents from "./EditDCComponents";
 import Loading from "../../../../Components/Loading";
 import validateResponse from "../../../../Components/validateResponse";
@@ -49,11 +48,11 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [billToOptions, setBillTopOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("1");
-  const [successPage, setSuccessPage] = useState(false);
+  // const [successPage, setSuccessPage] = useState(false);
   const [resetData, setResetData] = useState({});
   const [skeletonLoading, setSkeletonLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
@@ -140,7 +139,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
       vendorcode: vendorCode,
       branchcode: vendorBranch,
     });
-    let validatedData = validateResponse(data);
+    let validatedData = validateResponse(response?.data);
     return {
       address: validatedData?.data?.address,
       gstin: validatedData?.data.gstid,
@@ -148,11 +147,12 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
   };
   // gettig billing address
   const getBillTo = async () => {
-    setSelectLoading(true);
+    // setSelectLoading(true);
     const response = await imsAxios.post("/backend/billingAddressList", {
       search: "",
     });
-    setSelectLoading(false);
+    // setSelectLoading(false);
+    let data = response?.data;
     let arr = [];
     arr = data.map((d) => {
       return { text: d.text, value: d.id };
@@ -166,7 +166,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
       billing_code: billaddressid,
     });
     setPageLoading(false);
-    let validatedData = validateResponse(data);
+    let validatedData = validateResponse(response?.data);
     return {
       gstin: validatedData.data?.gstin,
       pan: validatedData.data?.pan,
@@ -184,7 +184,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
       gpcode: updatedDCId,
     });
     setSkeletonLoading(false);
-    const validatedData = validateResponse(data);
+    const validatedData = validateResponse(response?.data);
     if (!validatedData.code) {
       setUpdateDCId(null);
       return;
@@ -579,7 +579,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                     // background: "red",
                                   }}
                                 >
-                                  Buyer's Order Number
+                                  {`Buyer's Order Number`}
                                 </div>
                               }
                             >
@@ -907,7 +907,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                   resetData={resetData}
                   setNewGatePass={setNewGatePass}
                   resetFunction={resetFunction}
-                  setSuccessPage={setSuccessPage}
+                  // setSuccessPage={setSuccessPage}
                   setPageLoading={setPageLoading}
                 />
               </div>

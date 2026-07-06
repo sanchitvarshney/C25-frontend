@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, Button, Col, Drawer, Input, Row, Space } from "antd";
-import axios from "axios";
 import { useToast } from "../../../../hooks/useToast.js";
 import "../../../Master/Modal/modal.css";
-import { CloseCircleFilled, CheckCircleFilled } from "@ant-design/icons";
+import { CloseCircleFilled } from "@ant-design/icons";
 import { imsAxios } from "../../../../axiosInterceptor";
 
 const { TextArea } = Input;
@@ -13,8 +12,6 @@ const RemoveModal = ({
   setDelModal,
   modalOpen,
   getDataFetch,
-  mat,
-  setOpen,
 }) => {
   const { showToast } = useToast();
   const [rem, setRem] = useState("");
@@ -29,12 +26,12 @@ const RemoveModal = ({
         remark: rem,
       }
     );
-    if (data.success) {
+    if (response.success) {
       setDelModal(false);
       getDataFetch();
       setRem("");
     } else {
-      showToast(data.message?.msg || data.message, "error");
+      showToast(response.message?.msg || response.message, "error");
       setDelModal(false);
       getDataFetch();
       setRem("");

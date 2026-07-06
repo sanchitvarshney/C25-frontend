@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import { Col, Row, Select, Button, Input, Card } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { Col, Row, Select, Input } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import "./Modal/style.css";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -9,7 +8,6 @@ import NavFooter from "../../../Components/NavFooter";
 import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { v4 } from "uuid";
-import AddIcon from "@mui/icons-material/Add";
 import { Add, Delete } from "@mui/icons-material";
 const { TextArea } = Input;
 
@@ -40,8 +38,7 @@ function RmtoRm() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [locDataTo, setloctionDataTo] = useState([]);
   const [branchName, setbBanchName] = useState([]);
-  const [seacrh, setSearch] = useState(null);
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
 
   // Add row functionality
   const addRow = () => {
@@ -202,29 +199,29 @@ function RmtoRm() {
     }
   };
 
-  const handleBranchSelection = async (branchCode) => {
-    try {
-      const response = await imsAxios.post("/location/fetchLocationBranch", {
-        branch: branchCode,
-      });
-      let arr = [];
-      const list = response?.data;
-      if (Array.isArray(list)) {
-        list.map((a) => arr.push({ label: a.text, value: a.id }));
-      }
+  // const handleBranchSelection = async (branchCode) => {
+  //   try {
+  //     const response = await imsAxios.post("/location/fetchLocationBranch", {
+  //       branch: branchCode,
+  //     });
+  //     let arr = [];
+  //     const list = response?.data;
+  //     if (Array.isArray(list)) {
+  //       list.map((a) => arr.push({ label: a.text, value: a.id }));
+  //     }
 
-      // Update global location options and reset all row locations
-      setloctionDataTo(arr);
-      setRows((prev) =>
-        prev.map((row) => ({
-          ...row,
-          locationTo: "", // Reset location when branch changes
-        })),
-      );
-    } catch (error) {
-      showToast("Failed to fetch drop locations for selected branch", "error");
-    }
-  };
+  //     // Update global location options and reset all row locations
+  //     setloctionDataTo(arr);
+  //     setRows((prev) =>
+  //       prev.map((row) => ({
+  //         ...row,
+  //         locationTo: "", // Reset location when branch changes
+  //       })),
+  //     );
+  //   } catch (error) {
+  //     showToast("Failed to fetch drop locations for selected branch", "error");
+  //   }
+  // };
 
   const getLocationName = async (rowIndex, locationValue) => {
     const row = rows[rowIndex];
@@ -380,7 +377,6 @@ function RmtoRm() {
                                 style={{ width: "100%" }}
                                 loadOptions={getComponentList}
                                 onBlur={() => setAsyncOptions([])}
-                                onInputChange={(e) => setSearch(e)}
                                 placeholder="Part Name/Code"
                                 value={row.component}
                                 optionsState={asyncOptions}

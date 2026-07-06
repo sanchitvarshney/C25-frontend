@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Button, Col, Result, Row } from "antd";
-import axios from "axios";
+import{ useEffect, useState } from "react";
+import { Col, Result, Row } from "antd";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import printFunction, {
   downloadFunction,

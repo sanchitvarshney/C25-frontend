@@ -1,11 +1,11 @@
 import { Form, Input, Drawer, Button, Space } from "antd/es";
-import { useForm } from "rc-field-form";
-import React, { useState } from "react";
+// import { useForm } from "rc-field-form";
+import  { useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
 
-function UpdateSellStatus({ open, setOpen, setModalVals, modalVals }) {
+function UpdateSellStatus({ open, setOpen, modalVals }) {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -29,7 +29,6 @@ function UpdateSellStatus({ open, setOpen, setModalVals, modalVals }) {
     const response = await imsAxios.post("/sellRequest/updateStatus", payload);
     setLoading(true);
     console.log("respoomse", response);
-    const { data } = response;
     if (response.success) {
       showToast(response.message, "success");
 

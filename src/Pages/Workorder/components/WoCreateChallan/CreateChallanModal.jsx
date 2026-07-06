@@ -1075,9 +1075,7 @@ const CreateChallanModal = ({
           qty: minRows.map((r) => r.out_qty),
         },
       };
-      console.log("editPayload", editPayload);
-      // return;
-      let link;
+
       let response;
       if (editShipment === "editReturn") {
         response = await imsAxios.post(
@@ -1107,7 +1105,7 @@ const CreateChallanModal = ({
       }
     } catch (error) {
       // return;
-      showToast(error, "error");
+      showToast(error?.message || " Something went wrong" , "error");
     } finally {
       // return;
       setLoading(false);
@@ -1530,16 +1528,11 @@ const Component = ({
 };
 
 const Product = ({
-  fields,
-  field,
-  index,
-  add,
+ 
   form,
-  remove,
   calculation,
   location,
   gsttype,
-  locationfunction,
   setlocationlist,
   getLocationList,
   locationlist,
@@ -1765,7 +1758,7 @@ const shipmentproductItems = (
     headerName: "Pick up location",
     name: "pickuplocation",
     width: 150,
-    field: (row) => (
+    field: () => (
       <MySelect
         // onBlur={() => setlocationlist([])}
         options={locationlist}
@@ -2559,6 +2552,7 @@ const shipmentproductItemsEdit = (
       <MySelect
         // onBlur={() => setlocationlist([])}
         options={locationlist}
+        
         // optionsState={locationlist}
         // selectLoading={loading === "select"}
       />

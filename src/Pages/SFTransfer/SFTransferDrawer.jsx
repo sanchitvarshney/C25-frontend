@@ -1,12 +1,10 @@
 import { Col, Drawer, Form, Input, Row } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import NavFooter from "../../Components/NavFooter";
 import { imsAxios } from "../../axiosInterceptor";
 import { Delete } from "@mui/icons-material";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
-import { v4 } from "uuid";
-import axios from "axios";
 import MySelect from "../../Components/MySelect";
 import { useToast } from "../../hooks/useToast.js";
 import useApi from "../../hooks/useApi.ts";
@@ -211,7 +209,6 @@ function SFTransferDrawer({
     setLoading(true);
     // return;
     let response = await imsAxios.post("/sfMin/sfMinInward", payload);
-    let { data } = response;
     if (response.success) {
       showToast(response.message, "success");
       setLoading(true);
@@ -244,6 +241,7 @@ function SFTransferDrawer({
       sortable: false,
       renderCell: ({ row }) => [
         <GridActionsCellItem
+        key={"delete"}
           icon={
             <Delete
               color="error"

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 
 import { useToast } from "../../../hooks/useToast.js";
-import { Col, Row, Select, Button, Input } from "antd";
+import { Col, Row, Select, Input } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import "./Modal/style.css";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -27,9 +27,9 @@ function SFToRM() {
   const [locDataTo, setloctionDataTo] = useState([]);
   const [branchName, setbBanchName] = useState([]);
   const [qty, setQty] = useState([]);
-  const [seacrh, setSearch] = useState(null);
+  // const [seacrh, setSearch] = useState(null);
   const [locationName, setLocationName] = useState([]);
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const getLocationFunction = async () => {
     const response = await imsAxios.post("/godown/fetchLocationForRM2RM_from");
 
@@ -214,7 +214,7 @@ function SFToRM() {
                       style={{ width: "100%" }}
                       loadOptions={getComponentList}
                       onBlur={() => setAsyncOptions([])}
-                      onInputChange={(e) => setSearch(e)}
+                      // onInputChange={(e) => setSearch(e)}
                       placeholder="Part Name/Code"
                       value={allData.component}
                       optionsState={asyncOptions}
