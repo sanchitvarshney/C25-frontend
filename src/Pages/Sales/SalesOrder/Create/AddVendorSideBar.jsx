@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
   Button,
@@ -63,7 +63,7 @@ const AddVendorSideBar = ({ setOpen, open }) => {
       });
       setSelectLoading(false);
       let arr = [];
-      arr = data.map((d) => {
+      arr = response?.data.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
@@ -102,7 +102,7 @@ const AddVendorSideBar = ({ setOpen, open }) => {
     if (response.success) {
       // fetchVendor();
       reset();
-      showToast(data.message.toString().replaceAll("<br/>", " "), "success");
+      showToast(response?.message.toString().replaceAll("<br/>", " "), "success");
       setOpen(null);
       // setShowAddVendorModal(false);
     } else {

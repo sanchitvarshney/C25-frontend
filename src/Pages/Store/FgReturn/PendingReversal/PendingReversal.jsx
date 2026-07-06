@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import MyDataTable from "../../../../Components/MyDataTable";
-import { Card, Col, Form, Input, Row, Space } from "antd";
+import {  Col, Form, Row } from "antd";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 import MyButton from "../../../../Components/MyButton";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -69,6 +69,7 @@ function PendingReversal() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <TableActions
+        key={"check"}
           showInMenu={true}
           action="check"
           onClick={() => {

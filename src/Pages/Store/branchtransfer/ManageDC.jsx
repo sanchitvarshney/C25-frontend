@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { Button, Col, Input, Row, Select } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -132,14 +132,17 @@ function ManageDC() {
       type: "actions",
       getActions: ({ row }) => [
         <TableActions
+        key={"edit"}
           action="edit"
           onClick={() => setUpdateDCId(row.transaction_id)}
         />,
         <TableActions
+          key={"download"}
           action="download"
           onClick={() => downloadFun(row.transaction_id)}
         />,
         <TableActions
+          key={"print"}
           action="print"
           onClick={() => printFun(row.transaction_id)}
         />,

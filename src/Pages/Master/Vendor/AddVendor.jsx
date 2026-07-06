@@ -125,12 +125,15 @@ const AddVendor = () => {
       "/vendor/addVendor",
       showSubmitConfirmModal,
     );
-    setLoading(false);
+   
     if (response.success) {
       showToast(response?.message, "success");
+       setLoading(false);
       reset();
+
     } else {
       setShowSubmitConfirmModal(false);
+       setLoading(false);
       showToast(response.message, "error");
     }
   };
@@ -689,6 +692,7 @@ const AddVendor = () => {
         resetFunction={() => setShowResetConfirmModal(true)}
         submitFunction={validateHandler}
         nextLabel="Submit"
+        loading={loading === "submit"}
       />
     </div>
   );

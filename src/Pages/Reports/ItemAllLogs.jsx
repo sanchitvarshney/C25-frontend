@@ -372,7 +372,7 @@ export default function ItemAllLogs() {
               <Pagination
                 current={currentPage}
                 pageSize={pageSize}
-                total={totalRecords}
+                total={totalPages}
                 showSizeChanger
                 pageSizeOptions={[25, 50, 100]}
                 showTotal={(total, range) =>

@@ -1,26 +1,22 @@
 import {
-  Button,
   Card,
   Col,
-  Drawer,
   Form,
   Input,
   Row,
   Space,
-  Typography,
 } from "antd";
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import  { useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components//exportToCSV";
-import Loading from "../../../Components/Loading";
+// import Loading from "../../../Components/Loading";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MySelect from "../../../Components/MySelect";
-import SummaryCard from "../../../Components/SummaryCard";
+// import SummaryCard from "../../../Components/SummaryCard";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
-import { GridActionsCellItem } from "@mui/x-data-grid";
+// import { GridActionsCellItem } from "@mui/x-data-grid";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { getVendorOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
@@ -31,28 +27,27 @@ import { useToast } from "../../../hooks/useToast.js";
 function R31() {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
+  // const [fetchLoading, setFetchLoading] = useState(false);
   const [rows, setRows] = useState([]);
-  const [locationOptions, setLocationOptions] = useState([]);
   const [wise, setWise] = useState([]);
   const [selectvendor, setSelectVendor] = useState([]);
-  const [formLoading, setFormLoading] = useState(false);
-  const [dateRange, setDateRange] = useState("");
-  const [componentList, setComponentList] = useState(false);
+  // const [formLoading, setFormLoading] = useState(false);
+  // const [dateRange, setDateRange] = useState("");
+  // const [componentList, setComponentList] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [jwId, setJwId] = useState("");
-  const { executeFun, loading: loading1 } = useApi();
+  // const [jwId, setJwId] = useState("");
+  const { executeFun, } = useApi();
   const [searchForm] = Form.useForm();
-  const getRows = async (values) => {
-    setFetchLoading(true);
+  const getRows = async () => {
+    // setFetchLoading(true);
     // log
     const response = await imsAxios.post("/report31", {
       wise: wise,
       data: searchTerm,
       vendor: selectvendor.key,
     });
-    setFetchLoading(false);
+    // setFetchLoading(false);
     if (response.success) {
       let arr = response.data.map((row, index) => ({
         ...row,
@@ -64,30 +59,30 @@ function R31() {
       setRows([]);
     }
   };
-  const getComponentsList = async (row) => {
-    setFetchLoading(true);
-    setJwId(row.jobwork);
-    let values = await searchForm.validateFields();
-    // console.log("values", values);
-    // return;
-    const response = await imsAxios.post("/report30/viewRM", {
-      vendor: values.vendor,
-      jw: row.jobwork,
-      challan: row.challan,
-    });
-    console.log("response", response);
-    // let arr = data.message;
-    let arr = response.data;
+  // const getComponentsList = async (row) => {
+  //   setFetchLoading(true);
+  //   setJwId(row.jobwork);
+  //   let values = await searchForm.validateFields();
+  //   // console.log("values", values);
+  //   // return;
+  //   const response = await imsAxios.post("/report30/viewRM", {
+  //     vendor: values.vendor,
+  //     jw: row.jobwork,
+  //     challan: row.challan,
+  //   });
+  //   console.log("response", response);
+  //   // let arr = data.message;
+  //   let arr = response.data;
 
-    if (response.success) {
-      arr = arr.map((row, index) => ({
-        id: index + 1,
-        ...row,
-      }));
-    }
-    setComponentList(arr);
-    setFetchLoading(false);
-  };
+  //   if (response.success) {
+  //     arr = arr.map((row, index) => ({
+  //       id: index + 1,
+  //       ...row,
+  //     }));
+  //   }
+  //   setComponentList(arr);
+  //   setFetchLoading(false);
+  // };
   const columns = [
     // { headerName: "id", field: "id", flex: 1 },
     { headerName: "Cat Part Code", field: "cat_part_no", width: 130 },
@@ -108,27 +103,27 @@ function R31() {
     { text: "Document Date", value: "doc_date" },
     { text: "Created Date", value: "create_date" },
   ];
-  const getAsyncOptions = async (url, search) => {
-    setSelectLoading(true);
-    const response = await imsAxios.post(url, {
-      search: search,
-      searchTerm: search,
-    });
-    setSelectLoading(false);
-    let arr = [];
-    if (response.success) {
-      arr = response.data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-    } else {
-      arr = response.data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-    }
-    setAsyncOptions(arr);
-  };
+  // const getAsyncOptions = async (url, search) => {
+  //   setSelectLoading(true);
+  //   const response = await imsAxios.post(url, {
+  //     search: search,
+  //     searchTerm: search,
+  //   });
+  //   setSelectLoading(false);
+  //   let arr = [];
+  //   if (response.success) {
+  //     arr = response.data.map((row) => ({
+  //       value: row.id,
+  //       text: row.text,
+  //     }));
+  //   } else {
+  //     arr = response.data.map((row) => ({
+  //       value: row.id,
+  //       text: row.text,
+  //     }));
+  //   }
+  //   setAsyncOptions(arr);
+  // };
   // const getVendorLocation = async () => {
   //   let vendor = searchForm.getFieldsValue().vendor;
   //   if (vendor) {
@@ -174,7 +169,7 @@ function R31() {
           span={6}
         >
           <Card size="small" style={{ marginBottom: 5 }}>
-            {formLoading && <Loading />}
+            {/* {formLoading && <Loading />} */}
             <Form layout="vertical" size="small" form={searchForm}>
               <Row>
                 <Col span={24}>

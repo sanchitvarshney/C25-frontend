@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Drawer, Row, Col, Flex, Typography, Card } from "antd";
 import MyDataTable from "../../../../gstreco/myDataTable";
 import ToolTipEllipses from "../../../../../Components/ToolTipEllipses";

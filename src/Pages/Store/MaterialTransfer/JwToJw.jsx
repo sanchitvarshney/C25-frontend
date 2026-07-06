@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import {
   Col,
@@ -54,7 +54,7 @@ function JwToJw() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [vendorAsyncOptions, setVendorAsyncOptions] = useState([]);
   const [locDataTo, setloctionDataTo] = useState([]);
-  const [seacrh, setSearch] = useState(null);
+  // const [seacrh, setSearch] = useState(null);
   const [csvUploading, setCsvUploading] = useState(false);
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [showExcelWarning, setShowExcelWarning] = useState(false);
@@ -630,7 +630,7 @@ function JwToJw() {
                               style={{ width: "100%" }}
                               loadOptions={getComponentList}
                               onBlur={() => setAsyncOptions([])}
-                              onInputChange={(e) => setSearch(e)}
+                              // onInputChange={(e) => setSearch(e)}
                               placeholder="Part Name/Code"
                               value={row.component}
                               optionsState={asyncOptions}

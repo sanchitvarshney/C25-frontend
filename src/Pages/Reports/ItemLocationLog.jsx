@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Tooltip,
   Card,
   Col,
   Collapse,
@@ -190,6 +189,7 @@ export default function ItemLocationLog() {
         }
     
     } catch (error) {
+      showToast("Something went wrong, Please contact administrator", "error");
     } finally {
       setLoading(false);
     }
@@ -521,7 +521,7 @@ export default function ItemLocationLog() {
               <Pagination
                 current={currentPage}
                 pageSize={pageSize}
-                total={totalRecords}
+                total={totalPages}
                 showSizeChanger
                 pageSizeOptions={[25, 50, 100]}
                 showTotal={(total, range) =>

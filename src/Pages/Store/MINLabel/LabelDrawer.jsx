@@ -154,8 +154,9 @@ const LabelDrawer = ({
         <Form.List name="components">
           {(fields) => (
             <Flex gap={6} vertical justify="end">
-              {fields.map((field) => (
+              {fields.map((field, index) => (
                 <SingleCompoent
+                  key={field.key || index}  
                   field={field}
                   form={form}
                   boxes={boxes}
@@ -196,7 +197,7 @@ const LabelDrawer = ({
         >
           <Row gutter={[6, 6]}>
             {boxes.map((row, index) => (
-              <Col span={8}>
+              <Col span={8} key={index}>
                 <Card size="small">
                   <Flex vertical align="center">
                     <Typography.Text strong>{row.label}</Typography.Text>

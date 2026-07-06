@@ -5,7 +5,6 @@ import { fetchShipmentDetails } from "../../../../../api/sales/salesOrder";
 import ToolTipEllipses from "../../../../../Components/ToolTipEllipses";
 import MyDataTable from "../../../../../Components/MyDataTable";
 import ClientInfo from "../CreateShipment/ClientInfo";
-import BillingInfo from "../CreateShipment/BillingDetailsCard";
 
 const ShipmentDetails = ({ open, hide }) => {
   const [rows, setRows] = useState([]);
@@ -29,9 +28,9 @@ const ShipmentDetails = ({ open, hide }) => {
     clientName: open?.client,
     address: open?.clientAddress,
   };
-  const billingDetails = {
-    billing: { address: open?.billingAddress },
-  };
+  // const billingDetails = {
+  //   billing: { address: open?.billingAddress },
+  // };
   return (
     <Drawer
       open={open}

@@ -1,12 +1,10 @@
-import { Button, Col, Form, Row, Skeleton } from "antd";
-import React, { useState } from "react";
+import {  Col, Form, Row } from "antd";
+import  { useState } from "react";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
-import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useEffect } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import { v4 } from "uuid";
 import MyDataTable from "../../../Components/MyDataTable";
 import { getProductsOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
@@ -105,7 +103,7 @@ function R35() {
       width: 180,
     },
   ];
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
   const getDataBySearch = async (searchInput) => {
     setLoading(true);
     if (searchInput?.length > 2) {
@@ -284,31 +282,31 @@ function R35() {
 }
 
 export default R35;
-const columns = [
-  { field: "serial_no", headerName: "S. No", width: 40 },
-  { field: "partno", headerName: "Part No", width: 80 },
-  { field: "new_partno", headerName: "Cat Part Code", width: 150 },
-  { field: "bomalt_name", headerName: "Bom ALt Name", width: 100 },
-  { field: "bomalt_part", headerName: "Alt Of", width: 80 },
-  { field: "bomqty", headerName: "Bom Qty", width: 80 },
-  { field: "category", headerName: "Category", width: 80 },
-  { field: "components", headerName: "Components", flex: 1 },
-  { field: "uom", headerName: "UoM", width: 80 },
-  { field: "closingBal", headerName: "Cl Qty", width: 80 },
-  { field: "openBal", headerName: "Op Qty", width: 80 },
-  { field: "creditBal", headerName: "In Qty", width: 80 },
-  { field: "debitBal", headerName: "Out Qty", width: 80 },
-  //   { field: "openBal", headerName: "Open Bal", width: 80 },
-  {
-    field: "status",
-    headerName: "Status",
-    width: 80,
-    type: "status",
-    renderCell: ({ row }) => (
-      <span dangerouslySetInnerHTML={{ __html: row.statusHtml }} />
-    ),
-  },
-];
+// const columns = [
+//   { field: "serial_no", headerName: "S. No", width: 40 },
+//   { field: "partno", headerName: "Part No", width: 80 },
+//   { field: "new_partno", headerName: "Cat Part Code", width: 150 },
+//   { field: "bomalt_name", headerName: "Bom ALt Name", width: 100 },
+//   { field: "bomalt_part", headerName: "Alt Of", width: 80 },
+//   { field: "bomqty", headerName: "Bom Qty", width: 80 },
+//   { field: "category", headerName: "Category", width: 80 },
+//   { field: "components", headerName: "Components", flex: 1 },
+//   { field: "uom", headerName: "UoM", width: 80 },
+//   { field: "closingBal", headerName: "Cl Qty", width: 80 },
+//   { field: "openBal", headerName: "Op Qty", width: 80 },
+//   { field: "creditBal", headerName: "In Qty", width: 80 },
+//   { field: "debitBal", headerName: "Out Qty", width: 80 },
+//   //   { field: "openBal", headerName: "Open Bal", width: 80 },
+//   {
+//     field: "status",
+//     headerName: "Status",
+//     width: 80,
+//     type: "status",
+//     renderCell: ({ row }) => (
+//       <span dangerouslySetInnerHTML={{ __html: row.statusHtml }} />
+//     ),
+//   },
+// ];
 const rules = {
   ppr: [{ required: true, message: "Please select PPR Number" }],
   process: [{ required: true, message: "Please select Process" }],

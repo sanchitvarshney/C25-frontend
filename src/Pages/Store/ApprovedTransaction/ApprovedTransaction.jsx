@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import NewModal from "./Modal/NewModal";
 import printFunction from "../../../Components/printFunction";
 import MyDataTable from "../../../Components/MyDataTable";
-import { Button, Col, Row, Skeleton } from "antd";
+import { Button, Col, Row } from "antd";
 import { EyeFilled, PrinterFilled } from "@ant-design/icons";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -14,17 +13,13 @@ const ApprovedTransaction = () => {
   const [open, setOpen] = useState(false);
   const [allPending, setAllPending] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   // const [componentSubmit,setComponentSubmit] = useState()
 
-  const [componentData, setComponentData] = useState({
-    selType: "",
-    // headers: { location: "", key: "" },
-    // materials: [],
-  });
-  // console.log(componentData);
-
-  const opt = [{ label: "Pending", value: "P" }];
+  // const [componentData, setComponentData] = useState({
+  //   selType: "",
+  //   // headers: { location: "", key: "" },
+  //   // materials: [],
+  // });
 
   const printFun = async (transactionId) => {
     setLoading(true);
@@ -82,12 +77,12 @@ const ApprovedTransaction = () => {
     const response = await imsAxios.post(
       "/storeApproval/fetchTransactionForApproval",
       {
-        status: componentData.selType,
+        status: "",
         branch: "BROAKTRC25",
       }
     );
     // console.log(data)
-    if (data.success) {
+    if (response.success) {
       const arr = response.data.map((row, i) => {
         return {
           ...row,
@@ -98,7 +93,7 @@ const ApprovedTransaction = () => {
       setAllPending(arr);
       setLoading(false);
     } else {
-      showToast(data.message?.msg || data.message, "error");
+      showToast(response.message?.msg || response.message, "error");
       setLoading(false);
     }
     // }

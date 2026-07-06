@@ -43,6 +43,8 @@ import SuccessPage from "../../Store/MaterialIn/SuccessPage";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import SingleProduct from "../../Master/Vendor/SingleProduct";
 import FormTable from "../../../Components/FormTable.jsx";
+import SingleDatePicker from "../../../Components/SingleDatePicker.jsx";
+
 export default function JwInwordModal({ editModal, setEditModal }) {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -62,7 +64,7 @@ export default function JwInwordModal({ editModal, setEditModal }) {
   const [isScan, setIsScan] = useState(false);
   const [modalForm] = Form.useForm();
   const [excelUploadForm] = Form.useForm();
-
+  const [challanDate, setChallanDate] = useState(null);
   const [uplaoaClicked, setUploadClicked] = useState(false);
   const [consumptionStep, setConsumptionStep] = useState("details");
   const [consumptionMode, setConsumptionMode] = useState("");
@@ -664,6 +666,7 @@ export default function JwInwordModal({ editModal, setEditModal }) {
       qrScan: isScan == true ? "Y" : "N",
       pick_location: pickLocation,
       consRate: bomList.map((r) => r.last_rate),
+      challan_date: challanDate,
     };
     setModalUploadLoad(true);
     const response = await savejwsfinward(payload);
@@ -929,6 +932,33 @@ export default function JwInwordModal({ editModal, setEditModal }) {
                 size="small"
                 value={eWayBill}
                 onChange={(e) => setEWayBill(e.target.value)}
+              />
+            </Form.Item>
+          </Form>
+          <Form size="small" layout="vertical">
+            <Form.Item
+              label="Challan Date"
+              name="challanDate"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select Challan Date",
+                },
+              ]}
+              style={{ width:  "100%" }}
+            >
+              <SingleDatePicker
+                size="medium"
+                value={challanDate}
+                setDate={(date) => setChallanDate(date)}
+                placeholder="Select Challan Date"
+                format={"DD-MM-YYYY"}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select Challan Date",
+                  },
+                ]}
               />
             </Form.Item>
           </Form>

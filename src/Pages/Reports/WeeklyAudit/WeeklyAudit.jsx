@@ -3,8 +3,6 @@ import {
   Button,
   Card,
   Col,
-  DatePicker,
-  Form,
   Popconfirm,
   Row,
   Space,
@@ -18,8 +16,6 @@ import { useToast } from "../../../hooks/useToast.js";
 import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import VerifiedFilePreview from "../../Master/reports/R19/VerifiedFilePreview";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { downloadCSV } from "../../../Components/exportToCSV";
-import MyDatePicker from "../../../Components/MyDatePicker";
 import { v4 } from "uuid";
 import socket from "../../../Components/socket";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
@@ -34,10 +30,8 @@ const WeeklyAudit = () => {
   const [fetchLoading, setFetchLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
   const [dateRange, setDateRange] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [addSingleComponentForm] = Form.useForm();
   const { executeFun, loading: loading1 } = useApi();
 
   const columns = [
@@ -50,6 +44,7 @@ const WeeklyAudit = () => {
       width: 120,
       getActions: ({ row }) => [
         <Popconfirm
+          key="delete"
           placement="topRight"
           title="Are you sure you want to delete this component"
           onConfirm={() => deleteComponent(row.part_code)}
@@ -105,6 +100,7 @@ const WeeklyAudit = () => {
         setAsyncOptions(arr);
       }
     } catch (error) {
+      showToast(error?.message || error, "error");
     } finally {
       setLoading(false);
     }

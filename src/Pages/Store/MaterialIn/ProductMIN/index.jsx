@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
@@ -10,7 +10,6 @@ import {
   Input,
   Modal,
   Row,
-  Tabs,
   Typography,
   Upload,
 } from "antd";
@@ -18,8 +17,6 @@ import {
   QuantityCell,
   taxableCell,
   foreignCell,
-  invoiceIdCell,
-  invoiceDateCell,
   HSNCell,
   gstTypeCell,
   CGSTCell,
@@ -28,19 +25,16 @@ import {
   locationCell,
   remarkCell,
   rateCell,
-  autoConsumptionCell,
   componentCell,
 } from "./TableCollumns";
 import UploadDocs from "../MaterialInWithPO/UploadDocs";
 import Loading from "../../../../Components/Loading";
 import { v4 } from "uuid";
-import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import CurrenceModal from "../../../../Components/CurrenceModal";
 import AddVendorSideBar from "../../../PurchaseOrder/CreatePO/AddVendorSideBar";
 import AddBranch from "../../../Master/Vendor/model/AddBranch";
 import SuccessPage from "../SuccessPage";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
-import { useNavigate } from "react-router-dom";
 import { imsAxios } from "../../../../axiosInterceptor";
 import axiosResponseFunction from "../../../../Components/axiosResponseFun";
 import {
@@ -91,9 +85,11 @@ export default function ProductMIN() {
   const [uploadForm] = Form.useForm();
   const [showCurrency, setShowCurrenncy] = useState(null);
   const [invoices, setInvoices] = useState([]);
+  const [fileName, setFileName] = useState("");
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [showBranchModal, setShowBranchModal] = useState(null);
-  const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
+  // const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -209,16 +205,8 @@ export default function ProductMIN() {
       product: [],
     };
     if (validation == true) {
-      let formData = new FormData();
-      if (invoices?.length > 0) {
-        invoices?.map((file) => {
-          formData.append("files", file);
-        });
-      } else if (
-        !invoices.length &&
-        form.getFieldValue("vendorType") == "v01"
-      ) {
-        return showToast("Please add at least one file", "error");
+      if (form.getFieldValue("vendorType") == "v01" && !fileName) {
+        return showToast("Please upload documents first", "error");
       }
       materialInward.map((row) => {
         componentData = {
@@ -273,7 +261,6 @@ export default function ProductMIN() {
         content: "",
         onOk() {
           validateInvoices({
-            formData: formData,
             componentData: componentData,
             vendorValues,
           });
@@ -284,86 +271,66 @@ export default function ProductMIN() {
     }
   };
   const submitMIN = async (values) => {
-    let fileData;
-
     axiosResponseFunction(async () => {
-      if (invoices?.length > 0) {
-        setSubmitLoading(true);
-        const response = await imsAxios.post(
-          "/transaction/upload-invoice",
-          values.formData,
-        );
+      setSubmitLoading(true);
+      let final = {
+        companybranch: "BROAKTRC25",
+        attachment: fileName ? fileName : "",
+      };
+      let venDetails = {
+        vendortype: values.vendorValues.vendorType ?? "",
+        vendor:
+          values.vendorValues.vendorName?.value ??
+          values.vendorValues.vendorName ??
+          "",
+        vendorbranch: values.vendorValues.vendorBranch ?? "",
+        invoice: values.vendorValues.invoiceId ?? "",
+        invoice_date: values.vendorValues.invoiceDate ?? "",
+        cost_center:
+          values.vendorValues.costCenter?.value ??
+          values.vendorValues.costCenter ??
+          "",
+        project_id:
+          values.vendorValues.projectID?.value ??
+          values.vendorValues.projectID ??
+          "",
+        address: values.vendorValues.vendorAddress ?? "",
+      };
+      final = {
+        ...final,
+        ...values.componentData,
+        ...venDetails,
+      };
 
-        fileData = response?.data;
-        // form.getFieldValue("vendorType")
-        if (!response?.success) {
-          return showToast(
-            "Some error occured while uploading invoices, Please try again",
-            "error",
-          );
-        } else {
-          let final = {
-            companybranch: "BROAKTRC25",
-            attachment: fileData ? fileData : "",
-          };
-          let venDetails = {
-            vendortype: values.vendorValues.vendorType ?? "",
-            vendor:
-              values.vendorValues.vendorName?.value ??
-              values.vendorValues.vendorName ??
-              "",
-            vendorbranch: values.vendorValues.vendorBranch ?? "",
-            invoice: values.vendorValues.invoiceId ?? "",
-            invoice_date: values.vendorValues.invoiceDate ?? "",
-            cost_center:
-              values.vendorValues.costCenter?.value ??
-              values.vendorValues.costCenter ??
-              "",
-            project_id:
-              values.vendorValues.projectID?.value ??
-              values.vendorValues.projectID ??
-              "",
-            address: values.vendorValues.vendorAddress ?? "",
-          };
-          final = {
-            ...final,
-            ...values.componentData,
-            ...venDetails,
-          };
+      let response = await executeFun(() => savefginward(final), "select");
 
-          setSubmitLoading(true);
-          let response = await executeFun(() => savefginward(final), "select");
-
-          const data = response?.data;
-          setSubmitLoading(false);
-          if (response?.success || data?.success) {
-            setActiveTab("1");
-            setShowSuccessPage({
-              materialInId: data?.data?.txn ?? data?.txn,
-              vendor: {
-                vendorname:
-                  values.vendorValues?.vendorName?.label ??
-                  values.vendorValues?.vendorName ??
-                  vendorDetails.vendor ??
-                  vendorDetails.vendorName ??
-                  "",
-              },
-              components: materialInward.map((row, index) => {
-                return {
-                  id: index,
-                  componentName: row.component?.label ?? "",
-                  inQuantity: row.orderqty,
-                };
-              }),
-            });
-            vendorResetFunction();
-            materialResetFunction();
-          } else {
-            showToast(response.message?.msg || data.message, "error");
-          }
-        }
+      const data = response?.data;
+      setSubmitLoading(false);
+      if (response?.success || data?.success) {
+        setActiveTab("1");
+        setShowSuccessPage({
+          materialInId: data?.data?.txn ?? data?.txn,
+          vendor: {
+            vendorname:
+              values.vendorValues?.vendorName?.label ??
+              values.vendorValues?.vendorName ??
+              vendorDetails.vendor ??
+              vendorDetails.vendorName ??
+              "",
+          },
+          components: materialInward.map((row, index) => {
+            return {
+              id: index,
+              componentName: row.component?.label ?? "",
+              inQuantity: row.orderqty,
+            };
+          }),
+        });
+        setFileName("");
+        vendorResetFunction();
+        materialResetFunction();
       } else {
-        return showToast("Please add at least one file!!", "error");
+        showToast(response.message?.msg || response.message, "error");
       }
     });
   };
@@ -501,6 +468,35 @@ export default function ProductMIN() {
   const validateInvoices = async (values) => {
     submitMIN(values);
   };
+  const handleUploadDocument = async (files) => {
+    if (!files?.length) return;
+    setUploadLoading(true);
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files", file));
+      const response = await imsAxios.post(
+        "/transaction/upload-invoice",
+        formData,
+      );
+      if (response?.success) {
+        setFileName(response?.data);
+        showToast(response?.message || "Upload Document success", "success");
+      } else {
+        showToast(response?.message || "Upload Document failed", "error");
+      }
+    } catch (error) {
+      showToast(error?.message || "Upload Document failed", "error");
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+  const handleFilesChange = (files) => {
+    setInvoices(files);
+    setFileName("");
+    if (files?.length) {
+      handleUploadDocument(files);
+    }
+  };
   const getProductOptions = async (e) => {
     if (e?.length > 2) {
       const response = await imsAxios.post("/backend/getProductByNameAndNo", {
@@ -540,21 +536,21 @@ export default function ProductMIN() {
       showToast(response.message?.msg || response.message, "error");
     }
   };
-  const getAutoComnsumptionOptions = async () => {
-    setPageLoading(true);
-    let response = await imsAxios.get("/transaction/fetchAutoConsumpLocation");
-    setPageLoading(false);
-    if (response.success) {
-      let arr = response.data.map((row) => {
-        return {
-          value: row.id,
-          text: row.text,
-        };
-      });
-      arr = [{ text: "NO", value: 0 }, ...arr];
-      setAutoConsumptionOption(arr);
-    }
-  };
+  // const getAutoComnsumptionOptions = async () => {
+  //   setPageLoading(true);
+  //   let response = await imsAxios.get("/transaction/fetchAutoConsumpLocation");
+  //   setPageLoading(false);
+  //   if (response.success) {
+  //     let arr = response.data.map((row) => {
+  //       return {
+  //         value: row.id,
+  //         text: row.text,
+  //       };
+  //     });
+  //     arr = [{ text: "NO", value: 0 }, ...arr];
+  //     setAutoConsumptionOption(arr);
+  //   }
+  // };
 
   const inputHandler = async (name, value, id) => {
     let arr = materialInward;
@@ -1172,7 +1168,7 @@ export default function ProductMIN() {
     // { headerName: "Location", field: "location", flex: 1 },
   ];
   useEffect(() => {
-    getAutoComnsumptionOptions();
+    // getAutoComnsumptionOptions();
     getCurrencies();
     getLocation();
   }, []);
@@ -1275,7 +1271,7 @@ export default function ProductMIN() {
                 initialValues={vendorDetails}
                 form={form}
                 layout="vertical"
-                onFieldsChange={(value, allFields) => {
+                onFieldsChange={(value) => {
                   if (value.length == 1) {
                     vendorInputHandler(value[0].name[0], value[0].value);
                   }
@@ -1444,6 +1440,7 @@ export default function ProductMIN() {
             </Card>
 
             <Card size="small" style={{ marginTop: 6 }} title="Attachments">
+              {uploadLoading && <Loading />}
               <Row
                 span={24}
                 style={{
@@ -1460,8 +1457,8 @@ export default function ProductMIN() {
                   }}
                 >
                   <UploadDocs
-                    // disable={poData?.materials?.length == 0}
-                    setFiles={setInvoices}
+                    disable={uploadLoading}
+                    setFiles={handleFilesChange}
                     files={invoices}
                   />
                 </Col>

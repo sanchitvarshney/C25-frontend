@@ -13,12 +13,11 @@ import {
 } from "antd";
 import { useToast } from "../../../../hooks/useToast.js";
 import { v4 } from "uuid";
-import MySelect from "../../../../Components/MySelect";
 import NavFooter from "../../../../Components/NavFooter";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyButton from "../../../../Components/MyButton";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
-import { InfoCircleFilled, InfoCircleOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import MyDataTable from "../../../../Components/MyDataTable.jsx";
 
 export default function ExecutePPR({ editPPR, setEditPPR }) {
@@ -58,7 +57,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
     setTabItems(newPanes);
     setActiveKey(newActiveKey);
   };
-  const onEdit = (targetKey, action) => {
+  const onEdit = (targetKey) => {
     remove(targetKey);
   };
   const getPPRData = async (editPPR) => {
@@ -92,12 +91,6 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
         };
       });
       setTableData(arr);
-      if (response.success) {
-     
-      } else {
-        showToast(response.message, "error");
-        setEditPPR(null);
-      }
     } else {
       showToast(response.message, "error");
     }
@@ -269,6 +262,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
       }
   
     } catch (error) {
+      showToast(error?.message || "Error executing PPR", "error");
     } finally {
       setSubmitLoading(false);
     }

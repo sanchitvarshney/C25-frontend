@@ -9,10 +9,12 @@ import {
   Row,
   Typography,
 } from "antd";
+//@ts-ignore
 import Loading from "@/Components/Loading.jsx";
+//@ts-ignore
 import { CommonIcons } from "@/Components/TableActions.jsx/TableActions";
 
-export default function SingleProduct({ field, remove, form, index, loading }) {
+export default function SingleProduct({ field, remove, form, index, loading }:any) {
   const details = Form.useWatch(["components", field.name], form) ?? "";
 
   return (
