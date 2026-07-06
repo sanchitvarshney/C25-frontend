@@ -15,6 +15,10 @@ export default defineConfig({
         replacement: path.resolve(__dirname, "src"),
       },
     ],
+    // Force a single shared instance of emotion across all packages
+    // (mui/antd/etc.) — otherwise a dependency can get pre-bundled with
+    // its own inlined copy, causing "styled_default is not a function".
+    dedupe: ["@emotion/react", "@emotion/styled", "react", "react-dom"],
   },
   optimizeDeps: {
     include: [
