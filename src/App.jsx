@@ -674,7 +674,7 @@ const App = () => {
   const isTestServer =
     path.includes("mscorpres.net") || path.includes("localhost");
 
-  const refreshConnection = () => {
+  const refreshConnection = () => { 
     setIsLoading(true);
     socket.close();
     socket.open();
