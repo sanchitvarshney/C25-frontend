@@ -84,9 +84,12 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
 
         setTableData(arr);
         setHeaderData(arr1);
+        showToast(response?.message, "success");
       } else {
-        
         setEditPPR(null);
+        setHeaderData({});
+        setTableData([]);
+        showToast(response?.message || "Failed to fetch PPR data", "error");
       }
     } catch (error) {
       showToast(
@@ -95,6 +98,9 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
           "Failed to fetch PPR data",
         "error",
       );
+      setEditPPR(null);
+      setHeaderData({});
+      setTableData([]);
     } finally {
       setPageLoading(false);
     }
@@ -300,12 +306,8 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
     setTableData(arr);
   };
   useEffect(() => {
-    getLocations();
-    if (!editPPR) {
-      setHeaderData({});
-      setTableData([]);
-    } else if (editPPR);
-    {
+    if (editPPR != null) {
+      getLocations();
       getPPRData();
       setTabsExist(["1", "P", "PCK", "O", "PCB"]);
     }
