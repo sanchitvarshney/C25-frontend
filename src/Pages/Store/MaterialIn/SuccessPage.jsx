@@ -76,7 +76,7 @@ export default function SuccessPage({
               } from ${po?.vendor?.vendorname ?? po?.vendor ?? ""}`
         }
         extra={[
-          <Row justify="center" gutter={16}>
+          <Row justify="center" gutter={16} key={"success"}>
             <Col>
               <CommonIcons action={"refreshButton"} onClick={newMinFunction} />
             </Col>
@@ -95,7 +95,7 @@ export default function SuccessPage({
               />
             </Col>
           </Row>,
-          <Row style={{ marginTop: 15, height: "40vh" }}>
+          <Row style={{ marginTop: 15, height: "40vh" }} key={"table"}>
             <MyDataTable data={rows} columns={successColumns} />
           </Row>,
         ]}
