@@ -1,18 +1,15 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import RemoveModal from "./RemoveModal";
 import {
   Button,
-  Col,
   Drawer,
   Input,
-  Row,
   Select,
   Space,
   Spin,
   Popover,
-  Skeleton,
 } from "antd";
 import { CloseCircleFilled, CheckCircleFilled } from "@ant-design/icons";
 import { v4 } from "uuid";
@@ -31,12 +28,8 @@ export default function NewModal({
   const [spinLoading, setSpinLoading] = useState(false);
   const [mat, setMat] = useState([]);
   const [head, setHead] = useState([]);
-  const [l, setl] = useState("");
-  const [qty1, setQty1] = useState("");
   const [location, setLocation] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [pickLoc, setPickLoc] = useState(false);
-  const [updateLoading, setUpdateLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
   const [locLoading, setLocLoading] = useState(false);
 
   const compInputHandler = async (name, value, id) => {
@@ -132,7 +125,6 @@ export default function NewModal({
   };
 
   const saveFunction = async (materialData, headerData) => {
-    setUpdateLoading(materialData?.id);
     setSpinLoading(true);
     const response = await imsAxios.post(
       "/storeApproval/AllowComponentsApproval",
@@ -148,24 +140,24 @@ export default function NewModal({
         requestedQty: materialData?.requiredQty,
       }
     );
-    setUpdateLoading(false);
-    if (data.success) {
+  
+    if (response.success) {
       if (mat.length > 1) {
         // getDataFetch();
         setMat((allDataComes) => {
           return allDataComes.filter((row) => row.id != materialData?.id);
         });
         setSpinLoading(false);
-        showToast(data.message.replaceAll("<br/>", "\n"), "success");
+        showToast(response.message.replaceAll("<br/>", "\n"), "success");
         // setMat([]);
       } else {
         setOpen(false);
         getPendingData();
-        showToast(data.message.replaceAll("<br/>", "\n"), "success");
+        showToast(response.message.replaceAll("<br/>", "\n"), "success");
         setSpinLoading(false);
       }
     } else {
-      showToast(data.message?.msg || data.message, "error");
+      showToast(response.message?.msg || response.message, "error");
       setSpinLoading(false);
     }
     // if (response.success){

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MyDataTable from "../../Components/MyDataTable";
 import { v4 } from "uuid";
 import { CommonIcons } from "../../Components/TableActions.jsx/TableActions";
@@ -17,12 +17,12 @@ export default function SKUCosting() {
     const response = await imsAxios.post("/SKUCosting/fetchSKU_costing");
     setLoading(false);
     if (response.success) {
-      const arr = data.response.data.map((row, index) => {
+      const arr = response.data.map((row, index) => {
         return { ...row, id: v4(), index: index + 1 };
       });
       setRows(arr);
     } else {
-      showToast(data.message, "error");
+      showToast(response.message, "error");
     }
   };
   const columns = [

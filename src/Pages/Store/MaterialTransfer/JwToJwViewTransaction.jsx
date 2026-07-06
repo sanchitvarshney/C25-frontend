@@ -83,7 +83,7 @@ function JwToJwViewTransaction() {
       // Format dates to YYYY-MM-DD
       const formattedDates = formatDateForAPI(datee);
       if (!formattedDates) {
-        toast.error("Invalid date format");
+        showToast("Invalid date format", "error");
         setLoading(false);
         return;
       }

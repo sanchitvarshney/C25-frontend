@@ -1,5 +1,5 @@
 import { Col, Descriptions, Divider, Form, Input, Row } from "antd";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import useApi from "../../../hooks/useApi.ts";
@@ -22,7 +22,7 @@ function CreateFgReturn() {
     { text: "NG (damaged)", value: "NG" },
   ];
 
-  const { executeFun, loading1 } = useApi();
+  const { executeFun } = useApi();
 
   const getOption = async (searchInput) => {
     setAsyncOptions([]);

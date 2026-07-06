@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Button, Col, Result, Row } from "antd";
-import axios from "axios";
+import{ useEffect, useState } from "react";
+import { Col, Result, Row } from "antd";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import printFunction, {
   downloadFunction,
@@ -76,7 +75,7 @@ export default function SuccessPage({
               } from ${po?.vendor?.vendorname ?? po?.vendor ?? ""}`
         }
         extra={[
-          <Row justify="center" gutter={16}>
+          <Row justify="center" gutter={16} key={"success"}>
             <Col>
               <CommonIcons action={"refreshButton"} onClick={newMinFunction} />
             </Col>
@@ -95,7 +94,7 @@ export default function SuccessPage({
               />
             </Col>
           </Row>,
-          <Row style={{ marginTop: 15, height: "40vh" }}>
+          <Row style={{ marginTop: 15, height: "40vh" }} key={"table"}>
             <MyDataTable data={rows} columns={successColumns} />
           </Row>,
         ]}

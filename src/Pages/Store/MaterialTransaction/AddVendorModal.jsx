@@ -1,5 +1,4 @@
-import React from "react";
-import Modal from "react-animated-modal";
+
 import Select from "react-select";
 
 const AddVendorModal = ({ setShowAddVendorModal, showAddVendorModal }) => {

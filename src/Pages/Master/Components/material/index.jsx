@@ -935,6 +935,10 @@ const CategoryModal = ({
               })),
             },
           ]);
+          setLoading(false);
+        } else {
+          setLoading(false);
+          showToast(response?.message, "error");
         }
       });
     } catch (error) {
@@ -1254,6 +1258,7 @@ const CategoryModal = ({
     }
   }, [show]);
   useEffect(() => {
+    
     if (typeOfComp) {
       form.resetFields();
       form.setFieldValue("componentname", "");
@@ -1263,6 +1268,7 @@ const CategoryModal = ({
     }
   }, [typeOfComp]);
   useEffect(() => {
+   
     getieldSelectOptions(fields);
   }, [fields]);
   return (

@@ -1,12 +1,19 @@
-import React, { useState } from "react";
-import { Card, Col, Form, Input, Row, Space } from "antd";
+import { useState } from "react";
+import {  Col, Form,  Row, } from "antd";
+//@ts-ignore
 import MyButton from "../../../../Components/MyButton";
+//@ts-ignore
 import MyDatePicker from "../../../../Components/MyDatePicker";
+//@ts-ignore
 import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
+//@ts-ignore
 import useApi from "../../../../hooks/useApi";
+//@ts-ignore
 import MyDataTable from "../../../../Components/MyDataTable";
 import { getCompletedReturns } from "../../../../api/store/fgReturn";
+//@ts-ignore
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
+//@ts-ignore
 import { downloadCSV, exportCSVFile } from "../../../../Components/exportToCSV";
 
 const CompletedFgReturn = () => {
@@ -43,7 +50,7 @@ const CompletedFgReturn = () => {
           style={{ marginBottom: 0 }}
         >
           <MyDatePicker
-            setDateRange={(value) =>
+            setDateRange={(value:any) =>
               form.setFieldValue("date", value)
             }
           />
@@ -95,7 +102,7 @@ const columns = [
     headerName: "Trans. Id",
     field: "transactionId",
     width: 150,
-    renderCell: ({ row }) => (
+    renderCell: ({ row }:any) => (
       <ToolTipEllipses text={row.transactionId} copy={true} />
     ),
   },
@@ -103,7 +110,7 @@ const columns = [
     headerName: "SKU",
     field: "sku",
     width: 150,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.sku} copy={true} />,
+    renderCell: ({ row }:any) => <ToolTipEllipses text={row.sku} copy={true} />,
   },
   {
     headerName: "Product",

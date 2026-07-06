@@ -4,7 +4,6 @@ import MySelect from "../../../../../Components/MySelect";
 
 const ShipmentInfo = ({
   validateHandler,
-  loading,
   billingOptions,
   shippingOptions,
   updateShipmentRow,
@@ -60,11 +59,11 @@ const ShipmentInfo = ({
 };
 
 export default ShipmentInfo;
-const rules = {
-  file: [
-    {
-      required: true,
-      message: "Please select a file to upload",
-    },
-  ],
-};
+// const rules = {
+//   file: [
+//     {
+//       required: true,
+//       message: "Please select a file to upload",
+//     },
+//   ],
+// };

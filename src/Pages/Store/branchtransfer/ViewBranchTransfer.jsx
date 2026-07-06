@@ -1,15 +1,13 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import { Button, Row, Space, Tooltip, Popover, Form, Drawer } from "antd";
+import { Button, Row, Space, Form, Drawer } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
-import { v4 } from "uuid";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import { DownloadOutlined } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";
-import { set } from "lodash";
 import { useEffect } from "react";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import Loading from "../../../Components/Loading";
@@ -21,10 +19,10 @@ import MyButton from "../../../Components/MyButton";
 
 function ViewBranchTransfer() {
   const { showToast } = useToast();
-  const [searchLoading, setSearchLoading] = useState(false);
+  // const [searchLoading, setSearchLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState();
   const [loading, setLoading] = useState(false);
-  const [processOptions, setProcessOptions] = useState([]);
+  // const [processOptions, setProcessOptions] = useState([]);
   const [rows, setRows] = useState([]);
   const [showViewModel, setShowViewModal] = useState(false);
   const [detailData, setDetailData] = useState([]);
@@ -32,9 +30,7 @@ function ViewBranchTransfer() {
   const [qcReportForm] = Form.useForm();
   const ppr = Form.useWatch("ppr", qcReportForm);
   const status = Form.useWatch("status", qcReportForm);
-  const processName = Form.useWatch("process", qcReportForm);
-  const [searchInput, setSearchInput] = useState("");
-  const { executeFun, loading: loading1 } = useApi();
+  const { executeFun } = useApi();
   const getcomoponents = async (trans_id) => {
     setLoading("fetch");
     const response = await imsAxios.post(
@@ -64,6 +60,7 @@ function ViewBranchTransfer() {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
+      key={"view"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -115,12 +112,12 @@ function ViewBranchTransfer() {
       console.log(processResponse, "pro res");
       const { data: processData } = processResponse;
       if (processData) {
-        const arr = processData.data.map((row) => ({
-          text: row.process.name,
-          value: row.process.key,
-        }));
+        // const arr = processData.data.map((row) => ({
+        //   text: row.process.name,
+        //   value: row.process.key,
+        // }));
 
-        setProcessOptions(arr);
+        // setProcessOptions(arr);
       }
     } catch (error) {
       showToast(error, "error");
@@ -274,7 +271,7 @@ function ViewBranchTransfer() {
           <MyDataTable
             columns={[actionColumn, ...columns]}
             data={rows}
-            loading={searchLoading}
+            // loading={searchLoading}
           />
         </div>
       </div>
@@ -348,10 +345,10 @@ const ViewModal = ({
   show,
   setshow,
   detaildata,
-  status,
+  // status,
   component,
 }) => {
-  console.log(detaildata);
+ const { showToast } = useToast();
   const viewcolumns = [
     {
       headerName: "#",
@@ -389,7 +386,7 @@ const ViewModal = ({
     );
     if (response.success) {
       showToast(response.message, "success");
-    } else if (data.status === "error") {
+    } else if (response.status === "error") {
       showToast(response.message?.msg || response.message, "error");
     }
     setLoading(false);

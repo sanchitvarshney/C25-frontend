@@ -1,8 +1,8 @@
 import { Button, Card, Col, Drawer, Form, Row, Space } from "antd";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components//exportToCSV";
-import Loading from "../../../Components/Loading";
+// import Loading from "../../../Components/Loading";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyDatePicker from "../../../Components/MyDatePicker";
@@ -20,8 +20,8 @@ function R30() {
   // const [selectLoading, setSelectLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [rows, setRows] = useState([]);
-  const [locationOptions, setLocationOptions] = useState([]);
-  const [formLoading, setFormLoading] = useState(false);
+  // const [locationOptions, setLocationOptions] = useState([]);
+  // const [formLoading, setFormLoading] = useState(false);
   const [dateRange, setDateRange] = useState("");
   const [componentList, setComponentList] = useState(false);
   const [jwId, setJwId] = useState("");
@@ -153,32 +153,32 @@ function R30() {
   //   }
   //   setAsyncOptions(arr);
   // };
-  const getVendorLocation = async () => {
-    let vendor = searchForm.getFieldsValue().vendor;
-    if (vendor) {
-      setFormLoading(true);
-      const response = await imsAxios.get(`/backend/fetchVendorJWLocation?vendor=${vendor}`);
+  // const getVendorLocation = async () => {
+  //   let vendor = searchForm.getFieldsValue().vendor;
+  //   if (vendor) {
+  //     setFormLoading(true);
+  //     const response = await imsAxios.get(`/backend/fetchVendorJWLocation?vendor=${vendor}`);
 
-      setFormLoading(false);
-      if (response.success) {
-        let arr = [];
-        arr = response.data.map((row) => ({
-          value: row.id,
-          text: row.text,
-        }));
-        setLocationOptions(arr);
-      } else {
-        showToast(response.message, "error");
-      }
-    }
-  };
-  useEffect(() => {
-    getVendorLocation();
-  }, [searchForm.getFieldsValue().vendor]);
+  //     setFormLoading(false);
+  //     if (response.success) {
+  //       let arr = [];
+  //       arr = response.data.map((row) => ({
+  //         value: row.id,
+  //         text: row.text,
+  //       }));
+  //       setLocationOptions(arr);
+  //     } else {
+  //       showToast(response.message, "error");
+  //     }
+  //   }
+  // };
+  // useEffect(() => {
+  //   getVendorLocation();
+  // }, [searchForm.getFieldsValue().vendor]);
 
-  useEffect(() => {
-    getVendorLocation();
-  }, []);
+  // useEffect(() => {
+  //   getVendorLocation();
+  // }, []);
 
   return (
     <div style={{ height: "100%" }}>
@@ -188,7 +188,7 @@ function R30() {
           span={6}
         >
           <Card size="small" style={{ marginBottom: 5 }}>
-            {formLoading && <Loading />}
+            {/* {formLoading && <Loading />} */}
             <Form
               onFinish={getRows}
               layout="vertical"

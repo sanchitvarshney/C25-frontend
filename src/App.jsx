@@ -245,7 +245,7 @@ const App = () => {
 
     if (user && user.token) {
       // getting all notifications
-      socket.on("all-notifications", (data) => {
+      const handleAllNotifications = (data) => {
         let source = Array.isArray(data)
           ? data
           : Array.isArray(data?.data)
@@ -266,12 +266,13 @@ const App = () => {
         }));
 
         dispatch(setNotifications(arr));
-      });
+      };
+      socket.on("all-notifications", handleAllNotifications);
       socket.emit("fetch_notifications", {
         source: "react",
       });
       // getting new notification
-      socket.on("socket_receive_notification", (data) => {
+      const handleSocketReceiveNotification = (data) => {
         if (data.type == "message") {
           let arr = notificationsRef.current.filter(
             (not) => not.conversationId != data.conversationId,
@@ -303,19 +304,21 @@ const App = () => {
           }
           setNewNotification(data);
         }
-      });
+      };
+      socket.on("socket_receive_notification", handleSocketReceiveNotification);
 
       // event for starting detail
-      socket.on("download_start_detail", (data) => {
+      const handleDownloadStartDetail = (data) => {
         showToast("Your report has been started generating");
         if (data.title || data.details) {
           let arr = notificationsRef.current;
           arr = [data, ...arr];
           dispatch(setNotifications(arr));
         }
-      });
+      };
+      socket.on("download_start_detail", handleDownloadStartDetail);
 
-      socket.on("getPageStatus", (data) => {
+      const handleGetPageStatus = (data) => {
         let pages;
         if (testPages) {
           pages = testPages;
@@ -347,8 +350,9 @@ const App = () => {
         }
 
         setTestPage(pageIsTest);
-      });
-      socket.on("file-generate-error", (data) => {
+      };
+      socket.on("getPageStatus", handleGetPageStatus);
+      const handleFileGenerateError = (data) => {
         showToast(data?.message, "error");
         let arr = notificationsRef.current;
         if (arr.filter((row) => row.notificationId == data.notificationId)[0]) {
@@ -368,8 +372,9 @@ const App = () => {
           arr = [data, ...arr];
         }
         dispatch(setNotifications(arr));
-      });
-      socket.on("getting-loading-percentage", (data) => {
+      };
+      socket.on("file-generate-error", handleFileGenerateError);
+      const handleGettingLoadingPercentage = (data) => {
         let arr = notificationsRef.current;
         if (arr.filter((row) => row.notificationId == data.notificationId)[0]) {
           arr = arr.map((row) => {
@@ -388,7 +393,23 @@ const App = () => {
           arr = [data, ...arr];
         }
         dispatch(setNotifications(arr));
-      });
+      };
+      socket.on("getting-loading-percentage", handleGettingLoadingPercentage);
+
+      return () => {
+        socket.off("all-notifications", handleAllNotifications);
+        socket.off(
+          "socket_receive_notification",
+          handleSocketReceiveNotification,
+        );
+        socket.off("download_start_detail", handleDownloadStartDetail);
+        socket.off("getPageStatus", handleGetPageStatus);
+        socket.off("file-generate-error", handleFileGenerateError);
+        socket.off(
+          "getting-loading-percentage",
+          handleGettingLoadingPercentage,
+        );
+      };
     }
   }, []);
   useEffect(() => {
@@ -438,7 +459,7 @@ const App = () => {
         source: "react",
       });
       // getting new notification
-      socket.on("socket_receive_notification", (data) => {
+      const handleSocketReceiveNotification = (data) => {
         if (data.type == "message") {
           let arr = notificationsRef.current.filter(
             (not) => not.conversationId != data.conversationId,
@@ -469,9 +490,10 @@ const App = () => {
           }
           setNewNotification(data);
         }
-      });
+      };
+      socket.on("socket_receive_notification", handleSocketReceiveNotification);
       // getting all notifications
-      socket.on("all-notifications", (data) => {
+      const handleAllNotifications = (data) => {
         let arr = data.data;
         arr = arr.map((row) => {
           return {
@@ -483,17 +505,19 @@ const App = () => {
           };
         });
         dispatch(setNotifications(arr));
-      });
+      };
+      socket.on("all-notifications", handleAllNotifications);
       // event for starting detail
-      socket.on("download_start_detail", (data) => {
+      const handleDownloadStartDetail = (data) => {
         if (data.title && data.details) {
           let arr = notificationsRef.current;
           arr = [data, ...arr];
           dispatch(setNotifications(arr));
         }
-      });
+      };
+      socket.on("download_start_detail", handleDownloadStartDetail);
 
-      socket.on("getPageStatus", (data) => {
+      const handleGetPageStatus = (data) => {
         let pages;
         if (testPages) {
           pages = testPages;
@@ -525,8 +549,9 @@ const App = () => {
         }
 
         setTestPage(pageIsTest);
-      });
-      socket.on("file-generate-error", (data) => {
+      };
+      socket.on("getPageStatus", handleGetPageStatus);
+      const handleFileGenerateError = (data) => {
         showToast(data?.message, "error");
         let arr = notificationsRef.current;
         if (arr.filter((row) => row.notificationId == data.notificationId)[0]) {
@@ -546,7 +571,19 @@ const App = () => {
           arr = [data, ...arr];
         }
         dispatch(setNotifications(arr));
-      });
+      };
+      socket.on("file-generate-error", handleFileGenerateError);
+
+      return () => {
+        socket.off(
+          "socket_receive_notification",
+          handleSocketReceiveNotification,
+        );
+        socket.off("all-notifications", handleAllNotifications);
+        socket.off("download_start_detail", handleDownloadStartDetail);
+        socket.off("getPageStatus", handleGetPageStatus);
+        socket.off("file-generate-error", handleFileGenerateError);
+      };
     }
   }, [user?.token]);
 

@@ -1,5 +1,5 @@
-import React from "react";
-import { Button, Drawer, Upload } from "antd";
+
+import { Button, Upload } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
 export default function UploadDocs({ files, setFiles, disable, size }) {

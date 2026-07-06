@@ -74,39 +74,38 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
       setLoading("fetch");
       setSqdComponents([]);
       const response = await imsAxios.post("/ppr/fetchData4Update", pprDetails);
-      const { data } = response;
-      if (data) {
-        if (response.success) {
-          const { product } = data.data;
-          let obj = {
-            type: data.data.type,
-            project: {
-              label: data.data.project.text,
-              value: data.data.project.id,
-            },
-            remark: data.data.remark,
-            product: {
-              label: product.sku.text,
-              value: product.sku.id,
-            },
-            bom: {
-              label: product.bom.text,
-              value: product.bom.id,
-            },
-            qty: product.qty,
-            dueDate: product.duedate,
-            section: {
-              label: product.section.text,
-              value: product.section.id,
-            },
-            customer: product.customer,
-          };
-          setRqdDetails(product.rqd[0]);
-          pprDetailsForm.setFieldsValue(obj);
-        } else {
-          setEditPPR(null);
-          showToast(response.message?.msg || response.message, "error");
-        }
+
+      if (response.success) {
+        const { data } = response;
+        const { product } = data;
+        let obj = {
+          type: data.type,
+          project: {
+            label: data.project.text,
+            value: data.project.id,
+          },
+          remark: data.remark,
+          product: {
+            label: product.sku.text,
+            value: product.sku.id,
+          },
+          bom: {
+            label: product.bom.text,
+            value: product.bom.id,
+          },
+          qty: product.qty,
+          dueDate: product.duedate,
+          section: {
+            label: product.section.text,
+            value: product.section.id,
+          },
+          customer: product.customer,
+        };
+        setRqdDetails(product.rqd[0]);
+        pprDetailsForm.setFieldsValue(obj);
+      } else {
+        setEditPPR(null);
+        showToast(response.message?.msg || response.message, "error");
       }
     } catch (error) {
       showToast(error.message || "Something went wrong", "error");
@@ -170,13 +169,12 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
       project_name: search,
     });
     setLoading(false);
-  
 
     if (response?.success) {
-        const { data } = response;
+      const { data } = response;
       pprDetailsForm.setFieldValue("projectDescription", data?.description);
     } else {
-      showToast( response.message, "error");
+      showToast(response.message, "error");
     }
   };
 

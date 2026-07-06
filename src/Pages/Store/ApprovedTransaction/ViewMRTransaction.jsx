@@ -19,7 +19,7 @@ export default function ViewMRTransaction({ viewTransaction }) {
       }
     );
     setPageLoading(false);
-    const validatedData = validateResponse(data);
+    const validatedData = validateResponse(response?.data);
     let arr = validatedData.data.map((row, index) => ({
       ...row,
       index: index + 1,

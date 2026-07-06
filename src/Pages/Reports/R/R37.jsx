@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Button, Col, Input, Row, Space } from "antd";
+import  { useState,  } from "react";
+import {  Col, Input, Row, Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDataTable from "../../../Components/MyDataTable";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { downloadCSV } from "../../../Components/exportToCSV";
-import TableActions, {
+import  {
   CommonIcons,
 } from "../../../Components/TableActions.jsx/TableActions";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
@@ -19,16 +19,16 @@ import socket from "../../../Components/socket";
 
 const R37 = () => {
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [vendor, setVendor] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [wise, setWise] = useState("date");
   const [rows, setRows] = useState([]);
   const [searchDateRange, setSearchDateRange] = useState("");
-  const { executeFun, loading: loading1 } = useApi();
+const { executeFun, } = useApi();
   const wiseOptions = [
     { value: "date", text: "Date Wise" },
     // { value: "jwid", text: "Job Work ID Wise" },
@@ -194,7 +194,7 @@ const R37 = () => {
         date : searchDateRange,
         notificationId: "",
       });
-  };
+  }
 }
   return (
     <div className="manage-po" style={{ position: "relative", height: "100%" }}>
@@ -206,7 +206,7 @@ const R37 = () => {
           <Space>
             <div style={{ width: 250 }}>
               <MyAsyncSelect
-                selectLoading={selectLoading}
+                // selectLoading={selectLoading}
                 optionsState={asyncOptions}
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={(search) => getVendors(search)}
@@ -294,7 +294,7 @@ const R37 = () => {
         }}
       >
         <MyDataTable
-          loading={loading || searchLoading}
+          loading={ searchLoading}
           rows={rows}
           columns={columns}
         />

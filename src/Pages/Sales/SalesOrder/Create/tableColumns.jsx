@@ -56,7 +56,7 @@ export const rateCell = ({ row }, inputHandler, currencies) => (
     </div>
   </Input.Group>
 );
-export const disabledCell = ({ row }, value, inputHandler, suffix) => (
+export const disabledCell = ({ row }, value, inputHandler) => (
   <Input
     disabled
     value={value}

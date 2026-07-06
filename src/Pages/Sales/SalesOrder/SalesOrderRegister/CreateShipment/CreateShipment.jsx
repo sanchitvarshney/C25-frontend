@@ -27,26 +27,24 @@ import BillingInfo from "./BillingDetailsCard";
 import ShippingDetailsCard from "./ShippingDetailsCard";
 import {
   getBillingAddressOptions,
-  getShippingAddressOptions,
   fetchLocations,
   getBillingAddressDetails,
 } from "../../../../../api/general.ts";
 import { convertSelectOptions } from "../../../../../utils/general.ts";
 import {
-  getBranchDetails,
+  // getBranchDetails,
   getClientBranches,
 } from "../../../../../api/finance/clients";
 import MyAsyncSelect from "../../../../../Components/MyAsyncSelect";
-import { useToast } from "../../../../../hooks/useToast.js";
+// import { useToast } from "../../../../../hooks/useToast.js";
 
 function CreateShipment({
   open,
   hide,
   updateShipmentRow,
-  setUpdateShipmentRow,
 }) {
-  const { showToast } = useToast();
-  const [gstType, setgstType] = useState([]);
+  // const { showToast } = useToast();
+  // const [gstType, setgstType] = useState([]);
   const [billingOptions, setBillingOptions] = useState([]);
   const [shippingOptions, setShippinOptions] = useState([]);
   const [locationlist, setlocationlist] = useState([]);
@@ -58,8 +56,6 @@ function CreateShipment({
   const [shipmentForm] = Form.useForm();
 
   const billingId = Form.useWatch("billingId", shipmentForm);
-
-  const shippingId = Form.useWatch("shippingId", shipmentForm);
   const calculation = (id, row) => {
     const exchangeRate = row.exchangeRate ?? 1;
     const qty = row.qty;
@@ -315,32 +311,32 @@ function CreateShipment({
       shipmentForm.setFieldValue("billingAddress", newStringaddress);
     }
   };
-  const handleFetchClientBranchDetails = async (locationType, branchId) => {
-    const response = await executeFun(
-      () => getBranchDetails(branchId),
-      `fetch`
-    );
-    if (response.success) {
-      const details = response.data[0];
-      console.log("details", details);
-      if (details) {
-        shipmentForm.setFieldValue("shippingAddress", details.address);
-        // shipmentForm.setFieldValue("shippingAddress", {
-        //   label: details.state.name,
-        //   value: details.state.code,
-        // });
-        // const address = removeHtml(details.address);
-        // if (locationType === "client") {
-        //   shipmentForm.setFieldValue("gstin", details.gst);
-        //   shipmentForm.setFieldValue("clientaddress", address);
-        // } else if (locationType === "shipaddressid") {
-        //   shipmentForm.setFieldValue("shipPan", details.panNo);
-        //   shipmentForm.setFieldValue("shipGST", details.gst);
-        //   shipmentForm.setFieldValue("shipaddress", address);
-        // }
-      }
-    }
-  };
+  // const handleFetchClientBranchDetails = async (locationType, branchId) => {
+  //   const response = await executeFun(
+  //     () => getBranchDetails(branchId),
+  //     `fetch`
+  //   );
+  //   if (response.success) {
+  //     const details = response.data[0];
+  //     console.log("details", details);
+  //     if (details) {
+  //       shipmentForm.setFieldValue("shippingAddress", details.address);
+  //       // shipmentForm.setFieldValue("shippingAddress", {
+  //       //   label: details.state.name,
+  //       //   value: details.state.code,
+  //       // });
+  //       // const address = removeHtml(details.address);
+  //       // if (locationType === "client") {
+  //       //   shipmentForm.setFieldValue("gstin", details.gst);
+  //       //   shipmentForm.setFieldValue("clientaddress", address);
+  //       // } else if (locationType === "shipaddressid") {
+  //       //   shipmentForm.setFieldValue("shipPan", details.panNo);
+  //       //   shipmentForm.setFieldValue("shipGST", details.gst);
+  //       //   shipmentForm.setFieldValue("shipaddress", address);
+  //       // }
+  //     }
+  //   }
+  // };
   useEffect(() => {
     if (updateShipmentRow) {
       console.log("update ->", updateShipmentRow);
@@ -410,7 +406,7 @@ function CreateShipment({
               calculation={calculation}
               form={shipmentForm}
               location={locationlist}
-              gsttype={gstType}
+              // gsttype={gstType}
               setlocationlist={setlocationlist}
               locationlist={locationlist}
               asyncOptions={asyncOptions}
@@ -506,7 +502,7 @@ const productItems = (getlocations, setAsyncOptions, asyncOptions, loading) => [
     headerName: "Rate",
     name: "rate",
     width: 100,
-    field: (row) => <Input />,
+    field: () => <Input />,
     // field: (row) => (
     //   <Input.Group compact>
     //     <Input
@@ -537,10 +533,10 @@ const productItems = (getlocations, setAsyncOptions, asyncOptions, loading) => [
     headerName: "Local Value",
     width: 150,
     name: "inrValue",
-    field: (row) => (
+    field: () => (
       <Input
         disabled={true}
-        // value={Number(row.inrValue).toFixed(2)}
+        // value={Number(.inrValue).toFixed(2)}
       />
     ),
   },
@@ -548,18 +544,18 @@ const productItems = (getlocations, setAsyncOptions, asyncOptions, loading) => [
     headerName: "Foreign Value",
     width: 150,
     name: "foreignValueCombined",
-    field: (row) => <Input disabled={true} />,
+    field: () => <Input disabled={true} />,
   },
   // {
   //   headerName: "Foreign Value",
   //   width: 150,
   //   name: "usdValue",
-  //   field: (row) => (
+  //   field: () => (
   //     <Input
   //       size="default"
   //       disabled={true}
   //       value={
-  //         row?.currency == 364907247 ? 0 : Number(row?.foreginValue).toFixed(2)
+  //         ?.currency == 364907247 ? 0 : Number(?.foreginValue).toFixed(2)
   //       }
   //     />
   //   ),
@@ -587,31 +583,31 @@ const productItems = (getlocations, setAsyncOptions, asyncOptions, loading) => [
     headerName: "GST Type",
     width: 100,
     name: "gstTypeLabel",
-    field: (row) => <Input disabled={true} />,
+    field: () => <Input disabled={true} />,
   },
   {
     headerName: "GST %",
     width: 100,
     name: "gstRate",
-    field: (row) => <Input disabled={true} />,
+    field: () => <Input disabled={true} />,
   },
   {
     headerName: "CGST",
     width: 100,
     name: "cgst",
-    field: (row) => <Input disabled={true} />,
+    field: () => <Input disabled={true} />,
   },
   {
     headerName: "SGST",
     width: 100,
     name: "sgst",
-    field: (row) => <Input disabled={true} />,
+    field: () => <Input disabled={true} />,
   },
   {
     headerName: "IGST",
     width: 100,
     name: "igst",
-    field: (row) => <Input disabled={true} />,
+    field: () => <Input disabled={true} />,
   },
   {
     headerName: "Pick Location",
@@ -619,7 +615,7 @@ const productItems = (getlocations, setAsyncOptions, asyncOptions, loading) => [
     width: 120,
 
     name: "pickLocation",
-    field: ({ row }) => (
+    field: () => (
       <MyAsyncSelect
         onBlur={() => setAsyncOptions([])}
         loadOptions={getlocations}
@@ -669,21 +665,21 @@ const productItems = (getlocations, setAsyncOptions, asyncOptions, loading) => [
   //   },
 ];
 export default CreateShipment;
-const gstRateOptions = [
-  {
-    text: "5%",
-    value: 5,
-  },
-  {
-    text: "12%",
-    value: 12,
-  },
-  {
-    text: "18%",
-    value: 18,
-  },
-  {
-    text: "28%",
-    value: 28,
-  },
-];
+// const gstRateOptions = [
+//   {
+//     text: "5%",
+//     value: 5,
+//   },
+//   {
+//     text: "12%",
+//     value: 12,
+//   },
+//   {
+//     text: "18%",
+//     value: 18,
+//   },
+//   {
+//     text: "28%",
+//     value: 28,
+//   },
+// ];

@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Card, Typography, Row, Col } from "antd";
 
 const ShippingDetailsCard = ({ details, updateShipmentRow }) => {

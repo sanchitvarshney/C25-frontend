@@ -1,6 +1,5 @@
 import { Input } from "antd";
 import InputMask from "react-input-mask";
-import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../Components/MySelect";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
