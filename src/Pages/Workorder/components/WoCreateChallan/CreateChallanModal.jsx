@@ -1521,8 +1521,8 @@ const Product = ({
                   ...shipmentproductItemsEdit(
                     location,
                     gsttype,
-                    setlocationlist,
                     getLocationList,
+                    setlocationlist,
                     locationlist,
                     getComponentOptions,
                     asyncOptions,
@@ -1571,8 +1571,8 @@ const Product = ({
                   ...shipmentproductItems(
                     location,
                     gsttype,
-                    setlocationlist,
                     getLocationList,
+                    setlocationlist,
                     locationlist,
                     getComponentOptions,
                     asyncOptions,
@@ -1719,7 +1719,7 @@ const shipmentproductItems = (
     name: "pickuplocation",
     width: 150,
     field: () => (
-      <MySelect
+      <MyAsyncSelect
         onBlur={() => setlocationlist([])}
         loadOptions={getLocationList}
         optionsState={locationlist}
