@@ -34,9 +34,9 @@ const ViewModal = ({ viewModalOpen, setViewModalOpen }) => {
     setLoading(false);
 
     if (response?.success) {
-      const header = response?.data?.header;
+      const header = response?.header;
       setView(Array.isArray(header) ? header[0] ?? {} : header ?? {});
-      const rows = response.data?.body ?? [];
+      const rows = response.data ?? [];
       let arr = rows.map((row, index) => {
         return {
           ...row,
