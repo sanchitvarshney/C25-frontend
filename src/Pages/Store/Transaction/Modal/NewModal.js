@@ -1,8 +1,8 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import RemoveModal from "./RemoveModal";
-import { Button, Col, Drawer, Input, Row, Select, Space, Spin } from "antd";
+import {  Col, Drawer, Input, Row, Select, Space, Spin } from "antd";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { CloseCircleFilled, CheckCircleFilled } from "@ant-design/icons";
 import MyDataTable from "../../../../Components/MyDataTable";
@@ -73,8 +73,8 @@ export default function NewModal({
         transaction: open?.transaction_id,
       }
     );
-    if (data.success) {
-      let arr = data.data.material.map((row) => {
+    if (response.success) {
+      let arr = response.data.material.map((row) => {
         return {
           ...row,
           id: v4(),
@@ -82,14 +82,14 @@ export default function NewModal({
       });
       if (arr.length > 0) {
         setMat(arr);
-        setHead(data?.data?.header);
+        setHead(response?.data?.header);
         setLoading(false);
       } else {
         setModalOpen(false);
         getPendingData();
       }
       } else {
-        showToast(data.message?.msg || data.message, "error");
+        showToast(response.message?.msg || response.message, "error");
         setOpen(false);
         getPendingData();
         // setLoading(false);
@@ -107,7 +107,6 @@ export default function NewModal({
 
   const saveFunction = async (materialData, headerData) => {
     setSpinLoading(true);
-    console.log(materialData, headerData);
     const response = await imsAxios.post(
       "/storeApproval/AllowComponentsApproval",
       {
@@ -121,7 +120,7 @@ export default function NewModal({
         rate: materialData?.weightedRate,
       }
     );
-    if (data.success) {
+    if (response.success) {
       if (mat.length > 1) {
         getDataFetch();
         setSpinLoading(false);
@@ -134,7 +133,7 @@ export default function NewModal({
         setSpinLoading(false);
       }
     } else {
-      showToast(data.message?.msg || data.message, "error");
+      showToast(response.message?.msg || response.message, "error");
       setSpinLoading(false);
     }
   };
@@ -210,10 +209,12 @@ export default function NewModal({
       width: 200,
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"reject"}
           label="Reject"
           icon={<CloseCircleFilled onClick={() => setDelModal(row)} />}
         />,
         <GridActionsCellItem
+        key={"approve"}
           label="Approve"
           icon={
             <CheckCircleFilled onClick={() => saveFunction(row, head[0])} />
@@ -223,12 +224,7 @@ export default function NewModal({
     },
   ];
 
-  const reset = () => {
-    setOpen(false);
-    setMat([]);
-    // setModalOpen(false);
-    // setDelModal(false);
-  };
+
 
   const close = () => {
     setOpen(false);

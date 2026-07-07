@@ -36,7 +36,9 @@ const _origConsole = {};
         _store.consoleLogs.push({ level, message, time: new Date().toISOString(), count: 1 });
         if (_store.consoleLogs.length > MAX_CONSOLE) _store.consoleLogs.shift();
       }
-    } catch (_) {}
+    } catch (_) {
+      // ignore
+    }
     _origConsole[level](...args);
   };
 });
@@ -104,7 +106,9 @@ function PatchedXHR() {
         time: meta.time,
         response,
       });
-    } catch (_) {}
+    } catch (_) {
+      // ignore
+    }
   });
 
   return xhr;
@@ -201,7 +205,7 @@ export function getDiagnostics() {
     console: _store.consoleLogs,
     network: {
       requests: _store.networkLogs,
-      sockets: Array.from(_store.wsSockets.values()).map(({ t0, ...rest }) => rest),
+      sockets: Array.from(_store.wsSockets.values()).map(({ ...rest }) => rest),
     },
     application: {
       localStorage: ls,

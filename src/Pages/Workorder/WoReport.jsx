@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Col, Row, Space } from "antd";
 import { Box, IconButton } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
@@ -23,10 +23,10 @@ const challanColumns = [
 
 const WoReport = () => {
   const { showToast } = useToast();
-  const [wise, setWise] = useState(wiseOptions[0].value);
+  // const [wise, setWise] = useState(wiseOptions[0].value);
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [asyncOptions, setAsyncOptions] = useState([]);
+  // const [asyncOptions, setAsyncOptions] = useState([]);
   const [rows, setRows] = useState([]);
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [disstate, setdisstate] = useState(false);
@@ -38,16 +38,16 @@ const WoReport = () => {
     );
   }, []);
 
-  const handleClientOptions = async (search) => {
-    try {
-      setLoading("select");
-      const arr = await getClientOptions(search);
-      setAsyncOptions(arr);
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleClientOptions = async (search) => {
+  //   try {
+  //     setLoading("select");
+  //     const arr = await getClientOptions(search);
+  //     setAsyncOptions(arr);
+  //   } catch (error) {
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const columns = useMemo(
     () => [
@@ -187,7 +187,7 @@ const WoReport = () => {
     let serialnumber = 1;
 
     // Adding data starting from B3
-    woreportdata.forEach((item, index) => {
+    woreportdata.forEach((item) => {
       ws[`A${currentRow}`] = { t: "n", v: item.serial_no };
       ws[`B${currentRow}`] = { t: "s", v: item.min_date };
       ws[`C${currentRow}`] = { t: "s", v: item.part_code };
@@ -200,7 +200,7 @@ const WoReport = () => {
       ws[`K${currentRow}`] = { t: "s", v: "" };
       ws[`P${currentRow}`] = { t: "s", v: item.pending_qty };
       //wo report
-      item.challan?.forEach((elem, subindex) => {
+      item.challan?.forEach((elem) => {
         currentRow = currentRow + 1;
         serialnumber = serialnumber + 1;
         ws[`A${currentRow}`] = { t: "n", v: elem.serial_no };
@@ -253,11 +253,11 @@ const WoReport = () => {
     XLSX.writeFile(wb, "exported_data.xlsx");
   };
 
-  useEffect(() => {
-    if (wise !== wiseOptions[1].value) {
-      setSearchInput("");
-    }
-  }, [wise]);
+  // useEffect(() => {
+  //   if (wise !== wiseOptions[1].value) {
+  //     setSearchInput("");
+  //   }
+  // }, [wise]);
 
   return (
     <div style={{ height: "calc(100vh - 180px)", margin: "10px" }}>
@@ -301,19 +301,19 @@ const WoReport = () => {
   );
 };
 
-const wiseOptions = [
-  {
-    text: "Client Wise",
-    value: "clientwise",
-  },
-  {
-    text: "Date Wise",
-    value: "datewise",
-  },
-  {
-    text: "Work Order Wise",
-    value: "wo_sfg_wise",
-  },
-];
+// const wiseOptions = [
+//   {
+//     text: "Client Wise",
+//     value: "clientwise",
+//   },
+//   {
+//     text: "Date Wise",
+//     value: "datewise",
+//   },
+//   {
+//     text: "Work Order Wise",
+//     value: "wo_sfg_wise",
+//   },
+// ];
 
 export default WoReport;

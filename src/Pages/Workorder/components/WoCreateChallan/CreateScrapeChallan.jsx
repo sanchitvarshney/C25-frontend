@@ -1,17 +1,10 @@
 import {
-  Button,
   Col,
-  Drawer,
   Form,
   Input,
   Row,
-  Space,
-  Typography,
   Modal,
   Card,
-  Radio,
-  Divider,
-  //
 } from "antd";
 import  { useEffect, useState } from "react";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -25,22 +18,19 @@ import SingleDatePicker from "../../../../Components/SingleDatePicker";
 import {
   getComponentDetail,
   getComponentOptions,
-  getProductsOptions,
 } from "../../../../api/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const CreateScrapeChallan = () => {
   const { showToast } = useToast();
-  const [uplaodType, setUploadType] = useState("table");
   const [addOptions, setAddOptions] = useState([]);
   const [ClientBranchOptions, setclientBranchOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [clientData, setClientData] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [clientcode, setClientCode] = useState("");
-  const [searchParams, setSearchParams] = useSearchParams();
   const [editScrapeChallan, setEditScrapeChallan] = useState("");
   const [challanId, setChallanID] = useState("");
 
@@ -68,18 +58,18 @@ const CreateScrapeChallan = () => {
       },
     ],
   };
-  var challan = searchParams.get("challan");
+  var challan = "challan";
 
   const navigate = useNavigate();
-  const { executeFun, loading: loading1 } = useApi();
-  const getComponent = async (searchTerm) => {
-    const response = await executeFun(
-      () => getProductsOptions(searchTerm, true),
-      "select"
-    );
-    let { data } = response;
-    setAsyncOptions(data);
-  };
+  const { executeFun } = useApi();
+  // const getComponent = async (searchTerm) => {
+  //   const response = await executeFun(
+  //     () => getProductsOptions(searchTerm, true),
+  //     "select"
+  //   );
+  //   let { data } = response;
+  //   setAsyncOptions(data);
+  // };
   //   get client options -->
   const getClientOptions = async (inputValue) => {
     try {
@@ -182,12 +172,9 @@ const CreateScrapeChallan = () => {
     setAsyncOptions(arr);
   };
   const calculation = (fieldName, watchValues) => {
-    const { qty, rate, gstRate } = watchValues;
+    const { qty, rate } = watchValues;
     const value = +Number(qty ?? 0) * +Number(rate ?? 0).toFixed(3);
-    const gstAmount = (+Number(value).toFixed(3) * +Number(gstRate)) / 100;
-    let cgst = 0,
-      igst = 0,
-      sgst = 0;
+
 
     // if (gstType === "L" && gstRate) {
     //   cgst = gstAmount / 2;
@@ -326,7 +313,6 @@ const CreateScrapeChallan = () => {
         editPayload
       );
      
-      let { data } = response;
       if (response.success ) {
         showToast(response.message, "success");
         challanForm.resetFields();
@@ -457,8 +443,8 @@ const CreateScrapeChallan = () => {
                       placeholder="Select Client Branch!"
                     />
                   </Form.Item>
-                  {uplaodType === "table" && (
-                    <>
+             
+      
                       <Row gutter={6}>
                         <Col span={12}>
                           <Form.Item name="nature" label="E-way Bill Number">
@@ -511,8 +497,8 @@ const CreateScrapeChallan = () => {
                           />
                         </Form.Item>
                       )}
-                    </>
-                  )}
+               
+           
                 </Card>
               </Col>
 
@@ -688,14 +674,14 @@ const listRules = {
 export default CreateScrapeChallan;
 
 const columns = ({
-  loading,
+  // loading,
   asyncOptions,
   setAsyncOptions,
   handleFetchComponentOptions,
   handleFetchComponentDetails,
   // handleFetchPreviousRate,
   // compareRates,
-  challanForm,
+  // challanForm,
   // currencies,
   // setShowCurrenncy,
 }) => [
@@ -724,21 +710,21 @@ const columns = ({
     name: "qty",
     width: 100,
     // renderCell: ({ row }) => ,
-    field: (_, index) => <Input type="number" />,
+    field: () => <Input type="number" />,
   },
   {
     headerName: "Rate",
     name: "rate",
     width: 100,
     // renderCell: ({ row }) => ,
-    field: (_, index) => <Input type="number" />,
+    field: () => <Input type="number" />,
   },
   {
     headerName: "Value",
     name: "value",
     width: 100,
     // renderCell: ({ row }) => ,
-    field: (_, index) => <Input type="number" />,
+    field: () => <Input type="number" />,
   },
   // {
   //   headerName: "Rate",

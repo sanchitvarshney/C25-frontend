@@ -68,6 +68,7 @@ const Tasks = () => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -90,6 +91,7 @@ const Tasks = () => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Card, Col, Form, Radio, Row, Space } from "antd";
+import { useState } from "react";
+import { Card, Col, Form, Row } from "antd";
 import useLoading from "../../../../hooks/useLoading";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -34,6 +34,7 @@ const ProccessedMrRequest = () => {
         setAsyncOptions(arr);
       }
     } catch (error) {
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading("select", false);
     }
@@ -66,6 +67,7 @@ const ProccessedMrRequest = () => {
         showToast(response?.message, "error");
       }
     } catch (error) {
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading("fetch", false);
     }
@@ -81,6 +83,7 @@ const ProccessedMrRequest = () => {
     getActions: ({ row }) => [
       // VIEW Icon
       <GridActionsCellItem
+      key={"view"}
         showInMenu
         // disabled={disabled}
         label="View"

@@ -1,12 +1,7 @@
-import { Card, Form, Input, Col, Row } from "antd";
-import React, { useState, useEffect } from "react";
-import { imsAxios } from "../../../../axiosInterceptor";
+import { Card, Form, Input, Col } from "antd"
 import MySelect from "../../../../Components/MySelect";
 
-const BillingDetailsCard = ({ form, code, setaddid, addoptions }) => {
-  const [shippingaddressoptions, setShippingAddressOptions] = useState([]);
-  const [shippingaddressdata, setShippingAddData] = useState([]);
-  const [loading, setLoading] = useState([]);
+const BillingDetailsCard = ({ form, setaddid, addoptions }) => {
 
   const handleaddress = (e) => {
     setaddid(true);

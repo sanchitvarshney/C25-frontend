@@ -1,5 +1,4 @@
 import {
-  Button,
   Col,
   Divider,
   Form,
@@ -9,14 +8,12 @@ import {
   Space,
   Typography,
 } from "antd";
-import React from "react";
 import { useState, useEffect } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyButton from "../../../../Components/MyButton";
 import MySelect from "../../../../Components/MySelect";
 import { useToast } from "../../../../hooks/useToast.js";
-import TaskLogs from "../../TaskLogs";
-
+import Loading from "../../../../Components/Loading";
 const DetailsModal = ({
   show,
   hide,
@@ -28,7 +25,6 @@ const DetailsModal = ({
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("PENDING");
-  const [showLogs, setShowLogs] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
 
@@ -60,6 +56,7 @@ const DetailsModal = ({
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -77,6 +74,7 @@ const DetailsModal = ({
         }
       }
     } catch (error) {
+      showToast (error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -91,6 +89,7 @@ const DetailsModal = ({
 
       setShowStatusConfirm(payload);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -116,6 +115,7 @@ const DetailsModal = ({
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -161,6 +161,7 @@ const DetailsModal = ({
         );
       }}
     >
+      {loading === "fetch" && <Loading />}
       <Row gutter={[6, 6]}>
         <Divider />
         <Col span={12}>

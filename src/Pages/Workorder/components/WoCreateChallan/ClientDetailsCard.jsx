@@ -9,18 +9,12 @@ import {
   Space,
   Typography,
 } from "antd";
-import React from "react";
-import MySelect from "../../../../Components/MySelect";
 import UploadFile from "../../../Master/Bom/CreateBom/UploadFile";
 ///
 const ClientDetailsCard = ({
-  setUploadType,
   uplaodType,
   uploadTypeOptions,
   toggleInputType,
-  submitHandler,
-  validateHandler,
-  stage,
   previewuploaData,
   rtnchallan,
 }) => {
@@ -101,9 +95,9 @@ const ClientDetailsCard = ({
         {uplaodType === "file" && (
           <Col span={24} style={{ marginBottom: 10 }}>
             <Typography.Text type="secondary" strong>
-              Note: <br />
+              {`Note: ${<br />}
               Kindly don't do any changes with columns of the sample file, it
-              can lead to errors.
+              can lead to errors.`}
             </Typography.Text>
           </Col>
         )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
   Button,
@@ -9,7 +9,6 @@ import {
   Divider,
   Drawer,
   Space,
-  InputNumber,
   Popconfirm,
 } from "antd";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -38,7 +37,7 @@ const AddClientModal = ({ setOpen, open }) => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [files, setFiles] = useState([]);
+  // const [files, setFiles] = useState([]);
 
   const [addClientForm] = Form.useForm();
 
@@ -62,7 +61,7 @@ const AddClientModal = ({ setOpen, open }) => {
       });
       setSelectLoading(false);
       let arr = [];
-      arr = data.map((d) => {
+      arr = response?.data?.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
@@ -137,7 +136,7 @@ const AddClientModal = ({ setOpen, open }) => {
     };
 
     addClientForm.setFieldsValue(obj);
-    setFiles([]);
+    // setFiles([]);
   };
 
   useEffect(() => {

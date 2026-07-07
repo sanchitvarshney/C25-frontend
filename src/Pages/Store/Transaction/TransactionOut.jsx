@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useSelector, useDispatch } from "react-redux/es/exports";
+import { useState, useEffect, useCallback } from "react";
+import { useSelector } from "react-redux/es/exports";
 import { Button, Col, Popover, Row, Space } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
-import { MdOutlineDownloadForOffline } from "react-icons/md";
 import MyDatePicker from "../../../Components/MyDatePicker";
-import { setNotifications } from "../../../Features/loginSlice/loginSlice";
 import socket from "../../../Components/socket";
 import {
   downloadCSV,
-  downloadCSVCustomColumns,
 } from "../../../Components/exportToCSV";
 import { imsAxios } from "../../../axiosInterceptor";
 import { DownloadOutlined } from "@ant-design/icons";
@@ -34,10 +31,10 @@ const TransactionOut = () => {
   const [loading, setLoading] = useState(false);
   const [datee, setDatee] = useState("");
   const [dateData, setDateData] = useState([]);
-  const [fetchData, setFetchData] = useState([]);
-  const [search, setSearch] = useState("");
+  // const [fetchData, setFetchData] = useState([]);
+  // const [search, setSearch] = useState("");
   const [wise, setWise] = useState("ISSUE");
-  const { user, notifications } = useSelector((state) => state.login);
+  const { user } = useSelector((state) => state.login);
 
   const content1 = (row) => (
     <div>
@@ -128,12 +125,12 @@ const TransactionOut = () => {
     }
   };
 
-  useEffect(() => {
-    const ress = dateData.filter((a) => {
-      return a.PART.toLowerCase().match(search.toLowerCase());
-    });
-    setFetchData(ress);
-  }, [search]);
+  // useEffect(() => {
+  //   const ress = dateData.filter((a) => {
+  //     return a.PART.toLowerCase().match(search.toLowerCase());
+  //   });
+  //   setFetchData(ress);
+  // }, [search]);
 
   // console.log(dateData);
   return (

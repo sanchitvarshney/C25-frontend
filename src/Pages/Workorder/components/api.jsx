@@ -147,7 +147,7 @@ const getWorkOrderShipment = async (wise, searchInput) => {
       return arr;
     } else {
       const showToast = getGlobalToast();
-      if (showToast) showToast(data.message?.msg || data.message, "error");
+      if (showToast) showToast(response.message?.msg || response.message, "error");
       return [];
     }
 
@@ -162,8 +162,8 @@ const getWorkOrderRC = async (wise, searchInput) => {
       data: searchInput,
     }
   );
-  if (data) {
-    if (data.success) {
+
+    if (response.success) {
       const arr = response.data.map((row, index) => ({
         id: index + 1,
         billingId: row.billing_id,
@@ -192,10 +192,10 @@ const getWorkOrderRC = async (wise, searchInput) => {
       return arr;
     } else {
       const showToast = getGlobalToast();
-      if (showToast) showToast(data.message?.msg || data.message, "error");
+      if (showToast) showToast(response.message?.msg || response.message, "error");
       return [];
     }
-  }
+
 };
 const getdetailsOfReturnChallan = async (shipWoid) => {
   const response = await imsAxios.post("/wo_challan/fetchWOShipmentDetails", {
@@ -330,15 +330,14 @@ const createWorkOrderShipmentChallan = async (payload) => {
     "/wo_challan/createDeliveryChallan",
     payload
   );
-  console.log("data", data);
   const showToast = getGlobalToast();
-  if (data) {
-    if (data.success) {
+ 
+    if (response.success) {
       if (showToast) showToast(response.message, "success");
     } else {
-      if (showToast) showToast(data.message?.msg || data.message, "error");
+      if (showToast) showToast(response.message?.msg || response.message, "error");
     }
-  }
+
 };
 
 const printreturnChallan = async (payload) => {
@@ -346,8 +345,7 @@ const printreturnChallan = async (payload) => {
     "/wo_challan/printWorkorderReturnChallan",
     payload
   );
-  console.log("data", data);
-  return data;
+  return response;
 };
 const createWorkOrderReturnChallan = async (payload) => {
   const response = await imsAxios.post(
@@ -370,7 +368,7 @@ const getWorkOrderForMIN = async (id, woId, getComponents) => {
     getComponents: getComponents,
   });
   if (response?.success) {
-    const { components, details } = response?.data;
+    const { components, details } = response;
     const arr = components.map((row, index) => ({
       index: index + 1,
       componentKey: row.component_key,
