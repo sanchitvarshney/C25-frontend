@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { Button, Card, Col, Row, Space, Typography } from "antd";
+import {  Card, Col, Row, Space, Typography } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
 import DetailsModal from "../Admin/View/DetailsModal";
-import TransferModal from "../TransferModal";
 import TaskLogs from "../TaskLogs";
+import { useToast } from "../../../hooks/useToast.js";
+import Loading from "../../../Components/Loading.jsx";
 
 const UserTasks = () => {
+  const {showToast} = useToast();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState("fetch");
   const [showDetailsModal, setShowDetailModal] = useState(false);
@@ -15,8 +17,10 @@ const UserTasks = () => {
 
   const getTasks = async () => {
     try {
+      setLoading("fetch");
       const response = await imsAxios.get("/taskmaster/fetchTaskByName");
-      const { data } = response;
+  
+    if(response.success){
       const arr = response.data.map((task) => ({
         taskId: task.task_id,
         status: task.status,
@@ -29,7 +33,11 @@ const UserTasks = () => {
       }));
 
       setTasks(arr);
+      setLoading( false);
+    }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
+      
     } finally {
       setLoading(false);
     }
@@ -40,10 +48,11 @@ const UserTasks = () => {
   }, []);
   return (
     <Row style={{ height: "90%" }}>
+      {loading === "fetch" && <Loading />}
       <Col span={18}>
         <Row gutter={6}>
           {tasks.map((task, index) => (
-            <Col span={6}>
+            <Col span={6} key={task?.key || index}>
               <TaskCard
                 key={index}
                 task={task}
@@ -74,7 +83,6 @@ export default UserTasks;
 const TaskCard = ({
   task,
   setShowDetailModal,
-  setShowTransferModal,
   setShowLogs,
 }) => {
   return (

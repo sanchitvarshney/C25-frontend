@@ -12,7 +12,7 @@ import {
   downloadAllViewChallan,
   fetchReturnChallanDetails,
   getClientOptions,
-  getReturnRowsInViewChallan,
+  // getReturnRowsInViewChallan,
   getViewChallan,
   printreturnChallan,
 } from "./components/api";
@@ -36,7 +36,6 @@ const WoViewChallan = () => {
   const [searchInput, setSearchInput] = useState("");
   const [detaildata, setDetailData] = useState("");
   const [challantype, setchallantype] = useState(challanoptions[0].value);
-  const [cancelRemark, setCancelRemark] = useState("");
   const [allChallanType, setAllChallanType] = useState("");
   const [viewChallan, setViewChallan] = useState(false);
   const [viewChallanData, setViewChallanData] = useState([]);
@@ -181,6 +180,7 @@ const WoViewChallan = () => {
       challantype === "Scrape Challan"
         ? [
             <GridActionsCellItem
+            key={"view"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -191,6 +191,7 @@ const WoViewChallan = () => {
               label="View"
             />,
             <GridActionsCellItem
+            key={"edit"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -201,6 +202,7 @@ const WoViewChallan = () => {
               label="Edit"
             />,
             <GridActionsCellItem
+            key={"print"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -210,6 +212,7 @@ const WoViewChallan = () => {
               label="Print"
             />,
             <GridActionsCellItem
+            key={"download"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -219,6 +222,7 @@ const WoViewChallan = () => {
               label="Download"
             />,
             <GridActionsCellItem
+            key={"cancel"}
               showInMenu
               // disabled={loading
               onClick={() => {
@@ -242,6 +246,7 @@ const WoViewChallan = () => {
         : challantype === "RM Challan"
         ? [
             <GridActionsCellItem
+            key={"view"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -253,6 +258,18 @@ const WoViewChallan = () => {
               label="View"
             />,
             <GridActionsCellItem
+            key={"edit"}
+              showInMenu
+              // disabled={loading}
+              onClick={() => {
+                // setViewChallan/(row);
+                setScrapeChallan(row.challan_id);
+                // printwoChallan(row);
+              }}
+              label="Edit"
+            />,
+            <GridActionsCellItem
+            key={"print"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -262,6 +279,7 @@ const WoViewChallan = () => {
               label="Print"
             />,
             <GridActionsCellItem
+            key={"download"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -286,6 +304,7 @@ const WoViewChallan = () => {
         : row.challan_type == "scrape"
         ? [
             <GridActionsCellItem
+              key={"view"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -296,6 +315,7 @@ const WoViewChallan = () => {
               label="View"
             />,
             <GridActionsCellItem
+              key={"edit"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -306,6 +326,7 @@ const WoViewChallan = () => {
               label="Edit"
             />,
             <GridActionsCellItem
+              key={"print"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -315,6 +336,7 @@ const WoViewChallan = () => {
               label="Print"
             />,
             <GridActionsCellItem
+              key={"download"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -324,6 +346,8 @@ const WoViewChallan = () => {
               label="Download"
             />,
             <GridActionsCellItem
+
+              key={"cancel"}
               showInMenu
               // disabled={loading
               onClick={() => {
@@ -346,6 +370,7 @@ const WoViewChallan = () => {
           ]
         : [
             <GridActionsCellItem
+              key={"view"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -357,6 +382,7 @@ const WoViewChallan = () => {
             />,
 
             <GridActionsCellItem
+              key={"print"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -366,6 +392,7 @@ const WoViewChallan = () => {
               label="Print"
             />,
             <GridActionsCellItem
+              key={"download"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -408,56 +435,56 @@ const WoViewChallan = () => {
     }
     setLoading(false);
   };
-  const getReturnRows = async () => {
-    setRows([]);
-    setLoading("fetch");
-    let arr = await getReturnRowsInViewChallan(wise, searchInput);
+  // const getReturnRows = async () => {
+  //   setRows([]);
+  //   setLoading("fetch");
+  //   let arr = await getReturnRowsInViewChallan(wise, searchInput);
 
-    setRows(arr);
-    setLoading(false);
-  };
-  const getDeliveryRows = async () => {
-    setLoading("fetch");
-    const response = await imsAxios.post("/wo_challan/fetchDeliveryChallan", {
-      wise: wise,
-      data: searchInput,
-    });
-    if (response.success) {
-      const arr = response.data.map((row, index) => ({
-        id: index + 1,
-        // ...rows,
-        //  date: row.received_challan_rm_dt,
-        client: row.client,
-        //  //  requiredQty: row.wo_order_qty,
-        //  //  challanId: row.challan_id,
-        //  //  sku: row.sku_code,
-        //  //  productId: row.sku,
-        //  //  product: row.wo_sku_name,
-        //  //  transactionId: row.wo_transaction_id,
-        //  //  challantype: challantype,
-        //  //  clientCode: row.client_code,
-        //  //  shipaddress: row.shippingaddress,
-        //  //  billaddress: row.billingaddress,
-        //  //  clientaddress: row.clientaddress,
+  //   setRows(arr);
+  //   setLoading(false);
+  // };
+  // const getDeliveryRows = async () => {
+  //   setLoading("fetch");
+  //   const response = await imsAxios.post("/wo_challan/fetchDeliveryChallan", {
+  //     wise: wise,
+  //     data: searchInput,
+  //   });
+  //   if (response.success) {
+  //     const arr = response.data.map((row, index) => ({
+  //       id: index + 1,
+  //       // ...rows,
+  //       //  date: row.received_challan_rm_dt,
+  //       client: row.client,
+  //       //  //  requiredQty: row.wo_order_qty,
+  //       //  //  challanId: row.challan_id,
+  //       //  //  sku: row.sku_code,
+  //       //  //  productId: row.sku,
+  //       //  //  product: row.wo_sku_name,
+  //       //  //  transactionId: row.wo_transaction_id,
+  //       //  //  challantype: challantype,
+  //       //  //  clientCode: row.client_code,
+  //       //  //  shipaddress: row.shippingaddress,
+  //       //  //  billaddress: row.billingaddress,
+  //       //  //  clientaddress: row.clientaddress,
 
-        delivery_challan_dt: row.delivery_challan_dt,
-        client_code: row.client_code,
-        clientaddress: row.clientaddress,
-        billingaddress: row.billingaddress,
-        shippingaddress: row.shippingaddress,
-        challan_id: row.challan_id,
-        //  challan_id.row,
-        //  date: row.received_challan_rm_dt,
-      }));
-      setLoading(false);
-      setRows(arr);
-    } else {
-      showToast(response.message?.msg || response.message, "error");
+  //       delivery_challan_dt: row.delivery_challan_dt,
+  //       client_code: row.client_code,
+  //       clientaddress: row.clientaddress,
+  //       billingaddress: row.billingaddress,
+  //       shippingaddress: row.shippingaddress,
+  //       challan_id: row.challan_id,
+  //       //  challan_id.row,
+  //       //  date: row.received_challan_rm_dt,
+  //     }));
+  //     setLoading(false);
+  //     setRows(arr);
+  //   } else {
+  //     showToast(response.message?.msg || response.message, "error");
 
-      setLoading(false);
-    }
-    setLoading(false);
-  };
+  //     setLoading(false);
+  //   }
+  //   setLoading(false);
+  // };
   // console.log("allChallanType", allChallanType);
   const handleClientOptions = async (search) => {
     try {
@@ -465,6 +492,7 @@ const WoViewChallan = () => {
       const arr = await getClientOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -475,7 +503,6 @@ const WoViewChallan = () => {
     let challantype = row.challan_type;
     setAllChallanType(row.challan_type);
     let response;
-    let arr;
     if (challantype === "RM Challan" || challantype == "return") {
       setLoading("fetch");
 
@@ -528,10 +555,7 @@ const WoViewChallan = () => {
       setSearchInput("");
     }
   }, [wise]);
-  useEffect(() => {
-    if (viewChallan) {
-    }
-  }, [viewChallan]);
+
 
   const colms = [
     {
@@ -658,7 +682,6 @@ const WoViewChallan = () => {
   }, [challantype]);
   useEffect(() => {
     if (allChallanType) {
-      let arr = [];
       if (allChallanType) {
         console.log("here");
         setViewChallanData([]);
@@ -832,88 +855,88 @@ const wiseOptions = [
   //   value: "wo_transaction_wise",
   // },
 ];
-const typeOptions = [
-  {
-    text: "Delivery Challan",
-    value: "delivery",
-  },
-  {
-    text: "Return Challan",
-    value: "return",
-  },
-];
-const scrapeColumns = [
-  {
-    headerName: "#",
-    field: "id",
-    width: 30,
-  },
-  {
-    headerName: "Challan Date",
-    field: "challan_dt",
-    width: 100,
-  },
-  {
-    headerName: "Challan ID",
-    field: "challan_id",
-    minWidth: 150,
-    renderCell: ({ row }) => (
-      <ToolTipEllipses text={row.challan_id} copy={true} />
-    ),
-  },
-  {
-    headerName: "Client",
-    field: "client",
-    minWidth: 180,
-    flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.client} />,
-  },
-  {
-    headerName: "Client Code",
-    field: "client_code",
-    minWidth: 100,
-    flex: 1,
-  },
-  {
-    headerName: "Client Address",
-    field: "clientaddress",
-    minWidth: 150,
-    flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.clientaddress} />,
-  },
-  {
-    headerName: "Billing Address",
-    field: "billingaddress",
-    minWidth: 150,
-    flex: 1,
+// const typeOptions = [
+//   {
+//     text: "Delivery Challan",
+//     value: "delivery",
+//   },
+//   {
+//     text: "Return Challan",
+//     value: "return",
+//   },
+// ];
+// const scrapeColumns = [
+//   {
+//     headerName: "#",
+//     field: "id",
+//     width: 30,
+//   },
+//   {
+//     headerName: "Challan Date",
+//     field: "challan_dt",
+//     width: 100,
+//   },
+//   {
+//     headerName: "Challan ID",
+//     field: "challan_id",
+//     minWidth: 150,
+//     renderCell: ({ row }) => (
+//       <ToolTipEllipses text={row.challan_id} copy={true} />
+//     ),
+//   },
+//   {
+//     headerName: "Client",
+//     field: "client",
+//     minWidth: 180,
+//     flex: 1,
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.client} />,
+//   },
+//   {
+//     headerName: "Client Code",
+//     field: "client_code",
+//     minWidth: 100,
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Client Address",
+//     field: "clientaddress",
+//     minWidth: 150,
+//     flex: 1,
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.clientaddress} />,
+//   },
+//   {
+//     headerName: "Billing Address",
+//     field: "billingaddress",
+//     minWidth: 150,
+//     flex: 1,
 
-    renderCell: ({ row }) => <ToolTipEllipses text={row.billingaddress} />,
-  },
-  {
-    headerName: "Shipping Address",
-    field: "shippingaddress",
-    minWidth: 150,
-    flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.shippingaddress} />,
-  },
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.billingaddress} />,
+//   },
+//   {
+//     headerName: "Shipping Address",
+//     field: "shippingaddress",
+//     minWidth: 150,
+//     flex: 1,
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.shippingaddress} />,
+//   },
 
-  // {
-  //   headerName: "Product",
-  //   field: "product",
-  //   minWidth: 250,
-  //   flex: 1,
-  // },
-  // {
-  //   headerName: "SKU",
-  //   field: "sku",
-  //   width: 150,
-  // },
-  // {
-  //   headerName: "Qty",
-  //   field: "requiredQty",
-  //   width: 150,
-  // },
-];
+//   // {
+//   //   headerName: "Product",
+//   //   field: "product",
+//   //   minWidth: 250,
+//   //   flex: 1,
+//   // },
+//   // {
+//   //   headerName: "SKU",
+//   //   field: "sku",
+//   //   width: 150,
+//   // },
+//   // {
+//   //   headerName: "Qty",
+//   //   field: "requiredQty",
+//   //   width: 150,
+//   // },
+// ];
 const allColm = [
   {
     headerName: "#",
@@ -1005,61 +1028,61 @@ const allColm = [
   //   width: 150,
   // },
 ];
-const columns = [
-  {
-    headerName: "#",
-    field: "id",
-    width: 30,
-  },
-  {
-    headerName: "Challan Date",
-    field: "delivery_challan_dt",
-    width: 100,
-  },
-  {
-    headerName: "Challan ID",
-    field: "challan_id",
-    minWidth: 150,
-    renderCell: ({ row }) => (
-      <ToolTipEllipses text={row.challan_id} copy={true} />
-    ),
-  },
-  {
-    headerName: "Client",
-    field: "client",
-    minWidth: 180,
-    flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.client} />,
-  },
-  {
-    headerName: "Client Code",
-    field: "client_code",
-    minWidth: 100,
-    flex: 1,
-  },
-  {
-    headerName: "Client Address",
-    field: "clientaddress",
-    minWidth: 150,
-    flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.clientaddress} />,
-  },
-  {
-    headerName: "Billing Address",
-    field: "billingaddress",
-    minWidth: 150,
-    flex: 1,
+// const columns = [
+//   {
+//     headerName: "#",
+//     field: "id",
+//     width: 30,
+//   },
+//   {
+//     headerName: "Challan Date",
+//     field: "delivery_challan_dt",
+//     width: 100,
+//   },
+//   {
+//     headerName: "Challan ID",
+//     field: "challan_id",
+//     minWidth: 150,
+//     renderCell: ({ row }) => (
+//       <ToolTipEllipses text={row.challan_id} copy={true} />
+//     ),
+//   },
+//   {
+//     headerName: "Client",
+//     field: "client",
+//     minWidth: 180,
+//     flex: 1,
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.client} />,
+//   },
+//   {
+//     headerName: "Client Code",
+//     field: "client_code",
+//     minWidth: 100,
+//     flex: 1,
+//   },
+//   {
+//     headerName: "Client Address",
+//     field: "clientaddress",
+//     minWidth: 150,
+//     flex: 1,
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.clientaddress} />,
+//   },
+//   {
+//     headerName: "Billing Address",
+//     field: "billingaddress",
+//     minWidth: 150,
+//     flex: 1,
 
-    renderCell: ({ row }) => <ToolTipEllipses text={row.billingaddress} />,
-  },
-  {
-    headerName: "Shipping Address",
-    field: "shippingaddress",
-    minWidth: 150,
-    flex: 1,
-    renderCell: ({ row }) => <ToolTipEllipses text={row.shippingaddress} />,
-  },
-];
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.billingaddress} />,
+//   },
+//   {
+//     headerName: "Shipping Address",
+//     field: "shippingaddress",
+//     minWidth: 150,
+//     flex: 1,
+//     renderCell: ({ row }) => <ToolTipEllipses text={row.shippingaddress} />,
+//   },
+// ];
 
 const challanoptions = [
   { text: "All", value: "All" },

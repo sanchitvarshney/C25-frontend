@@ -1,4 +1,4 @@
-import React from "react";
+
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 import MyDataTable from "../../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
@@ -6,9 +6,7 @@ import { GridActionsCellItem } from "@mui/x-data-grid";
 const ViewTasks = ({
   tasks,
   setSetshowDetailsModal,
-  setShowTransferModal,
   loading,
-  showLogs,
   setShowLogs,
 }) => {
   const actionColumns = [
@@ -18,6 +16,7 @@ const ViewTasks = ({
       width: 10,
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           // disabled={disabled}
           label="View"
@@ -30,6 +29,7 @@ const ViewTasks = ({
         //   onClick={() => setShowTransferModal({ taskId: row.taskId })}
         // />,
         <GridActionsCellItem
+        key={"logs"}
           showInMenu
           // disabled={disabled}
           label="Logs"

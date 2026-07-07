@@ -1,5 +1,5 @@
-import axios from "axios";
-import React, { useState } from "react";
+
+import  { useState } from "react";
 import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import {
   asyncSelectComponent,
@@ -34,7 +34,6 @@ export default function AddDCComponents({
     },
   ]);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);

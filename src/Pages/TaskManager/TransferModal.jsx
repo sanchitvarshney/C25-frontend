@@ -32,6 +32,7 @@ const TransferModal = ({ show, hide }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -55,6 +56,7 @@ const TransferModal = ({ show, hide }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -85,6 +87,7 @@ const TransferModal = ({ show, hide }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

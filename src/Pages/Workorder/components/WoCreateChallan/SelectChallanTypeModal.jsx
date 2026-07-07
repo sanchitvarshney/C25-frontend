@@ -1,12 +1,10 @@
 import { Row, Col, Modal } from "antd";
-import React from "react";
 import MySelect from "../../../../Components/MySelect";
 import { useState } from "react";
 import { useEffect } from "react";
 
 const SelectChallanTypeModal = ({
   typeOptions,
-  type,
   setType,
   show,
   close,

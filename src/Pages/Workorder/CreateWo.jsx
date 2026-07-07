@@ -9,7 +9,7 @@ import {
   Row,
   Typography,
 } from "antd";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import MySelect from "../../Components/MySelect";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import NavFooter from "../../Components/NavFooter";
@@ -78,7 +78,7 @@ const newPurchaseOrder = {
   description: "",
 };
 
-export default function CreateWO({}) {
+export default function CreateWO() {
   // initialize loading state
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
