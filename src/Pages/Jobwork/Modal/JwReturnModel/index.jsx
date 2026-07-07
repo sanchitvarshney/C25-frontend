@@ -423,7 +423,7 @@ const JwReturnModel = ({ show, close }) => {
           },
         }}
       >
-        {loading("fetch") && <Loading />}
+        {loading("fetch") && <Loading  isDrawerLoading/>}
         <Form form={form} layout="vertical" style={{ height: "100%" }}>
           <Row style={{ height: "90%", overflow: "hidden" }} gutter={6}>
             <Col span={5} style={{ height: "100%", overflowY: "scroll" }}>
@@ -500,7 +500,7 @@ const JwReturnModel = ({ show, close }) => {
           },
         }}
       >
-        {loading("fetch") && <Loading />}
+        {loading("fetch") && <Loading isDrawerLoading/>}
         <Row
           style={{
             height: "95%",
@@ -587,7 +587,7 @@ const JwReturnModel = ({ show, close }) => {
           </Button>,
         ]}
       >
-        {loading("fetch") && <Loading />}
+        {loading("fetch") && <Loading isDrawerLoading/>}
         <Card>
           <Form
             // initialValues={initialValues}

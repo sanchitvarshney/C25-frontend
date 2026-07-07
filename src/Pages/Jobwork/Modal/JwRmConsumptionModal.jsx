@@ -459,11 +459,9 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
     },
   ];
   const prev = async () => {
-    getFetchData();
-    // getLocation();
-    // setEWayBill("");
-    setShowBomList(false);
+   setShowBomList(false);
     setBomList([]);
+    setEditModal(false);
   };
 
   const saveFunction = async (fetchAttachment) => {

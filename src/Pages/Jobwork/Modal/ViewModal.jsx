@@ -162,7 +162,7 @@ const ViewModal = ({ viewModalOpen, setViewModalOpen }) => {
               </>
             }
           >
-            {loading && <Loading />}
+            {loading && <Loading isDrawerLoading/>}
             <Col span={24}>
               <Row gutter={[5, 8]}>
                 <Col span={6} style={{ fontSize: "12px", fontWeight: "bold" }}>
