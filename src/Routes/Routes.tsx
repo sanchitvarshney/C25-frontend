@@ -1368,7 +1368,7 @@ const Routes = [
     main: () => <CreateBranchTransferChallan />,
   },
   {
-    path: "/warehouse/part-code-conversion",
+    path: "/warehouse/sf-part-code-conversion",
     main: () => <PartCodeConversion />,
   },
   // to be added

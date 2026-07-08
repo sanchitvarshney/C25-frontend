@@ -48,6 +48,11 @@ const RMPartCodeConversion = () => {
     addComponentForm.setFieldValue("locationOut", locationIn ?? null);
   }, [locationIn]);
 
+  // RM: final qty must equal initial qty — drop mirrors pick, same as location
+  useEffect(() => {
+    addComponentForm.setFieldValue("qtyOut", qtyIn ?? "");
+  }, [qtyIn]);
+
   const getComponentOption = async (search) => {
     try {
       const response = await executeFun(
@@ -485,7 +490,7 @@ const RMPartCodeConversion = () => {
 
                 <Col span={6}>
                   <Form.Item
-                    label="Drop Location (same as Pick)"
+                    label="Drop Location"
                     name="locationOut"
                     rules={[
                       {
@@ -571,14 +576,17 @@ const RMPartCodeConversion = () => {
                   }}
                 >
                   <Row gap={6} style={{ height: "100%", overflow: "hidden" }}>
-                    <Col xl={5} xxl={3}></Col>
-                    <Col xl={10} xxl={14}>
+                    <Col xl={4} xxl={2}></Col>
+                    <Col xl={9} xxl={13}>
                       <Typography.Text strong>Component</Typography.Text>
                     </Col>
                     <Col span={3}>
                       <Typography.Text strong>Qty</Typography.Text>
                     </Col>
-                    <Col span={4}>
+                    <Col span={3}>
+                      <Typography.Text strong>Rate</Typography.Text>
+                    </Col>
+                    <Col span={3}>
                       <Typography.Text strong>Location</Typography.Text>
                     </Col>
                     {addedComponents.in.length === 0 && (
@@ -599,7 +607,7 @@ const RMPartCodeConversion = () => {
                       {addedComponents.in.map((component, index) => (
                         <Col span={24} key={component.id || index}>
                           <Row align="middle">
-                            <Col xl={5} xxl={3}>
+                            <Col xl={4} xxl={2}>
                               {!editingComponent && (
                                 <Space>
                                   <Button
@@ -620,7 +628,7 @@ const RMPartCodeConversion = () => {
                                 </Space>
                               )}
                             </Col>
-                            <Col xl={10} xxl={14}>
+                            <Col xl={9} xxl={13}>
                               <Typography.Text>
                                 {component.component.label}
                               </Typography.Text>
@@ -628,7 +636,12 @@ const RMPartCodeConversion = () => {
                             <Col span={3}>
                               <Typography.Text>{component.qty}</Typography.Text>
                             </Col>
-                            <Col span={4}>
+                            <Col span={3}>
+                              <Typography.Text>
+                                {componentRates[component.component.value] ?? "--"}
+                              </Typography.Text>
+                            </Col>
+                            <Col span={3}>
                               <Typography.Text>
                                 {component.location.label}
                               </Typography.Text>
@@ -648,14 +661,17 @@ const RMPartCodeConversion = () => {
                   bodyStyle={{ height: "95%", overflow: "auto" }}
                 >
                   <Row align="middle">
-                    <Col xl={5} xxl={3}></Col>
-                    <Col xl={10} xxl={14}>
+                    <Col xl={4} xxl={2}></Col>
+                    <Col xl={9} xxl={13}>
                       <Typography.Text strong>Component</Typography.Text>
                     </Col>
                     <Col span={3}>
                       <Typography.Text strong>Qty</Typography.Text>
                     </Col>
-                    <Col span={4}>
+                    <Col span={3}>
+                      <Typography.Text strong>Rate</Typography.Text>
+                    </Col>
+                    <Col span={3}>
                       <Typography.Text strong>Location</Typography.Text>
                     </Col>
                   </Row>
