@@ -35,6 +35,13 @@ const CreateChallanModal = ({
   setRtnChallan,
 }) => {
   const { showToast } = useToast();
+  const handleValidationError = (error) => {
+    if (error?.errorFields?.length) {
+      showToast(error.errorFields[0].errors[0], "error");
+    } else {
+      showToast(error?.message || "Some error occured", "error");
+    }
+  };
   const [challanForm] = Form.useForm();
   const [locationlist, setlocationlist] = useState([]);
   const [test, settest] = useState("");
@@ -244,7 +251,7 @@ const CreateChallanModal = ({
         challanForm.setFieldsValue(fields);
       }
     } catch (error) {
-      showToast(error, "error");
+      showToast(error?.message || "Something went wrong, Please contact administrator", "error");
     } finally {
       setLoading(false);
     }
@@ -302,7 +309,7 @@ const CreateChallanModal = ({
         setLoading(false);
       }
     } catch (error) {
-      showToast(error, "error");
+      handleValidationError(error);
     } finally {
       setLoading(false);
     }
@@ -371,7 +378,7 @@ const CreateChallanModal = ({
         setLoading(false);
       }
     } catch (error) {
-      showToast(error, "error");
+      handleValidationError(error);
     } finally {
       setLoading(false);
     }
@@ -477,11 +484,11 @@ const CreateChallanModal = ({
     close();
   };
   useEffect(() => {
-    if (rows.length > 0) {
+    if (rows?.length > 0) {
       if (!rtnchallan) {
         console.log("rows", rows);
         sumOfMinAvailableQty = 0;
-        let getRowsQty = rows.filter((b) => b.out_qty > 0);
+        let getRowsQty = rows?.filter((b) => b.out_qty > 0);
         for (const item of getRowsQty) {
           sumOfMinAvailableQty += parseInt(item.out_qty);
         }
@@ -547,7 +554,7 @@ const CreateChallanModal = ({
         partCode: "row.c_part_no",
         id: v4(),
       };
-      setRows(obj);
+      setRows([obj]);
       challanForm.setFieldValue("components", [obj]);
       getMinDetails(data);
     }
@@ -670,7 +677,7 @@ const CreateChallanModal = ({
       challanForm.setFieldsValue(fields);
       setLoading(false);
     } catch (error) {
-      showToast(error, "error");
+      showToast(error?.message || "Some error occured", "error");
     } finally {
       setLoading(false);
     }
@@ -780,7 +787,7 @@ const CreateChallanModal = ({
         showToast(response.message, "error");
       }
     } catch (error) {
-      showToast(error, "error");
+      showToast(error?.message || "Some error occured", "error");
     } finally {
       setLoading(false);
     }
@@ -827,49 +834,53 @@ const CreateChallanModal = ({
     } else {
       if (editShipment === "Shipment") {
         // console.log("Min", minRows);
-        const values = await challanForm.validateFields();
-        const newpayload = {
-          shipment_id: values.components[0].shipment_id,
-          wo_id: values.components[0].woId,
-          header: {
-            billingid: values.billingid,
-            billingaddress: values.billingaddress,
-            // transaction_id: data.transactionId,
-            dispatchid: values.dispatchid,
-            dispatchaddress: values.shippingaddress,
-            dispatchfrompincode: "--",
-            dispatchfromgst: "--",
-            vehicle: values.vn,
-            clientbranch: values.components[0].clientbranchid,
-            clientaddress: values.address,
-            eway: values.nature,
-            ship_doc: values.pd,
-            other_ref: values.or,
-            challan_remark: values.components[0].challan_remark,
-          },
-          material: {
-            product: values.components[0].productKey,
-            qty: values.components[0].qty,
-            rate: values.components[0].rate,
-            picklocation: values.components[0].pickuplocation,
-            hsncode: values.components[0].hsncode,
+        try {
+          const values = await challanForm.validateFields();
+          const newpayload = {
+            shipment_id: values.components[0].shipment_id,
+            wo_id: values.components[0].woId,
+            header: {
+              billingid: values.billingid,
+              billingaddress: values.billingaddress,
+              // transaction_id: data.transactionId,
+              dispatchid: values.dispatchid,
+              dispatchaddress: values.shippingaddress,
+              dispatchfrompincode: "--",
+              dispatchfromgst: "--",
+              vehicle: values.vn,
+              clientbranch: values.components[0].clientbranchid,
+              clientaddress: values.address,
+              eway: values.nature,
+              ship_doc: values.pd,
+              other_ref: values.or,
+              challan_remark: values.components[0].challan_remark,
+            },
+            material: {
+              product: values.components[0].productKey,
+              qty: values.components[0].qty,
+              rate: values.components[0].rate,
+              picklocation: values.components[0].pickuplocation,
+              hsncode: values.components[0].hsncode,
 
-            gst_rate: values.components[0].gstRate,
-            wo_sku_desc: values.components[0].productdescription,
-            // remark: values.components[0].description,
-          },
-          min_out: {
-            id: minRows.map((e) => e.rowId),
-            comp: minRows.map((e) => e.component_key),
-            qty: minRows.map((e) => e.out_qty),
-          },
-        };
-        console.log("newpayload", newpayload);
-        console.log("values", values);
-        updateWoShipment(newpayload);
+              gst_rate: values.components[0].gstRate,
+              wo_sku_desc: values.components[0].productdescription,
+              // remark: values.components[0].description,
+            },
+            min_out: {
+              id: minRows.map((e) => e.rowId),
+              comp: minRows.map((e) => e.component_key),
+              qty: minRows.map((e) => e.out_qty),
+            },
+          };
+          console.log("newpayload", newpayload);
+          console.log("values", values);
+          updateWoShipment(newpayload);
+        } catch (error) {
+          handleValidationError(error);
+        }
       } else {
         try {
-          let a = rows.filter((b) => b.out_qty > 0);
+          let a = rows?.filter((b) => b.out_qty > 0);
        
           const values = await challanForm.validateFields();
           {
@@ -938,7 +949,7 @@ const CreateChallanModal = ({
             setLoading(false);
           }
         } catch (error) {
-          showToast(error, "error");
+          handleValidationError(error);
         } finally {
           setLoading(false);
         }
@@ -966,7 +977,7 @@ const CreateChallanModal = ({
     try {
       const values = await challanForm.validateFields();
    
-      let a = rows.filter((b) => b.out_qty > 0);
+      let a = rows?.filter((b) => b.out_qty > 0);
 
       const cddata = {
         product_id: data.productId,
@@ -1065,7 +1076,7 @@ const CreateChallanModal = ({
       }
     } catch (error) {
       // return;
-      showToast(error?.message || " Something went wrong" , "error");
+      handleValidationError(error);
     } finally {
       // return;
       setLoading(false);
