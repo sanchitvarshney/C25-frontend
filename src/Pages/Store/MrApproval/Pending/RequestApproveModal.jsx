@@ -168,33 +168,30 @@ const RequestApproveModal = ({ show, hide, getRows }) => {
     });
   };
 
-  const submitHandler = async (link, payload) => {
+ const submitHandler = async (link, payload) => {
     try {
       setLoading("submit", true);
       const response = await imsAxios.post(link, payload);
 
-      const { data } = response;
-      if (data) {
-        if (data.success) {
-          showToast(response.message, "success");
-          getRows();
-          if (componentOptions.length <= 1) {
-            hide();
-          } else {
-            getDetails(show.requestId);
-            form.resetFields();
-            setAction(null);
-          }
+      if (response.success) {
+        showToast(response.message, "success");
+        getRows();
+        if (componentOptions.length <= 1) {
+          hide();
         } else {
-          showToast(data.message?.msg || data.message, "error");
+          getDetails(show.requestId);
+          form.resetFields();
+          setAction(null);
         }
+      } else {
+        showToast(response.message?.msg || response.message, "error");
       }
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading("submit", false);
     }
   };
+  
   useEffect(() => {
     if (show) {
       getDetails(show.requestId);

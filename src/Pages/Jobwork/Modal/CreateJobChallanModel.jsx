@@ -26,6 +26,7 @@ const { TextArea } = Input;
 function CreateJobChallanModel({ challanModal, setChallanModal }) {
   const { showToast } = useToast();
   const [loadChallan, setLoadChallan] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [status, setStatus] = useState(1);
   const [vendorData, setVendorData] = useState([]);
 
@@ -76,7 +77,6 @@ function CreateJobChallanModel({ challanModal, setChallanModal }) {
       showToast(response.message, "error");
     }
   };
-
 
   const getBillingLocation = async () => {
     const response = await imsAxios.post("/backend/billingAddressList");
@@ -362,6 +362,7 @@ function CreateJobChallanModel({ challanModal, setChallanModal }) {
   };
 
   const CreateChallan = async () => {
+    setSubmitLoading(true);
     let comArray = [];
     let qtyArray = [];
     let rateArray = [];
@@ -409,9 +410,10 @@ function CreateJobChallanModel({ challanModal, setChallanModal }) {
       remark: remarkArray,
       hsncode: hsnCodeArray,
     });
-    if (response.success) {
+    setSubmitLoading(false);
+    if (response.status==="success" || response.success) {
       close();
-    } else if (!response.success) {
+    } else if (!response.success  || !response.status==="success") {
       showToast(response.message?.msg || response.message, "error");
     }
   };
@@ -428,7 +430,7 @@ function CreateJobChallanModel({ challanModal, setChallanModal }) {
         extra={
           <Space>
             {/* <CloseCircleFilled onClick={() => setChallanModal(false)} /> */}
-            <Button type="primary" onClick={CreateChallan}>
+            <Button type="primary" loading={submitLoading} onClick={CreateChallan}>
               Save
             </Button>
             <Button onClick={close}>Close</Button>
