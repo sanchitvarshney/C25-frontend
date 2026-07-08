@@ -4,7 +4,7 @@ import MyDatePicker from "../../Components/MyDatePicker.jsx";
 import MyAsyncSelect from "../../Components/MyAsyncSelect.jsx";
 import { v4 } from "uuid";
 import MyDataTable from "../../Components/MyDataTable.jsx";
-import { ArrowRightOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LoadingOutlined } from "@ant-design/icons";
 import JwRmConsumptionModal from "./Modal/JwRmConsumptionModal.jsx";
 import { imsAxios } from "../../axiosInterceptor.js";
 import useLoading from "../../hooks/useLoading.js";
@@ -19,6 +19,7 @@ const JwRmConsumption = () => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useLoading(false);
   const [editModal, setEditModal] = useState(false);
+  const [rowActionLoading, setRowActionLoading] = useState(false);
   const [datee, setDatee] = useState("");
   const [allData, setAllData] = useState({
     setType: "date",
@@ -227,7 +228,7 @@ const JwRmConsumption = () => {
       return;
     }
 
-    setLoading("fetch", true);
+    setRowActionLoading(true);
     try {
       // Execute GET request to fetch BOM data
       const response = await imsAxios.get(
@@ -237,21 +238,21 @@ const JwRmConsumption = () => {
       );
 
       if (response.success || response.data) {
+        // API can return the header/body either nested under `data`
+        // or as the top-level payload itself - handle both shapes.
+        const bomHeader = response.data?.header;
+        const bomBody =
+          response.data?.body || response.data?.data || response.data || [];
         showToast("BOM data fetched successfully", "success");
-        // Open the edit modal with the row data, including qty for BOM API call
-        setEditModal({
-          all: allData.setType,
-          row: row,
-          bomData: response.data?.header?.bom || response,
-          qty: qty, // Store qty for use in getFetchData
-        });
+        // Open the edit modal only once the BOM data is ready
+        setEditModal({ row: { header: bomHeader, body: bomBody } });
       } else {
         showToast(response.message || "Failed to fetch BOM data", "error");
       }
-      setLoading("fetch", false);
     } catch (error) {
-      setLoading("fetch", false);
       showToast(error.message || "Error fetching BOM data", "error");
+    } finally {
+      setRowActionLoading(false);
     }
   };
 
@@ -268,13 +269,21 @@ const JwRmConsumption = () => {
       type: "actions",
       headerName: "Actions",
       width: 100,
-      getActions: ({ row }) => [
-        <ArrowRightOutlined
-          key={row.id}
-          onClick={() => handleActionsClick(row)}
-          style={{ color: "#1890ff", fontSize: "15px", cursor: "pointer" }}
-        />,
-      ],
+      getActions: ({ row }) =>
+        rowActionLoading
+          ? [
+              <LoadingOutlined
+                key={row.id}
+                style={{ color: "#1890ff", fontSize: "15px" }}
+              />,
+            ]
+          : [
+              <ArrowRightOutlined
+                key={row.id}
+                onClick={() => handleActionsClick(row)}
+                style={{ color: "#1890ff", fontSize: "15px", cursor: "pointer" }}
+              />,
+            ],
     },
   ];
   return (

@@ -20,14 +20,7 @@ export default defineConfig({
     // its own inlined copy, causing "styled_default is not a function".
     dedupe: ["@emotion/react", "@emotion/styled", "react", "react-dom"],
   },
-  optimizeDeps: {
-    include: [
-      "@mui/material",
-      "@mui/material/styles",
-      "@emotion/react",
-      "@emotion/styled",
-    ],
-  },
+
   server: {
     port: 3000,
     host: true,
