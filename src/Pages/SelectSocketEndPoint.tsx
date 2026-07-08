@@ -1,19 +1,41 @@
-import { Button, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
-import AddIcon from '@mui/icons-material/Add';
+import AddIcon from "@mui/icons-material/Add";
 
 const STORAGE_KEY = "socketUrls";
 const CURRENT_SOCKET_URL_KEY = "currentSocketUrl";
 
 function mergeSocketOptions(urls: string[]) {
+  //@ts-ignore
   const envUrl = import.meta.env.VITE_REACT_APP_SOCKET_BASE_URL;
   const fromEnv = envUrl ? [String(envUrl).trim()] : [];
   return Array.from(new Set([...fromEnv, ...urls]));
 }
 
 const SelectSocketEndPoint: React.FC = () => {
-  const [urls, setUrls] = useState<string[]>(() => JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
-  const [currentUrl, setCurrentUrl] = useState<string>(() => localStorage.getItem(CURRENT_SOCKET_URL_KEY) || import.meta.env.VITE_REACT_APP_SOCKET_BASE_URL || "");
+  const [urls, setUrls] = useState<string[]>(() =>
+    JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"),
+  );
+  const [currentUrl, setCurrentUrl] = useState<string>(
+    () =>
+      localStorage.getItem(CURRENT_SOCKET_URL_KEY) ||
+    //@ts-ignore
+      import.meta.env.VITE_REACT_APP_SOCKET_BASE_URL ||
+      "",
+  );
   const [open, setOpen] = useState(false);
   const [newUrl, setNewUrl] = useState("");
 
@@ -52,11 +74,30 @@ const SelectSocketEndPoint: React.FC = () => {
 
   return (
     <>
-      <Dialog open={open} onClose={handleClose} PaperProps={{ component: "form", onSubmit: handleSaveUrl }}>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        PaperProps={{ component: "form", onSubmit: handleSaveUrl }}
+      >
         <DialogTitle>Enter Socket URL</DialogTitle>
         <DialogContent>
-          <DialogContentText>Enter your socket base URL to save and use it across the application.</DialogContentText>
-          <TextField autoFocus required margin="dense" id="socketUrl" name="socketUrl" label="Socket URL" type="url" fullWidth variant="standard" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} />
+          <DialogContentText>
+            Enter your socket base URL to save and use it across the
+            application.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            required
+            margin="dense"
+            id="socketUrl"
+            name="socketUrl"
+            label="Socket URL"
+            type="url"
+            fullWidth
+            variant="standard"
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
@@ -91,4 +132,3 @@ const SelectSocketEndPoint: React.FC = () => {
 };
 
 export default SelectSocketEndPoint;
-

@@ -617,7 +617,7 @@ const EWayBill = () => {
           <Col span={24}>
             <Row justify="end">
               <Space>
-                <MyButton variant="submit" onClick={validateHandler} />
+                <MyButton variant="submit" onClick={validateHandler} loading={loading === "submit"}/>
               </Space>
             </Row>
           </Col>

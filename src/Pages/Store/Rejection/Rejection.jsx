@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import "../../common.css";
 import { v4 } from "uuid";
-import { Button, Col, Input, Row, Select, Skeleton } from "antd";
+import { Button, Col, Input, Row, Select } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
 import { DeleteTwoTone, DeleteOutlined } from "@ant-design/icons";
@@ -17,17 +17,18 @@ const Rejection = () => {
   const [loadingRejection, setLoadingRejection] = useState(false);
   const [rejectedValue, setRejectedvalue] = useState({
     selValue: "",
+    remark: "",
   });
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [allDataComes, setAllDataComes] = useState([]);
   const [loctionData, setloctionData] = useState([]);
-  const [valueComesApi, setValueComesApi] = useState({
-    branch: "",
-    component: [],
-    quantity: [],
-    loc_to: [],
-    remark: "",
-  });
+  // const [valueComesApi, setValueComesApi] = useState({
+  //   branch: "",
+  //   component: [],
+  //   quantity: [],
+  //   loc_to: [],
+  //   remark: "",
+  // });
 
   const getRejectedList = async (e) => {
     if (e?.length > 2) {
@@ -94,7 +95,7 @@ const Rejection = () => {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "loc") {
       setAllDataComes((a) =>
@@ -106,7 +107,7 @@ const Rejection = () => {
           } else {
             return aa;
           }
-        })
+        }),
       );
     }
   };
@@ -177,7 +178,7 @@ const Rejection = () => {
       component: compArry,
       qty: qtyArry,
       loc_to: locArry,
-      remark: valueComesApi.remark,
+      remark: rejectedValue.remark,
       min_transaction: rejectedValue.selValue,
     });
 
@@ -221,14 +222,22 @@ const Rejection = () => {
         </Col>
         {allDataComes.length > 0 && (
           <Col span={8} offset={10}>
-            <TextArea placeholder="Reject Comment (Not Compulsory)" />
+            <TextArea
+              placeholder="Reject Comment (Not Compulsory)"
+              value={rejectedValue.remark}
+              onChange={(e) =>
+                setRejectedvalue((rejectedValue) => {
+                  return { ...rejectedValue, remark: e.target.value };
+                })
+              }
+            />
           </Col>
         )}
       </Row>
 
-<div style={{ height: "calc(100% - 50px)", marginTop: "10px" }}>
+      <div style={{ height: "calc(100% - 50px)", marginTop: "10px" }}>
         <MyDataTable data={allDataComes} columns={columns} loading={loading} />
-  </div>
+      </div>
 
       {allDataComes.length > 0 && (
         <Row gutter={16}>

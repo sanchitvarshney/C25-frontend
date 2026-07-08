@@ -105,10 +105,11 @@ const POAnalysis = () => {
     setLoading("print");
     const response = await imsAxios.post("/jobwork/print_jw_analysis", payload);
     setLoading(false);
-    const { data } = response;
+ 
     if (response.success) {
+         const { data } = response;
       if (action === "print") {
-        printFunction(data?.buffer);
+        printFunction(data?.buffer?.data);
       } else {
         downloadFunction(data?.buffer?.data, jwId);
       }

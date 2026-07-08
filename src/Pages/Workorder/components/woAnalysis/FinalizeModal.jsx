@@ -15,6 +15,7 @@ import Loading from "../../../../Components/Loading";
 import FormTable2 from "../../../../Components/FormTable2";
 import WODetailsCard from "./WODetailsCard";
 import ProductDetailsCard from "./ProductDetailsCard";
+import { useToast } from "../../../../hooks/useToast.js";
 
 let resetDetails = [];
 
@@ -22,6 +23,7 @@ const FinalizeModal = ({ showView, setShowView, getRows }) => {
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const { showToast } = useToast();
 
   const getDetails = async (id, woId) => {
     try {
@@ -36,7 +38,9 @@ const FinalizeModal = ({ showView, setShowView, getRows }) => {
       setDetails(details);
       form.setFieldValue("components", components);
       resetDetails = components;
-    } catch (error) {}
+    } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
+    }
   };
   const validateHandler = async () => {
     const values = await form.validateFields();
@@ -171,18 +175,3 @@ const componentsItems = () => [
     field: (row) => <Input suffix={row.unit} />,
   },
 ];
-
-const rules = {
-  docId: [
-    {
-      required: true,
-      message: "Please enter a doc ID",
-    },
-  ],
-  docDate: [
-    {
-      required: true,
-      message: "Please select document date",
-    },
-  ],
-};

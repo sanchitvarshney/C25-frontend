@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   Button,
-  Card,
   Col,
   Divider,
   Flex,
@@ -88,6 +87,7 @@ function ViewPhysical() {
     getActions: ({ row }) => [
       // show logs icon
       <GridActionsCellItem
+      key={"logs"}
         showInMenu
         // disabled={disabled}
         label={"View Logs"}

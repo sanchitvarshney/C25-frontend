@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 
 import {
   Col,
@@ -50,7 +50,7 @@ export default function CreateDC() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [billToOptions, setBillTopOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("1");
@@ -152,11 +152,11 @@ export default function CreateDC() {
   };
   // gettig billing address
   const getBillTo = async () => {
-    setSelectLoading(true);
+    // setSelectLoading(true);
     const response = await imsAxios.post("/backend/billingAddressList", {
       search: "",
     });
-    setSelectLoading(false);
+    // setSelectLoading(false);
     let arr = [];
     arr = response?.data.map((d) => {
       return { text: d.text, value: d.id };
@@ -548,7 +548,7 @@ export default function CreateDC() {
                                     // background: "red",
                                   }}
                                 >
-                                  Buyer's Order Number
+                                  {`Buyer's Order Number`}
                                 </div>
                               }
                             >

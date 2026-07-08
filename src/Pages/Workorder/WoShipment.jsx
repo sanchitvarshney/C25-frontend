@@ -1,22 +1,17 @@
 import { useState, useEffect } from "react";
-import { Col, Input, Row, Space, Button, Spin, Drawer } from "antd";
+import { Col, Input, Row, Space, Button, Drawer } from "antd";
 import MySelect from "../../Components/MySelect";
 import MyDatePicker from "../../Components/MyDatePicker";
 import MyDataTable from "../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 // import SelectChallanTypeModal from "./components/WoCreateChallan/SelectChallanTypeModal";
 // import CreateChallanModal from "./components/WoCreateChallan/CreateChallanModal";
-//
-import { CommonIcons } from "../../Components/TableActions.jsx/TableActions";
-import { downloadCSV } from "../../Components/exportToCSV";
 import ToolTipEllipses from "../../Components/ToolTipEllipses";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
-import { DataGrid } from "@mui/x-data-grid";
 import {
   createWorkOrderReturnChallan,
   createWorkOrderShipmentChallan,
   getClientOptions,
-  getWorkOrderAnalysis,
   getWorkOrderRC,
   getWorkOrderShipment,
   getdetailsOfReturnChallan,
@@ -27,12 +22,11 @@ import { useToast } from "../../hooks/useToast.js";
 import { Form, Modal } from "antd/es";
 import { imsAxios } from "../../axiosInterceptor";
 import CreateChallanModal from "./components/WoCreateChallan/CreateChallanModal";
-import CostCenter from "../Master/CostCenter";
 import MyButton from "../../Components/MyButton";
 const WoShipment = () => {
   const { showToast } = useToast();
   const [wise, setWise] = useState(wiseOptions[0].value);
-  const [showTypeSelect, setShowTypeSelect] = useState(false);
+  // const [showTypeSelect, setShowTypeSelect] = useState(false);
   const [showCreateChallanModal, setShowCreateChallanModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -70,7 +64,7 @@ const WoShipment = () => {
       },
     });
   };
-  const showCreateShipmentModal = (f) => {
+  const showCreateShipmentModal = () => {
     Modal.confirm({
       title: "Are you sure you want to create this Challan?",
       icon: <ExclamationCircleOutlined />,
@@ -177,6 +171,7 @@ const WoShipment = () => {
       challantype === "RM Challan"
         ? [
             <GridActionsCellItem
+            key={"view"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -185,6 +180,7 @@ const WoShipment = () => {
               label="View Return"
             />,
             <GridActionsCellItem
+            key={"edit"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -195,6 +191,7 @@ const WoShipment = () => {
               label="Edit Return"
             />,
             <GridActionsCellItem
+            key={"cancel"}
               showInMenu
               onClick={() => {
                 setDetailData(row);
@@ -205,6 +202,7 @@ const WoShipment = () => {
           ]
         : [
             <GridActionsCellItem
+            key={"shipment"}
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -215,6 +213,7 @@ const WoShipment = () => {
               label="Edit Shipment"
             />,
             <GridActionsCellItem
+            key={"cancel"}
               showInMenu
               onClick={() => {
                 setDetailData(row);
@@ -237,12 +236,6 @@ const WoShipment = () => {
         arr = await getWorkOrderShipment(wise, searchInput);
       }
 
-      // console.log("arr ->", arr);
-      let newarr = arr.filter(
-        (row) =>
-          row.del_challan_status === "NOT CREATED" &&
-          row.shipment_status === "A"
-      );
       // console.log("newarr", newarr);
       setRows(arr);
     } catch (error) {
@@ -255,7 +248,7 @@ const WoShipment = () => {
     setCancelRemark(cancelRemark);
   }, [cancelRemark]);
 
-  const createShipmentChallan = async (cancelRemark) => {
+  const createShipmentChallan = async () => {
     const values = await ModalForm.validateFields();
     let mins = selectedRows.map((row) => rows.filter((r) => r.id == row)[0]);
     if (challantype === "RM Challan") {
@@ -268,7 +261,7 @@ const WoShipment = () => {
         wo_transaction_id: mins.map((r) => r.woTransaction_Id),
         remark: values.remark,
       };
-      const arr = await createWorkOrderReturnChallan(payload);
+       await createWorkOrderReturnChallan(payload);
       getRows();
       clearForm();
     } else {
@@ -286,7 +279,7 @@ const WoShipment = () => {
         challan_id: values.challanID,
       };
 
-      const arr = await createWorkOrderShipmentChallan(payload);
+      await createWorkOrderShipmentChallan(payload);
       getRows();
       clearForm();
     }
@@ -298,6 +291,7 @@ const WoShipment = () => {
       const arr = await getClientOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -449,16 +443,7 @@ const wiseOptions = [
     value: "datewise",
   },
 ];
-const typeOptions = [
-  {
-    text: "Delivery Challan",
-    value: "delivery",
-  },
-  {
-    text: "Return Challan",
-    value: "return",
-  },
-];
+
 const columns = [
   {
     headerName: "#",

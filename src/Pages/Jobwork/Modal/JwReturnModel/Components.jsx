@@ -102,18 +102,18 @@ const Components = ({
               justifyContent: "center",
             }}
           >
-            <Row
-              gutter={[0, 6]}
+            <div
               style={{
                 height: "100%",
-                justifyContent: "center",
+                overflowX: "auto",
                 display: "flex",
+                flexDirection: "column",
               }}
             >
-              <Col span={24}>
-                <Row>
+              <div style={{ minWidth: 1500, flexShrink: 0 }}>
+                <Row wrap={false}>
                   <Col span={1}></Col>
-                  <Col span={3}>
+                  <Col span={4}>
                     <Typography.Text strong>Component</Typography.Text>
                   </Col>
                   <Col span={2}>
@@ -143,68 +143,66 @@ const Components = ({
                   <Col span={2}>
                     <Typography.Text strong>Auto Consmp</Typography.Text>
                   </Col>
-                  <Col span={4}>
+                  <Col span={3}>
                     <Typography.Text strong>Remark</Typography.Text>
                   </Col>
                 </Row>
-              </Col>
-              <Col
-                span={24}
+              </div>
+              <div
                 style={{
+                  minWidth: 1500,
+                  flex: 1,
                   overflowY: "auto",
-                  height: "85%",
+                  overflowX: "hidden",
                   marginBottom: "10px",
-                  // backgroundColor: "red",
                 }}
               >
-                <Row style={{ justifyContent: "center" }}>
-                  {selectedRows.map((row, index) => (
-                    <Col key={row.component?.value || index} span={24}>
-                      <Row align="middle">
-                        <Col span={1}>
-                          <Flex align="center">
-                            <TableActions
-                              action={"delete"}
-                              onClick={() =>
-                                deleteComponent(row.component.value)
-                              }
-                            />
-                            <Typography.Text type="secondary">
-                              {index + 1}.
-                            </Typography.Text>
-                          </Flex>
-                        </Col>
-                        <Col span={3}>{row?.component?.label}</Col>
-                        <Col span={2}>{row.partCode}</Col>
+                {selectedRows.map((row, index) => (
+                  <div key={row.component?.value || index}>
+                    <Row align="middle" wrap={false}>
+                      <Col span={1}>
+                        <Flex align="center">
+                          <TableActions
+                            action={"delete"}
+                            onClick={() =>
+                              deleteComponent(row.component.value)
+                            }
+                          />
+                          <Typography.Text type="secondary">
+                            {index + 1}.
+                          </Typography.Text>
+                        </Flex>
+                      </Col>
+                      <Col span={4}>{row?.component?.label}</Col>
+                      <Col span={2}>{row.partCode}</Col>
 
-                        <Col span={2}>
-                          <ToolTipEllipses text={row.qty} />
-                        </Col>
-                        <Col span={2}>
-                          <ToolTipEllipses text={row.pendingQty??"--"} />
-                        </Col>
-                        <Col span={2}>
-                          <ToolTipEllipses text={row.rate} />
-                        </Col>
-                        <Col span={2}>{row.hsn}</Col>
-                        <Col span={2}>
-                          <ToolTipEllipses text={row.value} />
-                        </Col>
-                        <Col span={2}>
-                          <ToolTipEllipses text={row.invoiceId} copy={true} />
-                        </Col>
-                        <Col span={2}>{row.location?.label ?? "--"}</Col>
-                        <Col span={2}>{row.autoCons?.label ?? "--"}</Col>
-                        <Col span={4}>
-                          <ToolTipEllipses text={row.remark} copy={true} />
-                        </Col>
-                      </Row>
-                      <Divider style={{ margin: "5px 0" }} />
-                    </Col>
-                  ))}
-                </Row>
-              </Col>
-            </Row>
+                      <Col span={2}>
+                        <ToolTipEllipses text={row.qty} />
+                      </Col>
+                      <Col span={2}>
+                        <ToolTipEllipses text={row.pendingQty??"--"} />
+                      </Col>
+                      <Col span={2}>
+                        <ToolTipEllipses text={row.rate} />
+                      </Col>
+                      <Col span={2}>{row.hsn}</Col>
+                      <Col span={2}>
+                        <ToolTipEllipses text={row.value} />
+                      </Col>
+                      <Col span={2}>
+                        <ToolTipEllipses text={row.invoiceId} copy={true} />
+                      </Col>
+                      <Col span={2}>{row.location?.label ?? "--"}</Col>
+                      <Col span={2}>{row.autoCons?.label ?? "--"}</Col>
+                      <Col span={3}>
+                        <ToolTipEllipses text={row.remark} copy={true} />
+                      </Col>
+                    </Row>
+                    <Divider style={{ margin: "5px 0" }} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </Card>
       </div>

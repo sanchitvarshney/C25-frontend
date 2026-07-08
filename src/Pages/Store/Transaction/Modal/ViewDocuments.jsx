@@ -1,6 +1,5 @@
 import { Col, Input, Row } from "antd";
-import React, { useState } from "react";
-import MySelect from "../../../../Components/MySelect";
+import { useState } from "react";
 import MyButton from "../../../../Components/MyButton";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyDataTable from "../../../../Components/MyDataTable";
@@ -58,6 +57,7 @@ function ViewDocuments() {
       getActions: ({ row }) => [
         // Upload DOC Icon
         <GridActionsCellItem
+        key={"download"}
           showInMenu
           onClick={() => handleDownloadAttachement(row.txnID)}
           //   disabled={row.invoiceStatus == false}
@@ -123,4 +123,3 @@ function ViewDocuments() {
 }
 
 export default ViewDocuments;
-const options = [{ text: "MIN Wise", value: "L" }];

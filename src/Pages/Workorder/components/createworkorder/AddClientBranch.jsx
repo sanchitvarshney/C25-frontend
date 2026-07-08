@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "../../../Master/Modal/modal.css";
-import { Button, Row, Col, Input, Drawer, Skeleton, Form, Space } from "antd";
+import { Button, Row, Col, Input, Drawer, Form, Space } from "antd";
 import { useToast } from "../../../../hooks/useToast.js";
-import errorToast from "../../../../Components/errorToast";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../../axiosInterceptor";
 
@@ -23,7 +22,7 @@ const AddClientBranch = ({ openBranch, setOpenBranch }) => {
       });
       setSelectLoading(false);
       let arr = [];
-      arr = data.map((d) => {
+      arr = response?.data.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);

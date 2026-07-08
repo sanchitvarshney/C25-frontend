@@ -232,9 +232,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
         "/ppr/updatePPR",
         showSubmitConfirmModal,
       );
-
-      const { data } = response;
-      if (data) {
+    
         if (response.success) {
           showToast(response.message, "success");
           setShowSubmitConfirmModal(false);
@@ -242,7 +240,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
         } else {
           showToast(response.message?.msg || response.message, "error");
         }
-      }
+   
     } catch (error) {
       showToast(error.message || "Something went wrong", "error");
     } finally {

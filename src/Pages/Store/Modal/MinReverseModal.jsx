@@ -59,14 +59,14 @@ function MinReverseModal({
           >
             Yes REVERSE
           </Button>,
-          <Button onClick={() => setReverseModal(false)}>Close</Button>,
+          <Button key="back" onClick={() => setReverseModal(false)}>Close</Button>,
         ]}
       >
         <span style={{ fontWeight: "bolder", fontSize: "13px" }}>
           are you sure you want to reverse the MIN ?
         </span>
         <p style={{ fontWeight: "bolder", fontSize: "12px" }}>
-          Note: "Yes REVERSE" action is an irreversible action..
+          {`Note: "Yes REVERSE" action is an irreversible action..`}
         </p>
         <span style={{ fontWeight: "bolder", fontSize: "12px" }}>
           type any remark in the field below for reversal the MIN TXN:

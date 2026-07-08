@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import useApi from "../../../hooks/useApi.ts";
 import { Col, Row } from "antd";
 import {
@@ -53,6 +53,7 @@ const PendingPhysicalStock = () => {
     getActions: ({ row }) => [
       // reject icon
       <GridActionsCellItem
+      key={"reject"}
         showInMenu
         // disabled={disabled}
         label={"Reject"}
@@ -66,6 +67,7 @@ const PendingPhysicalStock = () => {
       />,
       // approve icon
       <GridActionsCellItem
+      key={"approve"}
         showInMenu
         // disabled={disabled}
         label={"Approve"}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import  { useState, useEffect, useMemo, useCallback } from "react";
 import { Row, Col, Space } from "antd";
 import { Box, IconButton } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
@@ -175,6 +175,7 @@ const PartCodeConversionReport = () => {
         setAsyncOptions(arr);
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

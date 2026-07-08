@@ -1,5 +1,4 @@
 import {
-  Button,
   Card,
   Col,
   Drawer,
@@ -10,10 +9,9 @@ import {
   Space,
   Typography,
 } from "antd";
-import React from "react";
 import {
   createMIN,
-  getLocationOptions,
+  // getLocationOptions,
   getWorkOrderDetails,
   getWorkOrderForMIN,
 } from "../api";
@@ -34,7 +32,7 @@ import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 const MINModal = ({ showView, setShowView, getRows }) => {
   // ////////////////
   const { showToast } = useToast();
-  const [locationOptions, setLocationOptions] = useState([]);
+  // const [locationOptions, setLocationOptions] = useState([]);
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [minForm] = Form.useForm();
@@ -54,19 +52,21 @@ const MINModal = ({ showView, setShowView, getRows }) => {
       setDetails(details);
       minForm.setFieldValue("components", components);
       minForm.setFieldValue("gstType", "L");
-    } catch (error) {}
-  };
-  const handleGetLocations = async (search) => {
-    try {
-      const arr = await getLocationOptions(search);
-      // console.log("sr", arr);
-      setLocationOptions(arr);
     } catch (error) {
-      console.log("some error occured while fetching locations", error);
-    } finally {
-      setLoading(false);
+      showToast(error.message || "Something went wrong", "error");
     }
   };
+  // const handleGetLocations = async (search) => {
+  //   try {
+  //     const arr = await getLocationOptions(search);
+  //     // console.log("sr", arr);
+  //     setLocationOptions(arr);
+  //   } catch (error) {
+  //     console.log("some error occured while fetching locations", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const validateHandler = async () => {
     const values = await minForm.validateFields();
     Modal.confirm({
@@ -143,14 +143,14 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   useEffect(() => {
     if (showView) {
       getDetails(showView.subjectId, showView.woId, showView.sku);
-      handleGetLocations();
+      // handleGetLocations();
     }
   }, [showView]);
   const locationColumn = {
     headerName: "Location",
     name: "location",
     width: 150,
-    field: ({ row }) => (
+    field: () => (
       //  <MySelect options={locationOptions} />,
       <MyAsyncSelect
         onBlur={() => setAsyncOptions([])}
@@ -404,37 +404,37 @@ const componentsItems = (gstType) => [
     name: "cgst",
     width: 100,
     conditional: true,
-    condition: (row) => gstType === "L",
-    field: ({ row }) => <Input disabled />,
+    condition: () => gstType === "L",
+    field: () => <Input disabled />,
   },
   {
     headerName: "SGST",
     name: "sgst",
     width: 100,
     conditional: true,
-    condition: (row) => gstType === "L",
-    field: ({ row }) => <Input disabled />,
+    condition: () => gstType === "L",
+    field: () => <Input disabled />,
   },
   {
     headerName: "IGST",
     name: "igst",
     width: 100,
     conditional: true,
-    condition: (row) => gstType === "I",
-    field: (row) => <Input disabled />,
+    condition: () => gstType === "I",
+    field: () => <Input disabled />,
   },
 
   {
     headerName: "HSN Code",
     name: "hsn",
     width: 150,
-    field: (row) => <Input />,
+    field: () => <Input />,
   },
   {
     headerName: "Remark",
     name: "remark",
     width: 150,
-    field: (row) => <Input.TextArea />,
+    field: () => <Input.TextArea />,
   },
 ];
 const gstTypeOptions = [
@@ -473,20 +473,6 @@ const getArrSum = (list, key) => {
   return arr?.reduce((a, b) => a + (+Number(b || 0).toFixed(2)), 0);
 };
 
-const rules = {
-  docId: [
-    {
-      required: true,
-      message: "Please enter a doc ID",
-    },
-  ],
-  // docDate: [
-  //   {
-  //     required: true,
-  //     message: "Please select document date",
-  //   },
-  // ],
-};
 const listRules = {
   hsn: [
     {

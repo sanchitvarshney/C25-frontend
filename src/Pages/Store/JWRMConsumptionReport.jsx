@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import  { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux/es/exports";
 import { Button, Col, Row, Space } from "antd";
 import MyDataTable from "../../Components/MyDataTable.jsx";
@@ -20,8 +20,8 @@ const JWRMConsumptionReport = () => {
   const [loading, setLoading] = useState(false);
   const [datee, setDatee] = useState("");
   const [dateData, setDateData] = useState([]);
-  const [fetchData, setFetchData] = useState([]);
-  const [search, setSearch] = useState("");
+  // const [fetchData, setFetchData] = useState([]);
+  // const [search, setSearch] = useState("");
   const { user } = useSelector((state) => state.login);
 
   const columns = [
@@ -124,19 +124,17 @@ const JWRMConsumptionReport = () => {
     }
   };
 
-  useEffect(() => {
-    if (search) {
-      const ress = dateData.filter((a) => {
-        const partNo = (a.partNo || "").toLowerCase();
-        const component = (a.component || "").toLowerCase();
-        const searchLower = search.toLowerCase();
-        return partNo.match(searchLower) || component.match(searchLower);
-      });
-      setFetchData(ress);
-    } else {
-      setFetchData(dateData);
-    }
-  }, [search, dateData]);
+  // useEffect(() => {
+  
+  //     const ress = dateData.filter((a) => {
+  //       const partNo = (a.partNo || "").toLowerCase();
+  //       const component = (a.component || "").toLowerCase();
+    
+  //       return partNo.match(component.match());
+  //     });
+  //     // setFetchData(ress);
+   
+  // }, [ dateData]);
 
   // console.log(dateData);
   return (
@@ -173,7 +171,7 @@ const JWRMConsumptionReport = () => {
       <div style={{ height: "87%", margin: "10px" }}>
         <MyDataTable
           loading={loading}
-          data={search ? fetchData : dateData}
+          data={ dateData}
           columns={columns}
         />
       </div>

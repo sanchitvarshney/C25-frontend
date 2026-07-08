@@ -63,8 +63,8 @@ const JwReturnModel = ({ show, close }) => {
 
   const getLocationOptions = async (vendor,transaction) => {
     try {
-      const response = await imsAxios.get(`/jobwork/jw_rm_return_location?vendor=${vendor}&jw=${transaction}`);
       setLoading("fetch", true);
+      const response = await imsAxios.get(`/jobwork/jw_rm_return_location?vendor=${vendor}&jw=${transaction}`);
       if (response?.success) {
         const arr = response.data.map((row) => ({
           text: row.name,
@@ -229,13 +229,18 @@ const JwReturnModel = ({ show, close }) => {
     }
   }, [selectedRows]);
   
-  useEffect(() => {
+   useEffect(() => {
     if (show) {
       getData(show.sku, show.transaction);
       getAutoComnsumptionOptions();
-      getLocationOptions(vendor,show.transaction);
     }
-  }, [show,vendor]);
+  }, [show]);
+
+  useEffect(() => {
+    if (vendor && show) {
+      getLocationOptions(vendor, show.transaction);
+    }
+  }, [vendor]);
 
   useEffect(()=>{
     getVendorLocationOptions(vendor);
@@ -310,7 +315,7 @@ const JwReturnModel = ({ show, close }) => {
       }));
       setPreviewRows(arr);
     } else {
-      showToast(response.message.msg, "error");
+      showToast(response.message, "error");
       setPreview(false);
     }
   };
@@ -423,7 +428,7 @@ const JwReturnModel = ({ show, close }) => {
           },
         }}
       >
-        {loading("fetch") && <Loading />}
+        {loading("fetch") && <Loading  isDrawerLoading/>}
         <Form form={form} layout="vertical" style={{ height: "100%" }}>
           <Row style={{ height: "90%", overflow: "hidden" }} gutter={6}>
             <Col span={5} style={{ height: "100%", overflowY: "scroll" }}>
@@ -500,7 +505,7 @@ const JwReturnModel = ({ show, close }) => {
           },
         }}
       >
-        {loading("fetch") && <Loading />}
+        {loading("fetch") && <Loading isDrawerLoading/>}
         <Row
           style={{
             height: "95%",
@@ -542,33 +547,6 @@ const JwReturnModel = ({ show, close }) => {
               nextLabel="Submit"
               resetFunction={() => setPreview(false)}
             >
-              {/* <Col
-                span={24}
-                style={{
-                  height: "10%",
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  // marginRight: 35,
-                  marginTop: 10,
-                  padding: "25px",
-                  // background: "red",
-                }}
-              >
-                <MyButton
-                  style={{ marginLeft: 10 }}
-                  variant="reset"
-                  onClick={() => setPreview(false)}
-                >
-                  Close
-                </MyButton>
-                <MyButton
-                  style={{ marginLeft: 10 }}
-                  variant="next"
-                  onClick={() => setPreview(false)}
-                >
-                  Close
-                </MyButton>
-              </Col> */}
             </NavFooter>
           </Row>
         </Row>
@@ -582,12 +560,12 @@ const JwReturnModel = ({ show, close }) => {
           <Button key="back" onClick={() => setOpen(false)}>
             Cancel
           </Button>,
-          <Button key="submit" type="primary" onClick={callFileUpalod}>
+          <Button key="submit" type="primary" onClick={callFileUpalod} loading={loading1("fetch")}>
             Preview
           </Button>,
         ]}
       >
-        {loading("fetch") && <Loading />}
+        {loading1("fetch") && <Loading isDrawerLoading/>}
         <Card>
           <Form
             // initialValues={initialValues}
