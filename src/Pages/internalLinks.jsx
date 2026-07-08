@@ -660,7 +660,7 @@ const links = [
   [
     {
       routeName: "SF Part Code Conversion",
-      routePath: "/warehouse/part-code-conversion",
+      routePath: "/warehouse/sf-part-code-conversion"
     },
 
     // to be added

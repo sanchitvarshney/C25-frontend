@@ -1033,9 +1033,9 @@
                 "children": [
                   {
                     "key": "B41",
-                    "label": "Part Code Conversion",
+                    "label": "SF Part Code Conversion",
                     "icon": "TransformIcon",
-                    "path": "/warehouse/part-code-conversion",
+                    "path": "/warehouse/sf-part-code-conversion",
                     "isShown": true
                   },
                   {
