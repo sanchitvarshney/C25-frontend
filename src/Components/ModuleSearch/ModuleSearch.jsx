@@ -153,10 +153,10 @@ export default function ModuleSearch() {
         style={{
           width: 200,
           height: 34,
-          borderRadius: 20,
-          border: "1px solid rgba(0,0,0,0.6)",
-          background: "#ffffce",
-          color: "#000",
+          borderRadius: 8,
+          border: "1px solid rgba(255,255,255,0.3)",
+          background: "rgba(255,255,255,0.2)",
+            color: "rgba(255,255,255,0.85)",
           display: "flex",
           alignItems: "center",
           gap: 8,
@@ -181,7 +181,7 @@ export default function ModuleSearch() {
             border: "1px solid rgba(255,255,255,0.35)",
             fontSize: 12,
             fontWeight: 700,
-            color: "#000/",
+            color: "rgba(255,255,255,0.9)",
             background: "rgba(255,255,255,0.08)",
           }}
         >

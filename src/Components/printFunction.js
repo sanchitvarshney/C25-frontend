@@ -2,6 +2,7 @@ import printJS from "print-js";
 import fileDownload from "js-file-download";
 
 const printFunction = (buffer) => {
+  
   const file = new Blob([
     new Uint8Array(buffer),
     {
