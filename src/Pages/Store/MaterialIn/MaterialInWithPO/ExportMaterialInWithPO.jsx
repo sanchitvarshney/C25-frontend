@@ -45,9 +45,9 @@ export default function ExportMaterialInWithPO() {
   const [poData, setPoData] = useState({ materials: [] });
   const [resetPoData, setResetPoData] = useState({ materials: [] });
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [preview, setPreview] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [preview, setPreview] = useState(false);
   const [irnNum, setIrnNum] = useState("");
   const [searchData, setSearchData] = useState({
     vendor: "",
@@ -72,6 +72,7 @@ export default function ExportMaterialInWithPO() {
   const [selectLocation, setSelectLocation] = useState(null);
   const [codeCostCenter, setCodeCostCenter] = useState("");
   const [uplaoaClicked, setUploadClicked] = useState(false);
+  const [uploadedComponents, setUploadedComponents] = useState([]);
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
   const [uplaodForm] = Form.useForm();
@@ -116,14 +117,13 @@ export default function ExportMaterialInWithPO() {
       freight: [],
     };
     if (validation == true) {
-      let values2 = await form2.validateFields();
-      let a = values2?.components;
-
+      let a = uploadedComponents;
       if (a?.length) {
         if (!fileName) {
-          showToast("Please upload documents first", "error");
+          showToast("Please upload Document", "error");
           return;
         }
+    
         poData?.materials?.map((row) => {
           componentData = {
             component: [...componentData.component, row.componentKey],
@@ -139,7 +139,7 @@ export default function ExportMaterialInWithPO() {
             // location: [...componentData.location, row.location.value],
             finalRate: [...componentData.finalRate, row.finalRate],
             // out_location: [...componentData.out_location, row.autoConsumption],
-            documentName: values2?.components?.map((r) => r.documentName),
+            documentName: uploadedComponents?.map((r) => r.documentName),
             irn: irnNum,
             qrScan: "N",
             currency: "28567096",
@@ -180,7 +180,9 @@ export default function ExportMaterialInWithPO() {
   };
 
   useEffect(() => {
-    previewRows && setPoData({ materials: previewRows });
+    if (previewRows.length) {
+      setPoData((prev) => ({ ...prev, materials: previewRows }));
+    }
   }, [previewRows]);
 
   const normFile = (e) => {
@@ -234,7 +236,7 @@ export default function ExportMaterialInWithPO() {
 
       }
     } catch (error) {
-      showToast(error?.message || "Invoice check failed", "error");
+            showToast(error?.message || "Invoice check failed", "error");
     } finally {
       setSubmitLoading(false);
     }
@@ -343,55 +345,63 @@ export default function ExportMaterialInWithPO() {
   ];
 
   const submitMIN = async (values) => {
-    setSubmitLoading(true);
+  
+      setSubmitLoading(true);
+  
+      if (fileName) {
+        let final = {
+          companybranch: "BROAKTRC25",
+          invoices: fileName,
+          poid: searchData.poNumber,
+          manual_mfg_code: poData.materials.map((row) => row.manualMfgCode),
+          invoice: invoice,
+          invoiceDate: invoiceDate,
+          location: selectLocation,
+        };
+        final = { ...final, ...values.componentData };
+        const res = await executeFun(
+          () => poMINforImport(final),
+          "select",
+        );
+        // const response = await imsAxios.post("/purchaseOrder/poMIN", final);
+        let data = res?.data;
+        // setSubmitLoading(false);
+        if (res.success) {
+          setSearchData({
+            vendor: "",
+            poNumber: "",
+          });
+          setFileName("");
+          setSubmitLoading(false);
+          setMaterialInSuccess({
+            materialInId: data.transaction_id,
+            poId: searchData.poNumber,
+            vendor: searchData.vendor,
+            components: poData?.materials?.map((row) => {
+              return {
+                id: row.id,
+                componentName: row.component?.label,
+                partNo: row.partCode,
+                inQuantity: row.orderQty,
+                location: selectLocation,
+                poQuantity: row.poOrderQty,
+              };
+            }),
+          });
+          setIrnNum("");
 
-    if (fileName) {
-      let final = {
-        companybranch: "BROAKTRC25",
-        invoices: fileName,
-        poid: searchData.poNumber,
-        manual_mfg_code: poData.materials.map((row) => row.manualMfgCode),
-        invoice: invoice,
-        invoiceDate: invoiceDate,
-        location: selectLocation,
-      };
-      final = { ...final, ...values.componentData };
-      const res = await executeFun(() => poMINforImport(final), "select");
-      let data = res?.data;
-      if (res.success) {
-        setSearchData({
-          vendor: "",
-          poNumber: "",
-        });
-        setSubmitLoading(false);
-        setMaterialInSuccess({
-          materialInId: data.transaction_id,
-          poId: searchData.poNumber,
-          vendor: searchData.vendor,
-          components: poData?.materials?.map((row) => {
-            return {
-              id: row.id,
-              componentName: row.component?.label,
-              partNo: row.partCode,
-              inQuantity: row.orderQty,
-              location: selectLocation,
-              poQuantity: row.poOrderQty,
-            };
-          }),
-        });
-        setIrnNum("");
-        setFileName("");
+        } else {
+          setSubmitLoading(false);
+          showToast(res.message, "error");
+        }
       } else {
         setSubmitLoading(false);
-        showToast(res.message, "error");
+        showToast(
+          "Some error occured while uploading invoices, Please try again",
+          "error",
+        );
       }
-    } else {
-      setSubmitLoading(false);
-      showToast(
-        "Some error occured while uploading invoices, Please try again",
-        "error",
-      );
-    }
+  
   };
   const getCurrencies = async () => {
     const response = await imsAxios.get("/backend/fetchAllCurrecy");
@@ -619,6 +629,7 @@ export default function ExportMaterialInWithPO() {
   };
   const resetFunction = () => {
     setPoData(resetPoData);
+    setFileName("");
     setShowResetConfirm(false);
   };
   const getDetail = async () => {
@@ -851,15 +862,15 @@ export default function ExportMaterialInWithPO() {
       headerName: "Final Rate",
       field: "finalRate",
       flex: 1,
+      minWidth: 120,
       renderCell: ({ row }) => <Input disabled={true} value={row.finalRate} />,
-      width: 100,
     },
     {
       headerName: "Total",
       field: "total",
       flex: 1,
+      minWidth: 120,
       renderCell: ({ row }) => <Input disabled={true} value={row.total} />,
-      width: 100,
     },
     {
       headerName: "HSN Code",
@@ -900,7 +911,6 @@ export default function ExportMaterialInWithPO() {
     // getDetail();
     // getLocation();
     getCurrencies();
-    // getAutoComnsumptionOptions();
   }, []);
   useEffect(() => {
     let grandTotal = poData?.materials.map((row) =>
@@ -974,6 +984,7 @@ export default function ExportMaterialInWithPO() {
         qty: r.orderQty,
         rate: r.importRate,
         hsn: r.hsn,
+        hsncode: r.hsn,
         value: r.value,
         gstRate: r.exchangeRate, // Example, adjust as needed
         gstType: r.uom, // Example, adjust as needed
@@ -985,8 +996,7 @@ export default function ExportMaterialInWithPO() {
       setPreview(false);
     }
   };
-
-  const handleUploadDocument = async () => {
+    const handleUploadDocument = async () => {
     setUploadLoading(true);
 
     try {
@@ -1007,6 +1017,7 @@ export default function ExportMaterialInWithPO() {
 
       if (response?.success) {
         setFileName(response?.data);
+        setUploadedComponents(values.components);
         setUploadClicked(false);
         showToast(response?.message || "Upload Document success", "success");
         setUploadLoading(false);
@@ -1503,6 +1514,9 @@ export default function ExportMaterialInWithPO() {
                         name="invoice_date"
                         onChange={(value) => setInvoiceDate(value)}
                         value={invoiceDate}
+                        disabledDate={(current) =>
+                          current && current.valueOf() > Date.now()
+                        }
                       />
                     </Col>
                   </Row>
@@ -1610,7 +1624,7 @@ export default function ExportMaterialInWithPO() {
 
                     <Row justify="end" style={{ marginTop: 5 }}>
                       <a
-                        href="http://imsv2.mscapi.live/files/sample/Import%20PO%20Sample%20File%20Format.xlsx"
+                        href="https://alwar.prod.mscorpres.com/files/samples/Import%20PO.xlsx"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -1680,8 +1694,7 @@ export default function ExportMaterialInWithPO() {
                 open={uplaoaClicked}
                 layout="vertical"
                 width={700}
-                title={"Upload Document"}
-                loading={uploadLoading}
+                  loading={uploadLoading}
                 // destroyOnClose={true}
                 onCancel={() => {
                   setFileName("");
@@ -1710,7 +1723,7 @@ export default function ExportMaterialInWithPO() {
                             <>
                               <Col>
                                 {fields.map((field, index) => (
-                                  <Form.Item noStyle key={field.key || index}>
+                                  <Form.Item noStyle key={field.key}>
                                     <SingleProduct
                                       fields={fields}
                                       field={field}
