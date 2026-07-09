@@ -71,7 +71,7 @@ function FGToFGTransfer() {
   const getLocationFunction = async () => {
     setIsLoading(true);
     try {
-      const response = await imsAxios.get("/skuQueryA/q3Location");
+      const response = await imsAxios.get("/q3/location");
       if (response?.success) {
         const data = response?.data;
         let v = [];
