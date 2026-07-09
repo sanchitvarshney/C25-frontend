@@ -268,14 +268,14 @@ export default function ItemLocationLog() {
       field: "qtyOut",
       width: 120,
     },
+    // {
+    //   headerName: "Qty In Rate",
+    //   field: "qtyInRate",
+    //   width: 120,
+    // },
     {
-      headerName: "Qty In Rate",
-      field: "qtyInRate",
-      width: 120,
-    },
-    {
-      headerName: "Out Rate",
-      field: "outRate",
+      headerName: "Rate",
+      field: "rate",
       width: 120,
     },
     {
