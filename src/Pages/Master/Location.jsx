@@ -9,12 +9,10 @@ import {
   Row,
   Space,
   Switch,
-  Tree,
 } from "antd";
 import MySelect from "../../Components/MySelect";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { useToast } from "../../hooks/useToast.js";
-import { v4 } from "uuid";
 import Loading from "../../Components/Loading";
 import { imsAxios } from "../../axiosInterceptor";
 import useApi from "../../hooks/useApi.ts";
@@ -26,7 +24,6 @@ import MyDataTable from "../../Components/MyDataTable.jsx";
 
 function Location() {
   const { showToast } = useToast();
-  const [treeData, setTreeData] = useState([]);
   const [treeLoading, setTreeLoading] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState();
@@ -83,8 +80,6 @@ function Location() {
        const response = await imsAxios.post("/location/fetchLocationTree");
        const tree = response.data || [];
  
-       setTreeData(tree);
- 
        // [FIXED] Flatten tree + add UI id
        const flat = customFlatArray(tree);
        const enriched = flat.map((item, index) => ({
@@ -99,46 +94,6 @@ function Location() {
      }
    };
 
-  let arr = [];
-  // const customFlatArray = (array, prev) => {
-  //   array?.map((row) => {
-  //     let parent = "--";
-  //     let obj = row;
-  //     if (!row.children) {
-  //       if (prev) {
-  //         obj["parentLocation"] = prev.name;
-  //       } else {
-  //         obj["parentLocation"] = "--";
-  //       }
-  //     }
-  //     if (row.children) {
-  //       if (prev) {
-  //         obj["parentLocation"] = prev.name;
-  //       } else {
-  //         obj["parentLocation"] = "--";
-  //       }
-  //       let children = row.children;
-
-  //       delete obj["children"];
-  //       arr = [...arr, obj];
-  //       customFlatArray(children, obj);
-  //       arr = [...arr, ...children];
-  //       // }
-  //     }
-  //     //  else {
-  //     //   let obj = row;
-
-  //     //   if (prev) {
-  //     //     obj["parentLocation"] = prev.name;
-  //     //   } else {
-  //     //     obj["parentLocation"] = "--";
-  //     //   }
-  //     //   arr = [...arr, obj];
-  //     // }
-  //   });
-
-  //   return arr;
-  // };
 
   const getParentLocationOptions = async (search) => {
     setSelectLoading(true);
@@ -165,6 +120,7 @@ function Location() {
       location_address: values?.address,
       mapping_user: values?.username,
       vendor_loc: values?.jobworkLocation,
+      location_heading: values?.heading,
     };
     setSubmitLoading(true);
     const response = await imsAxios.post("/location/insertLocation", obj);
@@ -178,19 +134,19 @@ function Location() {
     }
   };
 
-  const searchLocation = async (search) => {
-    setSelectLoading(true);
-    const response = await imsAxios.post("/location/fetchLocation", {
-      searchTerm: search,
-    });
-    setSelectLoading(false);
-    if (response.success && response.data) {
-      let arr = response.data.map((row) => ({ text: row.text, value: row.id }));
-      setAsyncOptions(arr);
-    } else {
-      setAsyncOptions([]);
-    }
-  };
+  // const searchLocation = async (search) => {
+  //   setSelectLoading(true);
+  //   const response = await imsAxios.post("/location/fetchLocation", {
+  //     searchTerm: search,
+  //   });
+  //   setSelectLoading(false);
+  //   if (response.success && response.data) {
+  //     let arr = response.data.map((row) => ({ text: row.text, value: row.id }));
+  //     setAsyncOptions(arr);
+  //   } else {
+  //     setAsyncOptions([]);
+  //   }
+  // };
 
   const getLocationStatus = async (locationId) => {
     const payload = {
@@ -211,7 +167,6 @@ function Location() {
   };
 
   const disableValidateHandler = async (row) => {
-    const values = await disableLocationForm.validateFields();
     const payload = {
       location_key: row.label,
       status: row.status==="BLOCK" ? "ACTIVE" : "BLOCK",
@@ -303,6 +258,7 @@ function Location() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
+        key={"map"}
           showInMenu
           // disabled={loading}
           onClick={() => {
@@ -312,6 +268,7 @@ function Location() {
           label="Map Cost Center"
         />,
         <GridActionsCellItem
+        key={"view"}
           showInMenu
           // disabled={loading}
           onClick={() => {
@@ -332,6 +289,11 @@ function Location() {
     {
       field: "parentLocation",
       headerName: "Parent Location",
+      width: 150,
+    },
+    {
+      field: "locationHeading",
+      headerName: "Heading",
       width: 150,
     },
     {
@@ -432,34 +394,34 @@ function Location() {
     }
   }, [viewData]);
 
-  const mapCC = async (row) => {
-    // console.log("row", row);
-    Modal.confirm({
-      title: `Please map the cost center to ${row.name}`,
-      // icon: <ExclamationCircleFilled />,
-      content: (
-        <Row style={{ marginTop: 10 }}>
-          <Col span={24}>
-            {/* <Form form={costcenterForm} layout="vertical">
-              <Form.Item name="costCenter" label="Cost Center"> */}
-            <MyAsyncSelect
-              labelInValue={true}
-              optionsState={asyncOptions}
-              onBlur={() => setAsyncOptions([])}
-              loadOptions={getCostCenteres}
-              selectLoading={loading1("select")}
-            />
-            {/* </Form.Item> */}
-            {/* </Form> */}
-          </Col>
-        </Row>
-      ),
-      onOk: async () => {
-        const values = await cancelForm.validateFields();
-        validateCancelRemarks(woId, wku, values);
-      },
-    });
-  };
+  // const mapCC = async (row) => {
+  //   // console.log("row", row);
+  //   Modal.confirm({
+  //     title: `Please map the cost center to ${row.name}`,
+  //     // icon: <ExclamationCircleFilled />,
+  //     content: (
+  //       <Row style={{ marginTop: 10 }}>
+  //         <Col span={24}>
+  //           {/* <Form form={costcenterForm} layout="vertical">
+  //             <Form.Item name="costCenter" label="Cost Center"> */}
+  //           <MyAsyncSelect
+  //             labelInValue={true}
+  //             optionsState={asyncOptions}
+  //             onBlur={() => setAsyncOptions([])}
+  //             loadOptions={getCostCenteres}
+  //             selectLoading={loading1("select")}
+  //           />
+  //           {/* </Form.Item> */}
+  //           {/* </Form> */}
+  //         </Col>
+  //       </Row>
+  //     ),
+  //     onOk: async () => {
+  //       const values = await cancelForm.validateFields();
+  //       validateCancelRemarks(woId, wku, values);
+  //     },
+  //   });
+  // };
   const close = () => {
     maploc.resetFields(), setMapCostCenerModal(false);
   };
@@ -587,6 +549,11 @@ function Location() {
                         <Col span={12}>
                           <Form.Item name="username" label="User Name">
                             <Input size="default" />
+                          </Form.Item>
+                        </Col>
+                           <Col span={12}>
+                          <Form.Item name="heading" label="Heading">
+                            <Input size="default" maxLength={100} />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
