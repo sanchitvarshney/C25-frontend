@@ -7,18 +7,15 @@ import {
   Space,
   Input,
   Button,
-  Skeleton,
   Form,
   Typography,
   Modal,
 } from "antd";
 import { CloseCircleFilled, InboxOutlined } from "@ant-design/icons";
 import MySelect from "../../../Components/MySelect.jsx";
-import { v4 } from "uuid";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { imsAxios } from "../../../axiosInterceptor.js";
 import FormTable from "../../../Components/FormTable.jsx";
-import useLoading from "../../../hooks/useLoading.js";
 import {
   // getBomItem,
   // getComponentOptions,
@@ -35,8 +32,8 @@ import SingleProduct from "../../Master/Vendor/SingleProduct.jsx";
 import { useToast } from "../../../hooks/useToast.js";
 export default function JwRmConsumptionModal({ editModal, setEditModal }) {
   const { showToast } = useToast();
-  const [header, setHeaderData] = useState([]);
-  const [modalLoad, setModalLoad] = useLoading();
+  console.log("editModal", editModal);
+  const [header, setHeader] = useState([]);
   const [modalUploadLoad, setModalUploadLoad] = useState(false);
   const { row } = editModal;
   const [mainData, setMainData] = useState([]);
@@ -52,97 +49,97 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
   const [consumpLoc, setConsumpLoc] = useState("20211028124102");
   const [uplaoaClicked, setUploadClicked] = useState(false);
   const { executeFun } = useApi();
-  const getFetchData = async () => {
-    setModalLoad("fetch", true);
-    if (editModal.bomData && editModal.qty) {
-      const jwId = row?.transaction_id || row?.jw_transaction_id;
-      if (jwId) {
-        try {
-          // Call BOM API with qty
-          const bomResponse = await imsAxios.get(
-            `/jobwork/rm-consumption/view/bom?jw=${encodeURIComponent(
-              jwId
-            )}&qty=${editModal.qty}`
-          );
+  // const getFetchData = async () => {
+  //   setModalLoad("fetch", true);
+  //   if (editModal.bomData && editModal.qty) {
+  //     const jwId = row?.transaction_id || row?.jw_transaction_id;
+  //     if (jwId) {
+  //       try {
+  //         // Call BOM API with qty
+  //         const bomResponse = await imsAxios.get(
+  //           `/jobwork/rm-consumption/view/bom?jw=${encodeURIComponent(
+  //             jwId
+  //           )}&qty=${editModal.qty}`
+  //         );
 
-          if (bomResponse.success || bomResponse.data) {
-            // Process BOM data - response structure: { success, status, data: { header, body: [...] } }
-            const bomDataArray =
-              bomResponse.data?.body ||
-              bomResponse.data?.data ||
-              bomResponse.data ||
-              [];
+  //         if (bomResponse.success || bomResponse.data) {
+  //           // Process BOM data - response structure: { success, status, data: { header, body: [...] } }
+  //           const bomDataArray =
+  //             bomResponse.data?.body ||
+  //             bomResponse.data?.data ||
+  //             bomResponse.data ||
+  //             [];
 
-            // Also set header data if available
-            if (bomResponse.data?.header) {
-              setHeaderData(bomResponse.data.header);
-              // setIsApplicable(bomResponse.data.header.einvoiceStatus);
-              // if (bomResponse.data.header.costCenter) {
-              //   getLocation(bomResponse.data.header.costCenter);
-              // }
-            }
+  //           // Also set header data if available
+  //           if (bomResponse.data?.header) {
+  //             setHeaderData(bomResponse.data.header);
+  //             // setIsApplicable(bomResponse.data.header.einvoiceStatus);
+  //             // if (bomResponse.data.header.costCenter) {
+  //             //   getLocation(bomResponse.data.header.costCenter);
+  //             // }
+  //           }
 
-            const arr = bomDataArray.map((r, id) => {
-              return {
-                id: id + 1,
-                bomQty: r.bomQty,
-                partName: r.partName,
-                catPartName: r.catPartName,
-                partNo: r.partNo,
-                venLocationStock: r.venLocationStock || 0,
-                stock: r.stock || r.venLocationStock || 0,
-                rqdQty: r.reqQty || r.rqdQty || 0,
-                pendingWithjobwork: r.pendingWithjobwork || 0,
-                uom: r.uom,
-                key: r.key,
-                conRemark: r.conRemark || "",
-                lastRate: r.lastRate,
-              };
-            });
-            setBomList(arr);
-            setShowBomList(true);
-            setModalLoad("fetch", false);
-          } else {
-            showToast(bomResponse.message || "Failed to fetch BOM data", "error");
-            setModalLoad("fetch", false);
-          }
-        } catch (error) {
-          showToast(error.message || "Error fetching BOM data", "error");
-          setModalLoad("fetch", false);
-        }
-      }
-      return;
-    }
+  //           const arr = bomDataArray.map((r, id) => {
+  //             return {
+  //               id: id + 1,
+  //               bomQty: r.bomQty,
+  //               partName: r.partName,
+  //               catPartName: r.catPartName,
+  //               partNo: r.partNo,
+  //               venLocationStock: r.venLocationStock || 0,
+  //               stock: r.stock || r.venLocationStock || 0,
+  //               rqdQty: r.reqQty || r.rqdQty || 0,
+  //               pendingWithjobwork: r.pendingWithjobwork || 0,
+  //               uom: r.uom,
+  //               key: r.key,
+  //               conRemark: r.conRemark || "",
+  //               lastRate: r.lastRate,
+  //             };
+  //           });
+  //           setBomList(arr);
+  //           setShowBomList(true);
+  //           setModalLoad("fetch", false);
+  //         } else {
+  //           showToast(bomResponse.message || "Failed to fetch BOM data", "error");
+  //           setModalLoad("fetch", false);
+  //         }
+  //       } catch (error) {
+  //         showToast(error.message || "Error fetching BOM data", "error");
+  //         setModalLoad("fetch", false);
+  //       }
+  //     }
+  //     return;
+  //   }
 
-    // Original API call for normal flow
-    const response = await imsAxios.get(
-      `/jobwork/fetch_jw_sf_inward_components?skucode=${row.sku}&transaction=${row.transaction_id}`
-    );
+  //   // Original API call for normal flow
+  //   const response = await imsAxios.get(
+  //     `/jobwork/fetch_jw_sf_inward_components?skucode=${row.sku}&transaction=${row.transaction_id}`
+  //   );
 
-    if (response.success) {
-      // getLocation(response.data.header.costCenter);
-      let arr = response.data.body.map((row, index) => {
-        return {
-          ...row,
-          id: v4(),
-          index: index + 1,
-          orderqty: row.orderQty,
-          unitsname: row.unit,
-          component: {
-            label: `${row.component.name} ${row.component.part}`,
-            value: row.component.key,
-          },
-        };
-      });
-      // setIsApplicable(response.data.header.einvoiceStatus);
-      setMainData(arr);
-      setHeaderData(response.data.header);
-      setModalLoad("fetch", false);
-    } else {
-      showToast(response.message, "error");
-    }
-    setModalLoad("fetch", false);
-  };
+  //   if (response.success) {
+  //     // getLocation(response.data.header.costCenter);
+  //     let arr = response.data.body.map((row, index) => {
+  //       return {
+  //         ...row,
+  //         id: v4(),
+  //         index: index + 1,
+  //         orderqty: row.orderQty,
+  //         unitsname: row.unit,
+  //         component: {
+  //           label: `${row.component.name} ${row.component.part}`,
+  //           value: row.component.key,
+  //         },
+  //       };
+  //     });
+  //     // setIsApplicable(response.data.header.einvoiceStatus);
+  //     setMainData(arr);
+  //     setHeaderData(response.data.header);
+  //     setModalLoad("fetch", false);
+  //   } else {
+  //     showToast(response.message, "error");
+  //   }
+  //   setModalLoad("fetch", false);
+  // };
   // const getOption = async (e) => {
   //   if (e?.length > 2) {
   //     const response = await executeFun(() => getComponentOptions(e), "select");
@@ -193,7 +190,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "orderqty") {
       setMainData((a) =>
@@ -205,7 +202,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "rate") {
       setMainData((a) =>
@@ -217,7 +214,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "invoice") {
       setMainData((a) =>
@@ -229,7 +226,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "remark") {
       setMainData((a) =>
@@ -241,7 +238,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "conRemark") {
       setBomList((a) =>
@@ -253,7 +250,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "location") {
       setMainData((a) =>
@@ -265,7 +262,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "rqdQty") {
       setMainData((a) =>
@@ -277,7 +274,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "irn") {
       setMainData((a) =>
@@ -289,7 +286,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
           } else {
             return aa;
           }
-        })
+        }),
       );
     } else if (name == "consumptionQty") {
       const numValue = Number.parseFloat(value);
@@ -313,7 +310,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
       if (numValue > stockQty) {
         showToast(
           `Consumption quantity cannot exceed stock quantity (${stockQty})`,
-          "error"
+          "error",
         );
         return;
       }
@@ -327,7 +324,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
             } else {
               return aa;
             }
-          })
+          }),
         );
       } else {
         setMainData((a) =>
@@ -337,7 +334,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
             } else {
               return aa;
             }
-          })
+          }),
         );
       }
     }
@@ -350,6 +347,30 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
     });
   };
 
+  useEffect(() => {
+    if (row) {
+      setHeader(row?.header);
+      const arr = row?.body?.map((r, id) => {
+        return {
+          id: id + 1,
+          bomQty: r.bomQty,
+          partName: r.partName,
+          catPartName: r.catPartName,
+          partNo: r.partNo,
+          venLocationStock: r.venLocationStock || 0,
+          stock: r.stock || r.venLocationStock || 0,
+          rqdQty: r.reqQty || r.rqdQty || 0,
+          pendingWithjobwork: r.pendingWithjobwork || 0,
+          uom: r.uom,
+          key: r.key,
+          conRemark: r.conRemark || "",
+          lastRate: r.lastRate,
+        };
+      });
+      setBomList(arr);
+    }
+  }, [row]);
+
   const bomcolumns = [
     {
       headerName: "",
@@ -359,8 +380,13 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
       sortable: false,
       renderCell: ({ row }) => [
         <GridActionsCellItem
-        key={"delete-" + row.id}
-          icon={<Delete color="error" sx={{ fontSize: "1.7rem", cursor: "pointer" }} />}
+          key={"delete-" + row.id}
+          icon={
+            <Delete
+              color="error"
+              sx={{ fontSize: "1.7rem", cursor: "pointer" }}
+            />
+          }
           onClick={() => {
             removeRow(row.id);
           }}
@@ -459,11 +485,9 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
     },
   ];
   const prev = async () => {
-    getFetchData();
-    // getLocation();
-    // setEWayBill("");
     setShowBomList(false);
     setBomList([]);
+    setEditModal(false);
   };
 
   const saveFunction = async (fetchAttachment) => {
@@ -513,15 +537,14 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
       try {
         const response = await imsAxios.post(
           "/jobwork/rm-consumption/save",
-          payload
+          payload,
         );
 
         if (response.success) {
           setLoading(false);
           showToast(
-            response.message ||
-              "RM Consumption saved successfully",
-            "success"
+            response.message || "RM Consumption saved successfully",
+            "success",
           );
           setShowBomList(false);
           modalForm.resetFields();
@@ -537,7 +560,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
             response.message ||
               response.data?.message ||
               "Failed to save RM Consumption",
-            "error"
+            "error",
           );
         }
       } catch (error) {
@@ -698,7 +721,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
 
       // Validate fileComponents
       if (!values.fileComponents || values.fileComponents.length === 0) {
-            showToast("Please upload at least one document", "error");
+        showToast("Please upload at least one document", "error");
         return;
       }
 
@@ -716,7 +739,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
 
       const fileResponse = await executeFun(
         () => uploadMinInvoice(formData),
-        "submit"
+        "submit",
       );
       if (fileResponse.success) {
         // API returns { success, data: "filename.pdf" } - attachment is in data
@@ -734,7 +757,10 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
         //   saveFunction(fetchAttachment);
         // }
       } else {
-        showToast(fileResponse.message || "Failed to upload documents", "error");
+        showToast(
+          fileResponse.message || "Failed to upload documents",
+          "error",
+        );
       }
     } catch (error) {
       showToast(error.message || "Error uploading documents", "error");
@@ -743,14 +769,9 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
 
   useEffect(() => {
     if (editModal) {
-      getFetchData();   
+    
       setChallanNo("");
-      // setInvoice("");
-      if (!editModal.bomData) {
-        setShowBomList(false);
-        setBomList([]);
-        newMinFunction();
-      }
+   
     }
   }, [editModal]);
 
@@ -792,7 +813,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
       >
         <>
           {!materialInSuccess && (
-            <Skeleton active loading={modalLoad("fetch")}>
+            <>
               <Card type="inner" title={header?.jobworkID}>
                 <Row gutter={10}>
                   <Col
@@ -1003,7 +1024,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
                   </div>
                 </Col>
               </Row>
-            </Skeleton>
+            </>
           )}
 
           {materialInSuccess && (
@@ -1018,7 +1039,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
             open={uplaoaClicked}
             width={700}
             title={"Upload Document"}
-            // destroyOnClose={true}
+            // confirmLoading={loading1("submit")}
             onOk={() => submitHandler()}
             onCancel={() => {
               setUploadClicked(false);
@@ -1051,18 +1072,20 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
                           validator: (_, value) => {
                             if (!value || value.length === 0) {
                               return Promise.reject(
-                                new Error("Please upload at least one document")
+                                new Error(
+                                  "Please upload at least one document",
+                                ),
                               );
                             }
                             // Check if at least one file is uploaded
                             const hasFile = value.some(
-                              (comp) => comp.file && comp.file[0]
+                              (comp) => comp.file && comp.file[0],
                             );
                             if (!hasFile) {
                               return Promise.reject(
                                 new Error(
-                                  "Please upload at least one document file"
-                                )
+                                  "Please upload at least one document file",
+                                ),
                               );
                             }
                             return Promise.resolve();

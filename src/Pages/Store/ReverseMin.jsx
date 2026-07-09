@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Col, Popover, Row } from "antd";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
-import axios from "axios";
 import { useToast } from "../../hooks/useToast.js";
 import { v4 } from "uuid";
 import MyDataTable from "../../Components/MyDataTable";
@@ -39,7 +38,7 @@ function ReverseMin() {
       transaction: inputStore,
     });
     // console.log(data);
-    if (data.success) {
+    if (response.success) {
       let arr = response.data.map((row, index) => {
         return {
           ...row,
@@ -48,10 +47,10 @@ function ReverseMin() {
         };
       });
       setMainData(arr);
-      setHeaderData(data.header);
+      setHeaderData(response?.data?.header);
       setLoading(false);
     } else {
-      showToast(data.message?.msg || data.message, "error");
+      showToast(response.message?.msg || response.message, "error");
       setLoading(false);
     }
   };

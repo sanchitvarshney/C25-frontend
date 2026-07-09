@@ -3,7 +3,6 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
 import { Row, Col, Input, Button } from "antd";
 import MyDataTable from "../../../../Components/MyDataTable";
-import { GridActionsCellItem } from "@mui/x-data-grid";
 import printFunction, {
   downloadFunction,
 } from "../../../../Components/printFunction";
@@ -49,6 +48,7 @@ const PendingApproval = () => {
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -200,6 +200,7 @@ const PendingApproval = () => {
         showToast(response.message?.msg ?? response.message, "error");
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

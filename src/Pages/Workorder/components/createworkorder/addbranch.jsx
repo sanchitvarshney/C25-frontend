@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import "../../Modal/modal.css";
-import { Button, Row, Col, Input, Drawer, Skeleton, Form, Space } from "antd";
+import { Button, Row, Col, Input, Drawer, Form, Space } from "antd";
 import { useToast } from "../../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
-import errorToast from "../../../../Components/errorToast";
 import { imsAxios } from "../../../../axiosInterceptor";
 
 const { TextArea } = Input;
@@ -55,7 +54,7 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
       });
       setSelectLoading(false);
       let arr = [];
-      arr = data.map((d) => {
+      arr = response?.data?.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
@@ -104,7 +103,7 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
         setOpenBranch(false);
         reset();
       } else if (!response.success) {
-        showToast(data.message, "error");
+        showToast(response?.message, "error");
       }
     }
   };

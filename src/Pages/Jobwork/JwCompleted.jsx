@@ -57,20 +57,45 @@ const JwCompleted = () => {
     }
   };
   const handlePrint = async (d) => {
-    setLoading("print");
+  
+ try {
+     setLoading("print");
     const response = await imsAxios.post("/jobwork/print_jw_analysis", {
       transaction: d,
     });
+    
+    if (!response.success) {
+      showToast(response.message, "error");
+      setLoading(false);
+      return;
+    }
     setLoading(false);
-    printFunction(response?.data.buffer?.data);
+    printFunction(response?.data?.buffer?.data);
+  
+ } catch (error) {
+  showToast(error.message || "Something went wrong during print", "error");
+  
+ }
   };
   const handleDownload = async (d) => {
-    setLoading("print");
+  try {
+      setLoading("print");
     const response = await imsAxios.post("/jobwork/print_jw_analysis", {
       transaction: d,
     });
+  
+    if (!response.success) {
+      showToast(response.message, "error");
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     downloadFunction(response?.data.buffer?.data, d);
+    
+  } catch (error) {
+    showToast(error.message || "Something went wrong during download", "error");
+    
+  }
   };
 
   const getVendor = async (search) => {

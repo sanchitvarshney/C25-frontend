@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { v4 } from "uuid";
-import { Button, Col, DatePicker, Input, Row, Tabs } from "antd";
+import {  Col, Input, Row, Tabs } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
 import MyDataTable from "../../../Components/MyDataTable";
 import { PlusCircleTwoTone, MinusCircleTwoTone } from "@ant-design/icons";
@@ -10,7 +10,6 @@ import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import MyButton from "../../../Components/MyButton";
 import PIAScan from "@/Pages/Store/MINLabel/PIAScan.tsx";
-const { RangePicker } = DatePicker;
 
 function CreatePhysical() {
   // console.log(addrow);
@@ -45,19 +44,18 @@ const Manual = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [datee, setDatee] = useState([]);
   // const [availData, setAvailData] = useState({});
-  const { executeFun, laoding: loading1 } = useApi();
-  const [searchInput, setSearchInput] = useState("");
-  const [allData, setAllData] = useState({
-    selType: "",
+  const { executeFun } = useApi();
+  // const [searchInput, setSearchInput] = useState("");
+  // const [allData, setAllData] = useState({
+  //   selType: "",
 
-    component: [],
-    existStock: [],
-    physicalStock: [],
-    uom: [],
-    remark: [],
-  });
+  //   component: [],
+  //   existStock: [],
+  //   physicalStock: [],
+  //   uom: [],
+  //   remark: [],
+  // });
 
   const getComponent = async (e) => {
     if (e?.length > 2) {
@@ -240,7 +238,7 @@ const Manual = () => {
         <MyAsyncSelect
           style={{ width: "100%" }}
           onBlur={() => setAsyncOptions([])}
-          onInputChange={(e) => setSearchInput(e)}
+          // onInputChange={(e) => setSearchInput(e)}
           loadOptions={getComponent}
           value={addrow?.comp}
           optionsState={asyncOptions}

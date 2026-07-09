@@ -9,7 +9,6 @@ import {
   Timeline,
   Typography,
 } from "antd";
-import React from "react";
 import { useState } from "react";
 import { imsAxios } from "../../axiosInterceptor";
 import { useEffect } from "react";
@@ -40,7 +39,7 @@ const TaskLogs = ({ show, hide }) => {
       const { data } = response;
       if (data) {
         if (response.success) {
-          const arr = response.data.map((task, index) => {
+          const arr = response.data.map((task) => {
             let label = "";
             let user = "";
             switch (task.status) {
@@ -84,6 +83,7 @@ const TaskLogs = ({ show, hide }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -125,6 +125,7 @@ const TaskLogs = ({ show, hide }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

@@ -58,14 +58,15 @@ export default function MaterialInWithPO() {
   const [resetPoData, setResetPoData] = useState({ materials: [] });
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [fileName, setFileName] = useState("");
   const [irnNum, setIrnNum] = useState("");
   const [searchData, setSearchData] = useState({
     vendor: "",
     poNumber: "",
   });
   const [showCurrency, setShowCurrenncy] = useState(null);
-  const [fileName, setFileName] = useState("");
   const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
+   const [uploadedComponents, setUploadedComponents] = useState([]);
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -125,9 +126,7 @@ export default function MaterialInWithPO() {
     };
 
     if (validation == true) {
-      let values = await form.validateFields();
-      let a = values.components;
-
+  let a = uploadedComponents;
       if (a?.length) {
         poData.materials.map((row) => {
           componentData = {
@@ -150,7 +149,7 @@ export default function MaterialInWithPO() {
             remark: [...componentData.remark, row.orderremark],
             location: [...componentData.location, row.location.value],
             out_location: [...componentData.out_location, row.autoConsumption],
-            documentName: values.components.map((r) => r.documentName),
+             documentName: uploadedComponents?.map((r) => r.documentName),
             irn: irnNum,
             qrScan: isScan == true ? "Y" : "N",
           };
@@ -197,11 +196,10 @@ export default function MaterialInWithPO() {
   const validateInvoices = async (values) => {
     try {
       const invoices = values.componentData.invoice;
-      if(invoices.length == 0 || invoices == undefined || !invoices){
-         showToast("Please add at least one invoice", "error");
-         return
+      if (invoices.length == 0 || invoices == undefined || !invoices) {
+        showToast("Please add at least one invoice", "error");
+        return;
       }
-
       setSubmitLoading(true);
       let payload = {
         invoice: invoices,
@@ -228,6 +226,9 @@ export default function MaterialInWithPO() {
         } else {
           submitMIN(values);
         }
+      } else {
+        showToast(response.message || "Invoice Id not found", "error");
+        setSubmitLoading(false);
       }
     } catch (error) {
       showToast(error?.message || "Failed to upload document", "error");
@@ -237,7 +238,6 @@ export default function MaterialInWithPO() {
   };
   const submitMIN = async (values) => {
     setSubmitLoading(true);
-
     if (fileName) {
       let final = {
         companybranch: "BROAKTRC25",
@@ -464,9 +464,7 @@ export default function MaterialInWithPO() {
       };
     });
   };
-  // const backFunction = () => {
-  
-  // };
+
   const getVendors = async (search) => {
     // if (search?.length > 2) {
     const response = await executeFun(() => getVendorOptions(search), "select");
@@ -758,21 +756,19 @@ export default function MaterialInWithPO() {
   }, [poData]);
   // log
   const { Text } = Typography;
-
   const handleUploadDocument = async () => {
     setUploadLoading(true);
 
     try {
       const formData = new FormData();
       const values = await form.validateFields();
-        if (!values?.components[0]?.file) {
-          showToast("Please upload Files", "error");
-          return;
-        }
-        values.components.map((comp) => {
-          formData.append("files", comp.file[0]?.originFileObj);
-        });
-  
+      if (!values?.components[0]?.file) {
+        showToast("Please upload Files", "error");
+        return;
+      }
+      values.components.map((comp) => {
+        formData.append("files", comp.file[0]?.originFileObj);
+      });
 
       const response = await imsAxios.post(
         "/transaction/upload-invoice",
@@ -781,6 +777,7 @@ export default function MaterialInWithPO() {
 
       if (response?.success) {
         setFileName(response?.data);
+          setUploadedComponents(values.components);
         setUploadClicked(false);
         showToast(response?.message || "Upload Document success", "success");
         setUploadLoading(false);
@@ -1358,7 +1355,6 @@ export default function MaterialInWithPO() {
           </Col>
 
           <NavFooter
-            // backFunction={backFunction}
             hideHeaderMenu
             nextLabel="Submit"
             loading={submitLoading}

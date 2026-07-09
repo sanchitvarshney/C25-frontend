@@ -362,7 +362,7 @@ function JWRMChallanEditMaterials({
         <Col span={10} style={{ height: "95%", overflowY: "scroll" }}>
           <Card size="small">
             {}
-            {(loading("page") || loading("values")) && <Loading />}
+            {(loading("page") || loading("values")) && <Loading isDrawerLoading />}
             <Form
               // onFinish={submitHandler}
               form={createJobWorkChallanForm}

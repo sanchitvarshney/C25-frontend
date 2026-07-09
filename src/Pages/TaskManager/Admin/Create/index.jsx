@@ -1,5 +1,4 @@
 import { Drawer, Form, Input, Modal, Row, Space } from "antd";
-import React from "react";
 import SingleDatePicker from "../../../../Components/SingleDatePicker";
 import MySelect from "../../../../Components/MySelect";
 import MyButton from "../../../../Components/MyButton";
@@ -32,6 +31,7 @@ const CreateTask = ({ show, hide, fetchTasks }) => {
       };
       taskForm.setFieldsValue(finalObj);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -83,6 +83,7 @@ const CreateTask = ({ show, hide, fetchTasks }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -106,6 +107,7 @@ const CreateTask = ({ show, hide, fetchTasks }) => {
         }
       }
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

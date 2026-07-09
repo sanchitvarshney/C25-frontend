@@ -1,5 +1,5 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+
+import  { useEffect, useState } from "react";
 import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import {
   asyncSelectComponent,
@@ -17,7 +17,6 @@ import MyDataTable from "../../../../Components/MyDataTable.jsx";
 export default function EditDCComponents({
   newGatePass,
   setActiveTab,
-  resetFunction,
   setUpdateDCId,
   resetData,
   setPageLoading,
@@ -27,7 +26,6 @@ export default function EditDCComponents({
   const [rows, setRows] = useState([]);
   console.log(rows);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  const [selectLoading, setSelectLoading] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);

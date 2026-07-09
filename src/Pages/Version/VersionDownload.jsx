@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { imsAxios } from "../../axiosInterceptor";
 import { useToast } from "../../hooks/useToast.js";
 import {
@@ -11,7 +10,6 @@ import {
   Paper,
 } from "@mui/material";
 import {
-  Download,
   NewReleases,
   CalendarToday,
   Person,
@@ -19,20 +17,15 @@ import {
 
 const VersionDownload = () => {
   const { showToast } = useToast();
-  const navigate = useNavigate();
   const [versionFiles, setVersionFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewing, setViewing] = useState(null);
 
   useEffect(() => {
     const fetchVersionFiles = async () => {
       try {
         setLoading(true);
-        console.log("Fetching version files...");
         const response = await imsAxios.post("/version/fetchVersionFiles");
 
-        console.log("API Response:", response);
-        console.log("Response data:", response.data);
 
         if (response.data) {
           const files = response.data || [];
@@ -54,14 +47,11 @@ const VersionDownload = () => {
 
   const handleViewFile = (file) => {
     try {
-      setViewing(file.doc_id);
      
       showToast(`${file.doc_name} loaded successfully!`, "success");
     } catch (error) {
       console.error("Error loading file:", error);
       showToast(`Failed to load ${file.doc_name}. Please try again.`, "error");
-    } finally {
-      setViewing(null);
     }
   };
 
@@ -132,7 +122,7 @@ const VersionDownload = () => {
           </Paper>
         </Box>
       ) : (
-        versionFiles.map((file, index) => (
+        versionFiles.map((file) => (
           <Box
             key={file.doc_id}
             sx={{ flex: 1, display: "flex", flexDirection: "column" }}

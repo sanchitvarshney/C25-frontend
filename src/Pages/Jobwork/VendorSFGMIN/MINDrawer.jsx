@@ -136,15 +136,15 @@ function MINDrawer({ transactionInwarding, setTransactionInwarding }) {
     setShowConfirmSubmit(finalObj);
   };
   const submitHandler = async () => {
-    setSubmitLoading(false);
+    setSubmitLoading(true);
     const response = await imsAxios.post(
       "/jwvendor/sfgInward",
       showConfirmSubmit
     );
+    setSubmitLoading(false);
     if (response.success) {
       setShowConfirmSubmit(false);
       showToast(response.message, "success");
-      setSubmitLoading(false);
       setTransactionInwarding(false);
     } else {
       showToast(response.message, "error");

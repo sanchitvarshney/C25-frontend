@@ -22,13 +22,15 @@ const TransferModal = ({ hide, show, loading, submitHandler }: any) => {
           Select Lot type 'Passed' or 'Failed'
         </Typography.Text>
         <MyButton
-          loading={loading("insertWithCount-PASS")}
+          loading={loading("transfer")}
+          disabled={loading("transfer")}
           onClick={() => submitHandler("PASS")}
           variant="submit"
           text="PASSED"
         />
         <MyButton
-          loading={loading("insertWithCount-FAIL")}
+          loading={loading("transfer")}
+          disabled={loading("transfer")}
           onClick={() => submitHandler("FAIL")}
           variant="clear"
           text="FAILED"

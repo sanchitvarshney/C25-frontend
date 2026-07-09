@@ -21,7 +21,7 @@ const WoCreateChallan = () => {
   const [rows, setRows] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [detaildata, setDetailData] = useState("");
-const {showToast} = useToast();
+  const { showToast } = useToast();
   const [rtnchallan, setRtnChallan] = useState(false);
   const [challanForm] = Form.useForm();
   const actionColumn = {
@@ -31,7 +31,7 @@ const {showToast} = useToast();
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
-      key={"create"}
+        key={"create"}
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -132,7 +132,7 @@ const {showToast} = useToast();
           </Col>
         </Row>
       </Col>
-      <div style={{ height: "100%", }}>
+      <div style={{ height: "100%" }}>
         <MyDataTable
           loading={loading === "fetch"}
           data={rows}

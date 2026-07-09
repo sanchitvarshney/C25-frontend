@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Col, Form, Input, Modal, Row, Space } from "antd";
+import { Col, Form, Input, Modal, Row, Space } from "antd";
 import MySelect from "../../Components/MySelect";
 import MyDatePicker from "../../Components/MyDatePicker";
 import ToolTipEllipses from "../../Components/ToolTipEllipses";
@@ -37,7 +37,7 @@ const WoAnalysis = () => {
       const arr = await getWorkOrderAnalysis(wise, searchInput);
       setRows(arr);
     } catch (error) {
-      console.log("some error occured while fetching rows", error);
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -49,6 +49,7 @@ const WoAnalysis = () => {
       const arr = await getClientOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -59,6 +60,7 @@ const WoAnalysis = () => {
       const arr = await getSKUOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }

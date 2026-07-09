@@ -1,5 +1,4 @@
-import { Button, Empty } from "antd";
-import React from "react";
+import { Empty } from "antd";
 
 export default function Page404() {
   return (
@@ -28,8 +27,8 @@ export default function Page404() {
               Page Not Found
             </span>
             <span style={{ fontSize: 20, color: "rgba(0,0,0,0.5)" }}>
-              The page you are trying to access doesn't exist. please check if
-              the URL is correct.
+              {`The page you are trying to access doesn't exist. please check if
+              the URL is correct.`}
             </span>
    
           </div>
