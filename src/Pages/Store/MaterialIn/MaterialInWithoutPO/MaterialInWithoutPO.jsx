@@ -49,7 +49,7 @@ import {
 import SingleProduct from "../../../Master/Vendor/SingleProduct";
 import { downloadCSVCustomColumns } from "../../../../Components/exportToCSV.jsx";
 import MyDataTable from "../../../../Components/MyDataTable.jsx";
-
+const INR_CURRENCY_ID = "364907247";
 const defaultValues = {
   vendorType: "v01",
   vendorName: "",
@@ -89,7 +89,7 @@ export default function MaterialInWithoutPO() {
   const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
   const [isScan, setIsScan] = useState(false);
   const [open, setOpen] = useState(false);
-const [fileName, setFileName] = useState("");
+  const [fileName, setFileName] = useState("");
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -105,7 +105,7 @@ const [fileName, setFileName] = useState("");
   const [uplaoaClicked, setUploadClicked] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
-    const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(null);
   const [preview, setPreview] = useState(false);
@@ -135,6 +135,17 @@ const [fileName, setFileName] = useState("");
   // console.log("fileComponents", fileComponents);
   const handleSubmit = async () => {
     const values = await form.validateFields();
+    const currency = values.currency;
+    const exchangeRate = parseFloat(form.getFieldValue("exchangeRate"));
+    if (
+      currency !== INR_CURRENCY_ID &&
+      (isNaN(exchangeRate) || exchangeRate <= 1)
+    ) {
+      return Modal.error({
+        title: "Invalid Exchange Rate",
+        content: "Exchange rate must be greater than 1 for foreign currency.",
+      });
+    }
     Modal.confirm({
       title: "Create MIN",
       content: "Are you sure you want to create this MIN?",
@@ -147,11 +158,11 @@ const [fileName, setFileName] = useState("");
 
   const handleValidatingInvoices = async () => {
     const values = await form.validateFields();
-     if(!fileName) {
-    showToast("Please upload a Document", "error");
-    setSubmitLoading(false);
-    return
-  }
+    if (!fileName) {
+      showToast("Please upload a Document", "error");
+      setSubmitLoading(false);
+      return;
+    }
     const response = await executeFun(() => validateInvoice(values), "submit");
 
     if (response?.success) {
@@ -173,19 +184,18 @@ const [fileName, setFileName] = useState("");
         submitMIN(values);
       }
     } else {
-         showToast(response.message || "Invoice Id not found", "error");
+      showToast(response.message || "Invoice Id not found", "error");
     }
   };
   const submitMIN = async () => {
-       setSubmitLoading(true);
+    setSubmitLoading(true);
     const vendorType = form.getFieldValue("vendorType");
     const values = await form.validateFields();
 
     if (fileName || vendorType == "p01") {
-
       const response = await executeFun(
         () => materialInWithoutPo(values, fileName, vendorType),
-        "submit"
+        "submit",
       );
 
       if (response?.success) {
@@ -225,7 +235,7 @@ const [fileName, setFileName] = useState("");
   const handleFetchComponentOptions = async (search) => {
     const response = await executeFun(
       () => getComponentOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response.success) {
@@ -233,7 +243,7 @@ const [fileName, setFileName] = useState("");
       if (response.data[0].piaStatus == "Y") {
         showToast(
           `PIA Status is enabled for ${response.data[0].newPart} Part Code.`,
-          "success"
+          "success",
         );
       }
       arr = convertSelectOptions(response.data);
@@ -296,7 +306,7 @@ const [fileName, setFileName] = useState("");
   const handleFetchComponentDetails = async (row, rowId, value) => {
     const response = await executeFun(
       () => getComponentDetail(value.value),
-      "fetch"
+      "fetch",
     );
     if (response.success) {
       const data = response?.data;
@@ -313,12 +323,12 @@ const [fileName, setFileName] = useState("");
     const vendorType = form.getFieldValue("vendorType");
     if (formVendor && component && vendorType === "v01") {
       const response = await executeFun(() =>
-        getComponentDetail(component.value, formVendor.value)
+        getComponentDetail(component.value, formVendor.value),
       );
       if (response.success) {
         form.setFieldValue(
           ["components", rowId, "previousRate"],
-          response.data.rate
+          response.data.rate,
         );
       }
     }
@@ -339,7 +349,7 @@ const [fileName, setFileName] = useState("");
   const getVendorBracnch = async (vendorCode) => {
     const response = await executeFun(
       () => getVendorBranchOptions(vendorCode),
-      "fetch"
+      "fetch",
     );
 
     let arr = [];
@@ -357,7 +367,7 @@ const [fileName, setFileName] = useState("");
 
     const response = await executeFun(
       () => getVendorBranchDetails(vendorCode.value, branchCode),
-      "fetch"
+      "fetch",
     );
 
     if (response?.success) {
@@ -369,7 +379,7 @@ const [fileName, setFileName] = useState("");
   const handleFetchCostCenterOptions = async (search) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response?.success) arr = convertSelectOptions(response?.data);
@@ -378,7 +388,7 @@ const [fileName, setFileName] = useState("");
   const handleFetchProjectOptions = async (search) => {
     const response = await executeFun(
       () => getProjectOptions(search),
-      "select"
+      "select",
     );
     setAsyncOptions(response?.data);
   };
@@ -407,14 +417,55 @@ const [fileName, setFileName] = useState("");
     // setShowResetConfirm(false);
     // form.setFieldsValue(obj);
   };
+  const syncComponentsCurrency = (currency, exchangeRate) => {
+    const components = form.getFieldValue("components") || [];
+    form.setFieldValue(
+      "components",
+      components.map((row) => ({
+        ...row,
+        currency,
+        exchangeRate,
+      })),
+    );
+  };
+
+  const handleCurrencyChange = (value) => {
+    if (value === INR_CURRENCY_ID) {
+      form.setFieldValue("exchangeRate", 1);
+      syncComponentsCurrency(value, 1);
+      return;
+    }
+
+    syncComponentsCurrency(value, form.getFieldValue("exchangeRate") || 1);
+
+    const components = form.getFieldValue("components") || [];
+    const totalForeignPrice = components.reduce(
+      (sum, row) => sum + getInt(row.qty) * getInt(row.rate),
+      0,
+    );
+    const symbol = currencies.find((cur) => cur.value == value)?.text;
+
+    setShowCurrenncy({
+      currency: value,
+      price: totalForeignPrice,
+      exchange_rate: form.getFieldValue("exchangeRate") || 1,
+      symbol,
+      onExchangeSubmit: (rate) => {
+        form.setFieldValue("exchangeRate", rate);
+        syncComponentsCurrency(value, rate);
+      },
+    });
+  };
   const materialResetFunction = () => {
     form.setFieldsValue({
+      currency: INR_CURRENCY_ID,
+      exchangeRate: 1,
       components: [
         {
           gstType: "L",
           location: "",
           autoConsumption: 0,
-          currency: "364907247",
+          currency: INR_CURRENCY_ID,
           exchangeRate: 1,
         },
       ],
@@ -431,19 +482,19 @@ const [fileName, setFileName] = useState("");
     form.setFieldValue(["components", rowId, "value"], getInt(inrValue));
     form.setFieldValue(
       ["components", rowId, "cgst"],
-      gstType === "L" ? gst : 0
+      gstType === "L" ? gst : 0,
     );
     form.setFieldValue(
       ["components", rowId, "sgst"],
-      gstType === "L" ? gst : 0
+      gstType === "L" ? gst : 0,
     );
     form.setFieldValue(
       ["components", rowId, "igst"],
-      gstType === "L" ? 0 : gst
+      gstType === "L" ? 0 : gst,
     );
     form.setFieldValue(
       ["components", rowId, "foreignValue"],
-      currency === "364907247" ? 0 : foreignValue
+      currency === "364907247" ? 0 : foreignValue,
     );
   };
 
@@ -478,7 +529,7 @@ const [fileName, setFileName] = useState("");
   }, [costCenter]);
   useEffect(() => {
     let grandTotal = components?.map((row) =>
-      Number(row?.cgst + row?.sgst + row?.igst + row?.value)
+      Number(row?.cgst + row?.sgst + row?.igst + row?.value),
     );
     let cgsttotal = components?.map((row) => Number(row?.cgst));
     let sgsttotal = components?.map((row) => Number(row?.sgst));
@@ -526,8 +577,6 @@ const [fileName, setFileName] = useState("");
     handleFetchPreviousRate,
     compareRates,
     form,
-    currencies,
-    setShowCurrenncy,
   }) => [
     {
       headerName: "Part Component",
@@ -601,37 +650,11 @@ const [fileName, setFileName] = useState("");
       ],
       field: (row, index) => (
         <Input
-        type="number"
+          type="number"
           onChange={(e) => compareRates(e.target.value, index)}
-          addonAfter={
-            <div style={{ width: 50 }}>
-              <Form.Item noStyle name={[index, "currency"]}>
-                <MySelect
-                  options={currencies}
-                  onChange={(value) => {
-                    value !== "364907247"
-                      ? setShowCurrenncy({
-                          currency: value,
-                          price: row.value,
-                          exchangeRate: row.exchangeRate,
-                          symbol: currencies.filter(
-                            (cur) => cur.value == value
-                          )[0].text,
-                          rowId: index,
-                          form: form,
-                        })
-                      : form.setFieldValue(
-                          ["components", index, "exchangeRate"],
-                          1
-                        );
-                  }}
-                />
-              </Form.Item>
-            </div>
-          }
         />
       ),
-      width: 200,
+      width: 120,
     },
 
     {
@@ -715,12 +738,17 @@ const [fileName, setFileName] = useState("");
     setOpen(false);
     // setSelectedRows(previewRows);
     // setRows(previewRows);
+    const currency = form.getFieldValue("currency") || INR_CURRENCY_ID;
+    const exchangeRate = form.getFieldValue("exchangeRate") || 1;
+
     let arr = previewRows.map((r) => {
       return {
         ...r,
         mfgCode: r.Manualmfgcode,
         hsnCode: r.hsn,
         autoConsumption: r.Autoconsump == "1" ? "Yes" : "No",
+        currency,
+        exchangeRate,
       };
     });
 
@@ -840,7 +868,7 @@ const [fileName, setFileName] = useState("");
     formData.append("file", file);
     const response = await executeFun(
       () => uplaodFileInMINInward(formData),
-      "fetch"
+      "fetch",
     );
     if (response?.success) {
       let data = response?.data;
@@ -854,9 +882,9 @@ const [fileName, setFileName] = useState("");
       const formattedHeaders = data.headers.map((header) =>
         header
           .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) =>
-            index === 0 ? match.toUpperCase() : match.toLowerCase()
+            index === 0 ? match.toUpperCase() : match.toLowerCase(),
           )
-          .replace(/\s+/g, "")
+          .replace(/\s+/g, ""),
       );
 
       // Map the row values to headers
@@ -895,7 +923,7 @@ const [fileName, setFileName] = useState("");
     }
   };
 
-    const handleUploadDocument = async () => {
+  const handleUploadDocument = async () => {
     try {
       setUploadLoading(true);
       const formData = new FormData();
@@ -909,10 +937,12 @@ const [fileName, setFileName] = useState("");
         fileResponse = await uploadMinInvoice(formData);
       }
       if (fileResponse?.success) {
-
         setFileName(fileResponse?.data);
         setUploadClicked(false);
-        showToast(fileResponse?.message || "Upload Document success", "success");
+        showToast(
+          fileResponse?.message || "Upload Document success",
+          "success",
+        );
         setUploadLoading(false);
       } else {
         showToast(fileResponse?.message || "Upload Document failed", "error");
@@ -921,7 +951,7 @@ const [fileName, setFileName] = useState("");
     } catch (error) {
       showToast(error?.message || "Upload Document failed", "error");
       setUploadLoading(false);
-    }finally {
+    } finally {
       setUploadLoading(false);
     }
   };
@@ -978,7 +1008,7 @@ const [fileName, setFileName] = useState("");
               span={6}
               style={{ height: "100%", overflowY: "auto", overflowX: "hidden" }}
             >
-              {(loading("fetch") || selectLoading)  && <Loading />}
+              {(loading("fetch") || selectLoading) && <Loading />}
               <Flex vertical gap={6}>
                 <Card size="small">
                   <Row gutter={4}>
@@ -1135,6 +1165,14 @@ const [fileName, setFileName] = useState("");
                       </Form.Item>
                     </Col>
                     <Col span={12}>
+                      <Form.Item label="Currency" name="currency">
+                        <MySelect
+                          options={currencies}
+                          onChange={handleCurrencyChange}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
                       <Form.Item label="Invoice Date" name="invoiceDate">
                         <SingleDatePicker
                           setDate={(value) => {
@@ -1250,7 +1288,7 @@ const [fileName, setFileName] = useState("");
                                 {Number(
                                   row.values?.reduce((partialSum, a) => {
                                     return partialSum + Number(a);
-                                  }, 0)
+                                  }, 0),
                                 ).toFixed(2)}
                               </Typography.Text>
                             </span>
@@ -1270,7 +1308,11 @@ const [fileName, setFileName] = useState("");
                   addableRow={true}
                   removableRows={true}
                   reverse={true}
-                  newRow={defaultValues.components[0]}
+                  newRow={() => ({
+                    ...defaultValues.components[0],
+                    currency: form.getFieldValue("currency") || INR_CURRENCY_ID,
+                    exchangeRate: form.getFieldValue("exchangeRate") || 1,
+                  })}
                   listName="components"
                   nonRemovableColumns={1}
                   watchKeys={[
@@ -1295,8 +1337,6 @@ const [fileName, setFileName] = useState("");
                     handleFetchPreviousRate,
                     compareRates,
                     form,
-                    currencies,
-                    setShowCurrenncy,
                   })}
                 />
               </div>
@@ -1306,9 +1346,9 @@ const [fileName, setFileName] = useState("");
               width={700}
               title={"Upload Document"}
               // destroyOnClose={true}
-            onOk={handleUploadDocument}
+              onOk={handleUploadDocument}
               onCancel={() => setUploadClicked(false)}
-           loading={uploadLoading}
+              loading={uploadLoading}
             >
               {" "}
               <Card style={{ height: "20rem", overflowY: "scroll" }}>
@@ -1338,7 +1378,6 @@ const [fileName, setFileName] = useState("");
                                 />
                               </Form.Item>
                             ))}
-                      
                           </Col>
                         </>
                       )}

@@ -770,7 +770,7 @@ const App = () => {
               textAlign: "center",
             }}
           >
-            TEST SERVER
+            C25 TEST SERVER
           </div>
         )}
         {/* {showBlackScreen && (

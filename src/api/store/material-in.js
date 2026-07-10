@@ -42,7 +42,7 @@ export const uploadVendorDoc = async (formData) => {
   // formData.append("files", file);
   const response = await imsAxios.post(
     "/transaction/vendor-document",
-    formData
+    formData,
   );
 
   return response;
@@ -76,8 +76,8 @@ export const materialInWithoutPo = async (values, fileName, vendorType) => {
     qty: values.components.map((row) => row.qty),
     rate: values.components.map((row) => row.rate),
     manual_mfg_code: values.components.map((row) => row.mfgCode),
-    currency: values.components.map((row) => row.currency),
-    exchange: values.components.map((row) => row.exchangeRate),
+    currency: values.currency,
+    exchange: values.exchangeRate ?? 1,
     invoice: values.components.map((row) => row.invoiceId),
     invoiceDate: values.components.map((row) => row.invoiceDate),
     hsncode: values.components.map((row) => row.hsnCode),
@@ -241,7 +241,6 @@ export const fetchBoxDetails = async (minId, boxLabel) => {
 };
 
 export const updateBoxQty = async (componentKey, values, stock) => {
-
   const payload = {
     minId: values.components.map((row) => row["MIN ID"]),
     box: values.components.map((row) => row["label"]),
@@ -254,7 +253,7 @@ export const updateBoxQty = async (componentKey, values, stock) => {
 
   const response = await imsAxios.post(
     "/minBoxLablePrint/updateAvailQty",
-    payload
+    payload,
   );
 
   return response;
@@ -265,8 +264,7 @@ export const printFGMIN = async (minId, action) => {
     transaction: minId,
   });
 
-
-  if (response.success ) {
+  if (response.success) {
     if (!action) {
       printFunction(response.data.buffer.data);
     } else if (action === "download") {
