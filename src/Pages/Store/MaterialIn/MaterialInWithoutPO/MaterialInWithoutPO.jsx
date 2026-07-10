@@ -49,7 +49,7 @@ import {
 import SingleProduct from "../../../Master/Vendor/SingleProduct";
 import { downloadCSVCustomColumns } from "../../../../Components/exportToCSV.jsx";
 import MyDataTable from "../../../../Components/MyDataTable.jsx";
-const INR_CURRENCY_ID = "364907247";
+
 const defaultValues = {
   vendorType: "v01",
   vendorName: "",
@@ -89,7 +89,7 @@ export default function MaterialInWithoutPO() {
   const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
   const [isScan, setIsScan] = useState(false);
   const [open, setOpen] = useState(false);
-  const [fileName, setFileName] = useState("");
+const [fileName, setFileName] = useState("");
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -105,7 +105,7 @@ export default function MaterialInWithoutPO() {
   const [uplaoaClicked, setUploadClicked] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
+    const [uploadLoading, setUploadLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(null);
   const [preview, setPreview] = useState(false);
@@ -135,17 +135,6 @@ export default function MaterialInWithoutPO() {
   // console.log("fileComponents", fileComponents);
   const handleSubmit = async () => {
     const values = await form.validateFields();
-    const currency = values.currency;
-    const exchangeRate = parseFloat(form.getFieldValue("exchangeRate"));
-    if (
-      currency !== INR_CURRENCY_ID &&
-      (isNaN(exchangeRate) || exchangeRate <= 1)
-    ) {
-      return Modal.error({
-        title: "Invalid Exchange Rate",
-        content: "Exchange rate must be greater than 1 for foreign currency.",
-      });
-    }
     Modal.confirm({
       title: "Create MIN",
       content: "Are you sure you want to create this MIN?",
@@ -158,11 +147,11 @@ export default function MaterialInWithoutPO() {
 
   const handleValidatingInvoices = async () => {
     const values = await form.validateFields();
-    if (!fileName) {
-      showToast("Please upload a Document", "error");
-      setSubmitLoading(false);
-      return;
-    }
+     if(!fileName) {
+    showToast("Please upload a Document", "error");
+    setSubmitLoading(false);
+    return
+  }
     const response = await executeFun(() => validateInvoice(values), "submit");
 
     if (response?.success) {
@@ -184,18 +173,19 @@ export default function MaterialInWithoutPO() {
         submitMIN(values);
       }
     } else {
-      showToast(response.message || "Invoice Id not found", "error");
+         showToast(response.message || "Invoice Id not found", "error");
     }
   };
   const submitMIN = async () => {
-    setSubmitLoading(true);
+       setSubmitLoading(true);
     const vendorType = form.getFieldValue("vendorType");
     const values = await form.validateFields();
 
     if (fileName || vendorType == "p01") {
+
       const response = await executeFun(
         () => materialInWithoutPo(values, fileName, vendorType),
-        "submit",
+        "submit"
       );
 
       if (response?.success) {
@@ -235,7 +225,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchComponentOptions = async (search) => {
     const response = await executeFun(
       () => getComponentOptions(search),
-      "select",
+      "select"
     );
     let arr = [];
     if (response.success) {
@@ -243,7 +233,7 @@ export default function MaterialInWithoutPO() {
       if (response.data[0].piaStatus == "Y") {
         showToast(
           `PIA Status is enabled for ${response.data[0].newPart} Part Code.`,
-          "success",
+          "success"
         );
       }
       arr = convertSelectOptions(response.data);
@@ -306,7 +296,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchComponentDetails = async (row, rowId, value) => {
     const response = await executeFun(
       () => getComponentDetail(value.value),
-      "fetch",
+      "fetch"
     );
     if (response.success) {
       const data = response?.data;
@@ -323,12 +313,12 @@ export default function MaterialInWithoutPO() {
     const vendorType = form.getFieldValue("vendorType");
     if (formVendor && component && vendorType === "v01") {
       const response = await executeFun(() =>
-        getComponentDetail(component.value, formVendor.value),
+        getComponentDetail(component.value, formVendor.value)
       );
       if (response.success) {
         form.setFieldValue(
           ["components", rowId, "previousRate"],
-          response.data.rate,
+          response.data.rate
         );
       }
     }
@@ -349,7 +339,7 @@ export default function MaterialInWithoutPO() {
   const getVendorBracnch = async (vendorCode) => {
     const response = await executeFun(
       () => getVendorBranchOptions(vendorCode),
-      "fetch",
+      "fetch"
     );
 
     let arr = [];
@@ -367,7 +357,7 @@ export default function MaterialInWithoutPO() {
 
     const response = await executeFun(
       () => getVendorBranchDetails(vendorCode.value, branchCode),
-      "fetch",
+      "fetch"
     );
 
     if (response?.success) {
@@ -379,7 +369,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchCostCenterOptions = async (search) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
-      "select",
+      "select"
     );
     let arr = [];
     if (response?.success) arr = convertSelectOptions(response?.data);
@@ -388,7 +378,7 @@ export default function MaterialInWithoutPO() {
   const handleFetchProjectOptions = async (search) => {
     const response = await executeFun(
       () => getProjectOptions(search),
-      "select",
+      "select"
     );
     setAsyncOptions(response?.data);
   };
@@ -417,55 +407,14 @@ export default function MaterialInWithoutPO() {
     // setShowResetConfirm(false);
     // form.setFieldsValue(obj);
   };
-  const syncComponentsCurrency = (currency, exchangeRate) => {
-    const components = form.getFieldValue("components") || [];
-    form.setFieldValue(
-      "components",
-      components.map((row) => ({
-        ...row,
-        currency,
-        exchangeRate,
-      })),
-    );
-  };
-
-  const handleCurrencyChange = (value) => {
-    if (value === INR_CURRENCY_ID) {
-      form.setFieldValue("exchangeRate", 1);
-      syncComponentsCurrency(value, 1);
-      return;
-    }
-
-    syncComponentsCurrency(value, form.getFieldValue("exchangeRate") || 1);
-
-    const components = form.getFieldValue("components") || [];
-    const totalForeignPrice = components.reduce(
-      (sum, row) => sum + getInt(row.qty) * getInt(row.rate),
-      0,
-    );
-    const symbol = currencies.find((cur) => cur.value == value)?.text;
-
-    setShowCurrenncy({
-      currency: value,
-      price: totalForeignPrice,
-      exchange_rate: form.getFieldValue("exchangeRate") || 1,
-      symbol,
-      onExchangeSubmit: (rate) => {
-        form.setFieldValue("exchangeRate", rate);
-        syncComponentsCurrency(value, rate);
-      },
-    });
-  };
   const materialResetFunction = () => {
     form.setFieldsValue({
-      currency: INR_CURRENCY_ID,
-      exchangeRate: 1,
       components: [
         {
           gstType: "L",
           location: "",
           autoConsumption: 0,
-          currency: INR_CURRENCY_ID,
+          currency: "364907247",
           exchangeRate: 1,
         },
       ],
@@ -482,19 +431,19 @@ export default function MaterialInWithoutPO() {
     form.setFieldValue(["components", rowId, "value"], getInt(inrValue));
     form.setFieldValue(
       ["components", rowId, "cgst"],
-      gstType === "L" ? gst : 0,
+      gstType === "L" ? gst : 0
     );
     form.setFieldValue(
       ["components", rowId, "sgst"],
-      gstType === "L" ? gst : 0,
+      gstType === "L" ? gst : 0
     );
     form.setFieldValue(
       ["components", rowId, "igst"],
-      gstType === "L" ? 0 : gst,
+      gstType === "L" ? 0 : gst
     );
     form.setFieldValue(
       ["components", rowId, "foreignValue"],
-      currency === "364907247" ? 0 : foreignValue,
+      currency === "364907247" ? 0 : foreignValue
     );
   };
 
@@ -529,7 +478,7 @@ export default function MaterialInWithoutPO() {
   }, [costCenter]);
   useEffect(() => {
     let grandTotal = components?.map((row) =>
-      Number(row?.cgst + row?.sgst + row?.igst + row?.value),
+      Number(row?.cgst + row?.sgst + row?.igst + row?.value)
     );
     let cgsttotal = components?.map((row) => Number(row?.cgst));
     let sgsttotal = components?.map((row) => Number(row?.sgst));
@@ -577,6 +526,8 @@ export default function MaterialInWithoutPO() {
     handleFetchPreviousRate,
     compareRates,
     form,
+    currencies,
+    setShowCurrenncy,
   }) => [
     {
       headerName: "Part Component",
@@ -650,11 +601,37 @@ export default function MaterialInWithoutPO() {
       ],
       field: (row, index) => (
         <Input
-          type="number"
+        type="number"
           onChange={(e) => compareRates(e.target.value, index)}
+          addonAfter={
+            <div style={{ width: 50 }}>
+              <Form.Item noStyle name={[index, "currency"]}>
+                <MySelect
+                  options={currencies}
+                  onChange={(value) => {
+                    value !== "364907247"
+                      ? setShowCurrenncy({
+                          currency: value,
+                          price: row.value,
+                          exchangeRate: row.exchangeRate,
+                          symbol: currencies.filter(
+                            (cur) => cur.value == value
+                          )[0].text,
+                          rowId: index,
+                          form: form,
+                        })
+                      : form.setFieldValue(
+                          ["components", index, "exchangeRate"],
+                          1
+                        );
+                  }}
+                />
+              </Form.Item>
+            </div>
+          }
         />
       ),
-      width: 120,
+      width: 200,
     },
 
     {
@@ -738,17 +715,12 @@ export default function MaterialInWithoutPO() {
     setOpen(false);
     // setSelectedRows(previewRows);
     // setRows(previewRows);
-    const currency = form.getFieldValue("currency") || INR_CURRENCY_ID;
-    const exchangeRate = form.getFieldValue("exchangeRate") || 1;
-
     let arr = previewRows.map((r) => {
       return {
         ...r,
         mfgCode: r.Manualmfgcode,
         hsnCode: r.hsn,
         autoConsumption: r.Autoconsump == "1" ? "Yes" : "No",
-        currency,
-        exchangeRate,
       };
     });
 
@@ -868,7 +840,7 @@ export default function MaterialInWithoutPO() {
     formData.append("file", file);
     const response = await executeFun(
       () => uplaodFileInMINInward(formData),
-      "fetch",
+      "fetch"
     );
     if (response?.success) {
       let data = response?.data;
@@ -882,9 +854,9 @@ export default function MaterialInWithoutPO() {
       const formattedHeaders = data.headers.map((header) =>
         header
           .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) =>
-            index === 0 ? match.toUpperCase() : match.toLowerCase(),
+            index === 0 ? match.toUpperCase() : match.toLowerCase()
           )
-          .replace(/\s+/g, ""),
+          .replace(/\s+/g, "")
       );
 
       // Map the row values to headers
@@ -923,7 +895,7 @@ export default function MaterialInWithoutPO() {
     }
   };
 
-  const handleUploadDocument = async () => {
+    const handleUploadDocument = async () => {
     try {
       setUploadLoading(true);
       const formData = new FormData();
@@ -937,12 +909,10 @@ export default function MaterialInWithoutPO() {
         fileResponse = await uploadMinInvoice(formData);
       }
       if (fileResponse?.success) {
+
         setFileName(fileResponse?.data);
         setUploadClicked(false);
-        showToast(
-          fileResponse?.message || "Upload Document success",
-          "success",
-        );
+        showToast(fileResponse?.message || "Upload Document success", "success");
         setUploadLoading(false);
       } else {
         showToast(fileResponse?.message || "Upload Document failed", "error");
@@ -951,7 +921,7 @@ export default function MaterialInWithoutPO() {
     } catch (error) {
       showToast(error?.message || "Upload Document failed", "error");
       setUploadLoading(false);
-    } finally {
+    }finally {
       setUploadLoading(false);
     }
   };
@@ -1008,7 +978,7 @@ export default function MaterialInWithoutPO() {
               span={6}
               style={{ height: "100%", overflowY: "auto", overflowX: "hidden" }}
             >
-              {(loading("fetch") || selectLoading) && <Loading />}
+              {(loading("fetch") || selectLoading)  && <Loading />}
               <Flex vertical gap={6}>
                 <Card size="small">
                   <Row gutter={4}>
@@ -1165,14 +1135,6 @@ export default function MaterialInWithoutPO() {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label="Currency" name="currency">
-                        <MySelect
-                          options={currencies}
-                          onChange={handleCurrencyChange}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
                       <Form.Item label="Invoice Date" name="invoiceDate">
                         <SingleDatePicker
                           setDate={(value) => {
@@ -1288,7 +1250,7 @@ export default function MaterialInWithoutPO() {
                                 {Number(
                                   row.values?.reduce((partialSum, a) => {
                                     return partialSum + Number(a);
-                                  }, 0),
+                                  }, 0)
                                 ).toFixed(2)}
                               </Typography.Text>
                             </span>
@@ -1308,11 +1270,7 @@ export default function MaterialInWithoutPO() {
                   addableRow={true}
                   removableRows={true}
                   reverse={true}
-                  newRow={() => ({
-                    ...defaultValues.components[0],
-                    currency: form.getFieldValue("currency") || INR_CURRENCY_ID,
-                    exchangeRate: form.getFieldValue("exchangeRate") || 1,
-                  })}
+                  newRow={defaultValues.components[0]}
                   listName="components"
                   nonRemovableColumns={1}
                   watchKeys={[
@@ -1337,6 +1295,8 @@ export default function MaterialInWithoutPO() {
                     handleFetchPreviousRate,
                     compareRates,
                     form,
+                    currencies,
+                    setShowCurrenncy,
                   })}
                 />
               </div>
@@ -1346,9 +1306,9 @@ export default function MaterialInWithoutPO() {
               width={700}
               title={"Upload Document"}
               // destroyOnClose={true}
-              onOk={handleUploadDocument}
+            onOk={handleUploadDocument}
               onCancel={() => setUploadClicked(false)}
-              loading={uploadLoading}
+           loading={uploadLoading}
             >
               {" "}
               <Card style={{ height: "20rem", overflowY: "scroll" }}>
@@ -1378,6 +1338,7 @@ export default function MaterialInWithoutPO() {
                                 />
                               </Form.Item>
                             ))}
+                      
                           </Col>
                         </>
                       )}
