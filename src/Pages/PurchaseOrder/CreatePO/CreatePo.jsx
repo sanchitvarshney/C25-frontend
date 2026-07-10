@@ -1905,7 +1905,6 @@ export default function CreatePo() {
                                       formatter={(v) => `${v}%`}
                                       parser={(v) => v.replace("%", "")}
                                       style={{ width: "100%" }}
-                                      type="number"
                                       onChange={(value) => {
                                         if (
                                           form.getFieldValue("paymentterms") ===
