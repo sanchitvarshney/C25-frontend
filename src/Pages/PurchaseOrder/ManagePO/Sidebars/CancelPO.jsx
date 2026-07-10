@@ -64,33 +64,14 @@ export default function CancelPO({
       const response = await imsAxios.post("/purchaseOrder/CancelPO", {
         purchase_order: showCancelPO,
         remark: reason,
-      }).then((res) => {
-        if(!res.success){
-          showToast(res.message?.msg || res.message, "error")
-          setLoading(false);
-          setShowCancelPO(null);
-        }
-        else{
-          return res
-        }
-      }
-    );
+      })
       setLoading(false);
       if (response?.success) {
         showToast(response.message?.msg || response.message, "success");
         setReason("");
         let arr = rows;
         getSearchResults();
-        // arr = arr.map((row) => {
-        //   if (row.po_transaction == showCancelPO) {
-        //     return {
-        //       ...row,
-        //       po_status: "C",
-        //     };
-        //   } else {
-        //     return row;
-        //   }
-        // });
+   
         setRows(arr);
         setShowCancelPO(null);
       } else {
