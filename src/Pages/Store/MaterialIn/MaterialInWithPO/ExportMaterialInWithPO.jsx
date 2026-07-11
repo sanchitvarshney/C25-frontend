@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import NavFooter from "../../../../Components/NavFooter.jsx";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
@@ -38,6 +38,7 @@ import useApi from "../../../../hooks/useApi.ts";
 import MyButton from "../../../../Components/MyButton/index.jsx";
 import MySelect from "../../../../Components/MySelect.jsx";
 import { v4 } from "uuid";
+import FileUpload from "../../../../Components/FileUpload/FileUpload.tsx";
 
 export default function ExportMaterialInWithPO() {
   const { showToast } = useToast();
@@ -75,6 +76,8 @@ export default function ExportMaterialInWithPO() {
   const [uploadedComponents, setUploadedComponents] = useState([]);
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
+  const tableContainerRef = useRef(null);
+  const [filesData, setFilesData] = useState([]);
   const [uplaodForm] = Form.useForm();
   let costCode;
   const { executeFun, loading: loading1 } = useApi();
@@ -123,7 +126,7 @@ export default function ExportMaterialInWithPO() {
           showToast("Please upload Document", "error");
           return;
         }
-    
+
         poData?.materials?.map((row) => {
           componentData = {
             component: [...componentData.component, row.componentKey],
@@ -231,12 +234,11 @@ export default function ExportMaterialInWithPO() {
         } else {
           submitMIN(values);
         }
-      }else {
+      } else {
         showToast(response?.message || "Invoice check failed", "error");
-
       }
     } catch (error) {
-            showToast(error?.message || "Invoice check failed", "error");
+      showToast(error?.message || "Invoice check failed", "error");
     } finally {
       setSubmitLoading(false);
     }
@@ -345,63 +347,57 @@ export default function ExportMaterialInWithPO() {
   ];
 
   const submitMIN = async (values) => {
-  
-      setSubmitLoading(true);
-  
-      if (fileName) {
-        let final = {
-          companybranch: "BROAKTRC25",
-          invoices: fileName,
-          poid: searchData.poNumber,
-          manual_mfg_code: poData.materials.map((row) => row.manualMfgCode),
-          invoice: invoice,
-          invoiceDate: invoiceDate,
-          location: selectLocation,
-        };
-        final = { ...final, ...values.componentData };
-        const res = await executeFun(
-          () => poMINforImport(final),
-          "select",
-        );
-        // const response = await imsAxios.post("/purchaseOrder/poMIN", final);
-        let data = res?.data;
-        // setSubmitLoading(false);
-        if (res.success) {
-          setSearchData({
-            vendor: "",
-            poNumber: "",
-          });
-          setFileName("");
-          setSubmitLoading(false);
-          setMaterialInSuccess({
-            materialInId: data.transaction_id,
-            poId: searchData.poNumber,
-            vendor: searchData.vendor,
-            components: poData?.materials?.map((row) => {
-              return {
-                id: row.id,
-                componentName: row.component?.label,
-                partNo: row.partCode,
-                inQuantity: row.orderQty,
-                location: selectLocation,
-                poQuantity: row.poOrderQty,
-              };
-            }),
-          });
-          setIrnNum("");
+    setSubmitLoading(true);
 
-        } else {
-          setSubmitLoading(false);
-          showToast(res.message, "error");
-        }
+    if (fileName) {
+      let final = {
+        companybranch: "BROAKTRC25",
+        invoices: fileName,
+        poid: searchData.poNumber,
+        manual_mfg_code: poData.materials.map((row) => row.manualMfgCode),
+        invoice: invoice,
+        invoiceDate: invoiceDate,
+        location: selectLocation,
+      };
+      final = { ...final, ...values.componentData };
+      const res = await executeFun(() => poMINforImport(final), "select");
+      // const response = await imsAxios.post("/purchaseOrder/poMIN", final);
+      let data = res?.data;
+      // setSubmitLoading(false);
+      if (res.success) {
+        setSearchData({
+          vendor: "",
+          poNumber: "",
+        });
+        setFileName("");
+        setSubmitLoading(false);
+        setMaterialInSuccess({
+          materialInId: data.transaction_id,
+          poId: searchData.poNumber,
+          vendor: searchData.vendor,
+          components: poData?.materials?.map((row) => {
+            return {
+              id: row.id,
+              componentName: row.component?.label,
+              partNo: row.partCode,
+              inQuantity: row.orderQty,
+              location: selectLocation,
+              poQuantity: row.poOrderQty,
+            };
+          }),
+        });
+        setIrnNum("");
       } else {
         setSubmitLoading(false);
-        showToast(
-          "Some error occured while uploading invoices, Please try again",
-          "error",
-        );
+        showToast(res.message, "error");
       }
-  
+    } else {
+      setSubmitLoading(false);
+      showToast(
+        "Some error occured while uploading invoices, Please try again",
+        "error",
+      );
+    }
   };
   const getCurrencies = async () => {
     const response = await imsAxios.get("/backend/fetchAllCurrecy");
@@ -906,7 +902,6 @@ export default function ExportMaterialInWithPO() {
     window.location.reload();
   };
 
-
   useEffect(() => {
     // getDetail();
     // getLocation();
@@ -996,7 +991,7 @@ export default function ExportMaterialInWithPO() {
       setPreview(false);
     }
   };
-    const handleUploadDocument = async () => {
+  const handleUploadDocument = async () => {
     setUploadLoading(true);
 
     try {
@@ -1033,20 +1028,54 @@ export default function ExportMaterialInWithPO() {
     }
   };
 
+  const handleUploadDocumentsBatch = async (files) => {
+    setUploadLoading(true);
+
+    try {
+      if (!files?.length) {
+        showToast("Please upload Files", "error");
+        return;
+      }
+
+      const formData = new FormData();
+
+      files.forEach((file) => formData.append("files", file));
+      const fileResponse = await imsAxios.post(
+        "/transaction/upload-invoice",
+        formData,
+      );
+      if (!fileResponse?.success) {
+        throw new Error(fileResponse?.message || "Upload Document failed");
+      }
+      setFileName(fileResponse?.data);
+      setUploadedComponents(filesData ?? []);
+      showToast(fileResponse?.message || "Upload Document success", "success");
+      return fileResponse;
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  const handleFileUploadDelete = (id) => {
+    setFilesData(filesData.filter((item) => item.id !== id));
+  };
+
+  const handleFileUploadChange = (items) => {
+    setFilesData(items);
+  };
+
   return (
     <div
       style={{
         height: "calc(100vh - 215px)",
         width: "100%",
         position: "relative",
-        margin:8
+        margin: 8,
       }}
     >
-      <Row
-    
-      >
+      <Row>
         {(pageLoading || submitLoading == true) && <Loading />}
-        <Col  >
+        <Col>
           <Space>
             <div style={{ width: 250 }}>
               <MyAsyncSelect
@@ -1068,7 +1097,6 @@ export default function ExportMaterialInWithPO() {
             </div>
             <div style={{ width: 180 }}>
               <Input
-                
                 placeholder="PO Number"
                 value={searchData.poNumber}
                 onChange={(e) =>
@@ -1091,9 +1119,11 @@ export default function ExportMaterialInWithPO() {
             </MyButton>
           </Space>
         </Col>
-        <Col span={14} style={{display:"flex",  justifyContent:"flex-end", gap:"10px"}} >
-      
-           <MyButton
+        <Col
+          span={14}
+          style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
+        >
+          {/* <MyButton
             variant="upload"
             text="Import"
             onClick={() => {
@@ -1105,13 +1135,22 @@ export default function ExportMaterialInWithPO() {
             }}
           >
             Excel
-          </MyButton>
-     
-          <Button onClick={() => setUploadClicked(true)}>
-            {" "}
-            Upload Documents
-          </Button>
-    
+          </MyButton> */}
+
+          <FileUpload
+            accept="image/*,.pdf"
+            multiple
+            maxFiles={3}
+            maxFileSize={5 * 1024 * 1024}
+            title="Documents"
+            getContainer={() => tableContainerRef.current}
+            // onUpload={handleUploadDocument}
+            onUploadBatch={handleUploadDocumentsBatch}
+            onDelete={handleFileUploadDelete}
+            onChange={handleFileUploadChange}
+          >
+            <MyButton variant="upload" text="Documents" />
+          </FileUpload>
         </Col>
       </Row>
       {/* vendor info modal */}
@@ -1217,12 +1256,8 @@ export default function ExportMaterialInWithPO() {
               }}
               gutter={[0, 4]}
             >
-           
-              <Row >
-                <Card
-                  size="small"
-                  title="Vendor Details"
-                >
+              <Row>
+                <Card size="small" title="Vendor Details">
                   <Row gutter={[0, 8]}>
                     <Col span={24}>
                       {!searchLoading && (
@@ -1522,7 +1557,7 @@ export default function ExportMaterialInWithPO() {
                   </Row>
                 </Card>
               </Row>
-          
+
               {/* tax details */}
               <Col span={24} style={{ width: "100%" }}>
                 <Card
@@ -1694,7 +1729,7 @@ export default function ExportMaterialInWithPO() {
                 open={uplaoaClicked}
                 layout="vertical"
                 width={700}
-                  loading={uploadLoading}
+                loading={uploadLoading}
                 // destroyOnClose={true}
                 onCancel={() => {
                   setFileName("");
@@ -1748,11 +1783,21 @@ export default function ExportMaterialInWithPO() {
             </Row>
           </Col>
           <Col span={18}>
-            <MyDataTable
-              columns={columns}
-              data={poData?.materials}
-              loading={loading("select" || pageLoading)}
-            />
+            <div
+              ref={tableContainerRef}
+              style={{
+                height: "100%",
+                position: "relative",
+                overflow: "hidden",
+                display: "flex",
+              }}
+            >
+              <MyDataTable
+                columns={columns}
+                data={poData?.materials}
+                loading={loading("select" || pageLoading)}
+              />
+            </div>
           </Col>
 
           <NavFooter

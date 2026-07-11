@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
@@ -27,7 +27,6 @@ import {
   rateCell,
   componentCell,
 } from "./TableCollumns";
-import UploadDocs from "../MaterialInWithPO/UploadDocs";
 import Loading from "../../../../Components/Loading";
 import { v4 } from "uuid";
 import CurrenceModal from "../../../../Components/CurrenceModal";
@@ -55,6 +54,7 @@ import MySelect from "../../../../Components/MySelect.jsx";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect.jsx";
 import SingleDatePicker from "../../../../Components/SingleDatePicker.jsx";
 import { Add, Delete } from "@mui/icons-material";
+import FileUpload from "../../../../Components/FileUpload/FileUpload.tsx";
 
 const sampleData = [
   {
@@ -89,7 +89,6 @@ export default function ProductMIN() {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [showBranchModal, setShowBranchModal] = useState(null);
-  // const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -112,6 +111,7 @@ export default function ProductMIN() {
     projectID: "",
     costCenter: "",
   });
+    const tableContainerRef = useRef(null);
   const { executeFun, loading: loading1 } = useApi();
   const [vendorBranchOptions, setVendorBranchOptions] = useState([]);
   const [preview, setPreview] = useState(false);
@@ -270,6 +270,37 @@ export default function ProductMIN() {
       showToast("Please Provide all the values", "error");
     }
   };
+      const handleUploadDocumentsBatch = async (files) => {
+      const vendorType = form.getFieldValue("vendorType");
+      if (vendorType === "p01") {
+        return { success: true };
+      }
+      setUploadLoading(true);
+      try {
+        const formData = new FormData();
+        files.forEach((file) => formData.append("files", file));
+        const fileResponse =  await imsAxios.post(
+          "/transaction/upload-invoice",
+          formData,
+        );
+        if (!fileResponse?.success) {
+          throw new Error(fileResponse?.message || "Upload Document failed");
+        }
+        setFileName(fileResponse?.data);
+        showToast(fileResponse?.message || "Upload Document success", "success");
+        return fileResponse;
+      } finally {
+        setUploadLoading(false);
+      }
+    };
+   
+    const handleFileUploadDelete = (id) => {
+      setInvoices(invoices.filter((item) => item.id !== id));
+    };
+    const handleFileUploadChange = (items) => {
+    
+      setInvoices(items);
+    };
   const submitMIN = async (values) => {
     axiosResponseFunction(async () => {
       setSubmitLoading(true);
@@ -308,6 +339,8 @@ export default function ProductMIN() {
       setSubmitLoading(false);
       if (response?.success || data?.success) {
         setActiveTab("1");
+              setFileName("");
+            setInvoices([]);
         setShowSuccessPage({
           materialInId: data?.data?.txn ?? data?.txn,
           vendor: {
@@ -326,7 +359,7 @@ export default function ProductMIN() {
             };
           }),
         });
-        setFileName("");
+
         vendorResetFunction();
         materialResetFunction();
       } else {
@@ -468,35 +501,8 @@ export default function ProductMIN() {
   const validateInvoices = async (values) => {
     submitMIN(values);
   };
-  const handleUploadDocument = async (files) => {
-    if (!files?.length) return;
-    setUploadLoading(true);
-    try {
-      const formData = new FormData();
-      files.forEach((file) => formData.append("files", file));
-      const response = await imsAxios.post(
-        "/transaction/upload-invoice",
-        formData,
-      );
-      if (response?.success) {
-        setFileName(response?.data);
-        showToast(response?.message || "Upload Document success", "success");
-      } else {
-        showToast(response?.message || "Upload Document failed", "error");
-      }
-    } catch (error) {
-      showToast(error?.message || "Upload Document failed", "error");
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-  const handleFilesChange = (files) => {
-    setInvoices(files);
-    setFileName("");
-    if (files?.length) {
-      handleUploadDocument(files);
-    }
-  };
+
+ 
   const getProductOptions = async (e) => {
     if (e?.length > 2) {
       const response = await imsAxios.post("/backend/getProductByNameAndNo", {
@@ -536,21 +542,7 @@ export default function ProductMIN() {
       showToast(response.message?.msg || response.message, "error");
     }
   };
-  // const getAutoComnsumptionOptions = async () => {
-  //   setPageLoading(true);
-  //   let response = await imsAxios.get("/transaction/fetchAutoConsumpLocation");
-  //   setPageLoading(false);
-  //   if (response.success) {
-  //     let arr = response.data.map((row) => {
-  //       return {
-  //         value: row.id,
-  //         text: row.text,
-  //       };
-  //     });
-  //     arr = [{ text: "NO", value: 0 }, ...arr];
-  //     setAutoConsumptionOption(arr);
-  //   }
-  // };
+
 
   const inputHandler = async (name, value, id) => {
     let arr = materialInward;
@@ -1443,6 +1435,7 @@ export default function ProductMIN() {
               {uploadLoading && <Loading />}
               <Row
                 span={24}
+                gutter={[12]}
                 style={{
                   width: "100%",
                 }}
@@ -1456,13 +1449,27 @@ export default function ProductMIN() {
                     gap: 10,
                   }}
                 >
-                  <UploadDocs
+                  {/* <UploadDocs
                     disable={uploadLoading}
                     setFiles={handleFilesChange}
                     files={invoices}
-                  />
+                  /> */}
+                  <FileUpload
+                    accept="image/*,.pdf"
+                    multiple
+                    maxFiles={3}
+                    maxFileSize={5 * 1024 * 1024}
+                    title="Documents"
+                    getContainer={() => tableContainerRef.current}
+                    // onUpload={handleUploadDocument}
+                    onUploadBatch={handleUploadDocumentsBatch}
+                    onDelete={handleFileUploadDelete}
+                    onChange={handleFileUploadChange}
+                  >
+                    <MyButton variant="upload" text="Documents" />
+                  </FileUpload>
                 </Col>
-                <Col span={12}>
+                <Col span={10}>
                   <MyButton
                     variant="upload"
                     text="Excel"
@@ -1533,11 +1540,24 @@ export default function ProductMIN() {
             </Card>
           </Col>
           <Col style={{ height: "100%" }} span={18}>
+            <div
+            ref={tableContainerRef}
+            style={{
+              height: "98%",
+              border: "1px solid #EEEEEE",
+              position: "relative",
+              overflow: "hidden",
+              display: "flex",
+            }}
+          >
+          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
             <FormTable
               columns={columns}
               data={materialInward}
               loading={pageLoading || loading1("select")}
             />
+               </div>
+          </div>
           </Col>
         </Row>
       </div>
@@ -1548,7 +1568,7 @@ export default function ProductMIN() {
         resetFunction={() => setShowResetConfirm(true)}
         submitFunction={validataData}
         nextLabel="Submit"
-        loading={submitLoading}
+        loading={submitLoading || uploadLoading}
       />
       {showSuccessPage && (
         <SuccessPage
