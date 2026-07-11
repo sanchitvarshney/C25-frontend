@@ -34,12 +34,22 @@ export const QuantityCell = ({ row }, inputHandler) => (
     type="number"
   />
 );
-export const rateCell = ({ row }, inputHandler) => (
-  <Input
-    value={row.orderrate}
-    onChange={(e) => inputHandler("orderrate", e.target.value, row.id)}
-    type="number"
-  />
+export const rateCell = ({ row }, inputHandler, currencies) => (
+  <Input.Group compact>
+    <Input
+      style={{ width: "65%" }}
+      value={row.orderrate}
+      onChange={(e) => inputHandler("orderrate", e.target.value, row.id)}
+      type="number"
+    />
+    <div style={{ width: "35%" }}>
+      <MySelect
+        onChange={(value) => inputHandler("currency", value, row.id)}
+        value={row.currency}
+        options={currencies}
+      />
+    </div>
+  </Input.Group>
 );
 // export const rateCell = ({ row }, inputHandler) => (
 //   <Input

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import NavFooter from "../../../../Components/NavFooter";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
@@ -46,10 +46,10 @@ import {
   uploadMinInvoice,
   validateInvoice,
 } from "../../../../api/store/material-in";
-import SingleProduct from "../../../Master/Vendor/SingleProduct";
 import { downloadCSVCustomColumns } from "../../../../Components/exportToCSV.jsx";
 import MyDataTable from "../../../../Components/MyDataTable.jsx";
-const INR_CURRENCY_ID = "364907247";
+import FileUpload from "../../../../Components/FileUpload";
+
 const defaultValues = {
   vendorType: "v01",
   vendorName: "",
@@ -102,7 +102,6 @@ export default function MaterialInWithoutPO() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [isApplicable, setIsApplicable] = useState(false);
   const [vendorBranchOptions, setVendorBranchOptions] = useState([]);
-  const [uplaoaClicked, setUploadClicked] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -132,20 +131,9 @@ export default function MaterialInWithoutPO() {
       GST_RATE: "18",
     },
   ];
-  // console.log("fileComponents", fileComponents);
+  const tableContainerRef = useRef(null);
   const handleSubmit = async () => {
     const values = await form.validateFields();
-    const currency = values.currency;
-    const exchangeRate = parseFloat(form.getFieldValue("exchangeRate"));
-    if (
-      currency !== INR_CURRENCY_ID &&
-      (isNaN(exchangeRate) || exchangeRate <= 1)
-    ) {
-      return Modal.error({
-        title: "Invalid Exchange Rate",
-        content: "Exchange rate must be greater than 1 for foreign currency.",
-      });
-    }
     Modal.confirm({
       title: "Create MIN",
       content: "Are you sure you want to create this MIN?",
@@ -417,55 +405,14 @@ export default function MaterialInWithoutPO() {
     // setShowResetConfirm(false);
     // form.setFieldsValue(obj);
   };
-  const syncComponentsCurrency = (currency, exchangeRate) => {
-    const components = form.getFieldValue("components") || [];
-    form.setFieldValue(
-      "components",
-      components.map((row) => ({
-        ...row,
-        currency,
-        exchangeRate,
-      })),
-    );
-  };
-
-  const handleCurrencyChange = (value) => {
-    if (value === INR_CURRENCY_ID) {
-      form.setFieldValue("exchangeRate", 1);
-      syncComponentsCurrency(value, 1);
-      return;
-    }
-
-    syncComponentsCurrency(value, form.getFieldValue("exchangeRate") || 1);
-
-    const components = form.getFieldValue("components") || [];
-    const totalForeignPrice = components.reduce(
-      (sum, row) => sum + getInt(row.qty) * getInt(row.rate),
-      0,
-    );
-    const symbol = currencies.find((cur) => cur.value == value)?.text;
-
-    setShowCurrenncy({
-      currency: value,
-      price: totalForeignPrice,
-      exchange_rate: form.getFieldValue("exchangeRate") || 1,
-      symbol,
-      onExchangeSubmit: (rate) => {
-        form.setFieldValue("exchangeRate", rate);
-        syncComponentsCurrency(value, rate);
-      },
-    });
-  };
   const materialResetFunction = () => {
     form.setFieldsValue({
-      currency: INR_CURRENCY_ID,
-      exchangeRate: 1,
       components: [
         {
           gstType: "L",
           location: "",
           autoConsumption: 0,
-          currency: INR_CURRENCY_ID,
+          currency: "364907247",
           exchangeRate: 1,
         },
       ],
@@ -577,6 +524,8 @@ export default function MaterialInWithoutPO() {
     handleFetchPreviousRate,
     compareRates,
     form,
+    currencies,
+    setShowCurrenncy,
   }) => [
     {
       headerName: "Part Component",
@@ -652,9 +601,35 @@ export default function MaterialInWithoutPO() {
         <Input
           type="number"
           onChange={(e) => compareRates(e.target.value, index)}
+          addonAfter={
+            <div style={{ width: 50 }}>
+              <Form.Item noStyle name={[index, "currency"]}>
+                <MySelect
+                  options={currencies}
+                  onChange={(value) => {
+                    value !== "364907247"
+                      ? setShowCurrenncy({
+                          currency: value,
+                          price: row.value,
+                          exchangeRate: row.exchangeRate,
+                          symbol: currencies.filter(
+                            (cur) => cur.value == value,
+                          )[0].text,
+                          rowId: index,
+                          form: form,
+                        })
+                      : form.setFieldValue(
+                          ["components", index, "exchangeRate"],
+                          1,
+                        );
+                  }}
+                />
+              </Form.Item>
+            </div>
+          }
         />
       ),
-      width: 120,
+      width: 200,
     },
 
     {
@@ -738,17 +713,12 @@ export default function MaterialInWithoutPO() {
     setOpen(false);
     // setSelectedRows(previewRows);
     // setRows(previewRows);
-    const currency = form.getFieldValue("currency") || INR_CURRENCY_ID;
-    const exchangeRate = form.getFieldValue("exchangeRate") || 1;
-
     let arr = previewRows.map((r) => {
       return {
         ...r,
         mfgCode: r.Manualmfgcode,
         hsnCode: r.hsn,
         autoConsumption: r.Autoconsump == "1" ? "Yes" : "No",
-        currency,
-        exchangeRate,
       };
     });
 
@@ -923,37 +893,35 @@ export default function MaterialInWithoutPO() {
     }
   };
 
-  const handleUploadDocument = async () => {
+  const handleUploadDocumentsBatch = async (files) => {
+    const vendorType = form.getFieldValue("vendorType");
+    if (vendorType === "p01") {
+      return { success: true };
+    }
+    setUploadLoading(true);
     try {
-      setUploadLoading(true);
       const formData = new FormData();
-      const vendorType = form.getFieldValue("vendorType");
-      const values = await form.validateFields();
-      values?.fileComponents?.map((comp) => {
-        formData.append("files", comp.file[0]?.originFileObj);
-      });
-      let fileResponse;
-      if (vendorType !== "p01") {
-        fileResponse = await uploadMinInvoice(formData);
+      files.forEach((file) => formData.append("files", file));
+      const fileResponse = await uploadMinInvoice(formData);
+      if (!fileResponse?.success) {
+        throw new Error(fileResponse?.message || "Upload Document failed");
       }
-      if (fileResponse?.success) {
-        setFileName(fileResponse?.data);
-        setUploadClicked(false);
-        showToast(
-          fileResponse?.message || "Upload Document success",
-          "success",
-        );
-        setUploadLoading(false);
-      } else {
-        showToast(fileResponse?.message || "Upload Document failed", "error");
-        setUploadLoading(false);
-      }
-    } catch (error) {
-      showToast(error?.message || "Upload Document failed", "error");
-      setUploadLoading(false);
+      setFileName(fileResponse?.data);
+      showToast(fileResponse?.message || "Upload Document success", "success");
+      return fileResponse;
     } finally {
       setUploadLoading(false);
     }
+  };
+
+  const handleFileUploadDelete = (id) => {
+    form.setFieldValue("fileComponents", form.getFieldValue("fileComponents").filter((item) => item.id !== id));
+  };
+  const handleFileUploadChange = (items) => {
+    form.setFieldValue(
+      "fileComponents",
+      items.map((item) => ({ documentName: item.name })),
+    );
   };
   return (
     <div style={{ height: "100%", overflow: "hidden", padding: 10 }}>
@@ -1165,14 +1133,6 @@ export default function MaterialInWithoutPO() {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label="Currency" name="currency">
-                        <MySelect
-                          options={currencies}
-                          onChange={handleCurrencyChange}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
                       <Form.Item label="Invoice Date" name="invoiceDate">
                         <SingleDatePicker
                           setDate={(value) => {
@@ -1199,12 +1159,28 @@ export default function MaterialInWithoutPO() {
                         justifyContent: "space-between",
                       }}
                     >
-                      <Col>
+                      {/* <Col>
                         <MyButton
                           variant="upload"
                           text="Documents"
                           onClick={() => setUploadClicked(true)}
                         ></MyButton>
+                      </Col> */}
+                      <Col>
+                        <FileUpload
+                          accept="image/*,.pdf"
+                          multiple
+                          maxFiles={3}
+                          maxFileSize={5 * 1024 * 1024}
+                          title="Upload Documents"
+                          getContainer={() => tableContainerRef.current}
+                          onUploadBatch={handleUploadDocumentsBatch}
+                          onDelete={handleFileUploadDelete}
+                          onChange={handleFileUploadChange}
+                          loading={uploadLoading}
+                        >
+                          <MyButton variant="upload" text="Upload Documents" />
+                        </FileUpload>
                       </Col>
                       <Col>
                         <MyButton
@@ -1301,91 +1277,55 @@ export default function MaterialInWithoutPO() {
               </Flex>
             </Col>
             <Col style={{ height: "100%" }} span={18}>
-              <div style={{ height: "98%", border: "1px solid #EEEEEE" }}>
-                {pageLoading && <Loading />}
-                <FormTable2
-                  form={form}
-                  addableRow={true}
-                  removableRows={true}
-                  reverse={true}
-                  newRow={() => ({
-                    ...defaultValues.components[0],
-                    currency: form.getFieldValue("currency") || INR_CURRENCY_ID,
-                    exchangeRate: form.getFieldValue("exchangeRate") || 1,
-                  })}
-                  listName="components"
-                  nonRemovableColumns={1}
-                  watchKeys={[
-                    "rate",
-                    "qty",
-                    "component",
-                    "gstRate",
-                    "gstType",
-                    "exchangeRate",
-                    "currency",
-                    "mfg",
-                  ]}
-                  calculation={calculation}
-                  columns={columns({
-                    handleFetchComponentOptions,
-                    loading,
-                    asyncOptions,
-                    setAsyncOptions,
-                    locationOptions,
-                    autoConsumptionOptions,
-                    handleFetchComponentDetails,
-                    handleFetchPreviousRate,
-                    compareRates,
-                    form,
-                  })}
-                />
+              <div
+                ref={tableContainerRef}
+                style={{
+                  height: "98%",
+                  border: "1px solid #EEEEEE",
+                  position: "relative",
+                  overflow: "hidden",
+                  display: "flex",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
+                  {pageLoading && <Loading />}
+                  <FormTable2
+                    form={form}
+                    addableRow={true}
+                    removableRows={true}
+                    reverse={true}
+                    newRow={defaultValues.components[0]}
+                    listName="components"
+                    nonRemovableColumns={1}
+                    watchKeys={[
+                      "rate",
+                      "qty",
+                      "component",
+                      "gstRate",
+                      "gstType",
+                      "exchangeRate",
+                      "currency",
+                      "mfg",
+                    ]}
+                    calculation={calculation}
+                    columns={columns({
+                      handleFetchComponentOptions,
+                      loading,
+                      asyncOptions,
+                      setAsyncOptions,
+                      locationOptions,
+                      autoConsumptionOptions,
+                      handleFetchComponentDetails,
+                      handleFetchPreviousRate,
+                      compareRates,
+                      form,
+                      currencies,
+                      setShowCurrenncy,
+                    })}
+                  />
+                </div>
               </div>
             </Col>
-            <Modal
-              open={uplaoaClicked}
-              width={700}
-              title={"Upload Document"}
-              // destroyOnClose={true}
-              onOk={handleUploadDocument}
-              onCancel={() => setUploadClicked(false)}
-              loading={uploadLoading}
-            >
-              {" "}
-              <Card style={{ height: "20rem", overflowY: "scroll" }}>
-                <div style={{ flex: 1 }}>
-                  <Col
-                    span={24}
-                    style={{
-                      overflowX: "hidden",
-                      overflowY: "auto",
-                    }}
-                  >
-                    <Form.List name="fileComponents">
-                      {(fields, { add, remove }) => (
-                        <>
-                          <Col>
-                            {fields.map((field, index) => (
-                              <Form.Item noStyle key={field.key || index}>
-                                <SingleProduct
-                                  fields={fields}
-                                  field={field}
-                                  index={index}
-                                  add={add}
-                                  form={form}
-                                  remove={remove}
-                                  // setFiles={setFiles}
-                                  // files={files}
-                                />
-                              </Form.Item>
-                            ))}
-                          </Col>
-                        </>
-                      )}
-                    </Form.List>
-                  </Col>
-                </div>
-              </Card>
-            </Modal>
             <Modal
               title="Upload File Here"
               open={open}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import NavFooter from "../..//../../Components/NavFooter";
 import { useToast } from "../../../../hooks/useToast.js";
 import {
@@ -12,7 +12,6 @@ import {
   Skeleton,
   Space,
   Typography,
-  Form,
 } from "antd";
 import {
   QuantityCell,
@@ -32,7 +31,6 @@ import {
   gstRate,
   manualMFGCode,
 } from "./TableCollumns";
-import SingleProduct from "../../../Master/Vendor/SingleProduct";
 import CurrenceModal from "../CurrenceModal";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
@@ -50,7 +48,7 @@ import { convertSelectOptions } from "../../../../utils/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import MyButton from "../../../../Components/MyButton";
 import MyDataTable from "../../../../Components/MyDataTable.jsx";
-import { UploadOutlined } from "@ant-design/icons";
+import FileUpload from "../../../../Components/FileUpload/FileUpload.tsx";
 
 export default function MaterialInWithPO() {
   const { showToast } = useToast();
@@ -58,6 +56,7 @@ export default function MaterialInWithPO() {
   const [resetPoData, setResetPoData] = useState({ materials: [] });
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [filesData, setFilesData] = useState([]);
   const [fileName, setFileName] = useState("");
   const [irnNum, setIrnNum] = useState("");
   const [searchData, setSearchData] = useState({
@@ -66,7 +65,7 @@ export default function MaterialInWithPO() {
   });
   const [showCurrency, setShowCurrenncy] = useState(null);
   const [autoConsumptionOptions, setAutoConsumptionOption] = useState([]);
-   const [uploadedComponents, setUploadedComponents] = useState([]);
+  const [uploadedComponents, setUploadedComponents] = useState([]);
   const [totalValues, setTotalValues] = useState([
     { label: "cgst", sign: "+", values: [] },
     { label: "sgst", sign: "+", values: [] },
@@ -83,10 +82,8 @@ export default function MaterialInWithPO() {
   const [locationOptions, setLocationOptions] = useState([]);
   const [codeCostCenter, setCodeCostCenter] = useState("");
   const [isScan, setIsScan] = useState(false);
-  const [uplaoaClicked, setUploadClicked] = useState(false);
-  const [form] = Form.useForm();
+  const tableContainerRef = useRef(null);
 
-  let costCode;
   const { executeFun, loading: loading1 } = useApi();
   const validateData = async () => {
     let validation = false;
@@ -126,7 +123,7 @@ export default function MaterialInWithPO() {
     };
 
     if (validation == true) {
-  let a = uploadedComponents;
+      let a = uploadedComponents;
       if (a?.length) {
         poData.materials.map((row) => {
           componentData = {
@@ -149,7 +146,7 @@ export default function MaterialInWithPO() {
             remark: [...componentData.remark, row.orderremark],
             location: [...componentData.location, row.location.value],
             out_location: [...componentData.out_location, row.autoConsumption],
-             documentName: uploadedComponents?.map((r) => r.documentName),
+            documentName: uploadedComponents?.map((r) => r.documentName),
             irn: irnNum,
             qrScan: isScan == true ? "Y" : "N",
           };
@@ -529,9 +526,8 @@ export default function MaterialInWithPO() {
           };
         }),
       };
-      costCode = obj.headers.cost_center_key;
-      // console.log("obj", costCode);
-      setCodeCostCenter(costCode);
+
+      setCodeCostCenter(obj.headers.cost_center_key);
 
       setPoData(obj);
       setResetPoData(obj);
@@ -756,41 +752,77 @@ export default function MaterialInWithPO() {
   }, [poData]);
   // log
   const { Text } = Typography;
-  const handleUploadDocument = async () => {
+  // const handleUploadDocument = async () => {
+  //   setUploadLoading(true);
+
+  //   try {
+  //     const formData = new FormData();
+  //     const values = await form.validateFields();
+  //     if (!values?.components[0]?.file) {
+  //       showToast("Please upload Files", "error");
+  //       return;
+  //     }
+  //     values.components.map((comp) => {
+  //       formData.append("files", comp.file[0]?.originFileObj);
+  //     });
+
+  //     const response = await imsAxios.post(
+  //       "/transaction/upload-invoice",
+  //       formData,
+  //     );
+
+  //     if (response?.success) {
+  //       setFileName(response?.data);
+  //         setUploadedComponents(values.components);
+  //       setUploadClicked(false);
+  //       showToast(response?.message || "Upload Document success", "success");
+  //       setUploadLoading(false);
+  //     } else {
+  //       showToast(response?.message || "Upload Document failed", "error");
+  //       setUploadLoading(false);
+  //     }
+  //   } catch (error) {
+  //     showToast(error?.message || "Upload Document failed", "error");
+  //     setUploadLoading(false);
+  //   } finally {
+  //     setUploadLoading(false);
+  //   }
+  // };
+
+  const handleUploadDocumentsBatch = async (files) => {
     setUploadLoading(true);
 
     try {
-      const formData = new FormData();
-      const values = await form.validateFields();
-      if (!values?.components[0]?.file) {
+      if (!files?.length) {
         showToast("Please upload Files", "error");
         return;
       }
-      values.components.map((comp) => {
-        formData.append("files", comp.file[0]?.originFileObj);
-      });
 
-      const response = await imsAxios.post(
+      const formData = new FormData();
+
+      files.forEach((file) => formData.append("files", file));
+      const fileResponse = await imsAxios.post(
         "/transaction/upload-invoice",
         formData,
       );
-
-      if (response?.success) {
-        setFileName(response?.data);
-          setUploadedComponents(values.components);
-        setUploadClicked(false);
-        showToast(response?.message || "Upload Document success", "success");
-        setUploadLoading(false);
-      } else {
-        showToast(response?.message || "Upload Document failed", "error");
-        setUploadLoading(false);
+      if (!fileResponse?.success) {
+        throw new Error(fileResponse?.message || "Upload Document failed");
       }
-    } catch (error) {
-      showToast(error?.message || "Upload Document failed", "error");
-      setUploadLoading(false);
+      setFileName(fileResponse?.data);
+      setUploadedComponents(filesData ?? []);
+      showToast(fileResponse?.message || "Upload Document success", "success");
+      return fileResponse;
     } finally {
       setUploadLoading(false);
     }
+  };
+
+ const handleFileUploadDelete = (id) => {
+    setFilesData(filesData.filter((item) => item.id !== id));
+  };
+ 
+  const handleFileUploadChange = (items) => {
+    setFilesData(items);
   };
   return (
     <div
@@ -803,7 +835,7 @@ export default function MaterialInWithPO() {
     >
       <Row justify="space-between">
         {(pageLoading || submitLoading == true) && <Loading />}
-        <Col span={20}>
+        {!materialInSuccess && <><Col span={20}>
           <Space>
             <div style={{ width: 250 }}>
               <MyAsyncSelect
@@ -849,14 +881,22 @@ export default function MaterialInWithPO() {
           </Space>
         </Col>
         <Col>
-          <Button
-            type="primary"
-            icon={<UploadOutlined />}
-            onClick={() => setUploadClicked(true)}
+          <FileUpload
+            accept="image/*,.pdf"
+            multiple
+            maxFiles={3}
+            maxFileSize={5 * 1024 * 1024}
+            title="Documents"
+            getContainer={() => tableContainerRef.current}
+            // onUpload={handleUploadDocument}
+            onUploadBatch={handleUploadDocumentsBatch}
+            onDelete={handleFileUploadDelete}
+            onChange={handleFileUploadChange}
           >
-            Upload Documents
-          </Button>
-        </Col>
+            <MyButton variant="upload" text="Documents" />
+          </FileUpload>
+         </Col></>
+          }
       </Row>
       {/* vendor info modal */}
       <Modal
@@ -1287,77 +1327,32 @@ export default function MaterialInWithPO() {
                   </Row>
                 </Card>
               </Col>
-
-              <Modal
-                open={uplaoaClicked}
-                layout="vertical"
-                width={700}
-                title={"Upload Document"}
-                loading={uploadLoading}
-                // destroyOnClose={true}
-                onCancel={() => {
-                  setFileName("");
-                  setUploadClicked(false);
-                  setUploadLoading(false);
-                }}
-                onOk={handleUploadDocument}
-                // style={{ maxHeight: "50%", height: "50%", overflowY: "scroll" }}
-              >
-                <Form
-                  initialValues={defaultValues}
-                  form={form}
-                  layout="vertical"
-                >
-                  <Card style={{ height: "20rem", overflowY: "scroll" }}>
-                    <div style={{ flex: 1 }}>
-                      <Col
-                        span={24}
-                        style={{
-                          overflowX: "hidden",
-                          overflowY: "auto",
-                        }}
-                      >
-                        <Form.List name="components">
-                          {(fields, { add, remove }) => (
-                            <>
-                              <Col>
-                                {fields.map((field, index) => (
-                                  <Form.Item noStyle key={field.key || index}>
-                                    <SingleProduct
-                                      fields={fields}
-                                      field={field}
-                                      index={index}
-                                      add={add}
-                                      form={form}
-                                      remove={remove}
-                                      // setFiles={setFiles}
-                                      // files={files}
-                                    />
-                                  </Form.Item>
-                                ))}
-                              </Col>
-                            </>
-                          )}
-                        </Form.List>
-                      </Col>
-                    </div>
-                  </Card>
-                </Form>{" "}
-              </Modal>
             </Row>
           </Col>
-          <Col span={18} style={{ height: "calc(100vh - 210px)" }}>
-            <MyDataTable
-              data={poData?.materials}
-              columns={columns}
-              loading={loading1("select") || pageLoading}
-            />
+          <Col span={18} style={{ height: "calc(100vh - 220px)" }}>
+            <div
+              ref={tableContainerRef}
+              style={{
+                height: "100%",
+                display: "flex",
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
+                <MyDataTable
+                  data={poData?.materials}
+                  columns={columns}
+                  loading={loading1("select") || pageLoading}
+                />
+              </div>
+            </div>
           </Col>
 
           <NavFooter
             hideHeaderMenu
             nextLabel="Submit"
-            loading={submitLoading}
+            loading={submitLoading || uploadLoading}
             resetFunction={() => {
               setShowResetConfirm(true);
             }}
@@ -1381,10 +1376,3 @@ export default function MaterialInWithPO() {
     </div>
   );
 }
-const defaultValues = {
-  components: [
-    {
-      // file: "",
-    },
-  ],
-};
