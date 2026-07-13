@@ -166,7 +166,7 @@ export { default as RMPartCodeConversion } from "./Store/RMPartCodeConversion/in
 //challan window Branch Transfer
 export { default as CreateBranchTransferChallan } from "./Store/branchtransfer/CreateDC/CreateBranchTransferChallan.jsx";
 export { default as ViewBranchTransfer } from "./Store/branchtransfer/ViewBranchTransfer.jsx";
-
+export { default as PendingBranchTransfer } from "./Store/branchtransfer/PendingBranchTransfer.jsx";
 //e-way bill
 export { default as EWayBill } from "./Jobwork/JWRMChallan/EWayBill.jsx";
 

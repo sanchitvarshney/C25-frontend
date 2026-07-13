@@ -986,6 +986,13 @@
                     "icon": "SwapHorizIcon",
                     "path": "/warehouse/branch-transfer/view",
                     "isShown": true
+                  },
+                      {
+                    "key": "B362",
+                    "label": "Pending Transfer",
+                    "icon": "SwapHorizIcon",
+                    "path": "/warehouse/branch-transfer/pending",
+                    "isShown": true
                   }
                 ]
               },

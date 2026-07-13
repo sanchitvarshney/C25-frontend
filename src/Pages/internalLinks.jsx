@@ -599,6 +599,10 @@ const links = [
       routeName: "View",
       routePath: "/warehouse/branch-transfer/view",
     },
+       {
+      routeName: "Pending Transfer",
+      routePath: "/warehouse/branch-transfer/pending",
+    },
   ],
   // DC Links
   [

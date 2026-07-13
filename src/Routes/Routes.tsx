@@ -112,6 +112,7 @@ import {
   JWUpdateRate,
   CreateBranchTransferChallan,
   ViewBranchTransfer,
+  PendingBranchTransfer,
   UpdateComponent,
   EWayBill,
   CategoryMaster,
@@ -1333,6 +1334,10 @@ const Routes = [
   {
     path: "/warehouse/branch-transfer/view",
     main: () => <ViewBranchTransfer />,
+  },
+    {
+    path: "/warehouse/branch-transfer/pending",
+    main: () => <PendingBranchTransfer />,
   },
   {
     path: "/invoice/edit/:invoiceId",
