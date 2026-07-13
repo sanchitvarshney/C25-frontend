@@ -138,6 +138,12 @@ function PendingBranchTransfer() {
       minWidth: 200,
       field: "narration",
     },
+    {
+      headerName: "Request Date",
+      flex: 1,
+      minWidth: 200,
+      field: "insertDate",
+    },
   ];
 
   return (
