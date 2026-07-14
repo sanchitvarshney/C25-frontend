@@ -65,7 +65,7 @@ const shouldShowIcon = useMemo(() => {
         selectedKeys={[current]}
         size="small"
         mode="horizontal"
-        style={{flex:1}}
+        style={{flex:1, maxWidth: "100%"}}
         items={
           linksList &&
           linksList?.map((link, index) => ({
