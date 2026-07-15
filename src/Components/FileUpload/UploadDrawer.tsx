@@ -70,7 +70,7 @@ export default function UploadDrawer({
               ))}
             </Row>
           ) : (
-            <Empty description="No files uploaded yet" style={{ marginTop: 32 }} />
+            <Empty description="" style={{ marginTop: 32 }} />
           )}
         </div>
 

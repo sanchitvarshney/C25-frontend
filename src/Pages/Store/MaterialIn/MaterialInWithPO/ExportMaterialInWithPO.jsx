@@ -1149,7 +1149,10 @@ export default function ExportMaterialInWithPO() {
             onDelete={handleFileUploadDelete}
             onChange={handleFileUploadChange}
           >
-            <MyButton variant="upload" text="Documents" />
+            <MyButton
+              variant="upload"
+              text={`Upload Documents ${filesData?.length > 0 ? `(${filesData?.length})` : ""}`}
+            />
           </FileUpload>
         </Col>
       </Row>
