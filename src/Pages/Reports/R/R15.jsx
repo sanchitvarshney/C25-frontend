@@ -9,6 +9,7 @@ import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field";
 
 function R15() {
   const { showToast } = useToast();
@@ -21,6 +22,7 @@ function R15() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [responseData, setResponseData] = useState([]);
   const [responsePoData, setResponsePoData] = useState([]);
+    const [isValid, setIsValid] = useState(false);  
   const options = [
     { label: "ALL MIN", value: "M" },
     { label: "PO(s) MIN", value: "P" },
@@ -40,17 +42,12 @@ function R15() {
   };
 
   const fetch = async () => {
-    if (!allData.selType) {
-      showToast("Please Select Type", "error");
-    } else if (!datee[0]) {
-      showToast("Please Select Date First", "error");
-    } else {
+      if (!allData.selType || !datee) {
+     return setIsValid(true);
+     } else {
       setResponseData([]);
       setLoading(true);
-      const response = await imsAxios.post("/transaction/transactionIn", {
-        data: datee,
-        min_types: allData?.selType,
-      });
+      const response = await imsAxios.get(`/transaction/transactionIn?data=${datee}&type=${allData?.selType}`);
       if (response.success) {
         showToast(response.message, "success");
         let arr = response.data.map((row) => {
@@ -61,7 +58,7 @@ function R15() {
         });
         setResponseData(arr);
         setLoading(false);
-      } else if (!response.success) {
+      } else {
         showToast(response.message?.msg || response.message, "error");
         setLoading(false);
       }
@@ -71,10 +68,7 @@ function R15() {
   const fetchPo = async () => {
     setResponsePoData([]);
     setLoading(true);
-    const response = await imsAxios.post("/transaction/transactionIn", {
-      data: allData.part,
-      min_types: allData?.selType,
-    });
+    const response = await imsAxios.get(`/transaction/transactionIn?data=${datee}&type=${allData?.selType}`);
     if (response.success) {
       let arr = response.data.map((row) => {
         return {
@@ -162,7 +156,13 @@ function R15() {
   return (
     <div style={{ height: "calc(100vh - 170px)" }}>
       <Row gutter={16} style={{ margin: "5px" }}>
-        <Col span={3}>
+        <Col span={5}>
+          <Field
+          attr="required | Please select type"
+          value={allData?.selType}
+          showValidation={isValid}
+          style={{ minWidth: 240, flex: 1 }}
+        > 
           <Select
             placeholder="Select Option"
             options={options}
@@ -176,13 +176,14 @@ function R15() {
               width: "100%",
             }}
           />
+          </Field>
         </Col>
         {allData.selType == "M" ? (
           <>
             <Col span={4}>
-              <MyDatePicker size="default" setDateRange={setDatee} />
+              <MyDatePicker size="default" setDateRange={setDatee} showError={isValid} value={datee} />
             </Col>
-            <Col span={1}>
+            <Col span={3}>
               <MyButton variant="search" onClick={fetch} loading={loading} type="primary">
                 Fetch
               </MyButton>
@@ -203,12 +204,18 @@ function R15() {
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getOption}
                 value={allData.part}
+                labelInValue
                 optionsState={asyncOptions}
                 onChange={(e) =>
-                  setAllData((allData) => {
+                {
+              
+                    setAllData((allData) => {
                     return { ...allData, part: e };
                   })
                 }
+                }
+                showError={isValid}
+                message="Please select part"
                 placeholder="Part/Name"
               />
             </Col>

@@ -1,28 +1,32 @@
 import { useEffect, useState, forwardRef } from "react";
 import { Select, Spin, Row } from "antd";
 
-const MyAsyncSelect = forwardRef(function MyAsyncSelect({
-  value,
-  onChange,
-  loadOptions,
-  size,
-  placeholder,
-  onBlur,
-  optionsState,
-  defaultValue,
-  selectLoading,
-  labelInValue,
-  mode,
-  disabled,
-  noBorder,
-  color,
-  hideArrow,
-  onFocus,
-  onMouseEnter,
-}, ref) {
+const MyAsyncSelect = forwardRef(function MyAsyncSelect(
+  {
+    value,
+    onChange,
+    loadOptions,
+    size,
+    placeholder,
+    onBlur,
+    optionsState,
+    defaultValue,
+    selectLoading,
+    labelInValue,
+    mode,
+    disabled,
+    noBorder,
+    color,
+    hideArrow,
+    onFocus,
+    onMouseEnter,
+    message = "Field is required",
+    showError = false,
+  },
+  ref,
+) {
   const [searchValue, setSearchValue] = useState("");
   const updatedValue = useDebounce(searchValue);
- 
 
   useEffect(() => {
     if (updatedValue.length >= 3) {
@@ -35,50 +39,63 @@ const MyAsyncSelect = forwardRef(function MyAsyncSelect({
     ? value && typeof value === "object" && value.value !== undefined
       ? value
       : value === "" || value === null || value === undefined
-      ? undefined
-      : undefined
+        ? undefined
+        : undefined
     : value;
 
+  const isEmpty =
+    !normalizedValue ||
+    normalizedValue === undefined ||
+    normalizedValue === null ||
+    normalizedValue === "" ||
+    !normalizedValue?.value;
+  const showValidation = showError && isEmpty;
+
   return (
-    <Select
-      ref={ref}
-      onMouseEnter={onMouseEnter}
-      onBlur={onBlur}
-      disabled={disabled}
-      showSearch
-      variant={noBorder ? "borderless" : "outlined"}
-      value={normalizedValue}
-      placeholder={placeholder}
-      onFocus={onFocus}
-      // suffixIcon={<SearchOutlined />}
-      // allowClear
-      defaultValue={defaultValue}
-      mode={mode}
-      suffixIcon={hideArrow ? null : undefined}
-      size={size ? size : "default"}
-      style={{
-        width: "100%",
-        color: color,
-        cursor: "pointer",
-      }}
-      filterOption={false}
-      onSearch={(value) => {
-        setSearchValue(value);
-      }}
-      onChange={onChange}
-      notFoundContent={
-        selectLoading ? (
-          <Row justify="center" style={{ padding: 5 }}>
-            <Spin size="small" />
-          </Row>
-        ) : null
-      }
-      labelInValue={labelInValue}
-      options={(optionsState || []).map((d) => ({
-        value: d.value,
-        label: d.text,
-      }))}
-    ></Select>
+    <div style={{ position: "relative" }}>
+      <Select
+        ref={ref}
+        onMouseEnter={onMouseEnter}
+        onBlur={onBlur}
+        disabled={disabled}
+        showSearch
+        variant={noBorder ? "borderless" : "outlined"}
+        value={normalizedValue}
+        placeholder={placeholder}
+        onFocus={onFocus}
+        // suffixIcon={<SearchOutlined />}
+        // allowClear
+        defaultValue={defaultValue}
+        mode={mode}
+        suffixIcon={hideArrow ? null : undefined}
+        size={size ? size : "default"}
+        style={{
+          width: "100%",
+          color: color,
+          cursor: "pointer",
+        }}
+        filterOption={false}
+        onSearch={(value) => {
+          setSearchValue(value);
+        }}
+        onChange={onChange}
+        notFoundContent={
+          selectLoading ? (
+            <Row justify="center" style={{ padding: 5 }}>
+              <Spin size="small" />
+            </Row>
+          ) : null
+        }
+        labelInValue={labelInValue}
+        options={(optionsState || []).map((d) => ({
+          value: d.value,
+          label: d.text,
+        }))}
+      />
+      {showValidation && (
+        <span className="field-validation-tooltip">{message}</span>
+      )}
+    </div>
   );
 });
 

@@ -16,9 +16,9 @@ import { useToast } from "../../../hooks/useToast.js";
 
 const R7 = () => {
   const { showToast } = useToast();
-  // const [seacrh, setSearch] = useState(null);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValidation, setIsValidation] = useState(false);
 
   const [bomName, setBomName] = useState([]);
   const [selectDate, setSelectDate] = useState("");
@@ -125,12 +125,9 @@ const R7 = () => {
   };
 
   const fetchBySearch = async () => {
-    if (!allData.selectProduct) {
-      showToast("Please select a product", "error");
-    } else if (!allData.selectBomWise) {
-      showToast("Please select a bom", "error");
-    }  else if (!selectDate[0]) {
-      showToast("Please select a valid date", "error");
+       if (!allData.selectProduct || !allData.selectBom || !allData.selectBomWise) {
+   
+      setIsValidation(true);
     } else {
       setResData([]);
       setLoading(true);
@@ -172,41 +169,50 @@ const R7 = () => {
                 optionsState={asyncOptions}
                 placeholder="Select Product"
                 loadOptions={getDataBySearch}
-                // onInputChange={(e) => setSearch(e)}
-                value={allData.selectProduct.value}
+                 value={allData.selectProduct}
+                labelInValue
                 onChange={(e) =>
-                  setAllData((allData) => {
+                 {
+                  setIsValidation(false)
+                   setAllData((allData) => {
                     return { ...allData, selectProduct: e };
                   })
+                 }
                 }
+                message="Select Product"
+                showError={isValidation}
               />
             </Col>
             <Col span={24} style={{ margin: "5px" }}>
               <MySelect
                 placeholder="Select Bom"
                 options={bomName}
-                value={allData.selectBom.value}
+                value={allData.selectBom}
                 onChange={(e) =>
                   setAllData((allData) => {
                     return { ...allData, selectBom: e };
                   })
                 }
+                message="Select Bom"
+                showError={isValidation}
               />
             </Col>
             <Col span={24} style={{ margin: "5px" }}>
               <MySelect
                 placeholder="Bom Wise"
                 options={opt}
-                value={allData.selectBomWise.value}
+                value={allData.selectBomWise}
                 onChange={(e) =>
                   setAllData((allData) => {
                     return { ...allData, selectBomWise: e };
                   })
                 }
+                message="Select Bom Wise"
+                showError={isValidation}
               />
             </Col>
             <Col span={24} style={{ margin: "5px" }}>
-              <SingleDatePicker setDate={setSelectDate} />
+              <SingleDatePicker setDate={setSelectDate} value={selectDate} showError={isValidation} />
             </Col>
             <Col span={24} style={{ margin: "5px" }}>
               <div style={{ textAlign: "end" }}>
