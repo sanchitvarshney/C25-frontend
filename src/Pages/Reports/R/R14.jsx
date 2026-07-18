@@ -1,24 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./r.css";
 import { useToast } from "../../../hooks/useToast.js";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import { Button, Col, Row } from "antd";
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
 import { v4 } from "uuid";
-import MySelect from "../../../Components/MySelect";
+// import MySelect from "../../../Components/MySelect";
 import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
-import MyButton from "../../../Components/MyButton";
+// import MyButton from "../../../Components/MyButton";
 
 const R14 = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [allData, setAllData] = useState({
-    selType: "",
-  });
+  // const [allData, setAllData] = useState({
+  //   selType: "",
+  // });
   const [responseData, setResponseData] = useState([]);
 
-  const options = [{ label: "Fetch", value: "fetchStock" }];
+  // const options = [{ label: "Fetch", value: "fetchStock" }];
 
   const handleDownloadingCSV = () => {
     let arr = [];
@@ -57,13 +57,11 @@ const R14 = () => {
   ];
 
   const fetch = async () => {
-    if (!allData.selType) {
-      showToast("Please Select Type", "error");
-    } else {
+    // if (!allData.selType) {
+    //   showToast("Please Select Type", "error");
+    // } else {
       setLoading(true);
-      const response = await imsAxios.post("/audit/fetchAuditReport", {
-        type: allData.selType.value,
-      });
+      const response = await imsAxios.post("/audit/fetchAuditReport");
       if (response.success) {
         let arr = response.data.map((row) => {
           return {
@@ -77,15 +75,19 @@ const R14 = () => {
         showToast(response.message, "error");
         setLoading(false);
       }
-    }
+    // }
   };
+
+    useEffect(() => {
+    fetch();
+  }, []);
 
   return (
     <div style={{ height: "calc(100vh - 170px)",  }}>
       <Row gutter={16} style={{ margin: "5px" }}>
         <>
-          <Col span={4}>
-            <div>
+          {/* <Col span={4}> */}
+            {/* <div>
               <MySelect
                 style={{ width: "100%" }}
                 placeholder="Please Select Option "
@@ -104,10 +106,10 @@ const R14 = () => {
             <MyButton variant="search" onClick={fetch} type="primary" block>
               Fetch
             </MyButton>
-          </Col>
+          </Col> */}
 
           {responseData.length > 1 ? (
-            <Col span={1} offset={17}>
+            <Col span={24} offset={23}>
               <Button onClick={handleDownloadingCSV}>
                 <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
               </Button>
@@ -124,7 +126,7 @@ const R14 = () => {
             loading={loading}
             data={responseData}
             columns={columns}
-            checkboxSelection={true}
+            // checkboxSelection={true}
           />
       
       </div>

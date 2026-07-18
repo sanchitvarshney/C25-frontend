@@ -114,14 +114,9 @@ function ImageCard({
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {isPending ? (
-            <Popconfirm
-              title="Remove this file?"
-              okText="Yes"
-              cancelText="No"
-              onConfirm={() => onDelete(item.uid)}
-            >
-              <DeleteFilled style={{ fontSize: 13, cursor: "pointer" }} />
-            </Popconfirm>
+          
+              <DeleteFilled   onClick={() => onDelete(item.uid)} style={{ fontSize: 13, cursor: "pointer" }} />
+         
           ) : (
             <>
               <Tooltip title="Preview">
@@ -140,14 +135,9 @@ function ImageCard({
                   <UploadOutlined onClick={handleReplaceClick} style={{ fontSize: 13, cursor: "pointer" }} />
                 </Tooltip>
               )} */}
-              <Popconfirm
-                title="Remove this file?"
-                okText="Yes"
-                cancelText="No"
-                onConfirm={() => onDelete(item.uid)}
-              >
-                <DeleteFilled style={{ fontSize: 13, cursor: "pointer" }} />
-              </Popconfirm>
+         
+                <DeleteFilled onClick={() => onDelete(item.uid)} style={{ fontSize: 13, cursor: "pointer" }} />
+       
             </>
           )}
         </div>

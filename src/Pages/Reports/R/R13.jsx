@@ -11,6 +11,7 @@ import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast.js";
+import Field from "../../../Components/Field";
 
 const R13 = () => {
   const { showToast } = useToast();
@@ -20,7 +21,7 @@ const R13 = () => {
     selType: "",
   });
   const [responseData, setResponseData] = useState([]);
-
+  const [isValid, setIsValid] = useState(false);
   const options = [{ label: "Inward", value: "M" }];
 
   const columns = [
@@ -93,17 +94,12 @@ const R13 = () => {
   };
 
   const fetch = async () => {
-    if (!allData.selType) {
-      showToast("Please Select Type", "error");
-    } else if (!datee[0]) {
-      showToast("Please Select Date First", "error");
+      if (!allData.selType ||  !datee) {
+      return setIsValid(true);
     } else {
       setLoading(true);
       setResponseData([]);
-      const response = await imsAxios.post("/transaction/transactionIn", {
-        data: datee,
-        min_types: allData?.selType,
-      });
+       const response = await imsAxios.get(`/transaction/transactionIn?data=${datee}&type=${allData?.selType}`);
 
       if (response.success) {
         let arr = response.data.map((row) => {
@@ -124,31 +120,38 @@ const R13 = () => {
   return (
     <div style={{ height: "calc(100vh - 170px)",  }}>
       <Row gutter={16} style={{ margin: "5px" }}>
-        <Col span={2} className="gutter-row">
+        <Col span={6} className="gutter-row">
+          <Field
+          attr="required | Please select type"
+          value={allData?.selType}
+          showValidation={isValid}
+          style={{ minWidth: 240, flex: 1 }}
+        > 
           <Select
             placeholder="Please Select Option "
             options={options}
             style={{
               width: "100%",
             }}
-            // value={allData?.selType}
+            value={allData?.selType}
             onChange={(e) =>
               setAllData((allData) => {
                 return { ...allData, selType: e };
               })
             }
           />
+          </Field>
         </Col>
-        <Col span={4}>
-          <MyDatePicker setDateRange={setDatee} size="default" />
+        <Col span={6}>
+          <MyDatePicker setDateRange={setDatee} size="default"  showError={isValid} value={datee} />
         </Col>
-        <Col span={1} className="gutter-row">
-          <MyButton variant="search" type="primary" onClick={fetch}>
+        <Col span={2} className="gutter-row">
+          <MyButton variant="search" type="primary" onClick={fetch} loading={loading}>
             Fetch
           </MyButton>
         </Col>
         {responseData.length > 1 && (
-          <Col span={1} offset={16}>
+          <Col span={3} offset={16}>
             <Button onClick={handleDownloadingCSV}>
               <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
             </Button>

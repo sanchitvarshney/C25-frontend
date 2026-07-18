@@ -14,8 +14,14 @@ const R6 = () => {
 
   const [form] = Form.useForm();
   const location = Form.useWatch("location", form);
+    const date = Form.useWatch("date", form);
+  const [showValidation, setShowValidation] = useState(false);
 
   const emitDownloadEvent = async () => {
+      if (!date) {
+      setShowValidation(true);
+      return;
+    }
     const values = await form.validateFields();
     let newId = v4();
 
@@ -84,11 +90,14 @@ const R6 = () => {
             />
           </Form.Item>
           <Form.Item label="Date" name="date">
-            <MyDatePicker
+             <MyDatePicker
               size="default"
+              value={date}
               setDateRange={(value) => {
+                setShowValidation(false);
                 form.setFieldValue("date", value);
               }}
+              showError={showValidation}
             />
           </Form.Item>
         </Form>

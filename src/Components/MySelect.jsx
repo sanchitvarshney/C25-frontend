@@ -10,8 +10,13 @@ export default function MySelect({
   mode,
   placeholder,
   defaultValue,
+  message="Field is required",
+  showError= false
 }) {
+  const isEmpty = value === undefined || value === null || value === "" || !value;
+  const showValidation = showError  && isEmpty;
   return (
+    <div style={{ position: "relative" }}>
     <Select
       labelInValue={labelInValue}
       mode={mode}
@@ -36,5 +41,7 @@ export default function MySelect({
       }}
       options={options}
     />
+        {showValidation && <span className="field-validation-tooltip">{message}</span>}
+      </div>
   );
 }

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import  { useState, useEffect, useRef } from "react";
 import "./r.css";
 import "../../Store/MaterialTransfer/Modal/viewModal.css";
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
-import { Row, Col, Button, Spin, Select, Space } from "antd";
+import { Row, Col, Button, Select, Space } from "antd";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import { SearchOutlined } from "@ant-design/icons";
 
@@ -15,6 +15,7 @@ import useApi from "../../../hooks/useApi.ts";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 import { v4 } from "uuid";
+import Field from "../../../Components/Field";
 
 const R1 = () => {
   const { showToast } = useToast();
@@ -22,6 +23,7 @@ const R1 = () => {
   const [allResponseData, setAllResponseData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
+    const [showValidation, setShowValidation] = useState(false);
   const [bomOptions, setBomOptions] = useState([]);
   const abortControllerRef = useRef(null);
   const [filters, setFilters] = useState({
@@ -166,12 +168,8 @@ const R1 = () => {
   }, [filters.selectProduct]);
 
   const handleSearch = async () => {
-    if (!filters.selectProduct?.value) {
-      showToast("Please select product", "error");
-      return;
-    }
-    if (!filters.bom?.value) {
-      showToast("Please select BOM", "error");
+     if (!filters.selectProduct?.value || !filters.bom?.value || !filters.date) {
+      setShowValidation(true);
       return;
     }
     abortControllerRef.current?.abort();
@@ -243,12 +241,6 @@ const R1 = () => {
     });
     downloadCSVCustomColumns(csvData, "Bom Wise Report");
   };
-  const reset = () => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    setLoading(false);
-    setAllResponseData([]);
-  };
 
   return (
     <div style={{ height: "97%" }}>
@@ -277,9 +269,18 @@ const R1 = () => {
                       bom: undefined,
                     }))
                   }
+                     message="Please select Product"
+                  showError={showValidation}
                 />
               </div>
               <div style={{ minWidth: 220 }}>
+                  <Field
+                attr="required | Please select BOM"
+                value={filters.bom}
+                showValidation={showValidation}
+                style={{ minWidth: 220 }}
+              >
+
                 <Select
                   style={{ width: "100%" }}
                   placeholder="Select BOM"
@@ -293,6 +294,7 @@ const R1 = () => {
                     }))
                   }
                 />
+              </Field>
               </div>
               <div style={{ minWidth: 240 }}>
                 <MyDatePicker
@@ -304,6 +306,7 @@ const R1 = () => {
                   }
                   value={filters.date}
                   size="default"
+                     showError={showValidation}
                 />
               </div>
               <Button
@@ -328,41 +331,14 @@ const R1 = () => {
       </Row>
 
       <div className="hide-select" style={{ height: "calc(100% - 30px)", margin: "10px" }}>
-        {loading ? (
-          <div
-            style={{
-              height: "80vh",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                // border: "1px solid red",
-                width: "10%",
-                justifyContent: "space-around",
-              }}
-            >
-              <Spin size="large" />
-              <div
-                style={{
-                  borderLeft: "2px solid grey",
-                  height: "40px",
-                }}
-              ></div>
-              <Button onClick={reset}>Reset</Button>
-            </div>
-          </div>
-        ) : (
+      
           <MyDataTable
             checkboxSelection={true}
             data={allResponseData}
             columns={columns}
-            // loading={loading}
+            loading={loading}
           />
-        )}
+       
       </div>
 
     </div>

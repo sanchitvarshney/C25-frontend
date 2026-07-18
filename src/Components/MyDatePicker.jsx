@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import  { useEffect } from "react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 
@@ -8,11 +8,10 @@ const MyDatePicker = ({
   setDateRange,
   size,
   disabledtheDate,
-  startingDate,
+  message = "Please Select Date Range",
+  showError=false
 }) => {
-  const [searchDateRange] = useState(
-    [startingDate ? dayjs() : dayjs().startOf("month"), dayjs()]
-  );
+
 
   useEffect(() => {
     if (value) {
@@ -53,10 +52,12 @@ const MyDatePicker = ({
     if (disabledtheDate == "true" && disabledR35MinDate(current)) return true;
     return false;
   };
+  const isEmpty = value === undefined || value === null || value === "" || !value;
+  const showValidation = showError  && isEmpty;
 
   return (
+    <div style={{ position: "relative" }}>
     <DatePicker.RangePicker
-      defaultValue={searchDateRange}
       size={size ? size : "default"}
       style={{
         width: "100%",
@@ -87,6 +88,8 @@ const MyDatePicker = ({
         { label: "Last 90 Days", value: [dayjs().subtract(89, "d"), dayjs()] },
       ]}
     />
+         {showValidation && <span className="field-validation-tooltip">{message}</span>}
+ </div>
   );
 };
 

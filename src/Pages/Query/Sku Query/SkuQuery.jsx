@@ -383,14 +383,14 @@ const columns = [
     field: "qty_out",
     width: 200,
   },
+  // {
+  //   headerName: "IN Rate",
+  //   field: "qty_in_rate",
+  //   width: 200,
+  // },
   {
-    headerName: "IN Rate",
-    field: "qty_in_rate",
-    width: 200,
-  },
-  {
-    headerName: "Out Rate",
-    field: "out_rate",
+    headerName: "Rate",
+    field: "rate",
     width: 200,
   },
   // {

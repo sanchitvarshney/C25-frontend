@@ -1,9 +1,7 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./r.css";
 import { useToast } from "../../../hooks/useToast.js";
-import {
-  downloadCSVCustomColumns,
-} from "../../../Components/exportToCSV";
+import { downloadCSVCustomColumns } from "../../../Components/exportToCSV";
 import { Button, Col, Input, Row } from "antd";
 import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
@@ -14,10 +12,11 @@ import { imsAxios } from "../../../axiosInterceptor";
 import useApi from "../../../hooks/useApi.ts";
 import { getProductsOptions } from "../../../api/general.ts";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field";
 
 const R12 = () => {
   const { showToast } = useToast();
-  // const [search, setSearch] = useState("");
+  const [isValidField, setIsValidField] = useState(false);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [bomName, setBomName] = useState([]);
@@ -73,7 +72,7 @@ const R12 = () => {
   const getDataBySearch = async (searchInput) => {
     const response = await executeFun(
       () => getProductsOptions(searchInput, true),
-      "select"
+      "select",
     );
 
     setAsyncOptions(response.data);
@@ -81,7 +80,7 @@ const R12 = () => {
 
   const getBom = async () => {
     const response = await imsAxios.post("/backend/fetchBomForProduct", {
-      search: allData?.selectProduct,
+      search: allData?.selectProduct?.key,
     });
     const arr = response.data.map((d) => {
       return { value: d.bomid, text: d.bomname };
@@ -90,17 +89,13 @@ const R12 = () => {
   };
 
   const fetchBySearch = async () => {
-    if (!allData.selectProduct) {
-      showToast("Please select a product", "error");
-    } else if (!allData.selectBom) {
-      showToast("Please select a bom", "error");
-    } else if (!allData.fgQty) {
-      showToast("Please select add Qty", "error");
+    if (!allData.selectProduct || !allData.selectBom || !allData.fgQty) {
+      return setIsValidField(true);
     } else {
       setLoading(true);
       const response = await imsAxios.post("/report12", {
         subjectcode: allData.selectBom,
-        skucode: allData.selectProduct,
+        skucode: allData.selectProduct?.key,
         product_fg_qty: allData.fgQty,
         action: "search_r12",
       });
@@ -127,20 +122,22 @@ const R12 = () => {
   return (
     <div style={{ height: "95%" }}>
       <Row gutter={10} style={{ margin: "5px" }}>
-        <Col span={6}>
+        <Col span={8}>
           <MyAsyncSelect
             style={{ width: "100%" }}
             onBlur={() => setAsyncOptions([])}
             optionsState={asyncOptions}
             placeholder="Select Product"
             loadOptions={getDataBySearch}
-            // onInputChange={(e) => setSearch(e)}
-            value={allData.selectProduct.value}
+            value={allData.selectProduct}
+            labelInValue
             onChange={(e) =>
               setAllData((allData) => {
                 return { ...allData, selectProduct: e };
               })
             }
+            message="Please select a product"
+            showError={isValidField}
           />
           {/* <AsyncSelect
             placeholder="Select Product"
@@ -154,30 +151,39 @@ const R12 = () => {
             }
           /> */}
         </Col>
-        <Col span={4}>
+        <Col span={6}>
           <MySelect
             placeholder="Select Bom"
             options={bomName}
-            value={allData.selectBom.value}
+            value={allData.selectBom}
             onChange={(e) =>
               setAllData((allData) => {
                 return { ...allData, selectBom: e };
               })
             }
+            message="Please select a bom"
+            showError={isValidField}
           />
         </Col>
-        <Col span={2}>
-          <Input
-            style={{ width: "100%", margin: "-1px" }}
-            placeholder="Qty"
-            className="form-control"
+        <Col span={5}>
+          <Field
+            attr="required | Please enter Qty"
             value={allData.fgQty}
-            onChange={(e) =>
-              setAllData((allData) => {
-                return { ...allData, fgQty: e.target.value };
-              })
-            }
-          />
+            showValidation={isValidField}
+            style={{ minWidth: 240, flex: 1 }}
+          >
+            <Input
+              style={{ width: "100%", margin: "-1px" }}
+              placeholder="Qty"
+              className="form-control"
+              value={allData.fgQty}
+              onChange={(e) =>
+                setAllData((allData) => {
+                  return { ...allData, fgQty: e.target.value };
+                })
+              }
+            />
+          </Field>
           {/* <input
             placeholder="Qty"
             className="form-control"
@@ -189,7 +195,7 @@ const R12 = () => {
             }
           /> */}
         </Col>
-        <Col span={1}>
+        <Col span={5}>
           <MyButton variant="search" onClick={fetchBySearch} type="primary">
             Fetch
           </MyButton>
@@ -203,7 +209,10 @@ const R12 = () => {
         )}
       </Row>
 
-      <div className="hide-select" style={{ height: "calc(100% - 20px)", margin: "10px" }}>
+      <div
+        className="hide-select"
+        style={{ height: "calc(100% - 20px)", margin: "10px" }}
+      >
         <MyDataTable
           checkboxSelection={true}
           loading={loading}

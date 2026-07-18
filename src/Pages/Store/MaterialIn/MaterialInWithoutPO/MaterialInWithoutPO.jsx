@@ -116,6 +116,7 @@ export default function MaterialInWithoutPO() {
   const vendor = Form.useWatch("vendorName", form);
   const vendorBranch = Form.useWatch("vendorBranch", form);
   const vendorType = Form.useWatch("vendorType", form);
+  const [uploadedFileCount, setUploadedFileCount] = useState(0);
   const [uplaodForm] = Form.useForm();
   const sampleData = [
     {
@@ -915,13 +916,17 @@ export default function MaterialInWithoutPO() {
   };
 
   const handleFileUploadDelete = (id) => {
-    form.setFieldValue("fileComponents", form.getFieldValue("fileComponents").filter((item) => item.id !== id));
+    form.setFieldValue(
+      "fileComponents",
+      form.getFieldValue("fileComponents").filter((item) => item.id !== id),
+    );
   };
   const handleFileUploadChange = (items) => {
     form.setFieldValue(
       "fileComponents",
       items.map((item) => ({ documentName: item.name })),
     );
+    setUploadedFileCount(items.length);
   };
   return (
     <div style={{ height: "100%", overflow: "hidden", padding: 10 }}>
@@ -1179,7 +1184,14 @@ export default function MaterialInWithoutPO() {
                           onChange={handleFileUploadChange}
                           loading={uploadLoading}
                         >
-                          <MyButton variant="upload" text="Upload Documents" />
+                          <MyButton
+                            variant="upload"
+                            text={`Upload Documents${
+                              uploadedFileCount > 0
+                                ? ` (${uploadedFileCount})`
+                                : ""
+                            }`}
+                          />
                         </FileUpload>
                       </Col>
                       <Col>
