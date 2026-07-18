@@ -210,16 +210,27 @@ const compInputHandler = async (name, id, value) => {
     addRowData.map((a) => arrQty.push(a.quantity));
     addRowData.map((a) => arrRemark.push(a.remarks));
     addRowData.map((a) => arrRate.push(a.rate));
+    addRowData.map((a) => arrLoc.push(a.location));
 
-    const hasEmptyLocation = addRowData.some(
-      (row) => !row.location || String(row.location).trim() === "",
+    const hasEmptyProduct = addRowData.some((a) => !a.product);
+    const hasInvalidQty = addRowData.some(
+      (a) => !a.quantity || Number(a.quantity) <= 0,
     );
+    const hasEmptyLocation = addRowData.some((a) => !a.location);
+
     if (!createFgOut.selectType) {
       showToast("Please Select Option", "error");
+      return;
+    } else if (hasEmptyProduct) {
+      showToast("Please Select Product for all rows", "error");
+      return;
+    } else if (hasInvalidQty) {
+      showToast("Please Enter a valid Quantity for all rows", "error");
+      return;
     } else if (hasEmptyLocation) {
       showToast("Location is mandatory for all rows", "error");
     } else {
-     try {
+      try {
         setLoadingUpdate(true);
         const response = await imsAxios.post("/fgout/createFgOut", {
           fg_out_type: createFgOut.selectType,
