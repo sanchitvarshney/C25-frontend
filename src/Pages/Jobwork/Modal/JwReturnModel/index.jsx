@@ -13,6 +13,7 @@ import {
 } from "antd";
 import MySelect from "../../../../Components/MySelect";
 import HeaderDetails from "./HeaderDetails";
+import SingleDatePicker from "../../../../Components/SingleDatePicker";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useEffect } from "react";
 import Components from "./Components";
@@ -182,6 +183,7 @@ const JwReturnModel = ({ show, close }) => {
       hsncode: selectedRows.map((row) => row.hsn),
       ewaybill: values.ewayBill ?? "--",
       vendor_location: values?.vendor_location?.value,
+      challan_date: values?.challanDate, 
     };
     // console.log("finalObj", finalObj);
 
@@ -444,6 +446,27 @@ const JwReturnModel = ({ show, close }) => {
                       <MySelect
                         labelInValue={true}
                         options={vendorLocationOptions}
+                      />
+                    </Form.Item>
+                        <Form.Item
+                      label="Challan Date"
+                      name="challanDate"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please select Challan Date",
+                        },
+                      ]}
+                    >
+                      <SingleDatePicker
+                        size="medium"
+                        value={form.getFieldValue("challanDate")}
+                        setDate={(date) => {
+                          form.setFieldsValue({ challanDate: date });
+                      
+                        }}
+                        placeholder="Select Challan Date"
+                        format={"DD-MM-YYYY"}
                       />
                     </Form.Item>
                   </Card>
