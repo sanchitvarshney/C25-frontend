@@ -59,12 +59,12 @@ const JwReturnModel = ({ show, close }) => {
     },
   ];
 
-
-
-  const getLocationOptions = async (vendor,transaction) => {
+  const getLocationOptions = async (vendor, transaction) => {
     try {
       setLoading("fetch", true);
-      const response = await imsAxios.get(`/jobwork/jw_rm_return_location?vendor=${vendor}&jw=${transaction}`);
+      const response = await imsAxios.get(
+        `/jobwork/jw_rm_return_location?vendor=${vendor}&jw=${transaction}`,
+      );
       if (response?.success) {
         const arr = response.data.map((row) => ({
           text: row.name,
@@ -83,7 +83,7 @@ const JwReturnModel = ({ show, close }) => {
     if (vendor) {
       try {
         const response = await imsAxios.get(
-          `/backend/fetchVendorJWLocation?vendor=${vendor}`
+          `/backend/fetchVendorJWLocation?vendor=${vendor}`,
         );
         if (response.success) {
           let arr = [];
@@ -124,44 +124,44 @@ const JwReturnModel = ({ show, close }) => {
         transaction: transaction,
       });
 
-      const {body,header} = response?.data || {};
-      const headerValues = header;
-      setVendor(headerValues?.vendor?.code)
-      let headerArr = [];
-      const headerObj = {
-        "Created By": headerValues.created_by,
-        "Jobwork Id": headerValues.jobwork_id,
-        Status: headerValues.jw_status,
-        "Ordered Qty": headerValues.ordered_qty,
-        "Processed Qty": headerValues.proceed_qty,
-        Product: headerValues.product_name,
-        Sku: headerValues.sku_code,
-        "Registered Date": headerValues.registered_date,
-      };
+      if (response.success) {
+        const { data, header } = response || {};
+        const headerValues = header;
+        setVendor(headerValues?.vendor?.code);
+        let headerArr = [];
+        const headerObj = {
+          "Created By": headerValues.created_by,
+          "Jobwork Id": headerValues.jobwork_id,
+          Status: headerValues.jw_status,
+          "Ordered Qty": headerValues.ordered_qty,
+          "Processed Qty": headerValues.proceed_qty,
+          Product: headerValues.product_name,
+          Sku: headerValues.sku_code,
+          "Registered Date": headerValues.registered_date,
+        };
 
-      for (let key in headerObj) {
-  
+        for (let key in headerObj) {
           headerArr.push({
             title: key,
             value: headerObj[key],
           });
-      
+        }
+
+        const componentArr = data.map((row) => ({
+          id: v4(),
+          component: row.component,
+          componentKey: row.component_key,
+          gst: row.gst_rate,
+          hsn: row.hsncode,
+          partCode: row.partcode,
+          uom: row.unitsname,
+          pendingQty: row.pendingWithJw,
+          rate: row.last_rate ?? "",
+        }));
+
+        setRows(componentArr);
+        setHeaderDetails(headerArr);
       }
-
-      const componentArr = body.map((row) => ({
-        id: v4(),
-        component: row.component,
-        componentKey: row.component_key,
-        gst: row.gst_rate,
-        hsn: row.hsncode,
-        partCode: row.partcode,
-        uom: row.unitsname,
-        pendingQty: row.pendingWithJw,
-        rate:row.last_rate ??"",
-      }));
-
-      setRows(componentArr);
-      setHeaderDetails(headerArr);
     } catch (error) {
       console.log("Error while fetching data", error);
     } finally {
@@ -181,7 +181,7 @@ const JwReturnModel = ({ show, close }) => {
       remark: selectedRows.map((row) => row.remark ?? "--"),
       hsncode: selectedRows.map((row) => row.hsn),
       ewaybill: values.ewayBill ?? "--",
-      vendor_location:values?.vendor_location?.value
+      vendor_location: values?.vendor_location?.value,
     };
     // console.log("finalObj", finalObj);
 
@@ -208,18 +208,16 @@ const JwReturnModel = ({ show, close }) => {
         setPreview(false);
         setPreviewRows([]);
         setSelectedRows([]);
-          setLoading("submit", false);
+        setLoading("submit", false);
         close();
-    
-      }
-      else{
+      } else {
         showToast(response.message, "error");
-          setLoading("submit", false);
+        setLoading("submit", false);
       }
     } catch (error) {
       showToast(error.message, "error");
-        setLoading("submit", false);
-     }
+      setLoading("submit", false);
+    }
   };
   useEffect(() => {
     if (rows) {
@@ -228,8 +226,8 @@ const JwReturnModel = ({ show, close }) => {
       setTotalValue(+Number(total).toFixed(3));
     }
   }, [selectedRows]);
-  
-   useEffect(() => {
+
+  useEffect(() => {
     if (show) {
       getData(show.sku, show.transaction);
       getAutoComnsumptionOptions();
@@ -242,10 +240,10 @@ const JwReturnModel = ({ show, close }) => {
     }
   }, [vendor]);
 
-  useEffect(()=>{
+  useEffect(() => {
     getVendorLocationOptions(vendor);
-  },[vendor])
-  
+  }, [vendor]);
+
   const normFile = (e) => {
     if (Array.isArray(e)) {
       return e;
@@ -271,7 +269,7 @@ const JwReturnModel = ({ show, close }) => {
     formData.append("file", file);
     const response = await executeFun(
       () => uplaodFileInJWReturn(formData),
-      "fetch"
+      "fetch",
     );
     if (response?.data?.status == "success") {
       let { data } = response;
@@ -279,9 +277,9 @@ const JwReturnModel = ({ show, close }) => {
       const formattedHeaders = data.data.headers.map((header) =>
         header
           .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) =>
-            index === 0 ? match.toUpperCase() : match.toLowerCase()
+            index === 0 ? match.toUpperCase() : match.toLowerCase(),
           )
-          .replace(/\s+/g, "")
+          .replace(/\s+/g, ""),
       );
 
       // Map the row values to headers
@@ -428,7 +426,7 @@ const JwReturnModel = ({ show, close }) => {
           },
         }}
       >
-        {loading("fetch") && <Loading  isDrawerLoading/>}
+        {loading("fetch") && <Loading isDrawerLoading />}
         <Form form={form} layout="vertical" style={{ height: "100%" }}>
           <Row style={{ height: "90%", overflow: "hidden" }} gutter={6}>
             <Col span={5} style={{ height: "100%", overflowY: "scroll" }}>
@@ -441,10 +439,13 @@ const JwReturnModel = ({ show, close }) => {
                   <Card size="small" title="Header Details">
                     <Form.Item name="ewayBill" label="E-Way Bill No.">
                       <Input />
-            </Form.Item>
+                    </Form.Item>
                     <Form.Item label="Vendor Location" name="vendor_location">
-          <MySelect labelInValue={true} options={vendorLocationOptions} />
-        </Form.Item>
+                      <MySelect
+                        labelInValue={true}
+                        options={vendorLocationOptions}
+                      />
+                    </Form.Item>
                   </Card>
                 </Col>
 
@@ -456,7 +457,9 @@ const JwReturnModel = ({ show, close }) => {
                       </Col>
                       <Col>
                         <Typography.Text>
-                          {!totalValue || Number.isNaN(totalValue) ? 0 : totalValue}
+                          {!totalValue || Number.isNaN(totalValue)
+                            ? 0
+                            : totalValue}
                         </Typography.Text>
                       </Col>
                     </Row>
@@ -505,7 +508,7 @@ const JwReturnModel = ({ show, close }) => {
           },
         }}
       >
-        {loading("fetch") && <Loading isDrawerLoading/>}
+        {loading("fetch") && <Loading isDrawerLoading />}
         <Row
           style={{
             height: "95%",
@@ -546,8 +549,7 @@ const JwReturnModel = ({ show, close }) => {
               submitFunction={saveTheData}
               nextLabel="Submit"
               resetFunction={() => setPreview(false)}
-            >
-            </NavFooter>
+            ></NavFooter>
           </Row>
         </Row>
       </Drawer>
@@ -560,12 +562,17 @@ const JwReturnModel = ({ show, close }) => {
           <Button key="back" onClick={() => setOpen(false)}>
             Cancel
           </Button>,
-          <Button key="submit" type="primary" onClick={callFileUpalod} loading={loading1("fetch")}>
+          <Button
+            key="submit"
+            type="primary"
+            onClick={callFileUpalod}
+            loading={loading1("fetch")}
+          >
             Preview
           </Button>,
         ]}
       >
-        {loading1("fetch") && <Loading isDrawerLoading/>}
+        {loading1("fetch") && <Loading isDrawerLoading />}
         <Card>
           <Form
             // initialValues={initialValues}
