@@ -6,8 +6,6 @@ import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import Loading from "../../../Components/Loading";
 import MyButton from "../../../Components/MyButton";
-import axios from "axios";
-
 function PendingBranchTransfer() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -19,8 +17,8 @@ function PendingBranchTransfer() {
   const getcomoponents = async (trans_id) => {
     setLoading("fetchData");
     try {
-      const response = await axios.get(
-        `https://dev.mscorpres.net/api/v1/branchTransfer/details?trans_id=${trans_id}`,
+      const response = await imsAxios.get(
+        `/branchTransfer/incomingBranchTransferDetails?trans_id=${trans_id}`,
       );
       const { data, success, message } = response?.data ?? {};
       if (success) {
@@ -51,10 +49,11 @@ function PendingBranchTransfer() {
       const values = await qcReportForm.validateFields();
 
       const [from, to] = values.date.split(/-(?=\d{2}-\d{2}-\d{4}$)/);
-      const response = await axios.get(
-        `https://dev.mscorpres.net/api/v1/branchTransfer/list?from=${from}&to=${to}`,
-      );
-      const { data, success, message } = response?.data ?? {};
+      const response = await imsAxios.post(
+        `/branchTransfer/incomingBranchTransferList?from=${from}&to=${to}`,
+      
+      )
+      const { data, success, message } = response ?? {};
       if (success) {
         showToast(message, "success");
 
