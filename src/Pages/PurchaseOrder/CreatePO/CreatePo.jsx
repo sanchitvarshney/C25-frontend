@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { v4 } from "uuid";
 import AddComponent from "./AddComponents";
 import { useToast } from "../../../hooks/useToast.js";
@@ -98,7 +98,7 @@ export default function CreatePo() {
   const [shipToOptions, setShipToOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
-  // const [stateCode, setStateCode] = useState("");
+  const [poCurrencies, setPoCurrencies] = useState([]);
   const [showQtyWarning, setShowQtyWarning] = useState(false);
   const [qtyWarningData, setQtyWarningData] = useState(null);
   const [pendingPOData, setPendingPOData] = useState(null);
@@ -138,7 +138,29 @@ export default function CreatePo() {
   const [form] = Form.useForm();
   const termsCondition = Form.useWatch("termscondition", form);
   const advancePayment = Form.useWatch("advancePayment", form);
+  const poCurrencyWatched = Form.useWatch("po_currency", form);
+  const showPoExchangeField =
+    String(poCurrencyWatched ?? "364907247") !== "364907247";
 
+  const syncLineItemsCurrencyFromHeader = useCallback(
+    (currencyId, exchangeRate) => {
+      const isInr = String(currencyId) === "364907247";
+      const ex = isInr ? 1 : Number(exchangeRate) || 1;
+      const sym =
+        poCurrencies.find((c) => String(c.value) === String(currencyId))
+          ?.text ?? "";
+      setRowCount((rows) =>
+        rows.map((r) => ({
+          ...r,
+          currency: currencyId,
+          exchange_rate: ex,
+          symbol: sym,
+          foreginValue: Number(r.inrValue || 0) * ex,
+        })),
+      );
+    },
+    [poCurrencies],
+  );
   const { executeFun, loading: loading1 } = useApi();
   const validatePO = () => {
     const formValues = form.getFieldsValue();
@@ -718,6 +740,26 @@ export default function CreatePo() {
       showToast(errorMessage, "error");
     }
   };
+
+  const handleGetCurrency = async () => {
+    try {
+      const response = await imsAxios.get("/backend/fetchAllCurrecy");
+      if (response?.success) {
+        const arr = response.data.map((d) => ({
+          text: d.currency_symbol,
+          value: d.currency_id,
+          notes: d.currency_notes,
+        }));
+        setPoCurrencies(arr);
+      }
+    } catch (error) {
+      showToast(error.message ?? "Something went wrong", "error");
+    }
+  };
+
+  useEffect(() => {
+    handleGetCurrency();
+  }, []);
   const getPOs = async (searchInput) => {
     if (searchInput?.length > 2) {
       setSelectLoading(true);
@@ -879,6 +921,34 @@ export default function CreatePo() {
           shipGST: shippingDetails.gstin || "",
         }));
       }
+    } else if (name === "po_currency") {
+      const isInr = String(value) === "364907247";
+      const nextEx = isInr
+        ? 1
+        : Number(form.getFieldValue("po_exchange_rate")) || 1;
+      form.setFieldsValue({
+        po_currency: value,
+        po_exchange_rate: nextEx,
+      });
+      setnewPurchaseOrder((prev) => ({
+        ...prev,
+        po_currency: value,
+        po_exchange_rate: nextEx,
+      }));
+      syncLineItemsCurrencyFromHeader(value, nextEx);
+    } else if (name === "po_exchange_rate") {
+      const cur = form.getFieldValue("po_currency") ?? "364907247";
+      if (String(cur) === "364907247") return;
+      const ex =
+        value === null || value === undefined || value === ""
+          ? 1
+          : Number(value) || 1;
+      form.setFieldsValue({ po_exchange_rate: ex });
+      setnewPurchaseOrder((prev) => ({
+        ...prev,
+        po_exchange_rate: ex,
+      }));
+      syncLineItemsCurrencyFromHeader(cur, ex);
     } else {
       form.setFieldsValue({ [name]: value });
       setnewPurchaseOrder((prev) => ({ ...prev, [name]: value }));
@@ -2051,6 +2121,31 @@ export default function CreatePo() {
                                 />
                               </Form.Item>
                             </Col>
+                            <Col span={6}>
+                              <Form.Item
+                                name="po_currency"
+                                label="PO Currency"
+                                rules={rules.po_currency}
+                              >
+                                <MySelect options={poCurrencies} />
+                              </Form.Item>
+                            </Col>
+                            {showPoExchangeField && (
+                              <Col span={6}>
+                                <Form.Item
+                                  name="po_exchange_rate"
+                                  label="Exchange rate (to INR)"
+                                  rules={rules.po_exchange_rate}
+                                >
+                                  <InputNumber
+                                    min={0}
+                                    step={0.0001}
+                                    style={{ width: "100%" }}
+                                    size="default"
+                                  />
+                                </Form.Item>
+                              </Col>
+                            )}
                           </Row>
                         </Col>
                       </Row>
