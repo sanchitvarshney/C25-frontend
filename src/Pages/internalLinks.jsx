@@ -600,7 +600,7 @@ const links = [
     //   routePath: "/warehouse/branch-transfer/view",
     // },
        {
-      routeName: "Pending Transfer",
+      routeName: "Challan Request",
       routePath: "/warehouse/branch-transfer/pending",
     },
       {
