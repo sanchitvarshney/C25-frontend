@@ -142,7 +142,7 @@ const PendingFG = () => {
           </div>
         </Col> */}
         {pending.length > 1 && (
-          <Col span={2} offset={19} className="gutter-row">
+          <Col span={2} offset={23} className="gutter-row">
             <Button onClick={handleDownloadingCSV}>
               <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
             </Button>
@@ -150,7 +150,7 @@ const PendingFG = () => {
         )}
       </Row>
 
-      <div style={{ height: "100%" }}>
+       <div style={{ height: "calc(100vh - 180px)", marginTop: "10px" }}>
         {/* <Skeleton loading={loading}> */}
         <MyDataTable data={pending} columns={columns} loading={loading} />
         {/* </Skeleton> */}
