@@ -18,6 +18,7 @@ const JwRmConsumption = () => {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useLoading(false);
+  const [jwLoadingId, setJwLoadingId] = useState("");
   const [editModal, setEditModal] = useState(false);
   const [rowActionLoading, setRowActionLoading] = useState(false);
   const [datee, setDatee] = useState("");
@@ -58,7 +59,7 @@ const JwRmConsumption = () => {
     if (search.length > 2) {
       const response = await executeFun(
         () => getVendorOptions(search),
-        "select"
+        "select",
       );
       let arr = [];
       if (response.success) {
@@ -76,7 +77,7 @@ const JwRmConsumption = () => {
       const response = await imsAxios.get(
         `jobwork/rm-consumption/view?data=${encodeURIComponent(datee)}&wise=${
           allData.setType
-        }`
+        }`,
       );
       if (response.success) {
         let arr = response.data.map((row, index) => {
@@ -109,7 +110,7 @@ const JwRmConsumption = () => {
   const fetchJWwise = async () => {
     setLoading("fetch", true);
     const response = await imsAxios.get(
-      `jobwork/rm-consumption/view?data=${allData.jw}&wise=${allData.setType}`
+      `jobwork/rm-consumption/view?data=${allData.jw}&wise=${allData.setType}`,
     );
     if (response.success) {
       let arr = response.data.map((row, index) => {
@@ -146,7 +147,7 @@ const JwRmConsumption = () => {
         ? allData.sku?.value || allData.sku?.id
         : allData.sku;
     const response = await imsAxios.get(
-      `jobwork/rm-consumption/view?data=${skuValue}&wise=${allData.setType}`
+      `jobwork/rm-consumption/view?data=${skuValue}&wise=${allData.setType}`,
     );
     if (response.success) {
       let arr = response.data.map((row, index) => {
@@ -182,7 +183,7 @@ const JwRmConsumption = () => {
         ? allData.ven?.value || allData.ven?.id
         : allData.ven;
     const response = await imsAxios.get(
-      `jobwork/rm-consumption/view?data=${venValue}&wise=${allData.setType}`
+      `jobwork/rm-consumption/view?data=${venValue}&wise=${allData.setType}`,
     );
     if (response.success) {
       let arr = response.data.map((row, index) => {
@@ -233,8 +234,8 @@ const JwRmConsumption = () => {
       // Execute GET request to fetch BOM data
       const response = await imsAxios.get(
         `/jobwork/rm-consumption/view/bom?jw=${encodeURIComponent(
-          jwId
-        )}&qty=${qty}`
+          jwId,
+        )}&qty=${qty}`,
       );
 
       if (response.success || response.data) {
@@ -270,7 +271,9 @@ const JwRmConsumption = () => {
       headerName: "Actions",
       width: 100,
       getActions: ({ row }) =>
-        rowActionLoading
+        rowActionLoading && (row?.transaction_id ||
+                    row?.transaction ||
+                    row?.originalData?.transaction) === jwLoadingId
           ? [
               <LoadingOutlined
                 key={row.id}
@@ -280,16 +283,27 @@ const JwRmConsumption = () => {
           : [
               <ArrowRightOutlined
                 key={row.id}
-                onClick={() => handleActionsClick(row)}
-                style={{ color: "#1890ff", fontSize: "15px", cursor: "pointer" }}
+                onClick={() => {
+                  const jwId =
+                    row?.transaction_id ||
+                    row?.transaction ||
+                    row?.originalData?.transaction;
+                  setJwLoadingId(jwId);
+                  handleActionsClick(row);
+                }}
+                style={{
+                  color: "#1890ff",
+                  fontSize: "15px",
+                  cursor: "pointer",
+                }}
               />,
             ],
     },
   ];
   return (
-    <div style={{ height: "95%", padding:10 }}>
+    <div style={{ height: "95%", padding: 10 }}>
       {/* <InternalNav links={JobworkLinks} /> */}
-      <Row gutter={10} >
+      <Row gutter={10}>
         <Col span={4}>
           <Select
             placeholder="Please Select Option"
