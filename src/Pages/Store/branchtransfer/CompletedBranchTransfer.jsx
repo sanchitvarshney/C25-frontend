@@ -49,7 +49,7 @@ function PendingBranchTransfer() {
       const values = await qcReportForm.validateFields();
 
       const [from, to] = values.date.split(/-(?=\d{2}-\d{2}-\d{4}$)/);
-      const response = await imsAxios.post(
+      const response = await imsAxios.get(
         `/branchTransfer/incomingBranchTransferList?from=${from}&to=${to}`,
       
       )
