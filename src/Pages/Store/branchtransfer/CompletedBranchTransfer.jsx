@@ -20,7 +20,7 @@ function PendingBranchTransfer() {
       const response = await imsAxios.get(
         `/branchTransfer/incomingBranchTransferDetails?trans_id=${trans_id}`,
       );
-      const { data, success, message } = response?.data ?? {};
+      const { data, success, message } = response ?? {};
       if (success) {
         const arr = data.map((row, index) => {
           return {
@@ -55,7 +55,7 @@ function PendingBranchTransfer() {
       )
       const { data, success, message } = response ?? {};
       if (success) {
-        showToast(message, "success");
+        showToast(message || "Challan Fetched Successfully" , "success");
 
         const arr = data.map((row, index) => {
           return {
