@@ -32,7 +32,6 @@ import SingleProduct from "../../Master/Vendor/SingleProduct.jsx";
 import { useToast } from "../../../hooks/useToast.js";
 export default function JwRmConsumptionModal({ editModal, setEditModal }) {
   const { showToast } = useToast();
-  console.log("editModal", editModal);
   const [header, setHeader] = useState([]);
   const [modalUploadLoad, setModalUploadLoad] = useState(false);
   const { row } = editModal;
@@ -291,21 +290,14 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
     } else if (name == "consumptionQty") {
       const numValue = Number.parseFloat(value);
 
-      // Check if we're in BOM mode (showBomList is true) - search in bomList
-      // Otherwise search in mainData
-      const currentRow = showBomList
-        ? bomList.find((aa) => aa.id == id)
-        : mainData.find((aa) => aa.id == id);
+      // bomList rows are keyed by "id" (see bomcolumns' onChange), not "key"
+      const currentRow = bomList.find((aa) => aa.id == id);
+      const stockQty = currentRow?.venLocationStock || 0;
 
-      // Get stock quantity - in BOM mode use venLocationStock, otherwise use stock or orderqty
-      const stockQty = showBomList
-        ? currentRow?.venLocationStock || currentRow?.stock || 0
-        : currentRow?.stock || currentRow?.orderqty || 0;
-
-      // if (Number.isNaN(numValue) || numValue < 0) {
-      //   toast.error("Please enter a valid positive number");
-      //   return;
-      // }
+      if (Number.isNaN(numValue) || numValue < 0) {
+        showToast("Please enter a valid positive number", "error");
+        return;
+      }
 
       if (numValue > stockQty) {
         showToast(
@@ -315,28 +307,15 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
         return;
       }
 
-      // Update the appropriate state based on mode
-      if (showBomList) {
-        setBomList((a) =>
-          a.map((aa) => {
-            if (aa.id == id) {
-              return { ...aa, consumptionQty: numValue };
-            } else {
-              return aa;
-            }
-          }),
-        );
-      } else {
-        setMainData((a) =>
-          a.map((aa) => {
-            if (aa.id == id) {
-              return { ...aa, consumptionQty: numValue };
-            } else {
-              return aa;
-            }
-          }),
-        );
-      }
+      setBomList((a) =>
+        a.map((aa) => {
+          if (aa.id == id) {
+            return { ...aa, consumptionQty: numValue };
+          } else {
+            return aa;
+          }
+        }),
+      );
     }
   };
   const removeRow = (id) => {
@@ -973,7 +952,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
                   </Card>
                 </Col>
                 {/* Right Section - 80% width (19/24 = ~79.2%) */}
-                <Col span={19} style={{ height: "50vh" }}>
+                <Col span={19} style={{ height: "calc(100vh - 300px)" }}>
                   <div style={{ height: "100%" }}>
                     <FormTable
                       data={bomList}
