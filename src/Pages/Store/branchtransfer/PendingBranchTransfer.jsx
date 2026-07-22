@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { Button, Row, Space, Form, Drawer } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
@@ -71,7 +71,7 @@ function PendingBranchTransfer() {
         showToast(message, "error");
       }
     } catch (error) {
-      showToast(error?.message|| "Something went wrong", "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -234,7 +234,7 @@ const ViewModal = ({
   component,
 }) => {
   const { showToast } = useToast();
-  const [isLoading , setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const viewcolumns = [
     {
       headerName: "#",
@@ -256,10 +256,17 @@ const ViewModal = ({
       width: 100,
       field: "qty",
     },
-     {
+    {
       headerName: "Rate",
       width: 100,
       field: "rate",
+    },
+      {
+      headerName: "Value",
+      width: 180,
+      field: "value",
+      renderCell: ({ row }) =>
+        row.rate ? Number(row.qty * row.rate) : "-",
     },
     {
       headerName: "From Location",
@@ -288,34 +295,50 @@ const ViewModal = ({
     },
   ];
   const approveTransfer = async () => {
-    if (detaildata[0].transId === "" || detaildata[0].transId === null || detaildata[0].transId === undefined) {
-      showToast( "Please Select Branch Transfer", "error");
+    if (
+      detaildata[0].transId === "" ||
+      detaildata[0].transId === null ||
+      detaildata[0].transId === undefined
+    ) {
+      showToast("Please Select Branch Transfer", "error");
       return;
     }
     try {
       setIsLoading(true);
-      const response = await imsAxios.post("/branchTransfer/createBranchTransferInward", {
-         trans_id: detaildata[0].transId,
-      })
-   
+      const response = await imsAxios.post(
+        "/branchTransfer/createBranchTransferInward",
+        {
+          trans_id: detaildata[0].transId,
+        },
+      );
+
       if (response.success) {
         showToast(response.message, "success");
         setIsLoading(false);
-      setshow(false);
-      } else  {
+        setshow(false);
+      } else {
         showToast(response.message?.msg || response.message, "error");
         setIsLoading(false);
       }
-    
-      
     } catch (error) {
       setIsLoading(false);
       showToast(error?.message || "Server Error", "error");
-      
     } finally {
       setIsLoading(false);
     }
   };
+  const totalAmount = useMemo(
+    () =>
+      detaildata.reduce(
+        (acc, curr) => acc + (Number(curr.qty) || 0) * (Number(curr.rate) || 0),
+        0,
+      ),
+    [detaildata],
+  );
+  const totalQty = useMemo(
+    () => detaildata.reduce((acc, curr) => acc + (Number(curr.qty) || 0), 0),
+    [detaildata],
+  );
 
   return (
     <Drawer
@@ -326,8 +349,13 @@ const ViewModal = ({
       }}
       extra={
         <Space>
-          <Button type="primary" disabled={isLoading} loading={isLoading} onClick={approveTransfer}>
-           Approve
+          <Button
+            type="primary"
+            disabled={isLoading}
+            loading={isLoading}
+            onClick={approveTransfer}
+          >
+            Approve
           </Button>
         </Space>
       }
@@ -335,7 +363,39 @@ const ViewModal = ({
       bodyStyle={{ paddingTop: 5 }}
     >
       {loading === "fetch" && component}
-      <MyDataTable columns={[...viewcolumns]} data={detaildata} />
+      <div style={{ height: "calc(100% - 42px)" }}>
+        <MyDataTable columns={viewcolumns} data={detaildata} hideFooter />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          gap: "20px",
+          margin: "10px 0px",
+        }}
+      >
+        <span
+          style={{
+            color: "red",
+            fontWeight: "bold",
+            minWidth: "150px",
+            fontSize: "18px",
+          }}
+        >
+          Total Sum : {totalAmount ?? 0}
+        </span>
+        <span
+          style={{
+            color: "red",
+            fontWeight: "bold",
+            minWidth: "150px",
+            fontSize: "18px",
+          }}
+        >
+          Total Qty : {totalQty ?? 0}
+        </span>
+      </div>
     </Drawer>
   );
 };

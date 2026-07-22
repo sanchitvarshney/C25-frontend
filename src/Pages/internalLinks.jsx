@@ -604,7 +604,7 @@ const links = [
       routePath: "/warehouse/branch-transfer/pending",
     },
       {
-      routeName: "Completed Transfers",
+      routeName: "Challan Completed",
       routePath: "/warehouse/branch-transfer/completed",
     },
   ],

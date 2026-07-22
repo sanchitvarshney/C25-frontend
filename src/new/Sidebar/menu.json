@@ -983,7 +983,7 @@
                   },
                     {
                     "key": "B363123",
-                    "label": "Completed Transfers",
+                    "label": "Challan Completed",
                     "icon": "SwapHorizIcon",
                     "path": "/warehouse/branch-transfer/completed",
                     "isShown": true
