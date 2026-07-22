@@ -599,13 +599,13 @@ const links = [
     //   routeName: "View",
     //   routePath: "/warehouse/branch-transfer/view",
     // },
-       {
-      routeName: "Challan Request",
-      routePath: "/warehouse/branch-transfer/pending",
-    },
+    //    {
+    //   routeName: "Challan Request",
+    //   routePath: "/warehouse/branch-transfer/pending",
+    // },
       {
-      routeName: "Challan Completed",
-      routePath: "/warehouse/branch-transfer/completed",
+      routeName: "Challan Request",
+      routePath: "/warehouse/branch-transfer/challan-request",
     },
   ],
   // DC Links

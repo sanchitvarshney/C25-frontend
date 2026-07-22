@@ -974,18 +974,12 @@
                 "isHeading": true,
                 "children": [
               
-                      {
-                    "key": "B362",
-                    "label": "Challan Request",
-                    "icon": "SwapHorizIcon",
-                    "path": "/warehouse/branch-transfer/pending",
-                    "isShown": true
-                  },
+                    
                     {
                     "key": "B363123",
-                    "label": "Challan Completed",
+                    "label": "Challan Request",
                     "icon": "SwapHorizIcon",
-                    "path": "/warehouse/branch-transfer/completed",
+                    "path": "/warehouse/branch-transfer/challan-request",
                     "isShown": true
                   }
                 ]

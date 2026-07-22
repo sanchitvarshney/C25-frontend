@@ -1336,12 +1336,12 @@ const Routes = [
   //   path: "/warehouse/branch-transfer/view",
   //   main: () => <ViewBranchTransfer />,
   // },
-    {
-    path: "/warehouse/branch-transfer/pending",
-    main: () => <PendingBranchTransfer />,
-  },
+  //   {
+  //   path: "/warehouse/branch-transfer/pending",
+  //   main: () => <PendingBranchTransfer />,
+  // },
    {
-    path: "/warehouse/branch-transfer/completed",
+    path: "/warehouse/branch-transfer/challan-request",
     main: () => <CompletedBranchTransfer />,
   },
   {

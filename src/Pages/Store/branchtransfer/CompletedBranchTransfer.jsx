@@ -84,6 +84,24 @@ function PendingBranchTransfer() {
       renderCell: (params) => <span>{params.row.index}</span>,
     },
     {
+       headerName: "Status",
+      width: 180,
+      renderCell: (params) => (
+        <span
+         
+          style={{
+            padding:"6px 5px",
+            cursor: "pointer",
+            color: params.row.status === "Pending" ? "#000000" : "#ffffff",
+            backgroundColor: params.row.status === "Completed" ? "green" : params.row.status === "Pending" ? "yellow" : "red",
+          }}
+        >
+          {params.row.status}
+        </span>
+      ),
+
+    },
+    {
       headerName: "Vendor",
       width: 250,
       field: "vendor",
