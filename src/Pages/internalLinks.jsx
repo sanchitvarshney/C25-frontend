@@ -591,17 +591,21 @@ const links = [
   ],
   //branch transfer link
   [
-    {
-      routeName: "Branch Transfer",
-      routePath: "/warehouse/branch-transfer/challan",
-    },
-    {
-      routeName: "View",
-      routePath: "/warehouse/branch-transfer/view",
-    },
+    // {
+    //   routeName: "Branch Transfer",
+    //   routePath: "/warehouse/branch-transfer/challan",
+    // },
+    // {
+    //   routeName: "View",
+    //   routePath: "/warehouse/branch-transfer/view",
+    // },
        {
       routeName: "Pending Transfer",
       routePath: "/warehouse/branch-transfer/pending",
+    },
+      {
+      routeName: "Completed Transfers",
+      routePath: "/warehouse/branch-transfer/completed",
     },
   ],
   // DC Links

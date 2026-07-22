@@ -290,7 +290,6 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
     } else if (name == "consumptionQty") {
       const numValue = Number.parseFloat(value);
 
-      // bomList rows are keyed by "id" (see bomcolumns' onChange), not "key"
       const currentRow = bomList.find((aa) => aa.id == id);
       const stockQty = currentRow?.venLocationStock || 0;
 

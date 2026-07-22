@@ -113,6 +113,7 @@ import {
   CreateBranchTransferChallan,
   ViewBranchTransfer,
   PendingBranchTransfer,
+  CompletedBranchTransfer,
   UpdateComponent,
   EWayBill,
   CategoryMaster,
@@ -1331,13 +1332,17 @@ const Routes = [
     path: "/invoice/create",
     main: () => <Invoice />,
   },
-  {
-    path: "/warehouse/branch-transfer/view",
-    main: () => <ViewBranchTransfer />,
-  },
+  // {
+  //   path: "/warehouse/branch-transfer/view",
+  //   main: () => <ViewBranchTransfer />,
+  // },
     {
     path: "/warehouse/branch-transfer/pending",
     main: () => <PendingBranchTransfer />,
+  },
+   {
+    path: "/warehouse/branch-transfer/completed",
+    main: () => <CompletedBranchTransfer />,
   },
   {
     path: "/invoice/edit/:invoiceId",
@@ -1368,10 +1373,10 @@ const Routes = [
     path: "/warehouse/print-view-fg-min",
     main: () => <ViewFGMIN />,
   },
-  {
-    path: "/warehouse/branch-transfer/challan",
-    main: () => <CreateBranchTransferChallan />,
-  },
+  // {
+  //   path: "/warehouse/branch-transfer/challan",
+  //   main: () => <CreateBranchTransferChallan />,
+  // },
   {
     path: "/warehouse/sf-part-code-conversion",
     main: () => <PartCodeConversion />,

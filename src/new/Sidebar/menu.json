@@ -973,25 +973,19 @@
                 "icon": "SwapHorizIcon",
                 "isHeading": true,
                 "children": [
-                  {
-                    "key": "B36",
-                    "label": "Branch Transfer Challan",
-                    "icon": "SwapHorizIcon",
-                    "path": "/warehouse/branch-transfer/challan",
-                    "isShown": true
-                  },
-                  {
-                    "key": "B361",
-                    "label": "Branch Transfer View",
-                    "icon": "SwapHorizIcon",
-                    "path": "/warehouse/branch-transfer/view",
-                    "isShown": true
-                  },
+              
                       {
                     "key": "B362",
-                    "label": "Pending Transfer",
+                    "label": "Challan Request",
                     "icon": "SwapHorizIcon",
                     "path": "/warehouse/branch-transfer/pending",
+                    "isShown": true
+                  },
+                    {
+                    "key": "B363123",
+                    "label": "Completed Transfers",
+                    "icon": "SwapHorizIcon",
+                    "path": "/warehouse/branch-transfer/completed",
                     "isShown": true
                   }
                 ]

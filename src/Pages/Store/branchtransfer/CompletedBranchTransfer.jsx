@@ -256,11 +256,6 @@ const ViewModal = ({
       width: 100,
       field: "qty",
     },
-     {
-      headerName: "Rate",
-      width: 100,
-      field: "rate",
-    },
     {
       headerName: "From Location",
       width: 150,
