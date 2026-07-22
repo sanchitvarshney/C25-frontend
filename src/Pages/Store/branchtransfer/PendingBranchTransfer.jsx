@@ -6,7 +6,6 @@ import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import Loading from "../../../Components/Loading";
 import MyButton from "../../../Components/MyButton";
-import axios from "axios";
 
 function PendingBranchTransfer() {
   const { showToast } = useToast();
@@ -19,10 +18,10 @@ function PendingBranchTransfer() {
   const getcomoponents = async (trans_id) => {
     setLoading("fetchData");
     try {
-      const response = await axios.get(
-        `https://dev.mscorpres.net/api/v1/branchTransfer/details?trans_id=${trans_id}`,
+       const response = await imsAxios.get(
+        `/branchTransfer/incomingBranchTransferDetails?trans_id=${trans_id}`,
       );
-      const { data, success, message } = response?.data ?? {};
+      const { data, success, message } = response ?? {};
       if (success) {
         const arr = data.map((row, index) => {
           return {
@@ -51,10 +50,11 @@ function PendingBranchTransfer() {
       const values = await qcReportForm.validateFields();
 
       const [from, to] = values.date.split(/-(?=\d{2}-\d{2}-\d{4}$)/);
-      const response = await axios.get(
-        `https://dev.mscorpres.net/api/v1/branchTransfer/list?from=${from}&to=${to}`,
-      );
-      const { data, success, message } = response?.data ?? {};
+        const response = await imsAxios.post(
+        `/branchTransfer/incomingBranchTransferList?from=${from}&to=${to}`,
+      
+      )
+      const { data, success, message } = response ?? {};
       if (success) {
         showToast(message, "success");
 
@@ -84,11 +84,30 @@ function PendingBranchTransfer() {
       field: "index",
       renderCell: (params) => <span>{params.row.index}</span>,
     },
+      {
+       headerName: "Status",
+      width: 180,
+      renderCell: (params) => (
+        <span
+         
+          style={{
+            padding:"6px 5px",
+            cursor: "pointer",
+            color: params.row.status === "Pending" ? "#000000" : "#ffffff",
+            backgroundColor: params.row.status === "Completed" ? "green" : params.row.status === "Pending" ? "yellow" : "red",
+          }}
+        >
+          {params.row.status}
+        </span>
+      ),
+
+    },
     {
       headerName: "Vendor",
       width: 250,
       field: "vendor",
     },
+    
     {
       headerName: "Transaction Id",
       width: 180,

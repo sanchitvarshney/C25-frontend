@@ -1342,7 +1342,7 @@ const Routes = [
   // },
    {
     path: "/warehouse/branch-transfer/challan-request",
-    main: () => <CompletedBranchTransfer />,
+    main: () => <PendingBranchTransfer />,
   },
   {
     path: "/invoice/edit/:invoiceId",
