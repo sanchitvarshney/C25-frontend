@@ -89,12 +89,14 @@ function PendingBranchTransfer() {
       width: 180,
       renderCell: (params) => (
         <span
-         
+          className="allow-radius"
           style={{
-            padding:"6px 5px",
+            padding:"6px 12px",
+            borderRadius:"20px",
             cursor: "pointer",
-            color: params.row.status === "Pending" ? "#000000" : "#ffffff",
-            backgroundColor: params.row.status === "Completed" ? "green" : params.row.status === "Pending" ? "yellow" : "red",
+            color:  "#000000",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+            backgroundColor: params.row.status === "Completed" ? "#52c41a" : params.row.status === "Pending" ? "#faad14"  :"#ff4d4f" ,
           }}
         >
           {params.row.status}

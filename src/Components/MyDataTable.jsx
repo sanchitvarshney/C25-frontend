@@ -330,7 +330,7 @@ export default function MyDataTable(props) {
               marginTop: (theme) => theme.spacing(0.5),
             },
           },
-          "& *": {
+          "& *:not(.allow-radius)": {
             borderRadius: "0 !important",
           },
           "& .MuiDataGrid-columnHeaders": {
