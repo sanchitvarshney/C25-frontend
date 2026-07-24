@@ -10,6 +10,7 @@ import {
 } from "antd";
 import  { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
+import Field from "../../../Components/Field";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
 import Loading from "../../../Components/Loading";
@@ -22,6 +23,7 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
   const [statusBranch, setStatusBranch] = useState();
   const [updateBranchForm] = Form.useForm();
   const [stateOptions, setStateOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   updateBranchForm.setFieldsValue(branchId);
  
   let obj = {
@@ -73,7 +75,18 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
   };
 
   const submitHandler = async () => {
-    const values = await updateBranchForm.validateFields();
+    let values;
+    try {
+      values = await updateBranchForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
 
     let newobj = {
       address: values.address,
@@ -94,9 +107,10 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
     const response = await imsAxios.put("client/updateBranch", newobj);
     if (response.success) {
       showToast(response.message);
-   
+
       setBranchId(null);
       setBranchModal(false);
+      setIsValid(false);
     } else {
       showToast(response.message?.msg || response.message, "error");
     
@@ -138,9 +152,12 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
       title={`Update Branch: ${branchId?.addressID}`}
       open={branchId}
       // onOk={branchId}
-      onCancel={() => setBranchId(null)}
+      onCancel={() => {
+        setBranchId(null);
+        setIsValid(false);
+      }}
       footer={[
-        <Row style={{ width: "100%" }} align="middle" justify="space-between" key="footer">
+        <Row style={{ width: "100%" }} align="middle" justify="space-between" key={1}>
           <Col>
             <Form style={{ padding: 0, margin: 0 }}>
               <Form.Item label="Active" style={{ padding: 0, margin: 0 }}>
@@ -155,7 +172,13 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
           </Col>
           <Col>
             <Space>
-              <Button key="back" onClick={() => setBranchId(false)}>
+              <Button
+                key="back"
+                onClick={() => {
+                  setBranchId(false);
+                  setIsValid(false);
+                }}
+              >
                 Back
               </Button>
 
@@ -172,20 +195,38 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
         </Row>,
       ]}
     >
-      {pageLoading && <Loading />}
       <Form layout="vertical" form={updateBranchForm}>
+        {pageLoading && <Loading />}
         <Row>
           <Col span={24}>
             <Row gutter={10}>
               <Col span={12}>
-                <Form.Item name="country" label="Country">
-                  <MySelect options={countries} labelInValue />
+                <Form.Item
+                  name="country"
+                  label="Country"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <MySelect
+                    options={countries}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select Country"
+                  />
                 </Form.Item>
               </Col>
 
               <Col span={12}>
-                <Form.Item label="State" name="state">
-                  <MySelect options={stateOptions} labelInValue />
+                <Form.Item
+                  label="State"
+                  name="state"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <MySelect
+                    options={stateOptions}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select State"
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -193,13 +234,31 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
           <Col span={24}>
             <Row gutter={10}>
               <Col span={12}>
-                <Form.Item label="City" name="city">
-                  <Input />
+                <Form.Item
+                  label="City"
+                  name="city"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Field
+                    attr="required | Please enter City"
+                    showValidation={isValid}
+                  >
+                    <Input />
+                  </Field>
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="GST" name="gst">
-                  <Input />
+                <Form.Item
+                  label="GST"
+                  name="gst"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Field
+                    attr="required | Please enter GST Number"
+                    showValidation={isValid}
+                  >
+                    <Input />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -208,13 +267,31 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
           <Col span={24}>
             <Row gutter={10}>
               <Col span={12}>
-                <Form.Item label="Pin" name="pinCode">
-                  <Input />
+                <Form.Item
+                  label="Pin"
+                  name="pinCode"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Field
+                    attr="required | Please enter Pin Code"
+                    showValidation={isValid}
+                  >
+                    <Input />
+                  </Field>
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="Phone" name="phoneNo">
-                  <Input />
+                <Form.Item
+                  label="Phone"
+                  name="phoneNo"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Field
+                    attr="required | Please enter Phone Number"
+                    showValidation={isValid}
+                  >
+                    <Input />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -225,8 +302,17 @@ function EditBranchModel({ setBranchId, branchId, setBranchModal }) {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="Address" name="address">
-              <Input />
+            <Form.Item
+              label="Address"
+              name="address"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | Please enter Address"
+                showValidation={isValid}
+              >
+                <Input />
+              </Field>
             </Form.Item>
           </Col>
         </Row>

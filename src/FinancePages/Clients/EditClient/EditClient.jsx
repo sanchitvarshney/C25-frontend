@@ -1,13 +1,13 @@
 import  { useEffect, useState } from "react";
 import { Drawer, Row, Col, Button, Switch, Form, Space, Input } from "antd";
 import MySelect from "../../../Components/MySelect";
+import Field from "../../../Components/Field";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
 
 function EditClient({
   updatingClient,
   setUpdatingClient,
-  getRows,
   addClientApi,
   setAddClientApi,
 }) {
@@ -17,7 +17,99 @@ function EditClient({
   const [tdsOptions, setTdsOptions] = useState([]);
   const [tcsOptions, setTcsOptions] = useState([]);
   const [clientStatus, setClientStatus] = useState();
+  const [isValid, setIsValid] = useState(false);
+  const nameValue = Form.useWatch("name", updateClientForm);
+  const panNoValue = Form.useWatch("panNo", updateClientForm);
+  const mobileValue = Form.useWatch("mobile", updateClientForm);
 
+
+  // const getMatchById = async () => {
+  //   const { data: tdsData } = await imsAxios.get(
+  //     "/vendor/getAllTds"
+  //   );
+
+  //   const { data: tcsData } = await imsAxios.get(
+  //     "/tally/tcs/getAllTcs"
+  //   );
+
+  //   const { data: clientData } = await imsAxios.get(
+  //     `/client/getClient?code=${updatingClient?.code}`
+  //   );
+
+  //   let tdsArr = tdsData?.data.map((row) => {
+  //     return { text: row.text, value: row.id };
+  //   });
+  //   let tcsArr = tcsData?.data.map((row) => {
+  //     return { text: row.text, value: row.id };
+  //   });
+
+  //   let obj = {
+  //     ...clientData,
+  //   };
+
+  //   updateClientForm.setFieldsValue(obj);
+
+  //   setClientStatus(obj.status);
+  //   setTdsOptions(tdsArr);
+  //   setTcsOptions(tcsArr);
+  // };
+
+  // const changeStatus = async (value) => {
+  //   setStatusLoading(true);
+  //   const response = await imsAxios.post(
+  //     "/vendor/updateVendorStatus",
+  //     {
+  //       status: value ? "B" : "A",
+  //       vendor_code: editVendor?.vendor_code,
+  //     }
+  //   );
+  //   setStatusLoading(false);
+  //   if (response.success) {
+  //     toast.success(response.message);
+  //     if (value) {
+  //       setVendorStatus("B");
+  //     } else {
+  //       setVendorStatus("A");
+  //     }
+  //   }
+  // };
+
+  // const submitHandler = async () => {
+  //   const values = await updateClientForm.validateFields();
+  //   let obj = {
+  //     code: updatingClient?.code,
+  //     clientName: values?.name,
+  //     email: values?.email,
+  //     panNo: values?.panNo,
+  //     mobileNo: values?.mobile,
+  //     website: values?.website,
+  //     salesPerson: values?.salePerson,
+  //     status: clientStatus,
+  //     tds: values?.tds,
+  //     tcs: values?.tcs,
+  //   };
+
+  //   const response = await imsAxios.put(
+  //     "/client/update",
+  //     obj
+  //   );
+  //   if (response.success) {
+  //     getRows();
+  //     setUpdatingClient(null);
+  //     toast.success(response.message);
+  //   }
+  // };
+
+  // const changeStatus = () => {
+  //   setClientStatus(
+  //     clientStatus == "active" ? "inactive" : "active"
+  //   );
+  //   toast.info(
+  //     clientStatus == "active"
+  //       ? "Status has been Inactive"
+  //       : "Status has been Active"
+  //   );
+  // };
 
   const getMatchById = async () => {
     const response = await imsAxios.get(
@@ -56,9 +148,39 @@ function EditClient({
     }
   };
 
+  // const changeStatus = async (value) => {
+  //   setStatusLoading(true);
+  //   const response = await imsAxios.post(
+  //     "/vendor/updateVendorStatus",
+  //     {
+  //       status: value ? "B" : "A",
+  //       vendor_code: editVendor?.vendor_code,
+  //     }
+  //   );
+  //   setStatusLoading(false);
+  //   if (response.success) {
+  //     toast.success(response.message);
+  //     if (value) {
+  //       setVendorStatus("B");
+  //     } else {
+  //       setVendorStatus("A");
+  //     }
+  //   }
+  // };
 
   const submitHandler = async () => {
-    const values = await updateClientForm.validateFields();
+    let values;
+    try {
+      values = await updateClientForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
 
     let obj = {
       code: updatingClient?.code,
@@ -75,8 +197,8 @@ function EditClient({
 
     const response = await imsAxios.put("/client/update", obj);
     if (response.success) {
-      getRows();
       setUpdatingClient(null);
+      setIsValid(false);
       showToast(response.message);
     } else {
       showToast(response.message?.msg || response.message, "error");
@@ -106,7 +228,10 @@ function EditClient({
       title={`Update Client: ${updatingClient?.code}`}
       open={updatingClient}
       width={600}
-      onClose={() => setUpdatingClient(false)}
+      onClose={() => {
+        setUpdatingClient(false);
+        setIsValid(false);
+      }}
       placement="right"
       footer={
         <Row style={{ width: "100%" }} align="middle" justify="space-between">
@@ -124,7 +249,13 @@ function EditClient({
           </Col>
           <Col>
             <Space>
-              <Button key="back" onClick={() => setUpdatingClient(false)}>
+              <Button
+                key="back"
+                onClick={() => {
+                  setUpdatingClient(false);
+                  setIsValid(false);
+                }}
+              >
                 Back
               </Button>
 
@@ -147,9 +278,19 @@ function EditClient({
           <Col span={24}>
             <Row gutter={10}>
               <Col span={12}>
-                <Form.Item label="Vendor Name" name="name">
-                  <Input />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter client's name"
+                  value={nameValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="Vendor Name"
+                    name="name"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={12}>
                 <Form.Item label="Email" name="email">
@@ -161,23 +302,34 @@ function EditClient({
           <Col span={24}>
             <Row gutter={10}>
               <Col span={12}>
-                <Form.Item label="PAN Number" name="panNo">
-                  <Input />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter PAN Number"
+                  value={panNoValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="PAN Number"
+                    name="panNo"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  label="Mobile"
-                  name="mobile"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Contact no must be add",
-                    },
-                  ]}
+                <Field
+                  attr="required | Contact no must be added"
+                  value={mobileValue}
+                  showValidation={isValid}
                 >
-                  <Input />
-                </Form.Item>
+                  <Form.Item
+                    label="Mobile"
+                    name="mobile"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
             </Row>
           </Col>

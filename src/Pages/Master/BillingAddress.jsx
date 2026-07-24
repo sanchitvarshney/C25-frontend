@@ -3,14 +3,14 @@ import AddBilling from "./Modal/AddBilling";
 import MyDataTable from "../../Components/MyDataTable";
 import { v4 } from "uuid";
 import { Row, Space } from "antd";
-import { CommonIcons } from "../../Components/TableActions.jsx/TableActions";
 import { imsAxios } from "../../axiosInterceptor";
+import { Button } from "@mui/material";
+import { Add } from "@mui/icons-material";
 
 const BillingAddress = () => {
   const [dataa, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  // const [filterData, setFilterData] = useState([]);
-  // const [search, setSearch] = useState("");
+
   const [ShowAddBillingModal, setShowAddBillingModal] = useState(false);
 
   const fetchLocation = async () => {
@@ -42,27 +42,27 @@ const BillingAddress = () => {
     fetchLocation();
   }, []);
 
-  // useEffect(() => {
-  //   const res = dataa.filter((a) => {
-  //     return a.company.toLowerCase().match(search.toLowerCase());
-  //   });
-  //   setFilterData(res);
-  // }, [search]);
-
   return (
-    <div style={{ height: "100%", padding:10 }}>
-      <Row justify="end" style={{  paddingBottom: 5 }}>
+    <div style={{ height: "100%", padding: 10 }}>
+      <Row justify="end" style={{ paddingBottom: 5 }}>
         <Space>
-          <CommonIcons
-            action="addButton"
+          <Button
+            variant="contained"
             onClick={() => setShowAddBillingModal(true)}
-          />
-          {/* <Button type="primary" onClick={() => setShowAddBillingModal(true)}>
-            Add Billing Address
-          </Button> */}
+            startIcon={<Add fontSize="small" />}
+            sx={{
+              textTransform: "none",
+              backgroundColor: "#0d9488",
+              "&:hover": {
+                backgroundColor: "#0f766e",
+              },
+            }}
+          >
+            Billing Address
+          </Button>
         </Space>
       </Row>
-      <div style={{ height: "90%", marginTop: 10  }}>
+      <div style={{ height: "calc(100% - 60px)", marginTop: 10 }}>
         <MyDataTable loading={loading} data={dataa} columns={columns} />
       </div>
 

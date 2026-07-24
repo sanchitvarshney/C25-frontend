@@ -15,7 +15,7 @@ import {
 } from "antd";
 import MySelect from "../../../../Components/MySelect";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
-import Loading from "../../../../Components/Loading";
+import Field from "../../../../Components/Field";
 import { imsAxios } from "../../../../axiosInterceptor";
 const { TextArea } = Input;
 import { getVendorBranchBankOptions } from "../vendorBranchBankOptions";
@@ -54,6 +54,7 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
   const [allBranchData, setAllBranchData] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [currencies, setCurrencies] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const getCurrencies = async () => {
     try {
@@ -168,17 +169,17 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
   };
 
   const updateBranch = async () => {
-    if (allField.label == "") {
-      return showToast("Please enter branch name", "error");
-    } else if (allField.city == "") {
-      return showToast("Please enter City name", "error");
-    } else if (allField.address == "") {
-      return showToast("Please enter Complete branch address", "error");
-    } else if (allField.pcode == "") {
-      return showToast("Please enter branch Pincode", "error");
-    } else if (allField.gst == "") {
-      return showToast("Please enter branch GST Number", "error");
+    if (
+      allField.label == "" ||
+      allField.city == "" ||
+      allField.address == "" ||
+      allField.pcode == "" ||
+      allField.gst == ""
+    ) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     setsubmitLoading(true);
     const response = await imsAxios.post("/vendor/updateBranchDetails", {
       label: allField.label,
@@ -210,6 +211,7 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
 
   const reset = () => {
     setAllField(resetData);
+    setIsValid(false);
   };
 
   useEffect(() => {
@@ -233,7 +235,7 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
       >
         <Skeleton loading={skeletonLoading} active />
         <Skeleton loading={skeletonLoading} active />
-        {spinLoading && <Loading />}
+      
         {!skeletonLoading && (
           <Form style={{ marginTop: -10 }} layout="vertical" size="small">
             <Row style={{ width: "100%" }}>
@@ -242,8 +244,8 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
                   <MySelect
                     value={allField.branchCode}
                     options={allBranchData}
+                    selectLoading={spinLoading}
                     onChange={(e) => {
-                      getBranchDetails(e);
                       setAllField((allField) => {
                         return { ...allField, addresscode: e };
                       });
@@ -261,17 +263,23 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
               </Col>
               <>
                 <Col span={12} style={{ padding: "3px" }}>
-                  <Form.Item label="Branch Name">
-                    <Input
-                      size="default "
-                      value={allField.label}
-                      onChange={(e) =>
-                        setAllField((allField) => {
-                          return { ...allField, label: e.target.value };
-                        })
-                      }
-                    />
-                  </Form.Item>
+                  <Field
+                    attr="required | Please enter branch name"
+                    value={allField.label}
+                    showValidation={isValid}
+                  >
+                    <Form.Item label="Branch Name">
+                      <Input
+                        size="default "
+                        value={allField.label}
+                        onChange={(e) =>
+                          setAllField((allField) => {
+                            return { ...allField, label: e.target.value };
+                          })
+                        }
+                      />
+                    </Form.Item>
+                  </Field>
                 </Col>
 
                 <Col span={12} style={{ padding: "3px" }}>
@@ -291,43 +299,61 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
                   </Form.Item>
                 </Col>
                 <Col span={12} style={{ padding: "3px" }}>
-                  <Form.Item label="City">
-                    <Input
-                      size="default "
-                      value={allField.city}
-                      onChange={(e) =>
-                        setAllField((allField) => {
-                          return { ...allField, city: e.target.value };
-                        })
-                      }
-                    />
-                  </Form.Item>
+                  <Field
+                    attr="required | Please enter City name"
+                    value={allField.city}
+                    showValidation={isValid}
+                  >
+                    <Form.Item label="City">
+                      <Input
+                        size="default "
+                        value={allField.city}
+                        onChange={(e) =>
+                          setAllField((allField) => {
+                            return { ...allField, city: e.target.value };
+                          })
+                        }
+                      />
+                    </Form.Item>
+                  </Field>
                 </Col>
                 <Col span={12} style={{ padding: "3px" }}>
-                  <Form.Item label="GST Number">
-                    <Input
-                      size="default "
-                      value={allField.gst}
-                      onChange={(e) =>
-                        setAllField((allField) => {
-                          return { ...allField, gst: e.target.value };
-                        })
-                      }
-                    />
-                  </Form.Item>
+                  <Field
+                    attr="required | Please enter branch GST Number"
+                    value={allField.gst}
+                    showValidation={isValid}
+                  >
+                    <Form.Item label="GST Number">
+                      <Input
+                        size="default "
+                        value={allField.gst}
+                        onChange={(e) =>
+                          setAllField((allField) => {
+                            return { ...allField, gst: e.target.value };
+                          })
+                        }
+                      />
+                    </Form.Item>
+                  </Field>
                 </Col>
                 <Col span={12} style={{ padding: "3px" }}>
-                  <Form.Item label="Pin Code">
-                    <Input
-                      size="default "
-                      value={allField.pcode}
-                      onChange={(e) =>
-                        setAllField((allField) => {
-                          return { ...allField, pcode: e.target.value };
-                        })
-                      }
-                    />
-                  </Form.Item>
+                  <Field
+                    attr="required | Please enter branch Pincode"
+                    value={allField.pcode}
+                    showValidation={isValid}
+                  >
+                    <Form.Item label="Pin Code">
+                      <Input
+                        size="default "
+                        value={allField.pcode}
+                        onChange={(e) =>
+                          setAllField((allField) => {
+                            return { ...allField, pcode: e.target.value };
+                          })
+                        }
+                      />
+                    </Form.Item>
+                  </Field>
                 </Col>
                 <Col span={12} style={{ padding: "3px" }}>
                   <Form.Item label="Email">
@@ -369,18 +395,24 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
                   </Form.Item>
                 </Col>
                 <Col span={24} style={{ padding: "3px" }}>
-                  <Form.Item label="Branch Address">
-                    <TextArea
-                      rows={4}
-                      maxLength={200}
-                      value={allField.address}
-                      onChange={(e) =>
-                        setAllField((allField) => {
-                          return { ...allField, address: e.target.value };
-                        })
-                      }
-                    />
-                  </Form.Item>
+                  <Field
+                    attr="required | Please enter Complete branch address"
+                    value={allField.address}
+                    showValidation={isValid}
+                  >
+                    <Form.Item label="Branch Address">
+                      <TextArea
+                        rows={4}
+                        maxLength={200}
+                        value={allField.address}
+                        onChange={(e) =>
+                          setAllField((allField) => {
+                            return { ...allField, address: e.target.value };
+                          })
+                        }
+                      />
+                    </Form.Item>
+                  </Field>
                 </Col>
               </>
             </Row>

@@ -1,332 +1,77 @@
-import {
-  Col,
-  Form,
-  Row,
-  Typography,
-  Input,
-  Divider,
-  Card,
-  Space,
-  Flex,
-} from "antd";
-import  { useEffect, useState } from "react";
-import MySelect from "../../../../Components/MySelect";
+
+import FormTable2 from "../../../../Components/FormTable2";
+import { Input, Typography } from "antd";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
-import MyButton from "../../../../Components/MyButton";
-import TableActions from "../../../../Components/TableActions.jsx/TableActions";
-import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
+import Field from "../../../../Components/Field";
 
 const Components = ({
+  asyncOptions,
+  setAsyncOptions,
+  getComponentOptions,
+  loading,
   form,
-  locationOptions,
-  rows,
-  selectedRows,
-  setSelectedRows,
-  autoConsOptions,
-  setOpen,
+  isValid,
 }) => {
-  const addComponent = async () => {
-    const values = await form.validateFields();
-    const found = selectedRows.find(
-      (row) => row.component.value === values.component.value
-    );
-    if (found) {
-      alert("same component");
-      return;
-    }
-    // form.resetFields();
-    form.setFieldValue("value", "");
-    form.setFieldValue("hsn", "");
-    form.setFieldValue("rate", "");
-    form.setFieldValue("qty", "");
-    form.setFieldValue("partCode", "");
-    form.setFieldValue("component", "");
-    form.setFieldValue("component", "");
-    form.setFieldValue("pendingQty","");
-    setSelectedRows((curr) => [values, ...curr]);
+
+  const componentColumn = {
+    headerName: "Components",
+    name: "component",
+    width: 250,
+    flex: true,
+    field: () => (
+      <MyAsyncSelect
+        optionsState={asyncOptions}
+        onBlur={() => setAsyncOptions([])}
+        loadOptions={getComponentOptions}
+        selectLoading={loading}
+        labelInValue
+        showError={isValid}
+        message="Please select a component"
+      />
+    ),
   };
-  const deleteComponent = (key) => {
-    setSelectedRows((curr) =>
-      curr.filter((row) => row.component.value !== key)
-    );
-  };
+  let columns = componentsItems(isValid);
+  columns.splice(1, 0, componentColumn);
 
   return (
-    <Flex
-      vertical
-      gutter={[0, 6]}
-      gap="small"
-      style={{ position: "relative", height: "100%", overflow: "hidden" }}
-    >
-      <Card
-        size="small"
-        title={`Total : ${rows?.length} Components | Selected: ${selectedRows?.length} Components`}
-        extra={
-          <>
-            <Space>
-              <MyButton variant="upload" onClick={() => setOpen(true)} />
-            </Space>
-            <Space>
-              <MyButton
-                variant="add"
-                // disabled={selectedRows.length === 0}
-                // disabled={selectedRows.length === 0}
-                onClick={addComponent}
-                style={{ marginLeft: 10 }}
-              />
-            </Space>
-          </>
-        }
-      >
-        <SingleComponent
-          rows={rows}
-          form={form}
-          locationOptions={locationOptions}
-          autoConsOptions={autoConsOptions}
-        />
-      </Card>
-      <div style={{ height: "83%" }}>
-        <Card
-          size="small"
-          style={{ height: "100%", paddingBottom: 10 }}
-          styles={{
-            body: {
-              height: "100%",
-            },
-          }}
-        >
-          <div
-            style={{
-              height: "100%",
-              overflow: "hidden",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                overflowX: "auto",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ minWidth: 1500, flexShrink: 0 }}>
-                <Row wrap={false}>
-                  <Col span={1}></Col>
-                  <Col span={4}>
-                    <Typography.Text strong>Component</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Part Code</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Qty</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Pending Qty</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Rate</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>HSN</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Value</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Invoice</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Location</Typography.Text>
-                  </Col>
-                  <Col span={2}>
-                    <Typography.Text strong>Auto Consmp</Typography.Text>
-                  </Col>
-                  <Col span={3}>
-                    <Typography.Text strong>Remark</Typography.Text>
-                  </Col>
-                </Row>
-              </div>
-              <div
-                style={{
-                  minWidth: 1500,
-                  flex: 1,
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                  marginBottom: "10px",
-                }}
-              >
-                {selectedRows.map((row, index) => (
-                  <div key={row.component?.value || index}>
-                    <Row align="middle" wrap={false}>
-                      <Col span={1}>
-                        <Flex align="center">
-                          <TableActions
-                            action={"delete"}
-                            onClick={() =>
-                              deleteComponent(row.component.value)
-                            }
-                          />
-                          <Typography.Text type="secondary">
-                            {index + 1}.
-                          </Typography.Text>
-                        </Flex>
-                      </Col>
-                      <Col span={4}>{row?.component?.label}</Col>
-                      <Col span={2}>{row.partCode}</Col>
-
-                      <Col span={2}>
-                        <ToolTipEllipses text={row.qty} />
-                      </Col>
-                      <Col span={2}>
-                        <ToolTipEllipses text={row.pendingQty??"--"} />
-                      </Col>
-                      <Col span={2}>
-                        <ToolTipEllipses text={row.rate} />
-                      </Col>
-                      <Col span={2}>{row.hsn}</Col>
-                      <Col span={2}>
-                        <ToolTipEllipses text={row.value} />
-                      </Col>
-                      <Col span={2}>
-                        <ToolTipEllipses text={row.invoiceId} copy={true} />
-                      </Col>
-                      <Col span={2}>{row.location?.label ?? "--"}</Col>
-                      <Col span={2}>{row.autoCons?.label ?? "--"}</Col>
-                      <Col span={3}>
-                        <ToolTipEllipses text={row.remark} copy={true} />
-                      </Col>
-                    </Row>
-                    <Divider style={{ margin: "5px 0" }} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-    </Flex>
+    <FormTable2
+      removableRows={true}
+      addableRow={true}
+      nonRemovableColumns={1}
+      //   columns={componentsItems().splice(2, 0, componentColumn)}
+      columns={columns}
+      listName="components"
+      watchKeys={watchKeys}
+      nonListWatchKeys={[]}
+      componentRequiredRef={[]}
+      form={form}
+    />
   );
 };
 
 export default Components;
 
-const SingleComponent = ({ form, locationOptions, rows, autoConsOptions }) => {
-  const [asyncOptions, setAsyncOptions] = useState([]);
+const watchKeys = ["component"];
 
-  const component = Form.useWatch("component", form);
-  const getComponent = async (search) => {
-    const filtered = rows.filter(
-      (row) =>
-        row.component.toLowerCase().includes(search.toLowerCase()) ||
-        row.partCode.toLowerCase().includes(search.toLowerCase())
-    );
-    const arr = filtered.map((row) => ({
-      text: `${row.partCode} | ${row.component}`,
-      value: row.componentKey,
-    }));
-    setAsyncOptions(arr);
-  };
-  const selectingComponent = (key) => {
-    const found = rows.find((row) => row.componentKey === key);
-    form.setFieldsValue({
-      ...found,
-      component: {
-        label: found.component,
-        value: found.componentKey,
-      },
-    });
-  };
-  const qty = Form.useWatch("qty", form);
-  const rate = Form.useWatch("rate", form);
+const componentsItems = (isValid) => [
+  {
+    headerName: "#",
+    name: "",
+    width: 30,
+    field: (_, index) => (
+      <Typography.Text type="secondary">{index + 1}.</Typography.Text>
+    ),
+  },
 
-  useEffect(() => {
-    if(rows){
-      const filtered = rows.filter(
-        (row) =>
-          row.component.toLowerCase() ||
-          row.partCode.toLowerCase()
-      );
-      setAsyncOptions(filtered.map((row) => ({
-        text: `${row.partCode} | ${row.component}`,
-        value: row.componentKey,
-      })))
-    }
-  }, [rows])
-
-  useEffect(() => {
-    const value = +Number(rate).toFixed(3) * +Number(qty);
-    form.setFieldValue("value", value == "NaN" ? 0 : value.toFixed(3));
-  }, [qty, rate]);
-  useEffect(() => {
-    if (component) {
-      selectingComponent(component.value);
-    }
-  }, [component]);
-  return (
-    <Row gutter={[6, -6]} style={{ marginBottom: "18px" }}>
-      <Col span={3}>
-        <Form.Item label="Component" name="component">
-          <MyAsyncSelect
-            loadOptions={getComponent}
-            optionsState={asyncOptions}
-            labelInValue={true}
-          />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Part Code" name="partCode">
-          <Input disabled />
-        </Form.Item>
-      </Col>
-
-      <Col span={2}>
-        <Form.Item label="Qty" name="qty">
-          <Input type="number" />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Pending Qty" name="pendingQty">
-          <Input type="number" disabled />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Rate" name="rate">
-          <Input type="number" />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="HSN" name="hsn">
-        <Input />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Value" name="value">
-          <Input disabled />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Invoice" name="invoiceId">
-          <Input />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Location" name="location">
-          <MySelect labelInValue={true} options={locationOptions} />
-        </Form.Item>
-      </Col>
-      <Col span={2}>
-        <Form.Item label="Auto Consump" name="autoCons">
-          <MySelect labelInValue={true} options={autoConsOptions} />
-        </Form.Item>
-      </Col>
-      <Col span={3}>
-        <Form.Item label="Remark" name="remark">
-          <Input />
-        </Form.Item>
-      </Col>
-    </Row>
-  );
-};
-
+  {
+    headerName: "Qty",
+    name: "qty",
+    width: 250,
+    flex: true,
+    field: () => (
+      <Field attr="required | Please enter Qty" showValidation={isValid}>
+        <Input type="number" />
+      </Field>
+    ),
+  },
+];

@@ -1,5 +1,5 @@
-import  { useEffect, useState } from "react";
-import {  Col, Form, Input, Row } from "antd";
+import { useEffect, useState } from "react";
+import { Col, Form, Input, Row } from "antd";
 //@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
 import { getComponentOptions, getHsnOptions } from "@/api/general";
@@ -13,15 +13,15 @@ import Field from "@/Components/Field.jsx";
 import MyButton from "../../../Components/MyButton";
 import { getHsnList, mapHsn } from "@/api/master/component";
 //@ts-ignore
-import {useToast} from "../../../hooks/useToast";
+import { useToast } from "../../../hooks/useToast";
 
 const HsnMap = () => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm();
- const { showToast } = useToast();
- const [isValid, setIsValid] = useState(false);
-  
+  const { showToast } = useToast();
+  const [isValid, setIsValid] = useState(false);
+
   const component = Form.useWatch("component", form);
 
   const getComponents = async (search: string) => {
@@ -43,10 +43,12 @@ const HsnMap = () => {
     let values;
     try {
       values = await form?.validateFields();
-    
-      if (values?.rows[0]?.code === undefined || values?.rows[0]?.tax === undefined) {
-        console.log("values", values);
-        showToast("Please add at least one HSN", "error");
+      const len = values?.rows?.length -1;
+      if (
+        values?.rows[len]?.code === undefined ||
+        values?.rows[len]?.tax === undefined
+      ) {
+        setIsValid(true);
         return;
       }
     } catch (error: any) {
@@ -55,7 +57,8 @@ const HsnMap = () => {
         return;
       }
       showToast(
-        error?.message || "An error occurred while mapping HSN. Please try again.",
+        error?.message ||
+          "An error occurred while mapping HSN. Please try again.",
         "error",
       );
       return;
@@ -70,7 +73,8 @@ const HsnMap = () => {
       }
     } catch (error: any) {
       showToast(
-        error?.message || "An error occurred while mapping HSN. Please try again.",
+        error?.message ||
+          "An error occurred while mapping HSN. Please try again.",
         "error",
       );
     }
@@ -114,7 +118,6 @@ const HsnMap = () => {
                   showError={isValid}
                   message="Component name is required"
                   value={component}
-                
                 />
               </Form.Item>
             </Col>
@@ -139,12 +142,14 @@ const HsnMap = () => {
             form={form}
             listName="rows"
             columns={columns(
+              isValid,
               setAsyncOptions,
               asyncOptions,
               handleFetchHsnOptions,
               loading,
             )}
             addableRow={true}
+            
             newRow={initialValues.rows[0]}
             removableRows={true}
             nonRemovableColumns={1}
@@ -164,6 +169,8 @@ const initialValues = {
 
 const columns = (
   //@ts-ignore
+  isValid,
+  //@ts-ignore
   setAsyncOptions,
   //@ts-ignore
   asyncOptions,
@@ -176,12 +183,16 @@ const columns = (
     headerName: "HSN Code",
     width: "160px",
     name: "code",
-    field: () => (
+    field: (row: any) => (
       <MyAsyncSelect
         onBlur={() => setAsyncOptions([])}
         loadOptions={handleFetchHsnOptions}
         optionsState={asyncOptions}
         selectLoading={loading("select")}
+        labelInValue
+        showError={isValid}
+        message="HSN code is required"
+        value={row?.code}
       />
     ),
   },
@@ -189,6 +200,16 @@ const columns = (
     headerName: "Tax Percentage",
     width: 100,
     name: "tax",
-    field: () => <Input suffix="%" type="number" />,
+    field: (row: any) => {
+      return (
+        <Field
+          attr="required | Tax Rate is required"
+          value={row?.tax}
+          showValidation={isValid}
+        >
+          <Input suffix="%" type="number" />
+        </Field>
+      );
+    },
   },
 ];

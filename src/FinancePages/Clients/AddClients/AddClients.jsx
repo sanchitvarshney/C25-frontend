@@ -12,6 +12,7 @@ import {
 // import Loading from "../../../Components/Loading";
 import ViewClients from "../ViewClients/ViewClients";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field";
 import { useToast } from "../../../hooks/useToast";
 
 export default function AddClients() {
@@ -23,7 +24,11 @@ export default function AddClients() {
   // const [pageLoading, setPageLoading] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [addClientForm] = Form.useForm();
+  const nameValue = Form.useWatch("name", addClientForm);
+  const panNoValue = Form.useWatch("panNo", addClientForm);
+  const mobileNoValue = Form.useWatch("mobileNo", addClientForm);
 
   // const getCountries = async () => {
   //   setPageLoading(true);
@@ -47,8 +52,30 @@ export default function AddClients() {
   //     setStateOptions(arr);
   //   }
   // };
+  const validateHandler = async () => {
+    try {
+      await addClientForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
+    setShowSubmitConfirm(true);
+  };
+
   const submitHandler = async () => {
-    const values = await addClientForm.validateFields();
+    let values;
+    try {
+      values = await addClientForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      setShowSubmitConfirm(false);
+      return;
+    }
     const newObj = {
       clientName: values.name,
       salesperson: values.salesperson,
@@ -95,6 +122,7 @@ export default function AddClients() {
       website: "",
     });
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   useEffect(() => {
     // getCountries();
@@ -121,7 +149,7 @@ export default function AddClients() {
       state: "",
     });
     // if (selectedCountry === 83) {
-    //   getState();
+      // getState();
     // }
   }, []);
   return (
@@ -188,25 +216,31 @@ export default function AddClients() {
         onFinish={(values) => setShowSubmitConfirm(values)}
         style={{ height: "100%" }}
       >
-        <Row style={{ height: "100%" }}>
-          <Col span={6}>
-            <Row>
+        <Row style={{ height: "100%" }} gutter={[16, 16]}>
+          
               {" "}
-              <Col span={20}>
+              <Col span={6}>
                 <Card style={{ height: "100%" }}>
-                  {/* <Row gutter={16}>Client Name</Row> */}
+              <div style={{ height: "100%", maxHeight: "calc(100vh - 200px)", overflow: "auto", marginBottom: "10px" }}>
+                                  {/* <Row gutter={16}>Client Name</Row> */}
                   <Col span={24}>
-                    <Form.Item
-                      name="name"
-                      label="Client Name"
-                      rules={rules.name}
+                    <Field
+                      attr="required | Please Input Client's Name!"
+                      value={nameValue}
+                      showValidation={isValid}
                     >
-                      <Input size="default" />
-                    </Form.Item>
+                      <Form.Item
+                        name="name"
+                        label="Client Name"
+                        rules={[{ required: true, message: "" }]}
+                      >
+                        <Input size="default" />
+                      </Form.Item>
+                    </Field>
                   </Col>
 
                   {/* Client sales person */}
-                  <Col span={24}>
+                  <Col span={24} >
                     <Form.Item
                       name="salesperson"
                       label="Sales Person Name"
@@ -218,8 +252,8 @@ export default function AddClients() {
 
                   {/* GST Number */}
                   {/* <Col> */}
-                  <Row gutter={2}>
-                    <Col span={12}>
+             
+                    <Col span={24}>
                       <Form.Item
                         name="gst"
                         label="GST Number"
@@ -230,24 +264,30 @@ export default function AddClients() {
                     </Col>
 
                     {/* Pan Number */}
-                    <Col span={12}>
-                      <Form.Item
-                        name="panNo"
-                        label="PAN Number"
-                        rules={rules.panNo}
+                    <Col span={24}>
+                      <Field
+                        attr="required | Please Input the client's PAN Number!"
+                        value={panNoValue}
+                        showValidation={isValid}
                       >
-                        <Input size="default" />
-                      </Form.Item>
+                        <Form.Item
+                          name="panNo"
+                          label="PAN Number"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Input size="default" />
+                        </Form.Item>
+                      </Field>
                     </Col>
-                  </Row>
+                
                   {/* </Col> */}
                   <Col span={24}>
                     <Form.Item name="email" label="Email" rules={rules.email}>
                       <Input size="default" />
                     </Form.Item>
                   </Col>
-                  <Row gutter={2}>
-                    <Col span={12}>
+              
+                    <Col span={24}>
                       <Form.Item
                         name="phone"
                         label="Phone Number"
@@ -258,16 +298,22 @@ export default function AddClients() {
                     </Col>
 
                     {/* Client mobile */}
-                    <Col span={12}>
-                      <Form.Item
-                        name="mobileNo"
-                        label="Mobile Number"
-                        rules={rules.mobileNo}
+                    <Col span={24}>
+                      <Field
+                        attr="required | Please enter client's phone number!"
+                        value={mobileNoValue}
+                        showValidation={isValid}
                       >
-                        <Input size="default" />
-                      </Form.Item>
+                        <Form.Item
+                          name="mobileNo"
+                          label="Mobile Number"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Input size="default" />
+                        </Form.Item>
+                      </Field>
                     </Col>
-                  </Row>
+
                   {/* Client number */}
 
                   {/* Client website */}
@@ -280,7 +326,8 @@ export default function AddClients() {
                       <Input size="default" />
                     </Form.Item>
                   </Col>
-                  <Row justify="end">
+              </div>
+                  <Row justify="end" >
                     <Col span={5} style={{ marginRight: 20 }}>
                       <MyButton
                         onClick={() => setShowResetConfirm(true)}
@@ -291,7 +338,7 @@ export default function AddClients() {
                     </Col>
                     <Col span={5}>
                       <MyButton
-                        onClick={() => setShowSubmitConfirm(true)}
+                        onClick={validateHandler}
                         type="primary"
                         variant="add"
                       >
@@ -308,8 +355,7 @@ export default function AddClients() {
                 formName="add-client"
                 resetFunction={setShowResetConfirm}
               /> */}
-            </Row>
-          </Col>
+          
           <Col span={18}>
             <ViewClients />
           </Col>
@@ -347,7 +393,7 @@ const rules = {
 
   gst: [
     {
-      required: true,
+      required: false,
       message: "Please Input the client's GST Number !",
     },
   ],

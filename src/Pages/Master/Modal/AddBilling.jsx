@@ -3,6 +3,7 @@ import  { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import "./modal.css";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import Field from "../../../Components/Field";
 import { imsAxios } from "../../../axiosInterceptor";
 
 const AddBilling = ({
@@ -22,7 +23,8 @@ const AddBilling = ({
     address: "",
   });
   const [selectLoading, setSelectLoading] = useState(false);
-  // const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const selectInputHandler = (name, value) => {
     setAddBilling((addBilling) => {
@@ -52,43 +54,42 @@ const AddBilling = ({
   };
 
   const addLocation = async () => {
-    if (!addBilling.name) {
-      return showToast("Please Enter Your Warehouse Name", "error");
-    } else if (!addBilling.company) {
-      return showToast("Please Enter Your Company Name", "error");
-    } else if (!addBilling.pan) {
-      return showToast("Please Enter Your Pan No..", "error");
-    } else if (!addBilling.gst) {
-      return showToast("Please Enter Your GST NO...", "error");
-    } else if (!addBilling.cin) {
-      return showToast("Please Enter Your CIN NO...", "error");
-    } else if (!addBilling.state) {
-      return showToast("Please Enter Your State", "error");
-    } else if (!addBilling.address) {
-      return showToast("Please Enter Address...", "error");
-    } else {
-      // setSubmitLoading(true);
-      const response = await imsAxios.post(
-        "/billingAddress/saveBillingAddress",
-        {
-          label: addBilling.name,
-          company: addBilling.company,
-          cin: addBilling.cin,
-          pan: addBilling.pan,
-          gstin: addBilling.gst,
-          state: addBilling.state,
-          address: addBilling.address,
-        }
-      );
-      // setSubmitLoading(false);
-      if (response.success) {
-        fetchLocation();
-        setShowAddBillingModal(false);
-        resetFun();
-        showToast(response.message, "success");
-      } else {
-        showToast(response.message, "error");
+    if (
+      !addBilling.name ||
+      !addBilling.company ||
+      !addBilling.pan ||
+      !addBilling.gst ||
+      !addBilling.cin ||
+      !addBilling.state ||
+      !addBilling.address
+    ) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setSubmitLoading(true);
+    const response = await imsAxios.post(
+      "/billingAddress/saveBillingAddress",
+      {
+        label: addBilling.name,
+        company: addBilling.company,
+        cin: addBilling.cin,
+        pan: addBilling.pan,
+        gstin: addBilling.gst,
+        state: addBilling.state?.key,
+        address: addBilling.address,
       }
+    );
+
+    if (response.success) {
+      fetchLocation();
+      setShowAddBillingModal(false);
+      resetFun();
+      setSubmitLoading(false);
+      showToast(response.message, "success");
+    } else {
+      setSubmitLoading(false);
+      showToast(response.message, "error");
     }
   };
   const resetFun = () => {
@@ -101,6 +102,7 @@ const AddBilling = ({
       state: "",
       address: "",
     });
+    setIsValid(false);
   };
   useEffect(() => {});
   return (
@@ -114,73 +116,103 @@ const AddBilling = ({
         <Form style={{ height: "95%" }} layout="vertical">
           <Row gutter={8}>
             <Col span={12}>
-              <Form.Item label="Warehouse Name">
-                <Input
-                  value={addBilling.name}
-                  onChange={(e) =>
-                    setAddBilling((addBilling) => {
-                      return { ...addBilling, name: e.target.value };
-                    })
-                  }
-                  placeholder="Enter Warehouse Name"
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Enter Your Warehouse Name"
+                value={addBilling.name}
+                showValidation={isValid}
+              >
+                <Form.Item label="Warehouse Name">
+                  <Input
+                    value={addBilling.name}
+                    onChange={(e) =>
+                      setAddBilling((addBilling) => {
+                        return { ...addBilling, name: e.target.value };
+                      })
+                    }
+                    placeholder="Enter Warehouse Name"
+                  />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={12}>
-              <Form.Item label="Company Name">
-                <Input
-                  value={addBilling.company}
-                  onChange={(e) =>
-                    setAddBilling(() => {
-                      return { ...addBilling, company: e.target.value };
-                    })
-                  }
-                  placeholder="Enter Company Name"
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Enter Your Company Name"
+                value={addBilling.company}
+                showValidation={isValid}
+              >
+                <Form.Item label="Company Name">
+                  <Input
+                    value={addBilling.company}
+                    onChange={(e) =>
+                      setAddBilling(() => {
+                        return { ...addBilling, company: e.target.value };
+                      })
+                    }
+                    placeholder="Enter Company Name"
+                  />
+                </Form.Item>
+              </Field>
             </Col>
           </Row>
           <Row gutter={8}>
             <Col span={12}>
-              <Form.Item label="Pan No.">
-                <Input
-                  value={addBilling.pan}
-                  onChange={(e) =>
-                    setAddBilling((addBilling) => {
-                      return { ...addBilling, pan: e.target.value };
-                    })
-                  }
-                  placeholder="Enter Pan Number... "
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Enter Your Pan No.."
+                value={addBilling.pan}
+                showValidation={isValid}
+              >
+                <Form.Item label="Pan No.">
+                  <Input
+                    value={addBilling.pan}
+                    onChange={(e) =>
+                      setAddBilling((addBilling) => {
+                        return { ...addBilling, pan: e.target.value };
+                      })
+                    }
+                    placeholder="Enter Pan Number... "
+                  />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={12}>
-              <Form.Item label="GST No.">
-                <Input
-                  value={addBilling.gst}
-                  onChange={(e) =>
-                    setAddBilling((addBilling) => {
-                      return { ...addBilling, gst: e.target.value };
-                    })
-                  }
-                  placeholder="Enter GST Number..."
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Enter Your GST NO..."
+                value={addBilling.gst}
+                showValidation={isValid}
+              >
+                <Form.Item label="GST No.">
+                  <Input
+                    value={addBilling.gst}
+                    onChange={(e) =>
+                      setAddBilling((addBilling) => {
+                        return { ...addBilling, gst: e.target.value };
+                      })
+                    }
+                    placeholder="Enter GST Number..."
+                  />
+                </Form.Item>
+              </Field>
             </Col>
           </Row>
           <Row gutter={8}>
             <Col span={24}>
-              <Form.Item label="CIN No">
-                <Input
-                  value={addBilling.cin}
-                  onChange={(e) =>
-                    setAddBilling((addBilling) => {
-                      return { ...addBilling, cin: e.target.value };
-                    })
-                  }
-                  placeholder="Enter CIN Number... "
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Enter Your CIN NO..."
+                value={addBilling.cin}
+                showValidation={isValid}
+              >
+                <Form.Item label="CIN No">
+                  <Input
+                    value={addBilling.cin}
+                    onChange={(e) =>
+                      setAddBilling((addBilling) => {
+                        return { ...addBilling, cin: e.target.value };
+                      })
+                    }
+                    placeholder="Enter CIN Number... "
+                  />
+                </Form.Item>
+              </Field>
             </Col>
           </Row>
           <Row gutter={8}>
@@ -192,27 +224,36 @@ const AddBilling = ({
                   onBlur={() => setAsyncOptions([])}
                   value={addBilling.state}
                   optionsState={asyncOptions}
+                  labelInValue
                   onChange={(value) => {
                     selectInputHandler("state", value);
                   }}
+                  showError={isValid}
+                  message="Please Enter Your State"
                 />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={8}>
             <Col span={24}>
-              <Form.Item label="Select Address">
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Enter Complete Address"
-                  value={addBilling.address}
-                  onChange={(e) =>
-                    setAddBilling((addBilling) => {
-                      return { ...addBilling, address: e.target.value };
-                    })
-                  }
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Enter Address..."
+                value={addBilling.address}
+                showValidation={isValid}
+              >
+                <Form.Item label="Select Address">
+                  <Input.TextArea
+                    rows={4}
+                    placeholder="Enter Complete Address"
+                    value={addBilling.address}
+                    onChange={(e) =>
+                      setAddBilling((addBilling) => {
+                        return { ...addBilling, address: e.target.value };
+                      })
+                    }
+                  />
+                </Form.Item>
+              </Field>
             </Col>
           </Row>
         </Form>
@@ -225,7 +266,7 @@ const AddBilling = ({
               <Button onClick={() => setShowAddBillingModal(false)}>
                 Back
               </Button>
-              <Button onClick={addLocation} type="primary">
+              <Button onClick={addLocation} type="primary" loading={submitLoading}>
                 Submit
               </Button>
             </Space>

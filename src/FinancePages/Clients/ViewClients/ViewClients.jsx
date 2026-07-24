@@ -62,7 +62,7 @@ function ViewClients() {
       width: 100,
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={row.id ?? "edit"}
+          key={row.id ?? "edit"}
           // icon={<SecurityIcon />}
           label="Edit Client"
           onClick={() => manageClientAPI(row)}
@@ -132,17 +132,12 @@ function ViewClients() {
       headerName: "Status",
       field: "status",
       flex: 1,
-      renderCell: ({ row }) => (
-        <ToolTipEllipses
-          text={
-            row.status == "active" ? (
-              <span style={{ color: "green" }}>Active</span>
-            ) : (
-              <span style={{ color: "red" }}>In-Active</span>
-            )
-          }
-        />
-      ),
+      renderCell: ({ row }) =>
+        row.status == "active" ? (
+          <span style={{ color: "green" }}>Active</span>
+        ) : (
+          <span style={{ color: "red" }}>In-Active</span>
+        ),
     },
   ];
   const manageBranchAPI = (row) => {
@@ -173,7 +168,7 @@ function ViewClients() {
 
   return (
     <>
-      <div style={{  height: "calc(100vh - 140px)", }}>
+      <div style={{ height: "calc(100vh - 140px)" }}>
         <MyDataTable loading={fetchLoading} rows={rows} columns={columns} />
       </div>
 

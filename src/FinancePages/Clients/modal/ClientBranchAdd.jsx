@@ -9,9 +9,10 @@ import {
   Descriptions,
 } from "antd";
 
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MySelect from "../../../Components/MySelect";
+import Field from "../../../Components/Field";
 import NavFooter from "../../../Components/NavFooter";
 import { useToast } from "../../../hooks/useToast";
 import Loading from "../../../Components/Loading";
@@ -25,12 +26,13 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
   const [pageLoading, setPageLoading] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [addClientForm] = Form.useForm();
 
   const getCountries = async () => {
     setPageLoading(true);
     const response = await imsAxios.get("/tally/backend/countries");
-   
+    setPageLoading(false);
     let arr = [];
     if (response.success && response.data[0]) {
       arr = response.data.map((row) => ({
@@ -38,7 +40,6 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
         value: row.code,
       }));
       setCountriesOptions(arr);
-       setPageLoading(false);
     }
   };
   const getState = async () => {
@@ -73,7 +74,6 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
     setSubmitLoading(false);
     if (response.success) {
       showToast(response.message);
-      
       resetFunction();
       setBranchAddOpen(false);
       setShowSubmitConfirm(false);
@@ -99,6 +99,7 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
       website: "",
     });
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   useEffect(() => {
     getCountries();
@@ -168,14 +169,144 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
       >
         Are you sure you want to want to reset the entered Info?
       </Modal>
-      {pageLoading && <Loading />}
       <Form
         layout="vertical"
         size="small"
         form={addClientForm}
-        onFinish={(values) => setShowSubmitConfirm(values)}
+        onFinish={(values) => {
+          setIsValid(false);
+          setShowSubmitConfirm(values);
+        }}
+        onFinishFailed={() => setIsValid(true)}
       >
-   
+        {
+          pageLoading && <Loading />
+        }
+        {/* <Row> */}
+        {/* <Col span={4}>
+             <Descriptions
+               size="small"
+               title="Client Information"
+             >
+               <Descriptions.Item
+                 contentStyle={{
+                   fontSize:
+                     window.innerWidth < 1600 && "0.7rem",
+                   marginTop:
+                     window.innerWidth < 1600 && -15,
+                 }}
+               >
+                 Please provide client basic info
+               </Descriptions.Item>
+             </Descriptions>
+           </Col> */}
+        {/* <Col span={20}>
+             <Row gutter={16}> */}
+        {/* Client Name */}
+        {/* <Col span={6}>
+                 <Form.Item
+                   name="clientname"
+                   label="Client Name"
+                   rules={[
+                     {
+                       required: true,
+                       message:
+                         "Please Input Client's Name!",
+                     },
+                   ]}
+                 >
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+
+        {/* Client sales person */}
+        {/* <Col span={6}>
+                 <Form.Item
+                   name="salesperson"
+                   label="Sales Person Name"
+                 >
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+
+        {/* GST Number */}
+        {/* <Col span={6}>
+                 <Form.Item
+                   name="gst"
+                   label="GST Number"
+                   rules={[
+                     {
+                       required: true,
+                       message:
+                         "Please Input the client's GST Number !",
+                     },
+                   ]}
+                 >
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+
+        {/* Pan Number */}
+        {/* <Col span={6}>
+                 <Form.Item
+                   name="pan"
+                   label="PAN Number"
+                   rules={[
+                     {
+                       required: true,
+                       message:
+                         "Please Input the client's PAN Number!",
+                     },
+                   ]}
+                 >
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+        {/* </Row> */}
+        {/* <Row gutter={16}> */}
+        {/* Client email */}
+        {/* <Col span={6}>
+                 <Form.Item name="email" label="Email">
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+
+        {/* Client number */}
+        {/* <Col span={6}>
+                 <Form.Item
+                   name="phone"
+                   label="Phone Number"
+                   rules={[
+                     {
+                       required: true,
+                       message:
+                         "Please enter client's phone number!",
+                     },
+                   ]}
+                 >
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+
+        {/* Client mobile */}
+        {/* <Col span={6}>
+                 <Form.Item
+                   name="mobile"
+                   label="Mobile Number"
+                 >
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+
+        {/* Client website */}
+        {/* <Col span={6}>
+                 <Form.Item name="website" label="Website">
+                   <Input size="default" />
+                 </Form.Item>
+               </Col> */}
+        {/* </Row> */}
+        {/* </Col>
+         </Row> */}
         <Row>
           <Col span={4}>
             <Descriptions size="small" title="Branch Address Information">
@@ -196,12 +327,7 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="country"
                   label="Country"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select Client's Country!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MySelect
                     options={countriesOptions}
@@ -210,6 +336,8 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                       setSelectedCountry(value);
                       value === 83 && getState();
                     }}
+                    showError={isValid}
+                    message="Please select Client's Country!"
                   />
                 </Form.Item>
               </Col>
@@ -219,17 +347,22 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="state"
                   label="State"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select client's state",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   {selectedCountry == 83 ? (
-                    <MySelect options={stateOptions} size="default" />
+                    <MySelect
+                      options={stateOptions}
+                      size="default"
+                      showError={isValid}
+                      message="Please select client's state"
+                    />
                   ) : (
-                    <Input size="default" />
+                    <Field
+                      attr="required | Please select client's state"
+                      showValidation={isValid}
+                    >
+                      <Input size="default" />
+                    </Field>
                   )}
                 </Form.Item>
               </Col>
@@ -239,14 +372,14 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="city"
                   label="City"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter client's City",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter client's City"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
 
@@ -255,14 +388,14 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="zipcode"
                   label="ZIP Code"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter Clients zip code!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Clients zip code!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
 
@@ -271,14 +404,14 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="phone"
                   label="Phone Number"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter client's phone number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter client's phone number!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
 
@@ -287,14 +420,14 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="gst"
                   label="GST Number"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Input the client's GST Number !",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please Input the client's GST Number !"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -304,14 +437,14 @@ function ClientBranchAdd({ branchAddOpen, setBranchAddOpen }) {
                 <Form.Item
                   name="address"
                   label="Address"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Client's Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input.TextArea rows={4} size="default" />
+                  <Field
+                    attr="required | Please Enter Client's Address!"
+                    showValidation={isValid}
+                  >
+                    <Input.TextArea rows={4} size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>

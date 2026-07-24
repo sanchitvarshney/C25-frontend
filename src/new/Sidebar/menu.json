@@ -716,17 +716,17 @@
                 "isHeading": true,
                 "children": [
                   {
-                    "key": "B19",
-                    "label": "Vendor / Supplier",
-                    "icon": "BusinessIcon",
-                    "path": "/vendor",
-                    "isShown": true
-                  },
-                  {
                     "key": "B191",
                     "label": "Add Vendor",
                     "icon": "BusinessIcon",
                     "path": "/create-vendor",
+                    "isShown": true
+                  },
+                  {
+                    "key": "B19",
+                    "label": "Vendor / Supplier",
+                    "icon": "BusinessIcon",
+                    "path": "/vendor",
                     "isShown": true
                   }
                 ]
@@ -790,8 +790,6 @@
                 "path": "/procurement/completed",
                 "isShown": true
               }
-
-            
             ]
           },
           {
@@ -973,9 +971,7 @@
                 "icon": "SwapHorizIcon",
                 "isHeading": true,
                 "children": [
-              
-                    
-                    {
+                  {
                     "key": "B363123",
                     "label": "Challan Request",
                     "icon": "SwapHorizIcon",
@@ -1459,13 +1455,14 @@
                     "path": "/reports/transaction-out",
                     "isShown": true
                   },
-                     {
+                  {
                     "key": "B412432",
                     "label": "View Document",
                     "icon": "OutputIcon",
                     "path": "/reports/upload-document/view",
                     "isShown": true
-                  }, {
+                  },
+                  {
                     "key": "B412433",
                     "label": "Consumption Report",
                     "icon": "OutputIcon",
@@ -2024,7 +2021,6 @@
           }
         ]
       },
-   
 
       {
         "key": "/invoice/create",

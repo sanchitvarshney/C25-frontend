@@ -11,6 +11,7 @@ import {
   InputNumber,
 } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import Field from "../../../Components/Field";
 import NavFooter from "../../../Components/NavFooter";
 import { imsAxios } from "../../../axiosInterceptor";
 import MySelect from "../../../Components/MySelect";
@@ -64,6 +65,18 @@ const AddVendor = () => {
   const einvoice = Form.useWatch("applicability", addVendorForm);
   const transactionType = Form.useWatch("transactionType", addVendorForm);
   const bankNameWatch = Form.useWatch("bankName", addVendorForm);
+  const [isValid, setIsValid] = useState(false);
+  const vendorNameValue = Form.useWatch("vendorName", addVendorForm);
+  const pannoValue = Form.useWatch("panno", addVendorForm);
+  const mobileValue = Form.useWatch("mobile", addVendorForm);
+  const msmeIdValue = Form.useWatch("msmeId", addVendorForm);
+  const gstinValue = Form.useWatch("gstin", addVendorForm);
+  const branchValue = Form.useWatch("branch", addVendorForm);
+  const cityValue = Form.useWatch("city", addVendorForm);
+  const pincodeValue = Form.useWatch("pincode", addVendorForm);
+  const addressValue = Form.useWatch("address", addVendorForm);
+  const stateValue = Form.useWatch("state", addVendorForm);
+  
 
   // const [groupOptions, setGroupOptions] = useState([]);
 
@@ -125,22 +138,30 @@ const AddVendor = () => {
       "/vendor/addVendor",
       showSubmitConfirmModal,
     );
-   
+    setLoading(false);
     if (response.success) {
       showToast(response?.message, "success");
-       setLoading(false);
       reset();
-
     } else {
       setShowSubmitConfirmModal(false);
-       setLoading(false);
       showToast(response.message, "error");
     }
   };
 
   const validateHandler = async () => {
     const formData = new FormData();
-    const values = await addVendorForm.validateFields();
+    let values;
+    try {
+      values = await addVendorForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
 
     const uploadedFie = addVendorForm.getFieldValue("components");
     if (values.components && Array.isArray(values.components)) {
@@ -185,7 +206,7 @@ const AddVendor = () => {
         pincode: values.pincode,
         fax: values.fax === "" ? "--" : values.fax,
         mobile: values.mobile,
-        email: values.email === "" ? "--" : values.email,
+        email: (values.email === "" || values.email === undefined || !values.email) ? "--" : values.email,
         gstin: values.gstin.toUpperCase(),
         transaction_type: values.transactionType,
         account_no: values.accountNo,
@@ -205,6 +226,7 @@ const AddVendor = () => {
     setShowSubmitConfirmModal(false);
     addVendorForm.resetFields();
     setFiles([]);
+    setIsValid(false);
   };
   // useEffect(() => {
   //   // console.log("msmsStatus", msmsStatus);
@@ -305,34 +327,50 @@ const AddVendor = () => {
           <Col span={20}>
             <Row gutter={16}>
               <Col span={6}>
-                <Form.Item
-                  label="Vendor Name"
-                  name="vendorName"
-                  rules={rules.vendorName}
+                <Field
+                  attr="required | Please enter Vendor Name"
+                  value={vendorNameValue}
+                  showValidation={isValid}
                 >
-                  <Input />
-                </Form.Item>
+                  <Form.Item
+                    label="Vendor Name"
+                    name="vendorName"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={6}>
-                <Form.Item label="Pan Number" name="panno" rules={rules.panno}>
-                  <Input
-                    maxLength={10}
-                    onChange={(e) => {
-                      const raw = e.target.value
-                        .replace(/[^A-Za-z0-9]/g, "")
-                        .slice(0, 10)
-                        .toUpperCase();
-                      const { valid, formattedPAN } = validatePAN(raw);
-                      addVendorForm.setFieldValue("panno", formattedPAN);
-                      if (!valid && formattedPAN.length === 10) {
-                        showToast(
-                          "Invalid Pan Number! Please Enter Valid Pan Number.",
-                          "error",
-                        );
-                      }
-                    }}
-                  />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter Pan Number"
+                  value={pannoValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="Pan Number"
+                    name="panno"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input
+                      maxLength={10}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                          .replace(/[^A-Za-z0-9]/g, "")
+                          .slice(0, 10)
+                          .toUpperCase();
+                        const { valid, formattedPAN } = validatePAN(raw);
+                        addVendorForm.setFieldValue("panno", formattedPAN);
+                        if (!valid && formattedPAN.length === 10) {
+                          showToast(
+                            "Invalid Pan Number! Please Enter Valid Pan Number.",
+                            "error",
+                          );
+                        }
+                      }}
+                    />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={6}>
                 <Form.Item label="CIN Number" name="cinno">
@@ -369,9 +407,19 @@ const AddVendor = () => {
                 </Form.Item>
               </Col>
               <Col span={6}>
-                <Form.Item label="Mobile" name="mobile" rules={rules.mobile}>
-                  <Input />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter Mobile Number"
+                  value={mobileValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="Mobile"
+                    name="mobile"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={6}>
                 <Form.Item label="Fax Number" name="fax">
@@ -395,36 +443,61 @@ const AddVendor = () => {
                         <Form.Item
                           label="MSME Year"
                           name="year"
-                          rules={rules.year}
+                          rules={[{ required: true, message: "" }]}
                         >
-                          <MySelect options={msmeYearOptions} />
+                          <MySelect
+                            options={msmeYearOptions}
+                            showError={isValid}
+                            message="Please select MSME Year"
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={5}>
-                        <Form.Item
-                          label="MSME Number"
-                          name="msmeId"
-                          rules={rules.msmeId}
+                        <Field
+                          attr="required | Please enter MSME Number"
+                          value={msmeIdValue}
+                          showValidation={isValid}
                         >
-                          <Input />
-                        </Form.Item>
+                          <Form.Item
+                            label="MSME Number"
+                            name="msmeId"
+                            rules={[
+                              { required: true, message: "" },
+                              {
+                                pattern: /^UDYAM-[A-Z]{2}-\d{2}-\d{7}$/,
+                                message:
+                                  "MSME number must be in the format UDYAM-XX-00-0000000",
+                              },
+                            ]}
+                          >
+                            <Input />
+                          </Form.Item>
+                        </Field>
                       </Col>
                       <Col span={5}>
                         <Form.Item
                           label="MSME Type"
                           name="type"
-                          rules={rules.type}
+                          rules={[{ required: true, message: "" }]}
                         >
-                          <MySelect options={msmeTypeOptions} />
+                          <MySelect
+                            options={msmeTypeOptions}
+                            showError={isValid}
+                            message="Please select MSME Type"
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={5}>
                         <Form.Item
                           label="MSME Activity"
                           name="activity"
-                          rules={rules.activity}
+                          rules={[{ required: true, message: "" }]}
                         >
-                          <MySelect options={msmeActivityOptions} />
+                          <MySelect
+                            options={msmeActivityOptions}
+                            showError={isValid}
+                            message="Please select MSME Activity"
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={5}>
@@ -471,17 +544,31 @@ const AddVendor = () => {
           <Col span={12}>
             <Row gutter={16}>
               <Col span={8}>
-                <Form.Item label="GST Number" name="gstin" rules={rules.gstin}>
-                  <Input />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter GST Number"
+                  value={gstinValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="GST Number"
+                    name="gstin"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={8}>
                 <Form.Item
                   label="E-Invoice Applicability"
                   name="applicability"
-                  rules={rules.applicability}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect options={msmeOptions} />
+                  <MySelect
+                    options={msmeOptions}
+                    showError={isValid}
+                    message="Please select E-Invoice Applicability"
+                  />
                 </Form.Item>
               </Col>
               {einvoice === "Y" && (
@@ -523,53 +610,85 @@ const AddVendor = () => {
           <Col span={20}>
             <Row gutter={16}>
               <Col span={6}>
-                <Form.Item
-                  label="Branch Name"
-                  name="branch"
-                  rules={rules.branch}
+                <Field
+                  attr="required | Please enter Branch Name"
+                  value={branchValue}
+                  showValidation={isValid}
                 >
-                  <Input />
-                </Form.Item>
+                  <Form.Item
+                    label="Branch Name"
+                    name="branch"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={6}>
                 <Form.Item
                   label="Select State"
                   name="state"
-                  rules={rules.state}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={selectLoading}
                     onBlur={() => setAsyncOptions([])}
                     optionsState={asyncOptions}
                     loadOptions={getFetchState}
+                    showError={isValid}
+                    message="Please select a State"
+                    labelInValue
+                    value={stateValue}
                   />
                 </Form.Item>
               </Col>
               <Col span={6}>
-                <Form.Item label="City" name="city" rules={rules.city}>
-                  <Input />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter City"
+                  value={cityValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="City"
+                    name="city"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={6}>
-                <Form.Item
-                  label="Pin Code"
-                  name="pincode"
-                  rules={rules.pincode}
+                <Field
+                  attr="required | Please enter Pin Code"
+                  value={pincodeValue}
+                  showValidation={isValid}
                 >
-                  <Input />
-                </Form.Item>
+                  <Form.Item
+                    label="Pin Code"
+                    name="pincode"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
             </Row>
 
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item
-                  label="Complete Address"
-                  name="address"
-                  rules={rules.address}
+                <Field
+                  attr="required | Please enter Complete Address"
+                  value={addressValue}
+                  showValidation={isValid}
                 >
-                  <Input.TextArea rows={4} />
-                </Form.Item>
+                  <Form.Item
+                    label="Complete Address"
+                    name="address"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input.TextArea rows={4} />
+                  </Form.Item>
+                </Field>
               </Col>
             </Row>
 
@@ -692,7 +811,6 @@ const AddVendor = () => {
         resetFunction={() => setShowResetConfirmModal(true)}
         submitFunction={validateHandler}
         nextLabel="Submit"
-        loading={loading === "submit"}
       />
     </div>
   );

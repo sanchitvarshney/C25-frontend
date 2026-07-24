@@ -14,6 +14,7 @@ import {
 import { useToast } from "../../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field";
 import { getVendorBranchBankOptions } from "../vendorBranchBankOptions";
 import { imsAxios } from "../../../../axiosInterceptor";
 
@@ -33,6 +34,7 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [currencies, setCurrencies] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [addBilling, setAddBilling] = useState({
     vendor: {
       vname: openBranch?.vendor_code,
@@ -105,56 +107,53 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
   };
 
   const addBranch = async () => {
-    if (!addBilling.branch.branchname) {
-      showToast("Please add Branch name", "error");
-    } else if (!addBilling.branch.state) {
-      showToast("Please select state", "error");
-    } else if (!addBilling.branch.city) {
-      showToast("Please enter City", "error");
-    } else if (!addBilling.branch.gst) {
-      showToast("Please enter GST no", "error");
-    } else if (!addBilling.branch.pin) {
-      showToast("Please enter pin no..", "error");
-    } else if (!addBilling.branch.mobile) {
-      showToast("Please enter Mobile no", "error");
-    } else if (!addBilling.branch.address) {
-      showToast("Please enter Address", "error");
-    } else {
-      setSubmitLoading(true);
-      const response = await imsAxios.post("/vendor/addVendorBranch", {
-        vendor: {
-          vendorname: openBranch.vendor_code,
-        },
-        branch: {
-          branch: addBilling.branch.branchname,
-          address: addBilling.branch.address,
-          state: addBilling.branch.state.value,
-          city: addBilling.branch.city,
-          pincode: addBilling.branch.pin,
-          fax: addBilling.branch.fax === "" ? "--" : addBilling.branch.fax,
-          mobile: addBilling.branch.mobile,
-          email:
-            addBilling.branch.email === "" ? "--" : addBilling.branch.email,
-          gstin: addBilling.branch.gst,
-          transaction_type: addBilling.branch.transactionType,
-          account_no: addBilling.branch.accountNo,
-          ifs_code: addBilling.branch.ifsCode,
-          bank_name: addBilling.branch.bankName,
-          bank_branch: addBilling.branch.bankBranch,
-          ledger_currency: addBilling.branch.ledgerCurrency,
-        },
-      });
-      setSubmitLoading(false);
-      if (response.success) {
-        showToast(response.message, "success");
-        if (getVendorBracnch) {
-          getVendorBracnch(openBranch.vendor_code);
-        }
-        setOpenBranch(false);
-        reset();
-      } else {
-        showToast(response.message, "error");
+    if (
+      !addBilling.branch.branchname ||
+      !addBilling.branch.state ||
+      !addBilling.branch.city ||
+      !addBilling.branch.gst ||
+      !addBilling.branch.pin ||
+      !addBilling.branch.mobile ||
+      !addBilling.branch.address
+    ) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setSubmitLoading(true);
+    const response = await imsAxios.post("/vendor/addVendorBranch", {
+      vendor: {
+        vendorname: openBranch.vendor_code,
+      },
+      branch: {
+        branch: addBilling.branch.branchname,
+        address: addBilling.branch.address,
+        state: addBilling.branch.state.value,
+        city: addBilling.branch.city,
+        pincode: addBilling.branch.pin,
+        fax: addBilling.branch.fax === "" ? "--" : addBilling.branch.fax,
+        mobile: addBilling.branch.mobile,
+        email:
+          addBilling.branch.email === "" ? "--" : addBilling.branch.email,
+        gstin: addBilling.branch.gst,
+        transaction_type: addBilling.branch.transactionType,
+        account_no: addBilling.branch.accountNo,
+        ifs_code: addBilling.branch.ifsCode,
+        bank_name: addBilling.branch.bankName,
+        bank_branch: addBilling.branch.bankBranch,
+        ledger_currency: addBilling.branch.ledgerCurrency,
+      },
+    });
+    setSubmitLoading(false);
+    if (response.success) {
+      showToast(response.message, "success");
+      if (getVendorBracnch) {
+        getVendorBracnch(openBranch.vendor_code);
       }
+      setOpenBranch(false);
+      reset();
+    } else {
+      showToast(response.message, "error");
     }
   };
   const reset = () => {
@@ -177,6 +176,7 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
         ledgerCurrency: "",
       },
     });
+    setIsValid(false);
   };
   useEffect(() => {
     reset();
@@ -232,15 +232,21 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
         <Row style={{ width: "100%" }}>
           <>
             <Col span={12} style={{ padding: 3 }}>
-              <Form.Item label="Branch Name">
-                <Input
-                  size="default "
-                  // placeholder="Branch Name"
-                  value={addBilling.branch.branchname}
-                  onChange={(e) => inputHandler("branchname", e.target.value)}
-                  // prefix={<UserOutlined />}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please add Branch name"
+                value={addBilling.branch.branchname}
+                showValidation={isValid}
+              >
+                <Form.Item label="Branch Name">
+                  <Input
+                    size="default "
+                    // placeholder="Branch Name"
+                    value={addBilling.branch.branchname}
+                    onChange={(e) => inputHandler("branchname", e.target.value)}
+                    // prefix={<UserOutlined />}
+                  />
+                </Form.Item>
+              </Field>
             </Col>
 
             <Col span={12} style={{ padding: "3px" }}>
@@ -253,41 +259,61 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
                   value={addBilling.branch.state}
                   onChange={(e) => inputHandler("state", e)}
                   labelInValue
+                  showError={isValid}
+                  message="Please select state"
                 />
               </Form.Item>
             </Col>
             <Col span={12} style={{ padding: "3px" }}>
-              <Form.Item label="City">
-                <Input
-                  size="default "
-                  // placeholder="Branch City"
-                  value={addBilling.branch.city}
-                  onChange={(e) => inputHandler("city", e.target.value)}
-                  // prefix={<UserOutlined />}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please enter City"
+                value={addBilling.branch.city}
+                showValidation={isValid}
+              >
+                <Form.Item label="City">
+                  <Input
+                    size="default "
+                    // placeholder="Branch City"
+                    value={addBilling.branch.city}
+                    onChange={(e) => inputHandler("city", e.target.value)}
+                    // prefix={<UserOutlined />}
+                  />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={12} style={{ padding: "3px" }}>
-              <Form.Item label="GST Number">
-                <Input
-                  size="default "
-                  // placeholder="Gst Number"
-                  value={addBilling.branch.gst}
-                  onChange={(e) => inputHandler("gst", e.target.value)}
-                  // prefix={<UserOutlined />}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please enter GST no"
+                value={addBilling.branch.gst}
+                showValidation={isValid}
+              >
+                <Form.Item label="GST Number">
+                  <Input
+                    size="default "
+                    // placeholder="Gst Number"
+                    value={addBilling.branch.gst}
+                    onChange={(e) => inputHandler("gst", e.target.value)}
+                    // prefix={<UserOutlined />}
+                  />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={12} style={{ padding: "3px" }}>
-              <Form.Item label="Pin Code">
-                <Input
-                  size="default "
-                  // placeholder="Branch Pincode"
-                  value={addBilling.branch.pin}
-                  onChange={(e) => inputHandler("pin", e.target.value)}
-                  // prefix={<UserOutlined />}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please enter pin no.."
+                value={addBilling.branch.pin}
+                showValidation={isValid}
+              >
+                <Form.Item label="Pin Code">
+                  <Input
+                    size="default "
+                    // placeholder="Branch Pincode"
+                    value={addBilling.branch.pin}
+                    onChange={(e) => inputHandler("pin", e.target.value)}
+                    // prefix={<UserOutlined />}
+                  />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={12} style={{ padding: "3px" }}>
               <Form.Item label="Email">
@@ -301,14 +327,20 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
               </Form.Item>
             </Col>
             <Col span={12} style={{ padding: "3px" }}>
-              <Form.Item label="Mobile">
-                <Input
-                  size="default "
-                  value={addBilling.branch.mobile}
-                  onChange={(e) => inputHandler("mobile",   e.target.value.replace(/\D/g, ""),)}
-                  // prefix={<UserOutlined />}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please enter Mobile no"
+                value={addBilling.branch.mobile}
+                showValidation={isValid}
+              >
+                <Form.Item label="Mobile">
+                  <Input
+                    size="default "
+                    value={addBilling.branch.mobile}
+                    onChange={(e) => inputHandler("mobile",   e.target.value.replace(/\D/g, ""),)}
+                    // prefix={<UserOutlined />}
+                  />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={12} style={{ padding: "3px" }}>
               <Form.Item label="Fax Number">
@@ -322,15 +354,21 @@ const AddBranch = ({ openBranch, setOpenBranch, getVendorBracnch }) => {
               </Form.Item>
             </Col>
             <Col span={24} style={{ padding: "3px" }}>
-              <Form.Item label="Branch Address">
-                <TextArea
-                  rows={4}
-                  maxLength={200}
-                  // placeholder="Please Enter Full Address "
-                  value={addBilling.branch.address}
-                  onChange={(e) => inputHandler("address", e.target.value)}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please enter Address"
+                value={addBilling.branch.address}
+                showValidation={isValid}
+              >
+                <Form.Item label="Branch Address">
+                  <TextArea
+                    rows={4}
+                    maxLength={200}
+                    // placeholder="Please Enter Full Address "
+                    value={addBilling.branch.address}
+                    onChange={(e) => inputHandler("address", e.target.value)}
+                  />
+                </Form.Item>
+              </Field>
             </Col>
           </>
         </Row>

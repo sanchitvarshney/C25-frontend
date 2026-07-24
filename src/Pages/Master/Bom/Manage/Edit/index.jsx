@@ -18,6 +18,7 @@ import AlterModal from "../../AlterModal.jsx";
 import useApi from "../../../../../hooks/useApi.ts";
 import { convertSelectOptions } from "../../../../../utils/general.ts";
 import FormTable from "../../../../../Components/FormTable.jsx";
+import Field from "../../../../../Components/Field";
 const EditModal = ({ show, close, bomType }) => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,7 @@ const EditModal = ({ show, close, bomType }) => {
   const [rows, setRows] = useState([]);
   const [altModal, setAltModal] = useState(false);
   const [details, setDetails] = useState({});
+  const [invalidRows, setInvalidRows] = useState({});
   const { executeFun, loading: loading1 } = useApi();
   const getDetails = async (id) => {
     try {
@@ -70,6 +72,17 @@ const EditModal = ({ show, close, bomType }) => {
     );
   };
   const submitHandler = async (row) => {
+    const missingComponent = row.new && !row.newComponent?.value;
+    const missingStatus = !row.status;
+    const missingCategory = !row.category;
+    const missingQty = !row.qty || Number(row.qty) < 1;
+
+    if (missingComponent || missingStatus || missingCategory || missingQty) {
+      setInvalidRows((curr) => ({ ...curr, [row.id]: true }));
+      return;
+    }
+    setInvalidRows((curr) => ({ ...curr, [row.id]: false }));
+
     const finalObj = {
       component_id: row.new ? row.newComponent.value : row.id,
       qty: row.qty,
@@ -224,6 +237,8 @@ const EditModal = ({ show, close, bomType }) => {
             labelInValue
             value={row.newComponent}
             onChange={(value) => inputHandler("newComponent", value, row.id)}
+            showError={invalidRows[row.id]}
+            message="Please select a component"
           />
         ) : (
           <ToolTipEllipses text={row.componentName} />
@@ -248,6 +263,8 @@ const EditModal = ({ show, close, bomType }) => {
             clas(row, details);
           }
           inputHandler("status", value, row.id)}}
+          showError={invalidRows[row.id]}
+          message="Status is required"
         />
       ),
     },
@@ -269,11 +286,17 @@ const EditModal = ({ show, close, bomType }) => {
       headerName: "Qty",
       width: 100,
       renderCell: ({ row }) => (
-        <Input
-          value={row.qty}
-          onChange={(e) => inputHandler("qty", e.target.value, row.id)}
-          type="number"
-        />
+        <Field
+          attr="required | Qty must be at least 1"
+          value={row.qty && Number(row.qty) >= 1 ? row.qty : undefined}
+          showValidation={invalidRows[row.id]}
+        >
+          <Input
+            value={row.qty}
+            onChange={(e) => inputHandler("qty", e.target.value, row.id)}
+            type="number"
+          />
+        </Field>
       ),
     },
     {
@@ -285,6 +308,8 @@ const EditModal = ({ show, close, bomType }) => {
           options={categoryOptions}
           value={row.category}
           onChange={(value) => inputHandler("category", value, row.id)}
+          showError={invalidRows[row.id]}
+          message="Category is required"
         />
       ),
     },

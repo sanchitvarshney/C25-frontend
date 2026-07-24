@@ -1,5 +1,5 @@
   import { Col, Form, Modal, Row } from "antd";
-import { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import ProductDetails from "./ProductDetails";
 import Components from "./Components";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -19,6 +19,7 @@ const CreateBom = () => {
   const [previewData, setpreviewData] = useState([]);
   const [form] = Form.useForm();
   const files = Form.useWatch("files", form);
+  const [isValid, setIsValid] = useState(false);
 
   const { executeFun, loading: loading1 } = useApi();
   const getSKUDetails = async () => {
@@ -48,10 +49,33 @@ const CreateBom = () => {
     setProductSelected(false);
     form.setFieldValue("sku", "");
     form.setFieldValue("product", "");
+    setIsValid(false);
   };
 
   const validateHandler = async () => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    if (uploadType === "table") {
+      console.log("values", values);
+     const len = values.components.length - 1;
+      if (
+        values.components[len].component === '' ||
+        values.components[len].qty === ''
+      ) {
+        setIsValid(true);
+        return;
+      }
+    }
+    setIsValid(false);
     let finalObj = {};
     let formData = new FormData();
     let url = "";
@@ -134,6 +158,7 @@ const CreateBom = () => {
             setProductSelected(false);
             form.resetFields();
             setpreviewData([]);
+            setIsValid(false);
           }
         }
         else {
@@ -230,6 +255,7 @@ const CreateBom = () => {
               stage={stage}
               setAsyncOptions={setAsyncOptions}
               projectData={projectData}
+              isValid={isValid}
             />
           </Col>
           <Col span={18} style={{ height: "100%", overflow: "auto" }}>
@@ -241,6 +267,7 @@ const CreateBom = () => {
                 selectLoading={loading1("select")}
                 loading={loading === "fetch"}
                 form={form}
+                isValid={isValid}
               />
             )}
             {uploadType === "file" && (

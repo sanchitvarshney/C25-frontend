@@ -23,6 +23,7 @@ import { v4 } from "uuid";
 import SingleDatePicker from "../../../../Components/SingleDatePicker";
 import dayjs from "dayjs";
 import { mergeMsmeYearOptions } from "../../../../utils/indianFinancialYear";
+import Field from "../../../../Components/Field";
 
 const msmeOptions = [
   { text: "Yes", value: "Y" },
@@ -67,6 +68,10 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
   const einvoice = Form.useWatch("applicability", updateVendorForm);
   let msmeStat = "";
   msmeStat = Form.useWatch("vendor_msme_status", updateVendorForm);
+  const [isValid, setIsValid] = useState(false);
+  const vendorNameValue = Form.useWatch("vendor_name", updateVendorForm);
+  const vendorPanValue = Form.useWatch("vendor_pan", updateVendorForm);
+  const vendorMsmeIdValue = Form.useWatch("vendor_msme_id", updateVendorForm);
 
   const getDetails = async () => {
     setSkeletonLoading(true);
@@ -143,7 +148,23 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
 
   const submitHandler = async () => {
     let obj;
-    const values = await updateVendorForm.validateFields();
+    let values;
+    try {
+      values = await updateVendorForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+
+    if (values.vendor_msme_status === "Y" && rows.length === 0) {
+      showToast("Please add at least one MSME entry", "error");
+      return;
+    }
+    setIsValid(false);
 
     if (values.vendor_msme_status === "Y") {
       obj = {
@@ -201,6 +222,7 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
       showToast(response.message, "success");
       fetchVendor();
       setEditVendor(null);
+      setIsValid(false);
     } else {
       showToast(response.message, "error");
     }
@@ -289,7 +311,10 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
         title={`Update Vendor: ${editVendor?.vendor_code}`}
         open={editVendor}
         width={700}
-        onClose={() => setEditVendor(false)}
+        onClose={() => {
+          setEditVendor(false);
+          setIsValid(false);
+        }}
         placement="right"
         footer={
           <Row style={{ width: "100%" }} align="middle" justify="space-between">
@@ -307,7 +332,13 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
             </Col>
             <Col>
               <Space>
-                <Button key="back" onClick={() => setEditVendor(false)}>
+                <Button
+                  key="back"
+                  onClick={() => {
+                    setEditVendor(false);
+                    setIsValid(false);
+                  }}
+                >
                   Back
                 </Button>
 
@@ -332,16 +363,36 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
           >
             <Row>
               <Col span={24}>
-                <Form.Item label="Vendor Name" name="vendor_name">
-                  <Input />
-                </Form.Item>
+                <Field
+                  attr="required | Please enter Vendor Name"
+                  value={vendorNameValue}
+                  showValidation={isValid}
+                >
+                  <Form.Item
+                    label="Vendor Name"
+                    name="vendor_name"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Field>
               </Col>
               <Col span={24}>
                 <Row gutter={8}>
                   <Col span={8}>
-                    <Form.Item label="Pan Number" name="vendor_pan">
-                      <Input />
-                    </Form.Item>
+                    <Field
+                      attr="required | Please enter Pan Number"
+                      value={vendorPanValue}
+                      showValidation={isValid}
+                    >
+                      <Form.Item
+                        label="Pan Number"
+                        name="vendor_pan"
+                        rules={[{ required: true, message: "" }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Field>
                   </Col>
                   <Col span={8}>
                     <Form.Item label="CIN Number" name="vendor_cin">
@@ -378,8 +429,13 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
                   style={{ padding: "3px" }}
                   label="E-Invoice Applicability"
                   name="applicability"
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect options={msmeOptions} />
+                  <MySelect
+                    options={msmeOptions}
+                    showError={isValid}
+                    message="Please select E-Invoice Applicability"
+                  />
                 </Form.Item>
               </Col>
               {einvoice === "Y" && (
@@ -406,9 +462,19 @@ const EditBranch = ({ fetchVendor, setEditVendor, editVendor }) => {
                     </Form.Item>
                   </Col>
                   <Col span={8}>
-                    <Form.Item label="MSME Id" name="vendor_msme_id">
-                      <Input />
-                    </Form.Item>
+                    <Field
+                      attr="required | Please enter MSME Id"
+                      value={vendorMsmeIdValue}
+                      showValidation={isValid}
+                    >
+                      <Form.Item
+                        label="MSME Id"
+                        name="vendor_msme_id"
+                        rules={[{ required: true, message: "" }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Field>
                   </Col>
                   <Col span={8}>
                     <Form.Item label="Effective From" name="msmeEffectiveFrom">

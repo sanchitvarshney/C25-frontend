@@ -1,7 +1,9 @@
 import { Button, Card, Col, Form, Input, Radio, Row, Space } from "antd";
+
 import MySelect from "../../../../Components/MySelect";
 import UploadFile from "./UploadFile";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
+import Field from "../../../../Components/Field";
 import Typography from "antd/es/typography/Typography";
 import MyButton from "../../../../Components/MyButton";
 
@@ -19,12 +21,16 @@ const ProductDetails = ({
   setAsyncOptions,
   stage,
   projectData,
+  isValid,
 }) => {
   const toggleInputType = (e) => {
     setUploadType(e.target.value);
   };
-  
+
   const productType = Form.useWatch("type");
+  const nameValue = Form.useWatch("name");
+  const skuValue = Form.useWatch("sku");
+  const levelValue = Form.useWatch("level");
 
   return (
     <Card size="small" title="Product Details">
@@ -37,18 +43,46 @@ const ProductDetails = ({
           />
         </Col>
         <Col span={24}>
-          <Form.Item label="BOM Name" name="name" rules={rules.name}>
-            <Input />
-          </Form.Item>
+          <Field
+            attr="required | Please enter a BOM name!"
+            value={nameValue}
+            showValidation={isValid}
+          >
+            <Form.Item
+              label="BOM Name"
+              name="name"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Input />
+            </Form.Item>
+          </Field>
         </Col>
         <Col span={12}>
-          <Form.Item label="SKU" name="sku" rules={rules.sku}>
-            <Input disabled={productSelected} />
-          </Form.Item>
+          <Field
+            attr="required | Please provide a SKU"
+            value={skuValue}
+            showValidation={isValid}
+          >
+            <Form.Item
+              label="SKU"
+              name="sku"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Input disabled={productSelected} />
+            </Form.Item>
+          </Field>
         </Col>
         <Col span={12}>
-          <Form.Item label="Product Type" name="type" rules={rules.type}>
-            <MySelect options={typeOptions} />
+          <Form.Item
+            label="Product Type"
+            name="type"
+            rules={[{ required: true, message: "" }]}
+          >
+            <MySelect
+              options={typeOptions}
+              showError={isValid}
+              message="Please provide a product type"
+            />
           </Form.Item>
         </Col>
         <Col span={24}>
@@ -72,18 +106,36 @@ const ProductDetails = ({
           </Row>
         </Col>
         <Col span={24}>
-          <Form.Item label="Level" name="level" rules={rules.level}>
-            <Input />
-          </Form.Item>
+          <Field
+            attr="required | Please provide a level"
+            value={levelValue}
+            showValidation={isValid}
+          >
+            <Form.Item
+              label="Level"
+              name="level"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Input />
+            </Form.Item>
+          </Field>
         </Col>
         <Col span={24}>
-          <Form.Item label="Product" name="product" rules={rules.product}>
+          <Form.Item label="Product" name="product">
             <Input disabled />
           </Form.Item>
         </Col>
         <Col span={24}>
-          <Form.Item label="Project" name="project" rules={rules.project}>
-            <MySelect options={projectData} />
+          <Form.Item
+            label="Project"
+            name="project"
+            rules={[{ required: true, message: "" }]}
+          >
+            <MySelect
+              options={projectData}
+              showError={isValid}
+              message="Please select a Project"
+            />
           </Form.Item>
         </Col>
         {productType === "Y" && (
@@ -91,7 +143,7 @@ const ProductDetails = ({
             <Form.Item
               label="SFG Part Code"
               name="partCode"
-              rules={rules.partCode}
+              rules={[{ required: true, message: "" }]}
             >
               <MyAsyncSelect
                 onBlur={() => setAsyncOptions([])}
@@ -99,6 +151,8 @@ const ProductDetails = ({
                 selectLoading={selectLoading}
                 optionsState={asyncOptions}
                 labelInValue
+                showError={isValid}
+                message="Please enter SFG Part Code"
               />
             </Form.Item>
           </Col>
@@ -171,46 +225,10 @@ const uploadTypeOptions = [
   },
 ];
 const rules = {
-  name: [
-    {
-      required: true,
-      message: "Please enter a BOM name!",
-    },
-  ],
-  sku: [
-    {
-      required: true,
-      message: "Please provide a SKU",
-    },
-  ],
-  type: [
-    {
-      required: true,
-      message: "Please provide a product type",
-    },
-  ],
-  level: [
-    {
-      required: true,
-      message: "Please provide a level",
-    },
-  ],
   file: [
     {
       required: true,
       message: "Please select a file to upload",
-    },
-  ],
-  partCode: [
-    {
-      required: true,
-      message: "Please enter SFG Part Code",
-    },
-  ],
-  project: [
-    {
-      required: true,
-      message: "Please select a Project",
     },
   ],
 };
