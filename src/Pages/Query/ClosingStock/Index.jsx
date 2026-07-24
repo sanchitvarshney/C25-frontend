@@ -6,22 +6,25 @@ import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../Components/exportToCSV";
-// import { useToast } from "../../../hooks/useToast.js";
 import MyButton from "../../../Components/MyButton";
 
 function Index() {
   const [searchInput, setSearchInput] = useState("");
   const [rows, setRows] = useState([]);
+  const [isVisible, setIsVisible] = useState(false);
   const { executeFun, loading } = useApi();
 
   const getRows = async () => {
+    if(!searchInput || searchInput === "") return setIsVisible(true);
+    setIsVisible(false);
     const response = await executeFun(
       () => getClosingStockForQuery6(searchInput),
       "select"
     );
-    console.log("response", response);
-    const { data } = response;
+
+
     if (response.success) {
+          const { data } = response;
       let arr = data.map((r, id) => {
         return {
           id: id + 1,
@@ -50,6 +53,8 @@ function Index() {
               {/* <Col span={6}> */}
               <MyDatePicker
                 setDateRange={setSearchInput}
+                value={searchInput}
+                showError={isVisible}
 
                 // placeholder="Select a Component"
                 // onBlur={() => setAsyncOptions([])}

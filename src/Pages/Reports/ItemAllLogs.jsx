@@ -44,6 +44,7 @@ export default function ItemAllLogs() {
   ]);
   const [showImages, setShowImages] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
+   const [isValidating, setValidating] = useState(false);
   const [contextMenu, setContextMenu] = useState({ anchor: null, row: null });
   const [cancelReqRow, setCancelReqRow] = useState(null);
   const [cancelRemark, setCancelRemark] = useState("");
@@ -97,7 +98,7 @@ export default function ItemAllLogs() {
     const response = await imsAxios.get("/q1/view", {
       params: {
         wise: "C",
-        data: values.component,
+        data: values.component?.value,
         page: page,
         limit: limit,
       },
@@ -141,13 +142,22 @@ export default function ItemAllLogs() {
 
   const handlePageChange = (page, size) => {
     const values = searchForm.getFieldsValue();
-    if (!values?.component) return;
+      if (!values?.component) {
+      setValidating(true);
+      return;
+    } 
+    setValidating(false);
     setPageSize(size);
     getRows(values, page, size);
   };
 
   // CHANGE: Added function to handle initial form submission
   const handleFormSubmit = (values) => {
+      if (!values?.component) {
+      setValidating(true);
+      return;
+    } 
+    setValidating(false);
     setCurrentPage(1);
     setTotalRecords(0);
     setTotalPages(0);
@@ -199,6 +209,7 @@ export default function ItemAllLogs() {
       headerName: "#",
       field: "index",
       width: 80,
+      renderCell: (params) => params.row.serialNo,
     },
     {
       headerName: "Date",
@@ -323,7 +334,6 @@ export default function ItemAllLogs() {
                   <Col span={24}>
                     <Form.Item
                       label="Component"
-                      rules={rules.component}
                       name="component"
                     >
                       <MyAsyncSelect
@@ -331,6 +341,10 @@ export default function ItemAllLogs() {
                         loadOptions={getComponentOption}
                         optionsState={asyncOptions}
                         selectLoading={loading1("select")}
+                         labelInValue
+                        showError={isValidating}
+                        message={"Component is required"}
+                        value={selectedComonents}
                       />
                     </Form.Item>
                   </Col>
@@ -490,8 +504,4 @@ const initialValues = {
   // date: "", // CHANGE: Removed date from initial values
 };
 
-// form rules
-const rules = {
-  component: [{ required: true, message: "Please select a component" }],
-  // date: [{ required: true, message: "Please select a date range" }], // CHANGE: Removed date validation
-};
+

@@ -31,6 +31,7 @@ const Q3 = () => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [locationOptions, setLocationOptions] = useState([]);
   const [date, setDate] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
 
   const getLocations = async () => {
     try {
@@ -69,6 +70,9 @@ const Q3 = () => {
   };
 
   const getRows = async () => {
+    if(searchInput === '') return setIsValidating(true);
+
+    setIsValidating(false);
     if (date) {
       const [startStr, endStr] = [
         date.substring(0, 10),
@@ -160,7 +164,10 @@ const Q3 = () => {
                     optionsState={asyncOptions}
                     onChange={setSearchInput}
                     selectLoading={loading === "select"}
+                    lableInValue
                     value={searchInput}
+                    message="Please Select a Product"
+                    showError={isValidating}
                   />
                 </div>
                 <div>
@@ -183,7 +190,7 @@ const Q3 = () => {
                 <MyButton
                   variant="search"
                   loading={loading === "fetch"}
-                  disabled={!searchInput}
+                  disabled={loading === "fetch"}
                   onClick={getRows}
                   type="primary"
                   block

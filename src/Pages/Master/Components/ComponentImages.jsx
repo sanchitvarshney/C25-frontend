@@ -24,31 +24,31 @@ export default function ComponentImages({ showImages, setShowImages }) {
   const getImages = async () => {
     setSkeletonLoading(true);
     const response = await imsAxios.post("/component/fetchImageComponent", {
-      component: showImages.partNumber,
+      component: showImages.partNumber?.value,
     });
     if (response?.success) {
       setImages(response.data);
     } else {
       setImages([]);
       showToast(response.message?.msg || response.message, "error");
+      setShowImages(null);
     }
     setSkeletonLoading(false);
   };
   const deleteImage = async (image) => {
     setDeleteLoading(image.image_id);
     const response = await imsAxios.post("/component/ComponentDelete", {
-      component: showImages.partNumber,
+      component: showImages.partNumber?.value,
       image: image.image_id,
     });
-    const { data } = response;
-    if (data) {
+
       if (response.success) {
         showToast(response.message, "success");
         let arr = images;
         arr = images.filter((row) => row.image_id !== image.image_id);
         setImages(arr);
       }
-    }
+    
   };
   useEffect(() => {
     if (showImages) {
@@ -57,7 +57,7 @@ export default function ComponentImages({ showImages, setShowImages }) {
   }, [showImages]);
   return (
     <Drawer
-      title={`${showImages?.partCode ?? ""}`}
+      title={`${showImages?.partNumber?.label ?? ""}`}
       placement="right"
       width="40vw"
       onClose={() => setShowImages(null)}

@@ -15,6 +15,7 @@ const Q4 = () => {
   const [summary, setSummary] = useState({});
   const [rows, setRows] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm();
@@ -22,7 +23,7 @@ const Q4 = () => {
   const handleFetchComponentOptons = async (search) => {
     const response = await executeFun(
       () => getComponentOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response.success) {
@@ -34,6 +35,9 @@ const Q4 = () => {
 
   const handleFetchRows = async () => {
     const values = await form.validateFields();
+    if (!values.component) return setIsValid(true);
+
+    setIsValid(false);
     const response = await executeFun(() => fetchQ4(values.component), "fetch");
     setRows(response.data.result);
     setSummary(response.data.summary);
@@ -49,17 +53,17 @@ const Q4 = () => {
         <Flex vertical gap={10}>
           <Card size="small">
             <Form form={form} layout="vertical">
-              <Form.Item
-                name="component"
-                label="Component"
-                rules={rules.component}
-              >
+              <Form.Item name="component" label="Component">
                 <MyAsyncSelect
                   onBlur={() => setAsyncOptions([])}
                   loadOptions={handleFetchComponentOptons}
                   optionsState={asyncOptions}
                   selectLoading={loading("select")}
                   placeholder="Select Component"
+                  labelInValue
+                  message="Select a component"
+                  showError={isValid}
+                  value={form.getFieldValue("component")}
                 />
               </Form.Item>
               <Flex justify="end" gap={5}>
@@ -181,15 +185,6 @@ const columns = [
     renderCell: ({ row }) => <ToolTipEllipses text={row.totalValue} />,
   },
 ];
-
-const rules = {
-  component: [
-    {
-      required: true,
-      message: "Select a component",
-    },
-  ],
-};
 
 const SummaryCard = ({ summary }) => {
   return (
