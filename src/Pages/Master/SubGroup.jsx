@@ -1,12 +1,13 @@
 import  { useEffect, useState } from "react";
 import { useToast } from "../../hooks/useToast.js";
-import { Card, Col, Form, Input, Row, Space, Drawer, Button, } from "antd";
+import { Card, Col, Form, Input, Row, Space, Drawer, Button } from "antd";
 import MyDataTable from "../../Components/MyDataTable";
 import { v4 } from "uuid";
 import { imsAxios } from "../../axiosInterceptor";
 import MyButton from "../../Components/MyButton";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import TableActions from "../../Components/TableActions.jsx/TableActions";
+import Field from "../../Components/Field";
 
 const SubGroup = () => {
   const { showToast } = useToast();
@@ -25,6 +26,10 @@ const SubGroup = () => {
   const [selectLoading, setSelectLoading] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+  const [isValid, setIsValid] = useState(false);
+  const [editIsValid, setEditIsValid] = useState(false);
+  const editSubGroupNameValue = Form.useWatch("subGroupName", editForm);
+  const editSubGroupDescValue = Form.useWatch("subGroupDesc", editForm);
 
   // Fetch groups for dropdown
   const fetchGroups = async (search = "") => {
@@ -81,18 +86,11 @@ const SubGroup = () => {
 
   // Submit new subgroup
   const addSubGroup = async () => {
-    if (!selectedGroup) {
-      showToast("Please select a Group", "error");
+    if (!selectedGroup || !subGroupName.trim() || !subGroupDesc.trim()) {
+      setIsValid(true);
       return;
     }
-    if (!subGroupName.trim()) {
-      showToast("Please enter Sub Group Name", "error");
-      return;
-    }
-    if (!subGroupDesc.trim()) {
-      showToast("Please enter Description", "error");
-      return;
-    }
+    setIsValid(false);
 
     try {
       setSubmitLoading(true);
@@ -131,11 +129,13 @@ const SubGroup = () => {
     setSubGroupName("");
     setSubGroupDesc("");
     form.resetFields();
+    setIsValid(false);
   };
 
   const handleEdit = async (row) => {
     setEditingRow(row);
     setEditModalVisible(true);
+    setEditIsValid(false);
     await fetchGroups();
 
     const groupOption = groupOptions.find(
@@ -154,19 +154,7 @@ const SubGroup = () => {
   const handleUpdate = async () => {
     try {
       const values = await editForm.validateFields();
-
-      if (!values.group) {
-        showToast("Please select a Group", "error");
-        return;
-      }
-      if (!values.subGroupName?.trim()) {
-        showToast("Please enter Sub Group Name", "error");
-        return;
-      }
-      if (!values.subGroupDesc?.trim()) {
-        showToast("Please enter Description", "error");
-        return;
-      }
+      setEditIsValid(false);
 
       setUpdateLoading(true);
       const groupKey =
@@ -197,6 +185,7 @@ const SubGroup = () => {
       setUpdateLoading(false);
       console.error("Error updating subgroup:", error);
       if (error?.errorFields) {
+        setEditIsValid(true);
         return;
       }
       showToast(
@@ -211,6 +200,7 @@ const SubGroup = () => {
     setEditingRow(null);
     editForm.resetFields();
     setEditAsyncOptions([]);
+    setEditIsValid(false);
   };
   const columns = [
     { field: "serialNo", headerName: "Serial No", width: 100 },
@@ -243,10 +233,7 @@ const SubGroup = () => {
         <Col span={8}>
           <Card title="Add Sub Group" size="small">
             <Form form={form} layout="vertical">
-              <Form.Item
-                label="Group"
-                rules={[{ required: true, message: "Please select a Group" }]}
-              >
+              <Form.Item label="Group">
                 <MyAsyncSelect
                   placeholder="Select Group..."
                   optionsState={asyncOptions}
@@ -257,41 +244,47 @@ const SubGroup = () => {
                     form.setFieldValue("group", value);
                   }}
                   value={selectedGroup}
+                  labelInValue
+                  selectLoading={selectLoading}
+                  showError={isValid}
+                  message="Please select a Group"
                 />
               </Form.Item>
 
-              <Form.Item
-                label="Sub Group Name"
-                rules={[
-                  { required: true, message: "Please enter Sub Group Name" },
-                ]}
+              <Field
+                attr="required | Please enter Sub Group Name"
+                value={subGroupName}
+                showValidation={isValid}
               >
-                <Input
-                  placeholder="Enter Sub Group Name..."
-                  value={subGroupName}
-                  onChange={(e) => {
-                    setSubGroupName(e.target.value);
-                    form.setFieldValue("subGroupName", e.target.value);
-                  }}
-                />
-              </Form.Item>
+                <Form.Item label="Sub Group Name">
+                  <Input
+                    placeholder="Enter Sub Group Name..."
+                    value={subGroupName}
+                    onChange={(e) => {
+                      setSubGroupName(e.target.value);
+                      form.setFieldValue("subGroupName", e.target.value);
+                    }}
+                  />
+                </Form.Item>
+              </Field>
 
-              <Form.Item
-                label="Description"
-                rules={[
-                  { required: true, message: "Please enter Description" },
-                ]}
+              <Field
+                attr="required | Please enter Description"
+                value={subGroupDesc}
+                showValidation={isValid}
               >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Enter Description..."
-                  value={subGroupDesc}
-                  onChange={(e) => {
-                    setSubGroupDesc(e.target.value);
-                    form.setFieldValue("description", e.target.value);
-                  }}
-                />
-              </Form.Item>
+                <Form.Item label="Description">
+                  <Input.TextArea
+                    rows={4}
+                    placeholder="Enter Description..."
+                    value={subGroupDesc}
+                    onChange={(e) => {
+                      setSubGroupDesc(e.target.value);
+                      form.setFieldValue("description", e.target.value);
+                    }}
+                  />
+                </Form.Item>
+              </Field>
             </Form>
             <Row justify="end">
               <Col>
@@ -349,7 +342,7 @@ const SubGroup = () => {
           <Form.Item
             name="group"
             label="Group"
-            rules={[{ required: true, message: "Please select a Group" }]}
+            rules={[{ required: true, message: "" }]}
           >
             <MyAsyncSelect
               placeholder="Select Group..."
@@ -359,25 +352,38 @@ const SubGroup = () => {
               onChange={(value) => {
                 editForm.setFieldValue("group", value);
               }}
-            selectLoading={selectLoading}
+              showError={editIsValid}
+              message="Please select a Group"
             />
           </Form.Item>
 
-          <Form.Item
-            name="subGroupName"
-            label="Sub Group Name"
-            rules={[{ required: true, message: "Please enter Sub Group Name" }]}
+          <Field
+            attr="required | Please enter Sub Group Name"
+            value={editSubGroupNameValue}
+            showValidation={editIsValid}
           >
-            <Input placeholder="Enter Sub Group Name..." />
-          </Form.Item>
+            <Form.Item
+              name="subGroupName"
+              label="Sub Group Name"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Input placeholder="Enter Sub Group Name..." />
+            </Form.Item>
+          </Field>
 
-          <Form.Item
-            name="subGroupDesc"
-            label="Description"
-            rules={[{ required: true, message: "Please enter Description" }]}
+          <Field
+            attr="required | Please enter Description"
+            value={editSubGroupDescValue}
+            showValidation={editIsValid}
           >
-            <Input.TextArea rows={4} placeholder="Enter Description..." />
-          </Form.Item>
+            <Form.Item
+              name="subGroupDesc"
+              label="Description"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Input.TextArea rows={4} placeholder="Enter Description..." />
+            </Form.Item>
+          </Field>
         </Form>
       </Drawer>
     </div>

@@ -1,21 +1,19 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../hooks/useToast.js";
-import {  Col, Form, Input, Row, Space } from "antd";
+import { Col, Form, Input, Row, Space } from "antd";
 import MyDataTable from "../../Components/MyDataTable";
 import { v4 } from "uuid";
 import { imsAxios } from "../../axiosInterceptor";
 import MyButton from "../../Components/MyButton";
+import Field from "../../Components/Field";
 
 const Group = () => {
   const { showToast } = useToast();
-  // const { pathname } = useLocation();
   const [newGroup, setNewGroup] = useState("");
   const [groupData, setGroupData] = useState([]);
   const [submitLoading, setSubmitLoading] = useState(false);
-
   const [tableLoading, setTableLoading] = useState(false);
-  // const [filterData, setFilterData] = useState([]);
-  // const [search, setSearch] = useState("");
+  const [isValid, setIsValid] = useState(false);
 
   const columns = [
     { field: "ID", headerName: "Serial No", width: 100 },
@@ -25,20 +23,21 @@ const Group = () => {
   const addGroup = async (e) => {
     e.preventDefault();
     if (!newGroup) {
-      showToast("Please Add a Group", "error");
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setSubmitLoading(true);
+    const response = await imsAxios.post("/groups/insert", {
+      group_name: newGroup,
+    });
+    setSubmitLoading(false);
+    if (response.success) {
+      showToast(response.message, "success");
+      fetchGroup();
+      setNewGroup("");
     } else {
-      setSubmitLoading(true);
-      const response = await imsAxios.post("/groups/insert", {
-        group_name: newGroup,
-      });
-      setSubmitLoading(false);
-      if (response.success) {
-        showToast(response.message, "success");
-        fetchGroup();
-        setNewGroup("");
-      } else {
-        showToast(response.message, "error");
-      }
+      showToast(response.message, "error");
     }
   };
 
@@ -62,14 +61,9 @@ const Group = () => {
 
   const reset = () => {
     setNewGroup("");
+    setIsValid(false);
   };
 
-  // useEffect(() => {
-  //   const res = groupData.filter((a) => {
-  //     return a?.group_name.toLowerCase().match(search.toLowerCase());
-  //   });
-  //   setFilterData(res);
-  // }, [search]);
   useEffect(() => {
     fetchGroup();
   }, []);
@@ -80,13 +74,19 @@ const Group = () => {
           <Row gutter={12}  >
            <Col span={16}>
             <Form >
-              <Form.Item label="Group Name">
-                <Input
-                  placeholder="Enter Group Name.."
-                  value={newGroup}
-                  onChange={(e) => setNewGroup(e.target.value)}
-                />
-              </Form.Item>
+              <Field
+                attr="required | Please Add a Group"
+                value={newGroup}
+                showValidation={isValid}
+              >
+                <Form.Item label="Group Name">
+                  <Input
+                    placeholder="Enter Group Name.."
+                    value={newGroup}
+                    onChange={(e) => setNewGroup(e.target.value)}
+                  />
+                </Form.Item>
+              </Field>
             </Form>
            </Col>
        

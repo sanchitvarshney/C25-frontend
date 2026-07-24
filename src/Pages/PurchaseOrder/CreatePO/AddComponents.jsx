@@ -218,8 +218,7 @@ export default function AddComponents({
       const componentLabel =
         partcodeObj.name ?? r.partName ?? partcodeObj.partNo ?? "";
 
-      const componentValue =
-        partcodeObj.id ?? partcodeObj.partNo ?? r.partCode ?? r.partcode ?? "";
+            const componentValue =  r.partKey ?? "";
       const sym =
         poCurrencies.find((c) => String(c.value) === String(currency))?.text ??
         "";

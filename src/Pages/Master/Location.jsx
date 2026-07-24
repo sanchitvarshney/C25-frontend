@@ -21,6 +21,7 @@ import { GridActionsCellItem } from "@mui/x-data-grid";
 import { convertSelectOptions } from "../../utils/general.ts";
 import MyButton from "../../Components/MyButton";
 import MyDataTable from "../../Components/MyDataTable.jsx";
+import Field from "../../Components/Field";
 
 function Location() {
   const { showToast } = useToast();
@@ -38,6 +39,11 @@ function Location() {
   const [mapCostCenterModal, setMapCostCenerModal] = useState(false);
   const location = Form.useWatch("location", disableLocationForm);
   const { executeFun, loading: loading1 } = useApi();
+  const [isValid, setIsValid] = useState(false);
+  const [mapLocIsValid, setMapLocIsValid] = useState(false);
+  const locationNameValue = Form.useWatch("locationName", addLocationForm);
+  const usernameValue = Form.useWatch("username", addLocationForm);
+  const addressValue = Form.useWatch("address", addLocationForm);
 
   const LocationTypeOptions = [
     { text: "Storage", value: "1" },
@@ -50,6 +56,7 @@ function Location() {
 
   const resetForm = () => {
     addLocationForm.resetFields();
+    setIsValid(false);
   };
 
   const customFlatArray = (array, parent = null) => {
@@ -79,7 +86,6 @@ function Location() {
      try {
        const response = await imsAxios.post("/location/fetchLocationTree");
        const tree = response.data || [];
- 
        // [FIXED] Flatten tree + add UI id
        const flat = customFlatArray(tree);
        const enriched = flat.map((item, index) => ({
@@ -94,6 +100,45 @@ function Location() {
      }
    };
 
+  // const customFlatArray = (array, prev) => {
+  //   array?.map((row) => {
+  //     let parent = "--";
+  //     let obj = row;
+  //     if (!row.children) {
+  //       if (prev) {
+  //         obj["parentLocation"] = prev.name;
+  //       } else {
+  //         obj["parentLocation"] = "--";
+  //       }
+  //     }
+  //     if (row.children) {
+  //       if (prev) {
+  //         obj["parentLocation"] = prev.name;
+  //       } else {
+  //         obj["parentLocation"] = "--";
+  //       }
+  //       let children = row.children;
+
+  //       delete obj["children"];
+  //       arr = [...arr, obj];
+  //       customFlatArray(children, obj);
+  //       arr = [...arr, ...children];
+  //       // }
+  //     }
+  //     //  else {
+  //     //   let obj = row;
+
+  //     //   if (prev) {
+  //     //     obj["parentLocation"] = prev.name;
+  //     //   } else {
+  //     //     obj["parentLocation"] = "--";
+  //     //   }
+  //     //   arr = [...arr, obj];
+  //     // }
+  //   });
+
+  //   return arr;
+  // };
 
   const getParentLocationOptions = async (search) => {
     setSelectLoading(true);
@@ -113,14 +158,14 @@ function Location() {
   };
 
   const submitHandler = async (values) => {
+    setIsValid(false);
     let obj = {
       location_name: values?.locationName,
-      location_under: values?.locationUnder,
+      location_under: values?.locationUnder?.key,
       location_type: values?.locationType,
       location_address: values?.address,
       mapping_user: values?.username,
       vendor_loc: values?.jobworkLocation,
-      location_heading: values?.heading,
     };
     setSubmitLoading(true);
     const response = await imsAxios.post("/location/insertLocation", obj);
@@ -182,7 +227,7 @@ function Location() {
   };
 
   const disableSubmitHandler = async (values) => {
-    const response = await imsAxios.post(
+    const response = await imsAxios.put(
       "/location/changeLocationStatus",
       values
     );
@@ -211,7 +256,17 @@ function Location() {
       return;
     }
 
-    const values = await maploc.validateFields();
+    let values;
+    try {
+      values = await maploc.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setMapLocIsValid(true);
+        return;
+      }
+      throw error;
+    }
+    setMapLocIsValid(false);
     const locationKey = selectedLocation.label ?? selectedLocation.key;
     const payload = {
       location: locationKey,
@@ -289,11 +344,6 @@ function Location() {
     {
       field: "parentLocation",
       headerName: "Parent Location",
-      width: 150,
-    },
-    {
-      field: "locationHeading",
-      headerName: "Heading",
       width: 150,
     },
     {
@@ -423,7 +473,9 @@ function Location() {
   //   });
   // };
   const close = () => {
-    maploc.resetFields(), setMapCostCenerModal(false);
+    maploc.resetFields();
+    setMapCostCenerModal(false);
+    setMapLocIsValid(false);
   };
   useEffect(() => {
     addLocationForm.setFieldsValue({
@@ -460,13 +512,19 @@ function Location() {
         >
           <Row gutter={6}>
             <Col span={24}>
-              <Form.Item name="costCenter" label="Cost Center">
+              <Form.Item
+                name="costCenter"
+                label="Cost Center"
+                rules={[{ required: true, message: "" }]}
+              >
                 <MyAsyncSelect
                   labelInValue={true}
                   optionsState={asyncOptions}
                   onBlur={() => setAsyncOptions([])}
                   loadOptions={getCostCenteres}
                   selectLoading={loading1("select")}
+                  showError={mapLocIsValid}
+                  message="Please select a cost center"
                 />
               </Form.Item>
             </Col>
@@ -488,24 +546,26 @@ function Location() {
               <Card size="small" title="Add Location">
                 <Form
                   onFinish={submitHandler}
+                  onFinishFailed={() => setIsValid(true)}
                   form={addLocationForm}
                   layout="vertical"
                   size="small"
                 >
                   <Row>
                     <Col span={24}>
-                      <Form.Item
-                        name="locationName"
-                        label="Location Name"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please Enter a location Name",
-                          },
-                        ]}
+                      <Field
+                        attr="required | Please Enter a location Name"
+                        value={locationNameValue}
+                        showValidation={isValid}
                       >
-                        <Input size="default" />
-                      </Form.Item>
+                        <Form.Item
+                          name="locationName"
+                          label="Location Name"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Input size="default" />
+                        </Form.Item>
+                      </Field>
                     </Col>
                     <Col span={24}>
                       <Row gutter={4}>
@@ -513,18 +573,17 @@ function Location() {
                           <Form.Item
                             name="locationUnder"
                             label="Parent Location"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please Select a Parent Location",
-                              },
-                            ]}
+                            rules={[{ required: true, message: "" }]}
                           >
                             <MyAsyncSelect
                               loadOptions={getParentLocationOptions}
                               onBlur={() => setAsyncOptions([])}
                               optionsState={asyncOptions}
                               selectLoading={selectLoading}
+                              showError={isValid}
+                              message="Please Select a Parent Location"
+                              value={location}
+                              labelInValue
                             />
                           </Form.Item>
                         </Col>
@@ -532,14 +591,13 @@ function Location() {
                           <Form.Item
                             name="locationType"
                             label="Location Type"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please Select a Location Type",
-                              },
-                            ]}
+                            rules={[{ required: true, message: "" }]}
                           >
-                            <MySelect options={LocationTypeOptions} />
+                            <MySelect
+                              options={LocationTypeOptions}
+                              showError={isValid}
+                              message="Please Select a Location Type"
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
@@ -547,36 +605,49 @@ function Location() {
                     <Col span={24}>
                       <Row gutter={4}>
                         <Col span={12}>
-                          <Form.Item name="username" label="User Name">
-                            <Input size="default" />
-                          </Form.Item>
-                        </Col>
-                           <Col span={12}>
-                          <Form.Item name="heading" label="Heading">
-                            <Input size="default" maxLength={100} />
-                          </Form.Item>
+                          <Field
+                            attr="required | Please Enter a User Name"
+                            value={usernameValue}
+                            showValidation={isValid}
+                          >
+                            <Form.Item
+                              name="username"
+                              label="User Name"
+                              rules={[{ required: true, message: "" }]}
+                            >
+                              <Input size="default" />
+                            </Form.Item>
+                          </Field>
                         </Col>
                         <Col span={12}>
                           <Form.Item
                             name="jobworkLocation"
                             label="Job Work Location?"
-                            rules={[
-                              {
-                                required: true,
-                                message:
-                                  "Please Select if this is a Jobwork Location",
-                              },
-                            ]}
+                            rules={[{ required: true, message: "" }]}
                           >
-                            <MySelect options={jobworkLocationOptions} />
+                            <MySelect
+                              options={jobworkLocationOptions}
+                              showError={isValid}
+                              message="Please Select if this is a Jobwork Location"
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
                     </Col>
                     <Col span={24}>
-                      <Form.Item name="address" label="Address">
-                        <Input.TextArea rows={4} />
-                      </Form.Item>
+                      <Field
+                        attr="required | Please Enter an Address"
+                        value={addressValue}
+                        showValidation={isValid}
+                      >
+                        <Form.Item
+                          name="address"
+                          label="Address"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Input.TextArea rows={4} />
+                        </Form.Item>
+                      </Field>
                     </Col>
                     <Col span={24}>
                       <Row gutter={10} justify="end">

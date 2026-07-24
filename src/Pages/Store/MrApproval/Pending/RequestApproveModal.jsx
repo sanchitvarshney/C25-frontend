@@ -180,13 +180,13 @@ const RequestApproveModal = ({ show, hide, getRows }) => {
           hide();
         } else {
           getDetails(show.requestId);
-          form.resetFields();
-          setAction(null);
+          form.resetFields(['component']);
         }
       } else {
         showToast(response.message?.msg || response.message, "error");
       }
     } catch (error) {
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading("submit", false);
     }
