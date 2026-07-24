@@ -15,12 +15,15 @@ const R38 = () => {
   const [date, setDate] = useState("");
   const [type, setType] = useState("IN");
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const { showToast } = useToast();
 
   const handleGenerate = async () => {
     if (!date) {
-return showToast("Please select a date", "error");
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
 
     try {
       setLoading(true);
@@ -28,8 +31,9 @@ return showToast("Please select a date", "error");
         date,
         type,
       });
-      showToast("FG Register Report generation started. You will be notified when it is ready.");
-    
+      showToast(
+        "FG Register Report generation started. You will be notified when it is ready.",
+      );
     } catch (error) {
       showToast("Error generating report", "error");
     } finally {
@@ -52,7 +56,13 @@ return showToast("Please select a date", "error");
           />
         </Col>
         <Col span={4}>
-          <MyDatePicker size="default" setDateRange={setDate} />
+          <MyDatePicker
+            size="default"
+            setDateRange={setDate}
+            value={date}
+            showError={isValid}
+            message="Please select a Date"
+          />
         </Col>
         <Col span={2}>
           <MyButton
@@ -71,7 +81,8 @@ return showToast("Please select a date", "error");
             level={5}
             style={{ textAlign: "center", color: "darkslategray" }}
           >
-            Select a date, type and click Generate to start the FG Registor Report.
+            Select a date, type and click Generate to start the FG Registor
+            Report.
           </Typography.Title>
         </Col>
       </Row>

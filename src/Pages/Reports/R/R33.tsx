@@ -38,16 +38,23 @@ const wiseOptions = [
 function R33() {
   const [rows, setRows] = useState<R33Type[]>([]);
   const [asyncOptions, setAsyncOptions] = useState<SelectOptionType[]>([]);
+  const [isValid, setIsValid] = useState(false);
   const [form] = Form.useForm();
   const { executeFun, loading } = useApi();
   const date = Form.useWatch("date", form);
   const wise = Form.useWatch("wise", form);
+  const data = Form.useWatch("data", form);
+  const needsData = wise === "product" || wise === "department";
 
   const handleFetchRows = async () => {
-    const values = await form.validateFields();
+    if (!wise || !date || (needsData && !data?.value)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
 
     const response = await executeFun(
-      () => getR33(values.date, values.wise, values.data),
+      () => getR33(date, wise, data?.value),
       "fetch"
     );
 
@@ -67,7 +74,7 @@ function R33() {
       () => getComponenentAndProduct(search),
       "select"
     );
-    console.log("this is product response", response);
+
     setAsyncOptions(response.data);
   };
   useEffect(() => {
@@ -80,16 +87,26 @@ function R33() {
       <Col span={4}>
         <Card size="small">
           <Form form={form} layout="vertical" initialValues={initialValues}>
-            <Form.Item name="wise" label="Wise">
-              <MySelect options={wiseOptions} />
+            <Form.Item
+              name="wise"
+              label="Wise"
+              
+            >
+              <MySelect
+                options={wiseOptions}
+                showError={isValid}
+                message="Please select Wise"
+                value={wise}
+              />
             </Form.Item>
             {wise !== "consolidated" && wise !== "all" && (
               <Form.Item
                 label={wise === "product" ? "Product" : "Department"}
                 name="data"
+             
               >
                 <MyAsyncSelect
-                  loadOptions={(search) =>
+                  loadOptions={(search:any) =>
                     wise === "department"
                       ? handleFetchDepartmentOptions(search)
                       : handleFetchProductOptions(search)
@@ -98,12 +115,26 @@ function R33() {
                   optionsState={asyncOptions}
                   onBlur={() => setAsyncOptions([])}
                   preventFetchingOnFocus={true}
+                  showError={isValid}
+                  labelInValue
+                
+                  message={
+                    wise === "product"
+                      ? "Please select Product"
+                      : "Please select Department"
+                  }
                 />
               </Form.Item>
             )}
-            <Form.Item name="date" label="Date">
+            <Form.Item
+              name="date"
+              label="Date"
+            >
               <MyDatePicker
                 setDateRange={(value:any) => form.setFieldValue("date", value)}
+                value={date}
+                showError={isValid}
+                message="Please select Date"
               />
             </Form.Item>
             <Row justify="end">
@@ -140,6 +171,7 @@ function R33() {
         <MyDataTable
           columns={wise === "consolidated" ? rangeColumns : singleColumns}
           data={rows}
+          loading={loading("fetch")}
         />
       </Col>
     </Row>
@@ -253,7 +285,7 @@ const rangeColumns = [
   {
     headerName: " Department",
     field: "department",
-    renderCell: ({ row }: { row: R34Type }) => (
+    renderCell: ({ row }: { row: any }) => (
       <ToolTipEllipses text={row.department} />
     ),
     width: 150,
@@ -262,7 +294,7 @@ const rangeColumns = [
   {
     headerName: "SKU",
     field: "sku",
-    renderCell: ({ row }: { row: R34Type }) => (
+    renderCell: ({ row }: { row: any }) => (
       <ToolTipEllipses text={row.sku} copy={true} />
     ),
     width: 100,
@@ -270,7 +302,7 @@ const rangeColumns = [
   {
     headerName: "Product/Component",
     field: "product",
-    renderCell: ({ row }: { row: R34Type }) => (
+    renderCell: ({ row }: { row: any }) => (
       <ToolTipEllipses text={row.product} />
     ),
     minWidth: 150,

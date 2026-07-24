@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Col, Form, Row,Input, Space } from "antd";
+import { Card, Col, Form, Row, Input, Space } from "antd";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import MySelect from "../../../Components/MySelect";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -10,6 +10,7 @@ import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { v4 } from "uuid";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field";
 
 const R26 = () => {
   const { showToast } = useToast();
@@ -17,60 +18,64 @@ const R26 = () => {
   const [loading, setLoading] = useState(false);
   const [filterForm] = Form.useForm();
   const wiseOption = Form.useWatch("wise", filterForm);
+  const date = Form.useWatch("date", filterForm);
+  const txnId = Form.useWatch("txnId", filterForm);
+  const [isValid, setIsValid] = useState(false);
 
   const getRows = async () => {
+    const filter = await filterForm.validateFields();
+    if (!filter?.wise || !filter?.date) return setIsValid(true);
+    if (filter?.wise === "fg-dismantle" && !filter?.txnId)
+      return setIsValid(true);
     let arr;
     try {
-      const filter = await filterForm.validateFields();
       setLoading("fetch");
       const response = await imsAxios.post("/report/xmlViewOut", {
         wise: filter.wise,
         data: filter.date,
-         ...(filter.wise === "fg-dismantle" && { txnId: filter.txnId }),
+        ...(filter.wise === "fg-dismantle" && { txnId: filter.txnId }),
       });
 
       if (response.success) {
-          if (wiseOption == "ven-cons") {
-            arr = response.data.map((row, index) => ({
-              id: index + 1,
-              createDate: row.create_dt,
-              component: row.part_name,
-              partCode: row.part_no,
-              consumedQty: row.consumedQty,
-              createBy: row.create_by,
-              docDate: row.doc_date,
-              docRef: row.doc_ref,
-              hsn: row.hsn,
-              qty: row.qty,
-              remark: row.remark,
-              txnId: row.txn_id,
-              type: row.type,
-              unit: row.unit,
-            }));
-          } else {
-            arr = response.data.map((row, index) => ({
-              id: index + 1,
-              date: row.DATE,
-              component: row.COMPONENT,
-              partCode: row.PART,
-              outLoc: row.FROMLOCATION,
-              inLoc: row.TOLOCATION,
-              qty: row.OUTQTY,
-              unit: row.UNIT,
-              type: row.UNIT,
-              lastPurchasePrice: row.LPP,
-            }));
-          }
-
-          setRows(arr);
+        if (wiseOption == "ven-cons") {
+          arr = response.data.map((row, index) => ({
+            id: index + 1,
+            createDate: row.create_dt,
+            component: row.part_name,
+            partCode: row.part_no,
+            consumedQty: row.consumedQty,
+            createBy: row.create_by,
+            docDate: row.doc_date,
+            docRef: row.doc_ref,
+            hsn: row.hsn,
+            qty: row.qty,
+            remark: row.remark,
+            txnId: row.txn_id,
+            type: row.type,
+            unit: row.unit,
+          }));
         } else {
-          showToast(response.message, "error");
-          throw new Error("Some error occured");
+          arr = response.data.map((row, index) => ({
+            id: index + 1,
+            date: row.DATE,
+            component: row.COMPONENT,
+            partCode: row.PART,
+            outLoc: row.FROMLOCATION,
+            inLoc: row.TOLOCATION,
+            qty: row.OUTQTY,
+            unit: row.UNIT,
+            type: row.UNIT,
+            lastPurchasePrice: row.LPP,
+          }));
         }
-      
+
+        setRows(arr);
+      } else {
+        showToast(response.message, "error");
+      }
     } catch (error) {
       setRows([]);
-      console.log("Error while fetching R26 report", error);
+      showToast(error.message ?? "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -88,22 +93,11 @@ const R26 = () => {
       notificationId: v4(),
     });
   };
-  // const searchVendor = async () => {
-  //   const filter = await filterForm.validateFields();
-  //   const otherdata = JSON.stringify({
-  //     type: filter.wise,
-  //     date: filter.date,
-  //     ...(filter.wise === "fg-dismantle" && { txnId: filter.txnId }),
-  //   });
-  //   socket.emit("generate_xml_report", {
-  //     otherdata,
-  //     notificationId: v4(),
-  //   });
-  // };
-    useEffect(() => {
+
+  useEffect(() => {
     if (wiseOption) {
       setRows([]);
-     
+
       if (wiseOption !== "fg-dismantle") {
         filterForm.setFieldsValue({ txnId: undefined });
       }
@@ -119,23 +113,33 @@ const R26 = () => {
             form={filterForm}
             layout="vertical"
           >
-            <Form.Item rules={rules.wise} name="wise" label="Transaction Type">
-              <MySelect options={wiseOptions} />
-            </Form.Item>
-            {/* {wiseOption !== "ven-cons" && ( */}
-            <Form.Item rules={rules.date} name="date" label="Date">
-              <SingleDatePicker
-                setDate={(date) => filterForm.setFieldValue("date", date)}
+            <Form.Item name="wise" label="Transaction Type">
+              <MySelect
+                options={wiseOptions}
+                value={wiseOption}
+                showError={isValid}
+                message="Please select type"
               />
             </Form.Item>
-                        {wiseOption === "fg-dismantle" && (
-              <Form.Item
-                rules={rules.txnId}
-                name="txnId"
-                label="Transaction ID"
+            {/* {wiseOption !== "ven-cons" && ( */}
+            <Form.Item name="date" label="Date">
+              <SingleDatePicker
+                setDate={(date) => filterForm.setFieldValue("date", date)}
+                value={date}
+                showError={isValid}
+              />
+            </Form.Item>
+            {wiseOption === "fg-dismantle" && (
+              <Field
+                attr="required | Please select BOM"
+                value={txnId}
+                showValidation={isValid}
+                style={{ minWidth: 220 }}
               >
-                <Input placeholder="Enter Transaction ID" />
-              </Form.Item>
+                <Form.Item name="txnId" label="Transaction ID">
+                  <Input placeholder="Enter Transaction ID" />
+                </Form.Item>
+              </Field>
             )}
             {/* )} */}
           </Form>
@@ -200,7 +204,7 @@ const wiseOptions = [
     text: "JW SFG Inward",
     value: "rm-sfg",
   },
-   {
+  {
     text: "JW RM Return",
     value: "rm-return",
   },
@@ -218,29 +222,29 @@ const wiseOptions = [
     value: "rej-rj21",
   },
   {
-    text:"Production floor to RM",
-    value:"rm_sf999"
+    text: "Production floor to RM",
+    value: "rm_sf999",
   },
   {
-    text:"SF024(Rej) to RM",
-    value:"rej-sf999"
+    text: "SF024(Rej) to RM",
+    value: "rej-sf999",
   },
   {
-    text:"FG Product Dismantle(SF)",
-    value:"fg-dismantle"
+    text: "FG Product Dismantle(SF)",
+    value: "fg-dismantle",
   },
   {
-    text:"Part Code Conversion",
-    value:"part-conv"
+    text: "Part Code Conversion",
+    value: "part-conv",
   },
   {
-    text:"RM Part Code Conversion",
-    value:"part-rm-conv"
+    text: "RM Part Code Conversion",
+    value: "part-rm-conv",
   },
   {
-    text:"FG Consumption",
-    value:"finish-goods"
-  }
+    text: "FG Consumption",
+    value: "finish-goods",
+  },
 ];
 
 const columns = [
@@ -370,23 +374,5 @@ const vencolumns = [
     field: "remark",
   },
 ];
-
-const rules = {
-  wise: [
-    {
-      required: true,
-      message: "Please select a location",
-    },
-  ],
-  date: [
-    {
-      required: true,
-      message: "Please select a date",
-    },
-  ],
-   txnId: [
-    { required: true, message: "Please enter a Transaction ID" },
-  ],
-};
 
 export default R26;

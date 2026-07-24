@@ -1,5 +1,5 @@
-import {  Col, Form, Row } from "antd";
-import  { useState } from "react";
+import { Col, Form, Row } from "antd";
+import { useState } from "react";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -19,9 +19,11 @@ function R35() {
   const [bomName, setBomName] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [form] = Form.useForm();
   const prod = Form.useWatch("product", form);
   const bomVal = Form.useWatch("bom", form);
+  const dateVal = Form.useWatch("date", form);
 
   const columns = [
     { field: "id", headerName: "Sr. No.", width: 8 },
@@ -108,7 +110,7 @@ function R35() {
     setLoading(true);
     if (searchInput?.length > 2) {
       const response = await executeFun(() =>
-        getProductsOptions(searchInput, true)
+        getProductsOptions(searchInput, true),
       );
       setLoading(false);
       setAsyncOptions(response.data);
@@ -127,13 +129,18 @@ function R35() {
     setLoading(false);
   };
   const fetchSearch = async () => {
+    if (!prod?.value || !bomVal || !dateVal) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading(true);
-    const values = await form.validateFields();
     const response = await imsAxios.post("/report35/get", {
-      sku: values.product.value,
-      bom: values.bom,
-      date: values.date,
+      sku: prod.value,
+      bom: bomVal,
+      date: dateVal,
     });
+    setLoading(false);
     if (response.success) {
       // Handle both array and single object responses
       const dataArray = Array.isArray(response.data)
@@ -143,10 +150,8 @@ function R35() {
         return { ...r, id: index + 1 };
       });
       setRows(arr);
-      setLoading(false);
     } else {
       showToast(response.message, "error");
-      setLoading(false);
     }
   };
   const downloadHandler = () => {
@@ -180,69 +185,40 @@ function R35() {
           <Form layout="vertical" form={form}>
             <Row gutter={[10, 0]}>
               <Col span={5}>
-                <Form.Item
-                  name="product"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter product!",
-                    },
-                  ]}
-                  label="Product"
-                >
+                <Form.Item name="product" label="Product">
                   <MyAsyncSelect
                     onBlur={() => setAsyncOptions([])}
                     optionsState={asyncOptions}
                     placeholder="Select Product"
                     loadOptions={getDataBySearch}
                     labelInValue={true}
-                    loading={loading}
-                    // onInputChange={(e) => setSearch(e)}
-                    // value={allData.selectProduct.value}
-                    // onChange={(e) =>
-                    //   setAllData((allData) => {
-                    //     return { ...allData, selectProduct: e };
-                    //   })
-                    // }
+                    selectLoading={loading}
+                    showError={isValid}
+                    message="Please select a Product"
                   />
                 </Form.Item>
               </Col>
               <Col span={4}>
-                <Form.Item
-                  name="bom"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select BOM!",
-                    },
-                  ]}
-                  label="BOM"
-                >
+                <Form.Item name="bom" label="BOM">
                   <MySelect
                     placeholder="Select Bom"
                     options={bomName}
-                    loading={loading == "fetch"}
-                    // value={allData.selectBom.value}
-                    // onChange={(e) =>
-                    //   setAllData((allData) => {
-                    //     return { ...allData, selectBom: e };
-                    //   })
-                    // }
+                    loading={loading}
+                    showError={isValid}
+                    message="Please select a BOM"
                   />
                 </Form.Item>
               </Col>
               <Col span={5}>
-                <Form.Item
-                  name="date"
-                  // rules={[{ required: true }]}
-                  label="Date"
-                  rules={rules.date}
-                >
+                <Form.Item name="date" label="Date">
                   {" "}
                   <MyDatePicker
                     setDateRange={(value) => form.setFieldValue("date", value)}
+                    value={dateVal}
                     size="default"
                     disabledtheDate="true"
+                    showError={isValid}
+                    message="Please select a Date"
                   />
                 </Form.Item>
               </Col>
@@ -251,8 +227,7 @@ function R35() {
                   variant="search"
                   style={{ margin: "18px" }}
                   onClick={fetchSearch}
-                  disabled={bomVal?.length == 0}
-                  // loading={loading}
+                  loading={loading}
                 ></MyButton>{" "}
                 <CommonIcons
                   action="downloadButton"
@@ -264,7 +239,6 @@ function R35() {
           </Form>{" "}
         </Col>
       </Row>
-      
       <Row style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
         <Col span={24} style={{ height: "100%", display: "flex" }}>
           <div style={{ width: "100%", height: "100%" }}>
@@ -307,9 +281,3 @@ export default R35;
 //     ),
 //   },
 // ];
-const rules = {
-  ppr: [{ required: true, message: "Please select PPR Number" }],
-  process: [{ required: true, message: "Please select Process" }],
-  status: [{ required: true, message: "Please select Status" }],
-  date: [{ required: true, message: "Please select Date" }],
-};

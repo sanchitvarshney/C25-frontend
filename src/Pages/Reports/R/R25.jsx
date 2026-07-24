@@ -21,6 +21,7 @@ import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast.js";
+import Field from "../../../Components/Field.jsx";
 
 const R25 = () => {
   const { showToast } = useToast();
@@ -33,7 +34,11 @@ const R25 = () => {
   const [addedComponents, setAddedComponents] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [filterText, setFilterText] = useState("");
+  const [validationErrors, setValidationErrors] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
+  const qtyValue = Form.useWatch("qty", filterForm);
+  const reportValue = Form.useWatch("report", filterForm);
+  console.log("qtyValue", qtyValue, "reportValue", reportValue);
   const getProductOptions = async (search) => {
     // let link = "/backend/getComponentByNameAndNo";
 
@@ -44,7 +49,7 @@ const R25 = () => {
     // setSelectLoading(false);
     const response = await executeFun(
       () => getComponentOptions(search),
-      "select"
+      "select",
     );
     const { data } = response;
     if (data[0]) {
@@ -72,12 +77,17 @@ const R25 = () => {
       setAsyncOptions(arr);
     } else {
       setAsyncOptions([]);
+      showToast(response.message, "error");
     }
   };
 
   const getRows = async () => {
     try {
       const values = await filterForm.validateFields();
+      if (!values?.report?.value || values?.qty) {
+        setValidationErrors(true);
+        return;
+      }
       setLoading("fetch");
       const response = await imsAxios.post("/report25", {
         // skucode: values.sku,
@@ -104,7 +114,7 @@ const R25 = () => {
         setRows(arr);
       }
     } catch (error) {
-      console.log("some error occured while fetching report", error);
+      showToast(error.message || "Some error occured", "error");
       setRows([]);
     } finally {
       setLoading(false);
@@ -130,9 +140,7 @@ const R25 = () => {
 
     downloadCSV(rows, columns, `R25 Report`, [newRow]);
   };
-  // const reset = () => {
-  //   filterForm.resetFields();
-  // };
+
   const toggleEdit = () => {
     const values = filterForm.getFieldsValue();
     setIsEditing(values.report.value);
@@ -248,11 +256,23 @@ const R25 = () => {
                     optionsState={asyncOptions}
                     selectLoading={selectLoading}
                     placeholder="Enter Report"
+                    message="Report is required"
+                    showError={validationErrors}
+                    value={reportValue}
                   />
                 </Form.Item>
+                 <Field
+                    attr="required | Please select Planning Qty"
+                    value={qtyValue}
+                    showValidation={validationErrors}
+                    style={{ minWidth: 240, flex: 1 }}
+                  >
                 <Form.Item label="Planning Qty" name="qty">
-                  <Input placeholder="Enter Qty" />
+                 
+                    <Input placeholder="Enter Qty" />
+                
                 </Form.Item>
+                  </Field>
                 <Row justify="end">
                   <Space>
                     <CommonIcons
@@ -365,7 +385,7 @@ const R25 = () => {
                       row.component
                         .toString()
                         .toLowerCase()
-                        .includes(filterText.toLowerCase())
+                        .includes(filterText.toLowerCase()),
                     )
                     .map((row, index) => (
                       <Col span={24} key={row.id || index}>

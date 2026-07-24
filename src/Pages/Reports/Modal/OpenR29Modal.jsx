@@ -1,32 +1,33 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
 import { useToast } from "../../../hooks/useToast.js";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { v4 } from "uuid";
-import { Modal, Row, Col,Select } from "antd";
+import { Modal, Row, Col, Select } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { getProductsOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
+import Field from "../../../Components/Field";
 
 const OpenR29Modal = ({
   viewModal,
   setViewModal,
   setAllResponseData,
-  // loading,
   setLoading,
-  // setFilterData,
 }) => {
   const { showToast } = useToast();
-  // const [seacrh, setSearch] = useState(null);
-  // const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [date, setDate] = useState("");
   const [dataa, setData] = useState({
     selectProduct: "",
     bom: "",
   });
+  const [isValid, setIsValid] = useState(false);
+  const [bomLoading, setBomLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const { executeFun } = useApi();
+  const { executeFun, loading } = useApi();
   // console.log(dataa);
   const [bomName, setBomName] = useState([]);
 
@@ -34,7 +35,7 @@ const OpenR29Modal = ({
     if (searchInput?.length > 2) {
       const response = await executeFun(
         () => getProductsOptions(searchInput, true),
-        "select"
+        "select",
       );
       let { data } = response;
 
@@ -43,19 +44,22 @@ const OpenR29Modal = ({
   };
 
   const getBom = async () => {
-    const response = await imsAxios.post("/backend/fetchBomForProduct", {
-      search: dataa?.selectProduct,
-    });
-    const arr = response.data.map((d) => {
-      return { value: d.bomid, label: d.bomname };
-    });
-    setBomName(arr);
-
-    //  setBranch(arr);
+    setBomLoading(true);
+    try {
+      const response = await imsAxios.post("/backend/fetchBomForProduct", {
+        search: dataa?.selectProduct?.value,
+      });
+      const arr = response.data.map((d) => {
+        return { value: d.bomid, label: d.bomname };
+      });
+      setBomName(arr);
+    } finally {
+      setBomLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (dataa.selectProduct) {
+    if (dataa.selectProduct?.value) {
       getBom();
     }
   }, [dataa.selectProduct]);
@@ -64,7 +68,7 @@ const OpenR29Modal = ({
     setLoading(true);
     setAllResponseData([]);
     const response = await imsAxios.post("/report29", {
-      product: dataa.selectProduct,
+      product: dataa.selectProduct?.value,
       subject: dataa.bom,
       date: date,
     });
@@ -90,6 +94,21 @@ const OpenR29Modal = ({
     }
   };
 
+  const handleOk = async () => {
+    if (!dataa.selectProduct?.value || !dataa.bom || !date) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setSubmitting(true);
+    try {
+      await generateFun();
+      setViewModal(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!viewModal) {
     return null;
   }
@@ -100,24 +119,27 @@ const OpenR29Modal = ({
         title="BOM Wise SF Report"
         centered
         open={viewModal}
-        onOk={() => {
-          generateFun();
+        onOk={handleOk}
+        confirmLoading={submitting}
+        onCancel={() => {
           setViewModal(false);
+          setIsValid(false);
         }}
-        onCancel={() => setViewModal(false)}
         width={800}
       >
-        <Row  gutter={16}>
+        <Row gutter={16}>
           <Col span={12}>
             <MyAsyncSelect
-              // selectLoading={selectLoading}
+              selectLoading={loading("select")}
               style={{ width: "100%" }}
               loadOptions={getProductNameFecth}
               onBlur={() => setAsyncOptions([])}
-              // onInputChange={(e) => setSearch(e)}
-              value={dataa.selectProduct.value}
+              value={dataa.selectProduct}
               placeholder="Product Name / SKU"
               optionsState={asyncOptions}
+              labelInValue
+              showError={isValid}
+              message="Please select Product"
               onChange={(e) =>
                 setData((dataa) => {
                   return { ...dataa, selectProduct: e };
@@ -126,20 +148,33 @@ const OpenR29Modal = ({
             />
           </Col>
           <Col span={12}>
-            <Select
-              style={{ width: "100%" }}
-              placeholder="Select Bom"
-              options={bomName}
-              value={dataa.bom.value}
-              onChange={(e) =>
-                setData((dataa) => {
-                  return { ...dataa, bom: e };
-                })
-              }
-            />
+            <Field
+              attr="required | Please select BOM"
+              value={dataa.bom}
+              showValidation={isValid}
+            >
+              <Select
+                style={{ width: "100%" }}
+                placeholder="Select Bom"
+                options={bomName}
+                value={dataa.bom}
+                loading={bomLoading}
+                disabled={bomLoading}
+                onChange={(e) =>
+                  setData((dataa) => {
+                    return { ...dataa, bom: e };
+                  })
+                }
+              />
+            </Field>
           </Col>
           <Col span={12} style={{ marginTop: "5px" }}>
-            <MyDatePicker setDateRange={setDate} size="default" />
+            <MyDatePicker
+              setDateRange={setDate}
+              size="default"
+              showError={isValid}
+              value={date}
+            />
           </Col>
         </Row>
       </Modal>

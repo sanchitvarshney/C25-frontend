@@ -1,5 +1,5 @@
-import { Col, Row, Skeleton } from "antd";
-import  { useState } from "react";
+import { Col, Row } from "antd";
+import { useState } from "react";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
@@ -14,8 +14,8 @@ import MyButton from "../../../Components/MyButton";
 function R22() {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  // const [search, setSearch] = useState("");
   const [selectDate, setSelectDate] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [bomName, setBomName] = useState([]);
   const [loading, setLoading] = useState(false);
   const [allData, setAllData] = useState({
@@ -26,18 +26,28 @@ function R22() {
 
   const { executeFun } = useApi();
   const getDataBySearch = async (searchInput) => {
-    if (searchInput?.length > 2) {
-      const response = await executeFun(
-        () => getProductsOptions(searchInput, true),
-        "select"
-      );
-
-      setAsyncOptions(response.data);
+    setLoading("fetch");
+    try {
+      if (searchInput?.length > 2) {
+        const response = await executeFun(
+          () => getProductsOptions(searchInput, true),
+          "select",
+        );
+        if (response?.success) {
+          setLoading(false);
+          setAsyncOptions(response.data);
+        } else {
+          setLoading(false);
+          showToast(response.message, "error");
+        }
+      }
+    } catch (error) {
+      showToast(error?.message || "Failed to fetch data", "error");
     }
   };
   const getBom = async () => {
     const response = await imsAxios.post("/backend/fetchBomForProduct", {
-      search: allData?.selectProduct,
+      search: allData?.selectProduct?.key,
     });
 
     const arr = response.data.map((d) => {
@@ -47,15 +57,12 @@ function R22() {
   };
   const fetchBySearch = async () => {
     if (!allData.selectProduct) {
-      showToast("Please select a product", "error");
-    } else if (!allData.selectBom) {
-      showToast("Please select a bom", "error");
-    } else if (!selectDate[0]) {
-      showToast("Please select a valid date", "error");
+      setIsValid(true);
+      return;
     } else {
-      setLoading(true);
+      setLoading("load");
       const response = await imsAxios.post("/report22", {
-        skucode: allData.selectProduct,
+        skucode: allData.selectProduct?.key,
         subject: allData.selectBom,
         date: selectDate,
       });
@@ -69,16 +76,16 @@ function R22() {
             status: row.status?.includes("INACTIVE")
               ? "INACTIVE"
               : row.status.includes("ALTERNATIVE")
-              ? "ALTERNATIVE"
-              : row.status.includes("ACTIVE")
-              ? "ACTIVE"
-              : "",
+                ? "ALTERNATIVE"
+                : row.status.includes("ACTIVE")
+                  ? "ACTIVE"
+                  : "",
           };
         });
+
         setResData(arr);
         setLoading(false);
-      } else if (!response.success) {
-        setLoading(true);
+      } else {
         showToast(response.message, "error");
         setLoading(false);
       }
@@ -101,64 +108,67 @@ function R22() {
               loadOptions={getDataBySearch}
               onBlur={() => setAsyncOptions([])}
               optionsState={asyncOptions}
-              // onInputChange={(e) => setSearch(e)}
+              selectLoading={loading === "fetch"}
               placeholder="Select Product"
-              value={allData.selectProduct.value}
+              value={allData.selectProduct}
+              labelInValue
               onChange={(e) =>
                 setAllData((allData) => {
                   return { ...allData, selectProduct: e };
                 })
               }
+              message="Select Product"
+              showError={isValid}
             />
           </Col>
           <Col span={4}>
             <MySelect
               placeholder="Select Bom"
               options={bomName}
-              value={allData?.selectBom.value}
+              value={allData?.selectBom}
               onChange={(e) =>
                 setAllData((allData) => {
                   return { ...allData, selectBom: e };
                 })
               }
+              message="Select Bom"
+              showError={isValid}
             />
           </Col>
           <Col span={4}>
-            <SingleDatePicker setDate={setSelectDate} />
+            <SingleDatePicker
+              setDate={setSelectDate}
+              value={selectDate}
+              showError={isValid}
+            />
           </Col>
-          {allData?.selectBom.length > 1 && (
-            <Col span={4}>
-              <div>
-                {/* <Button
+
+          <Col span={4}>
+            <div>
+              {/* <Button
                     onClick={reset}
                     style={{ backgroundColor: "red", color: "white", marginRight: "5px" }}
                   >
                     Cancel
                   </Button> */}
-                <MyButton
-                  variant="search"
-                  onClick={fetchBySearch}
-                  type="primary"
-                >
-                  Generate
-                </MyButton>
-              </div>
-            </Col>
-          )}
+              <MyButton variant="search" onClick={fetchBySearch} type="primary">
+                Generate
+              </MyButton>
+            </div>
+          </Col>
+
           <Col span={24}>
-            <Skeleton loading={loading} active>
-              <div
-                className="hide-select"
-                style={{ height: "75vh", marginTop: "0.75em" }}
-              >
-                <MyDataTable
-                  checkboxSelection={true}
-                  loading={loading}
-                  data={resData}
-                  columns={columns}
-                />
-              </div>
-            </Skeleton>
+            <div
+              className="hide-select"
+              style={{ height: "75vh", marginTop: "0.75em" }}
+            >
+              <MyDataTable
+                checkboxSelection={true}
+                loading={loading == "load"}
+                data={resData}
+                columns={columns}
+              />
+            </div>
           </Col>
         </Row>
       </div>

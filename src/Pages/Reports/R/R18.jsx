@@ -20,6 +20,7 @@ function R18() {
   const [fetchLoading, setFetchLoading] = useState(false);
   const [buttonEnabled, setButtonEnabled] = useState(true);
   const [reportStarted, setReportStarted] = useState(false);
+  const [isValidations, setIsValidations] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -27,7 +28,8 @@ function R18() {
     try {
       const values = await form.validateFields();
       if (!values.date) {
-        return showToast("Please select a date", "error");
+      setIsValidations(true);
+      return
         
       }
       const finalObj = {
@@ -46,12 +48,12 @@ function R18() {
         let arr = response.data.map((row) => {
           let obj = JSON.parse(row.locations);
           for (const key in obj) {
-            // if (obj.hasOwnProperty(key)) {
+          // if (obj.hasOwnProperty(key)) {
               let headerName = key; // Use loc_name directly (e.g., RMO21)
               headerArr.push(key);
               location = { ...location, [headerName]: obj[key] };
-            // }
-          }
+            }
+          // }
 
           return {
             component: row.component,
@@ -128,7 +130,7 @@ function R18() {
     }
     downloadCSVCustomColumns(rows, "R18");
   };
-
+const  dateValue = form.getFieldValue("date");
   return (
     <Row style={{ height: "90%", padding: "0px 10px" }}>
       <Col span={24}>
@@ -141,12 +143,17 @@ function R18() {
                     value={location}
                     onChange={setLocation}
                     options={locationOptions}
+                    message="Select Location"
+                    showError={isValidations}
                   />
                 </Form.Item>
               </div>
               <Form.Item name="date">
                 <SingleDatePicker
                   setDate={(value) => form.setFieldValue("date", value)}
+                  value={dateValue}
+                  message="Select Date"
+                  showError={isValidations}
                 />
               </Form.Item>
               <MyButton

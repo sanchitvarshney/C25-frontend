@@ -1,5 +1,5 @@
-import { Card, Col, Form, Row, Space } from "antd";
-import { useState, useEffect } from "react";
+import {  Card, Col, Form, Row, Space } from "antd";
+import  { useState, useEffect } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import { downloadCSV } from "../../../Components//exportToCSV";
@@ -17,7 +17,7 @@ import MyButton from "../../../Components/MyButton";
 function R17() {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  // const [selectLoading, setSelectLoading] = useState(false);
+  const [selectLoading, setSelectLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [summaryData, setSummaryData] = useState([
@@ -110,27 +110,27 @@ function R17() {
     setAsyncOptions(arr);
   };
 
-  // const getAsyncOptions = async (url, search) => {
-  //   setSelectLoading(true);
-  //   const response = await imsAxios.post(url, {
-  //     search: search,
-  //     searchTerm: search,
-  //   });
-  //   setSelectLoading(false);
-  //   let arr = [];
-  //   if (data.code) {
-  //     arr = response.data.map((row) => ({
-  //       value: row.id,
-  //       text: row.text,
-  //     }));
-  //   } else {
-  //     arr = data.map((row) => ({
-  //       value: row.id,
-  //       text: row.text,
-  //     }));
-  //   }
-  //   setAsyncOptions(arr);
-  // };
+  const getAsyncOptions = async (url, search) => {
+    setSelectLoading(true);
+    const response = await imsAxios.post(url, {
+      search: search,
+      searchTerm: search,
+    });
+    setSelectLoading(false);
+    let arr = [];
+    if (data.code) {
+      arr = response.data.map((row) => ({
+        value: row.id,
+        text: row.text,
+      }));
+    } else {
+      arr = data.map((row) => ({
+        value: row.id,
+        text: row.text,
+      }));
+    }
+    setAsyncOptions(arr);
+  };
   const getVendors = async (search) => {
     const response = await executeFun(() => getVendorOptions(search), "select");
     let arr = [];
@@ -144,7 +144,7 @@ function R17() {
     if (vendor) {
       setFormLoading(true);
       const response = await imsAxios.get(`/backend/fetchVendorJWLocation?vendor=${vendor}`);
-      setFormLoading(false);
+
       if (response.success) {
         let arr = [];
         arr = response.data.map((row) => ({
@@ -152,6 +152,7 @@ function R17() {
           text: row.text,
         }));
         setLocationOptions(arr);
+              setFormLoading(false);
       } else {
         showToast(response.message?.msg || response.message, "error");
       }
@@ -215,7 +216,7 @@ function R17() {
                     ]}
                   >
                     <MyAsyncSelect
-                      // selectLoading={selectLoading}
+                      selectLoading={selectLoading}
                       optionsState={asyncOptions}
                       onBlur={() => setAsyncOptions([])}
                       loadOptions={(search) => getVendors(search)}

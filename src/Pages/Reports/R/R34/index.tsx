@@ -1,18 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, Col, Form, Row, Space } from "antd";
 import { R34Type } from "@/types/reports";
-//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable";
-//@ts-ignore
 import MyButton from "@/Components/MyButton";
-//@ts-ignore
+
 import ToolTipEllipses from "@/Components/ToolTipEllipses";
 import { getR34 } from "@/api/reports/inventoryReport";
-//@ts-ignore
 import { CommonIcons } from "@/Components/TableActions.jsx/TableActions";
-//@ts-ignore
 import { downloadCSV } from "@/Components/exportToCSV";
-//@ts-ignore
 import MyDatePicker from "@/Components/MyDatePicker";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import Details from "@/Pages/Reports/R/R34/Details";
@@ -25,9 +20,15 @@ function R34() {
   const [form] = Form.useForm();
   const { executeFun, loading } = useApi();
   const date = Form.useWatch("date", form);
+  const [isValid, setIsValid] = useState(false);
 
   const handleFetchRows = async () => {
+
     const values = await form.validateFields();
+    if(!values.date){
+       setIsValid(true);
+       return
+    }
     const response = await executeFun(() => getR34(values.date), "fetch");
     setRows(response.data ?? []);
   };
@@ -38,9 +39,9 @@ function R34() {
       type: "actions",
       width: 30,
       getActions: ({ row }: { row: R34Type }) => [
-       //@ts-ignore
+        // Edit icon
         <GridActionsCellItem
-        key={"view"}
+          key={row.id}
           showInMenu
           // disabled={disabled}
           label={"Details"}
@@ -61,6 +62,9 @@ function R34() {
             <Form.Item name="date" label="Date">
               <MyDatePicker
                 setDateRange={(value:any) => form.setFieldValue("date", value)}
+                value={date}
+                showError={isValid}
+
               />
             </Form.Item>
             <Row justify="end">

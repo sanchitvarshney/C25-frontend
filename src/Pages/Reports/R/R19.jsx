@@ -7,31 +7,31 @@ import { v4 } from "uuid";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import ModalR19 from "../Modal/ModalR19";
 import { imsAxios } from "../../../axiosInterceptor";
-import {
-  getProductsOptions,
-} from "../../../api/general.ts";
+import { getProductsOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 function R19() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+
   const [mainData, setMainData] = useState([]);
-  // const [search, setSearch] = useState("");
   const [bomName, setBomName] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [allData, setAllData] = useState({
     selectProduct: "",
     selectBom: "",
   });
+  const [isValid, setIsValid] = useState(false);
 
   const { executeFun } = useApi();
   const getDataBySearch = async (searchInput) => {
     if (searchInput?.length > 2) {
       const response = await executeFun(
         () => getProductsOptions(searchInput, true),
-        "select"
+        "select",
       );
 
       setAsyncOptions(response.data);
@@ -40,7 +40,7 @@ function R19() {
 
   const getBom = async () => {
     const response = await imsAxios.post("/backend/fetchBomForProduct", {
-      search: allData?.selectProduct,
+      search: allData?.selectProduct?.key,
     });
     //  console.log(data);
     const arr = response.data.map((d) => {
@@ -53,14 +53,13 @@ function R19() {
 
   const fetchData = async () => {
     if (allData?.selectProduct == "") {
-      showToast("Please Select Product", "error");
-    } else if (allData?.selectBom == "") {
-      showToast("Please Select Bom", "error");
+      setIsValid(true);
+      return;
     } else {
       setLoading(true);
       setMainData([]);
       const response = await imsAxios.post("/report19", {
-        sku: allData?.selectProduct,
+        sku: allData?.selectProduct?.key,
         bom: allData?.selectBom,
       });
 
@@ -70,7 +69,7 @@ function R19() {
         });
         setMainData(arr);
         setLoading(false);
-      } else if (!response.success) {
+      } else {
         showToast(response.message?.msg || response.message, "error");
         setLoading(false);
       }
@@ -112,28 +111,37 @@ function R19() {
             optionsState={asyncOptions}
             placeholder="Select Product"
             loadOptions={getDataBySearch}
-            // onInputChange={(e) => setSearch(e)}
-            value={allData.selectProduct.value}
+            value={allData.selectProduct}
             onChange={(e) =>
               setAllData((allData) => {
                 return { ...allData, selectProduct: e };
               })
             }
+            labelInValue
+            message={"Please select product"}
+            showError={isValid}
           />
         </Col>
 
         <Col span={5}>
-          <Select
-            style={{ width: "100%" }}
-            placeholder="Select Bom"
-            options={bomName}
-            value={allData?.selectBom.value}
-            onChange={(e) =>
-              setAllData((allData) => {
-                return { ...allData, selectBom: e };
-              })
-            }
-          />
+          <Field
+            attr="required | Please enter Qty"
+            value={allData.selectBom}
+            showValidation={isValid}
+            style={{ minWidth: 240, flex: 1 }}
+          >
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Select Bom"
+              options={bomName}
+              value={allData?.selectBom}
+              onChange={(e) =>
+                setAllData((allData) => {
+                  return { ...allData, selectBom: e };
+                })
+              }
+            />
+          </Field>
         </Col>
 
         <Col span={1}>
