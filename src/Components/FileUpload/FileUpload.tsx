@@ -21,6 +21,7 @@ export default function FileUpload({
   loading,
 }: FileUploadProps) {
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const handleClose = useCallback(() => setOpen(false), []);
   const { items, addFiles, replaceFile, retryFile, deleteFile, uploadAll } = useFileUpload({
     accept,
@@ -34,12 +35,24 @@ export default function FileUpload({
     defaultFiles,
   });
 
+  const handleUploadAll = useCallback(async () => {
+    const result = await uploadAll();
+    if (result?.success) {
+      setCollapsed(true);
+    }
+  }, [uploadAll]);
+
   const trigger = isValidElement(children)
     ? cloneElement(children as ReactElement<{ onClick?: (e: MouseEvent) => void }>, {
         onClick: (event: MouseEvent) => {
           //@ts-ignore
           children.props?.onClick?.(event);
-          setOpen(true);
+          if (!open) {
+            setOpen(true);
+            setCollapsed(false);
+          } else {
+            setCollapsed((c) => !c);
+          }
         },
       })
     : children;
@@ -49,6 +62,8 @@ export default function FileUpload({
       {trigger}
       <UploadDrawer
         open={open}
+        collapsed={collapsed}
+        onCollapsedChange={setCollapsed}
         onClose={handleClose}
         title={title}
         width={drawerWidth}
@@ -60,7 +75,7 @@ export default function FileUpload({
         onDelete={deleteFile}
         onReplace={replaceFile}
         onRetry={retryFile}
-        onUploadAll={uploadAll}
+        onUploadAll={handleUploadAll}
         loading={loading}
       />
     </>

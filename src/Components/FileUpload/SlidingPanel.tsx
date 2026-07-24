@@ -8,6 +8,8 @@ import CloseIcon from "@mui/icons-material/Close";
 
 interface SlidingPanelProps {
   open: boolean;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
   onClose: () => void;
   title?: string;
   width?: number | string;
@@ -20,6 +22,8 @@ const COLLAPSED_WIDTH = 40;
 
 export default function SlidingPanel({
   open,
+  collapsed,
+  onCollapsedChange,
   onClose,
   title,
   width = 220,
@@ -28,7 +32,6 @@ export default function SlidingPanel({
 }: SlidingPanelProps) {
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,7 +40,6 @@ export default function SlidingPanel({
     let timeout: ReturnType<typeof setTimeout>;
     if (open) {
       setMounted(true);
-      setCollapsed(false);
       raf1 = requestAnimationFrame(() => {
         raf2 = requestAnimationFrame(() => setVisible(true));
       });
@@ -79,11 +81,11 @@ export default function SlidingPanel({
       }}
     >
       {/* <IconButton onClick={onClose} disabled size="small" aria-label="Close">
-        <CloseIcon fontSize="small" />
-      </IconButton> */}
+            <CloseIcon fontSize="small"  />
+          </IconButton> */}
       <IconButton
         size="small"
-        onClick={() => setCollapsed(false)}
+        onClick={() => onCollapsedChange(false)}
         aria-label="Collapse"
       >
         <ArrowForwardIcon
@@ -108,19 +110,14 @@ export default function SlidingPanel({
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <IconButton
             size="small"
-            onClick={() => setCollapsed(true)}
+            onClick={() => onCollapsedChange(true)}
             aria-label="Collapse"
           >
             <ArrowForwardIcon fontSize="small" />
           </IconButton>
 
-          {/* <IconButton
-            onClick={onClose}
-            disabled
-            size="small"
-            aria-label="Close"
-          >
-            <CloseIcon fontSize="small" />
+          {/* <IconButton onClick={onClose} disabled size="small" aria-label="Close">
+            <CloseIcon fontSize="small"  />
           </IconButton> */}
         </div>
       </div>

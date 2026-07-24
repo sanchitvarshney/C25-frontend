@@ -56,7 +56,7 @@ const MyDatePicker = ({
   const showValidation = showError  && isEmpty;
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", width: "100%" }}>
     <DatePicker.RangePicker
       size={size ? size : "default"}
       style={{

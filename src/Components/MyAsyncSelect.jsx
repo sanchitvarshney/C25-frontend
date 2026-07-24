@@ -52,7 +52,7 @@ const MyAsyncSelect = forwardRef(function MyAsyncSelect(
   const showValidation = showError && isEmpty;
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       <Select
         ref={ref}
         onMouseEnter={onMouseEnter}

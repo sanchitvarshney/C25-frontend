@@ -60,7 +60,7 @@ export default function SingleDatePicker({
   const showValidation = showError && isEmpty;
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       <DatePicker
         disabled={disabled}
         disabledDate={disabledDate}

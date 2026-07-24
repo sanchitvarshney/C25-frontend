@@ -7,6 +7,8 @@ import type { FileUploadItem } from "./types";
 
 interface UploadDrawerProps {
   open: boolean;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
   onClose: () => void;
   title?: string;
   width?: number | string;
@@ -24,6 +26,8 @@ interface UploadDrawerProps {
 
 export default function UploadDrawer({
   open,
+  collapsed,
+  onCollapsedChange,
   onClose,
   title = "Upload Files",
   width = 320,
@@ -36,27 +40,49 @@ export default function UploadDrawer({
   onReplace,
   onRetry,
   onUploadAll,
-  loading =false,
+  loading = false,
 }: UploadDrawerProps) {
   const pendingCount = items.filter(
     (item) => item.status === "idle" || item.status === "error",
   ).length;
 
   return (
-    <SlidingPanel open={open} onClose={onClose} title={title} width={width} container={getContainer} >
-      <div style={{ display: "flex", flexDirection: "column", height: "calc(100% - 0px)",  }}>
-
-
+    <SlidingPanel
+      open={open}
+      collapsed={collapsed}
+      onCollapsedChange={onCollapsedChange}
+      onClose={onClose}
+      title={title}
+      width={width}
+      container={getContainer}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "calc(100% - 0px)",
+        }}
+      >
         <div style={{ flexShrink: 0 }}>
-          <UploadArea accept={accept} multiple={multiple} onFilesSelected={onFilesSelected} />
+          <UploadArea
+            accept={accept}
+            multiple={multiple}
+            onFilesSelected={onFilesSelected}
+          />
         </div>
-         <Divider style={{ margin: "12px 0" }} />
+        <Divider style={{ margin: "12px 0" }} />
         <div style={{ flex: 1, overflowY: "auto" }}>
           {loading ? (
-            <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: 32,
+              }}
+            >
               <Spin />
             </div>
-          ) : items.length ? (
+          ) : (
             <Row gutter={[0, 0]}>
               {items.map((item) => (
                 <ImageCard
@@ -69,8 +95,6 @@ export default function UploadDrawer({
                 />
               ))}
             </Row>
-          ) : (
-            <Empty description="" style={{ marginTop: 32 }} />
           )}
         </div>
 
@@ -87,7 +111,6 @@ export default function UploadDrawer({
             </Button>
           </div>
         )}
-
       </div>
     </SlidingPanel>
   );

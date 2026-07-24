@@ -16,7 +16,7 @@ export default function MySelect({
   const isEmpty = value === undefined || value === null || value === "" || !value;
   const showValidation = showError  && isEmpty;
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", width: "100%" }}>
     <Select
       labelInValue={labelInValue}
       mode={mode}
