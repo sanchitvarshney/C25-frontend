@@ -19,6 +19,7 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
 import MySelect from "../../../../Components/MySelect";
 import MyButton from "../../../../Components/MyButton";
+import Field from "../../../../Components/Field";
 
 import Loading from "../../../../Components/Loading";
 import CategoryDrawer from "./CategoryDrawer";
@@ -36,15 +37,14 @@ export default function UpdateComponent() {
   const [categoryData, setCategoryData] = useState(null);
   const [showCategoryDetails, setShowCategoryDetails] = useState(false);
   const [fetchPartCode, setFetchPartCode] = useState("");
-  // const [newPartCodeDb, setNewPartCodeDb] = useState([]);
   const { componentKey } = useParams();
   const [componentForm] = Form.useForm();
   const [altPartCodeForm] = Form.useForm();
   const [alternatePartModal, setAlternatePartModal] = useState(false);
-
-  // const [tooltipVisible, setTooltipVisible] = useState(true);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const selectedGroup = Form.useWatch("group", componentForm);
+  const componentNameValue = Form.useWatch("component", componentForm);
 
   useEffect(() => {
     // console.log("attr_raw", attr_raw);/
@@ -141,10 +141,10 @@ export default function UpdateComponent() {
         }));
         altPartCodeForm.setFieldValue("alternatePart", objects);
       } else {
-        showToast(response.message, "error");
+        showToast(data.message.msg, "error");
       }
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -182,21 +182,6 @@ export default function UpdateComponent() {
       }
     } 
   }, [tooldata]);
-
-  useEffect(() => {
-    if (fetchPartCode) {
-      // const alterpartcode = fetchPartCode.alternate_part_name.map(
-      //   (name, index) => {
-      //     return {
-      //       id: index + 1,
-      //       partName: name,
-      //       partCode: fetchPartCode.alternate_part_codes[index],
-      //     };
-      //   }
-      // );
-      // setNewPartCodeDb(alterpartcode);
-    }
-  }, [fetchPartCode]);
 
   const getSubGroupOptions = async (groupId) => {
     if (!groupId) {
@@ -250,7 +235,7 @@ export default function UpdateComponent() {
         }
     
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -274,13 +259,23 @@ export default function UpdateComponent() {
         }
     
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
   };
   const modalConfirmMaterial = async () => {
-    const values = await componentForm.validateFields();
+    let values;
+    try {
+      values = await componentForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      throw error;
+    }
+    setIsValid(false);
     // console.log("attr_raw", attr_raw);
     // console.log("catType", componentForm.getFieldValue("catType"));
     let catTypeCategory = componentForm.getFieldValue("catType");
@@ -354,84 +349,7 @@ export default function UpdateComponent() {
       showToast(response.message, "error");
     }
   };
-  // const validateHandler = async () => {
-  //   const values = await componentForm.validateFields();
-  //   // console.log("attr_raw", attr_raw);
-  //   const payload = {
-  //     componentKey: componentKey,
-  //     componentname: values.component,
-  //     uom: values.uom.value,
-  //     category: "--",
-  //     mrn: values.mrp,
-  //     group: values.group,
-  //     new_partno: values.newPartCode,
-  //     enable_status: values.isEnabled,
-  //     jobwork_rate: values.jobWork,
-  //     qc_status: values.qcStatus,
-  //     description: values.description,
-  //     taxtype: values.taxType,
-  //     taxrate: values.taxRate,
-  //     brand: values.brand,
-  //     ean: values.ean,
-  //     weightgms: values.weight,
-  //     vweightgms: values.volumetricWeight,
-  //     height: values.height,
-  //     width: values.width,
-  //     minqty: values.minStock,
-  //     maxqty: values.maxStock,
-  //     minorder: values.minOrder,
-  //     leadtime: values.leadTime,
-  //     alert: values.enableAlert,
-  //     pocost: values.purchaseCost,
-  //     othercost: values.otherCost,
-  //     componentcategory: "--",
-  //     attr_code: attr_raw?.attributeCode ?? "--",
-  //     attr_raw: attr_raw?.attr_raw ?? "",
-  //     attr_category: attr_raw?.C_type ?? "O",
-  //     // c_type: attr_raw?.C_type ?? "O",
-  //   };
 
-  //   Modal.confirm({
-  //     title: "Update Component",
-  //     content: "Are you sure you want to update this component?",
-  //     okText: "Update",
-  //     onOk: () => submitHandler(payload),
-  //     confirmLoading: loading === "submit",
-  //   });
-  // };
-  // const getCategoryDetails = async () => {
-    // try {
-    //   const response = await imsAxios.post("/mfgcategory/editRmCategoryData", {
-    //     component: componentKey,
-    //   });
-    //   const { data } = response;
-    //   if (data) {
-    //     if (data.code === 200) {
-    //       if (data.header) {
-    //         const finalObj = {
-    //           name: data.header.category,
-    //           code: data.header.category_code,
-    //           key: data.header.category_id,
-    //           fields: data.inputs.map((row) => ({
-    //             key: row.attribute,
-    //             label: row.attribute_name,
-    //             type: row.type,
-    //             value: row.value,
-    //           })),
-    //         };
-    //         setCategoryData(finalObj);
-    //       } else {
-    //         setCategoryData(null);
-    //       }
-    //     } else {
-    //       toast.error(data.message.msg);
-    //     }
-    //   }
-    // } catch (error) {
-    // } finally {
-    //   setLoading(false);
-    // }
-  // };
 
   const submitHandler = async (payload) => {
     try {
@@ -448,7 +366,7 @@ export default function UpdateComponent() {
         showToast(response.message?.msg || response.message, "error");
       }
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -456,6 +374,7 @@ export default function UpdateComponent() {
 
   const resetHandler = () => {
     componentForm.resetFields();
+    setIsValid(false);
   };
 
   useEffect(() => {
@@ -540,9 +459,19 @@ export default function UpdateComponent() {
                     </Form.Item>
                   </Col>
                   <Col span={8}>
-                    <Form.Item name="component" label="Component Name">
-                      <Input />
-                    </Form.Item>
+                    <Field
+                      attr="required | Please enter Component Name"
+                      value={componentNameValue}
+                      showValidation={isValid}
+                    >
+                      <Form.Item
+                        name="component"
+                        label="Component Name"
+                        rules={[{ required: true, message: "" }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Field>
                   </Col>
                   <Col span={4}>
                     <Form.Item name="uom" label="UoM">
@@ -855,37 +784,6 @@ export default function UpdateComponent() {
   );
 }
 
-// const initialValues = {
-//   partCode: "",
-//   component: "",
-//   uom: {
-//     label: "",
-//     value: "",
-//   },
-//   mrp: "",
-//   group: "",
-//   isEnabled: "Y",
-//   jobWork: "",
-//   qcStatus: "E",
-//   description: "",
-//   taxType: "L",
-//   taxRate: "18",
-//   brand: "",
-//   ean: "",
-//   weight: "",
-//   height: "",
-//   width: "",
-//   volumetricWeight: "",
-//   minStock: "",
-//   maxStock: "",
-//   minOrder: "",
-//   leadTime: "",
-//   enableAlert: "",
-//   purchaseCost: "",
-//   otherCost: "",
-//   piaStatus: "",
-//   mountingStyle: "",
-// };
 
 const isEnabledOptions = [
   { text: "Yes", value: "Y" },
@@ -909,8 +807,3 @@ const taxRateOptions = [
   { text: "18%", value: "18" },
   { text: "28%", value: "28" },
 ];
-// const categoryOptions = [
-//   { text: "Assembly", value: "assembly" },
-//   { text: "Other", value: "other" },
-//   { text: "SMT", value: "smt" },
-// ];

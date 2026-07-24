@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Col, Form, Input, Row, Space } from "antd";
 //@ts-ignore
 import MyDataTable from "../../Components/MyDataTable";
@@ -9,39 +9,46 @@ import useApi from "../../hooks/useApi.ts";
 import { createUOM, getUOMList } from "../../api/master/uom";
 //@ts-ignore
 import { useToast } from "../../hooks/useToast.js";
+//@ts-ignore
+import Field from "../../Components/Field";
 
 const Uom = () => {
   const [uomData, setUomData] = useState([]);
   const { showToast } = useToast();
-
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm();
+  const nameValue = Form.useWatch("name", form);
+  const detailsValue = Form.useWatch("details", form);
 
   //   fetch uom
   const handleFetchUOMList = async () => {
     const response = await executeFun(() => getUOMList(), "fetch");
     setUomData(response.data ?? []);
-
   };
 
   //   add UOM
   const submitHandler = async () => {
-  try {    const values = await form.validateFields();
-    const payload = {
-      name: values.name,
-      details: values.details,
-    };
+    try {
+      const values = await form.validateFields();
+      setIsValid(false);
+      const payload = {
+        name: values.name,
+        details: values.details,
+      };
 
-    const response = await executeFun(() => createUOM(payload), "fetch");
-    if (response.success) {
-      form.resetFields();
-      handleFetchUOMList();
+      const response = await executeFun(() => createUOM(payload), "fetch");
+      if (response.success) {
+        form.resetFields();
+        handleFetchUOMList();
+      }
+    } catch (error: any) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
     }
-  } catch (error:any) {
-    showToast(error?.errorFields?.[0]?.errors?.[0] , "error");
-  }
-
-
   };
 
   const resetHandler = () => {
@@ -72,16 +79,37 @@ const Uom = () => {
 
   return (
     <div style={{ height: "100%", padding: 10 }}>
-      <Row gutter={12} >
+      <Row gutter={12}>
         <Col span={8}>
           <Card size="small" title="Create UOM">
             <Form form={form} layout="vertical">
-              <Form.Item name="name" label="Unit" rules={[{ required: true, message: "Please enter unit name" }]}>
-                <Input />
-              </Form.Item>
-              <Form.Item name="details" label="Specification">
-                <Input.TextArea rows={3} />
-              </Form.Item>
+              <Field
+                attr="required | Please enter Unit"
+                value={nameValue}
+                showValidation={isValid}
+              >
+                <Form.Item
+                  name="name"
+                  label="Unit"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Field>
+              <Field
+                attr="required | Please enter Specification"
+                value={detailsValue}
+                showValidation={isValid}
+              >
+                <Form.Item
+                  name="details"
+                  label="Specification"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+              </Field>
+
               <Row justify="center">
                 <Space>
                   <MyButton onClick={resetHandler} variant="reset" />

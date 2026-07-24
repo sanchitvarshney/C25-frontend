@@ -13,6 +13,7 @@ import {
   Typography,
 } from "antd";
 import MyButton from "../../../../../Components/MyButton";
+import Field from "../../../../../Components/Field";
 
 const CategoryMaster = () => {
   const { showToast } = useToast();
@@ -67,7 +68,7 @@ const CategoryMaster = () => {
         }
       });
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ const CategoryMaster = () => {
         });
       }
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -161,19 +162,22 @@ const CategoryMaster = () => {
                       loading !== field.name &&
                       fieldSelectOptions
                         .filter((opt) => opt.name === field.name)[0]
-                        ?.options.map((opt, idx) => (
+                        ?.options.map((opt,idx) => (
                           <Popover
-                          key={opt?.id || idx}
                             content={
                               <Row>
                                 <Col span={24}>
                                   <Typography.Text strong>
                                     Code:
                                   </Typography.Text>
+                                      <Typography.Text strong>
+                                    {opt.value}
+                                  </Typography.Text>
                                 </Col>
                               </Row>
                             }
-                            title="Title"
+                            title={opt.label}
+                            key={idx}
                           >
                             <Col
                               style={{
@@ -188,8 +192,8 @@ const CategoryMaster = () => {
                           </Popover>
                         ))}
                     {(loading === "fetch" || loading === field.name) &&
-                      [1, 1, 1, 1].map((_, idx) => (
-                        <Col key={idx}>
+                      [1, 1, 1, 1].map((_, index) => (
+                        <Col key={index}>
                           <Skeleton.Button style={{ width: 30 }} active />
                         </Col>
                       ))}
@@ -219,10 +223,22 @@ const CategoryMaster = () => {
 export default CategoryMaster;
 
 const AddOptionModal = ({ show, hide, getSingleFieldSelectOptions }) => {
-  // const [loading, setLoading] = useState(false);
-const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
+  const { showToast } = useToast();
+
   const validateHander = async () => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      throw error;
+    }
+    setIsValid(false);
     const payload = {
       attribute: show.name,
       value: values.label,
@@ -240,6 +256,7 @@ const { showToast } = useToast();
 
   const submitHandler = async (payload) => {
     try {
+      setLoading("submit");
       const response = await imsAxios.post(
         "/mfgcategory/insertAttributesData",
         payload
@@ -253,14 +270,19 @@ const { showToast } = useToast();
         showToast(response.message, "error");
       }
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
-    } 
+      showToast(error?.message || "Something went wrong", "error");
+    } finally {
+      setLoading(false);
+    }
   };
   const [form] = Form.useForm();
+  const labelValue = Form.useWatch("label", form);
+  const codeValue = Form.useWatch("code", form);
 
   useEffect(() => {
     if (!show) {
       form.resetFields();
+      setIsValid(false);
     }
   }, [show]);
   return (
@@ -270,7 +292,7 @@ const { showToast } = useToast();
       width={300}
       okText="Add"
       onOk={validateHander}
-      //   confirmLoading={confirmLoading}
+        confirmLoading={loading === "submit"}
       onCancel={hide}
     >
       <Form initialValues={initialValues} layout="vertical" form={form}>
@@ -280,12 +302,32 @@ const { showToast } = useToast();
           </Typography.Text>
         </Row>
         <Divider />
-        <Form.Item name="label" label="Label">
-          <Input />
-        </Form.Item>
-        <Form.Item name="code" label="Code">
-          <Input />
-        </Form.Item>
+        <Field
+          attr="required | Please enter a label"
+          value={labelValue}
+          showValidation={isValid}
+        >
+          <Form.Item
+            name="label"
+            label="Label"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Input />
+          </Form.Item>
+        </Field>
+        <Field
+          attr="required | Please enter a code"
+          value={codeValue}
+          showValidation={isValid}
+        >
+          <Form.Item
+            name="code"
+            label="Code"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Input />
+          </Form.Item>
+        </Field>
       </Form>
     </Modal>
   );

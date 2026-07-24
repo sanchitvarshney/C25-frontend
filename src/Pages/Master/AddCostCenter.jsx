@@ -3,6 +3,7 @@ import { Button, Form, Input } from "antd";
 import PropTypes from "prop-types";
 import { imsAxios } from "../../axiosInterceptor";
 import MyDataTable from "../../Components/MyDataTable";
+import Field from "../../Components/Field";
 import { useToast } from "../../hooks/useToast";
 
 function parseCostCenterText(text = "") {
@@ -14,9 +15,7 @@ function parseCostCenterText(text = "") {
   return { code: trimmed, name: trimmed };
 }
 
-export default function AddCostCenter({
-  setShowAddCostModal,
-}) {
+export default function AddCostCenter({ setShowAddCostModal }) {
   const { showToast } = useToast();
   const [centerData, setCenterData] = useState([]);
   const [newCostCenter, setNewCostCenter] = useState({
@@ -24,55 +23,56 @@ export default function AddCostCenter({
     name: "",
   });
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const inputHandler = (name, value) => {
     let obj = newCostCenter;
     obj = { ...obj, [name]: value };
     setNewCostCenter(obj);
   };
   const submitCostCenter = async () => {
-    if (newCostCenter.name.length > 0 && newCostCenter.code.length > 0) {
-      try {
-        setSubmitLoading(true);
-        const response = await imsAxios.post("/purchaseOrder/createCostCenter", {
-          code: newCostCenter.code,
-          name: newCostCenter.name,
+    if (!newCostCenter.name.length || !newCostCenter.code.length) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    try {
+      setSubmitLoading(true);
+      const response = await imsAxios.post("/purchaseOrder/createCostCenter", {
+        code: newCostCenter.code,
+        name: newCostCenter.name,
+      });
+
+      const isSuccess = Boolean(response?.success);
+
+      if (isSuccess) {
+        showToast(
+          response?.message || "Cost center created successfully",
+          "success",
+        );
+        setNewCostCenter({
+          code: "",
+          name: "",
         });
-
-        const isSuccess =
-          Boolean(response?.success) ||
-          Number(response?.code) === 200 ||
-          String(response?.status).toLowerCase() === "success";
-
-        if (isSuccess) {
-          showToast(response?.message || "Cost center created successfully", "success");
-          setNewCostCenter({
-            code: "",
-            name: "",
-          });
-          if (typeof setShowAddCostModal === "function") {
-            setShowAddCostModal(false);
-          }
-          handleFetchUOMList();
-        } else {
-          showToast(response?.message || "Failed to create cost center", "error");
+        if (typeof setShowAddCostModal === "function") {
+          setShowAddCostModal(false);
         }
-      } catch (error) {
-        showToast(error?.message || "Failed to create cost center", "error");
-      } finally {
-        setSubmitLoading(false);
+        handleFetchUOMList();
+      } else {
+        showToast(response?.message || "Failed to create cost center", "error");
       }
-    } else {
-      showToast("Cost Center should have a Name and ID", "error");
+    } catch (error) {
+      showToast(error?.message || "Failed to create cost center", "error");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
   const handleFetchUOMList = useCallback(async () => {
     try {
-       const response = await imsAxios.get("backend/costcenter?search=all");
+      const response = await imsAxios.get("backend/costcenter?search=all");
 
-     const isSuccess =
-        response?.success === true ||
-        response?.status === "success"
+      const isSuccess =
+        response?.success === true || response?.status === "success";
 
       if (isSuccess) {
         const formattedRows = (response?.data ?? []).map((item, index) => {
@@ -108,14 +108,31 @@ export default function AddCostCenter({
     <div
       style={{
         height: "calc(100vh - 160px)",
-   
-     
+
         padding: "12px",
       }}
     >
-      <div style={{maxWidth: "100%", marginBottom: 5, display:"flex", alignItems:"center",}}>
-      
-          <Form style={{ width: "100%",display: "flex", gap: "1rem", alignItems:"center",  }} >
+      <div
+        style={{
+          maxWidth: "100%",
+          marginBottom: 5,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Form
+          style={{
+            width: "100%",
+            display: "flex",
+            gap: "1rem",
+            alignItems: "center",
+          }}
+        >
+          <Field
+            attr="required | Please enter Cost Center ID"
+            value={newCostCenter.code}
+            showValidation={isValid}
+          >
             <Form.Item label="Cost Center Id">
               <Input
                 inputMode="numeric"
@@ -127,6 +144,12 @@ export default function AddCostCenter({
                 placeholder="Enter Cost Center ID"
               />
             </Form.Item>
+          </Field>
+          <Field
+            attr="required | Please enter Cost Center Name"
+            value={newCostCenter.name}
+            showValidation={isValid}
+          >
             <Form.Item label="Cost Center Name">
               <Input
                 value={newCostCenter.name}
@@ -136,29 +159,24 @@ export default function AddCostCenter({
                 placeholder="Enter Cost Center Name"
               />
             </Form.Item>
-            <Form.Item >
-                 <Button
+          </Field>
+          <Form.Item>
+            <Button
               onClick={submitCostCenter}
               loading={submitLoading}
               type="primary"
             >
               Submit
             </Button>
-            </Form.Item>
-          </Form>
-       
-        
-       
-      
+          </Form.Item>
+        </Form>
       </div>
-      <div  style={{ height: "100%" }}>
-    
-          <MyDataTable
-            // loading={loading("fetch")}
-            data={centerData}
-            columns={columns}
-          />
-      
+      <div style={{ height: "100%" }}>
+        <MyDataTable
+          // loading={loading("fetch")}
+          data={centerData}
+          columns={columns}
+        />
       </div>
     </div>
   );

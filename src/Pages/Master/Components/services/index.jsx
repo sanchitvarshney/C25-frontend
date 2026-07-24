@@ -1,10 +1,11 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import UpdateService from "./UpdateService";
 import { v4 } from "uuid";
 import MyDataTable from "../../../../Components/MyDataTable";
-import {  Card, Col, Form, Input, Row, Space } from "antd";
+import { Card, Col, Form, Input, Row, Space } from "antd";
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field";
 import TableActions from "../../../../Components/TableActions.jsx/TableActions";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyButton from "../../../../Components/MyButton";
@@ -18,6 +19,7 @@ function Services() {
   const [rows, setRows] = useState([]);
   const [units, setUnits] = useState([]);
   const [editService, setEditService] = useState(null);
+  const [isValid, setIsValid] = useState(false);
   const [newService, setNewService] = useState({
     part: "",
     uom: "",
@@ -56,15 +58,16 @@ function Services() {
 
   const addService = async (e) => {
     e.preventDefault();
-    if (!newService.part) {
-      return showToast("Please enter part no.", "error");
-    } else if (!newService.uom) {
-      return showToast("please select a unit", "error");
-    } else if (!newService.component) {
-      return showToast("Please enter a component name", "error");
-    } else if (!newService.notes) {
-      return showToast("Please enter a note", "error");
+    if (
+      !newService.part ||
+      !newService.uom ||
+      !newService.component ||
+      !newService.notes
+    ) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     setSubmitLoading(true);
     const response = await imsAxios.post("/component/addServices", {
       ...newService,
@@ -86,6 +89,7 @@ function Services() {
       component: "",
       notes: "",
     });
+    setIsValid(false);
   };
   const inputHandler = (name, value) => {
     let obj = newService;
@@ -103,7 +107,7 @@ function Services() {
       field: "action",
       getActions: ({ row }) => [
         <TableActions
-        key={"edit"}
+          key={"edit"}
           action="edit"
           onClick={() =>
             setEditService({
@@ -141,23 +145,31 @@ function Services() {
                 <Col span={24}>
                   <Row gutter={8}>
                     <Col span={18}>
-                      <Form.Item
-                        label={
-                          <span
-                            style={{
-                              fontSize: window.innerWidth < 1600 && "0.7rem",
-                            }}
-                          >
-                            Part Number
-                          </span>
-                        }
+                      <Field
+                        attr="required | Please enter part no."
+                        value={newService.part}
+                        showValidation={isValid}
                       >
-                        <Input
-                          size="default"
-                          value={newService.part}
-                          onChange={(e) => inputHandler("part", e.target.value)}
-                        />
-                      </Form.Item>
+                        <Form.Item
+                          label={
+                            <span
+                              style={{
+                                fontSize: window.innerWidth < 1600 && "0.7rem",
+                              }}
+                            >
+                              Part Number
+                            </span>
+                          }
+                        >
+                          <Input
+                            size="default"
+                            value={newService.part}
+                            onChange={(e) =>
+                              inputHandler("part", e.target.value)
+                            }
+                          />
+                        </Form.Item>
+                      </Field>
                     </Col>
                     <Col span={6}>
                       <Form size="small" layout="vertical">
@@ -177,6 +189,8 @@ function Services() {
                             options={units}
                             value={newService.uom}
                             onChange={(value) => inputHandler("uom", value)}
+                            showError={isValid}
+                            message="Please select a unit"
                           />
                         </Form.Item>
                       </Form>
@@ -185,26 +199,40 @@ function Services() {
                 </Col>
 
                 <Col span={24}>
-                  <Form.Item label=" Component Name">
-                    <Input
-                      size="default"
-                      value={newService.component}
-                      onChange={(e) =>
-                        inputHandler("component", e.target.value)
-                      }
-                    />
-                  </Form.Item>
+                  <Field
+                    attr="required | Please enter a component name"
+                    value={newService.component}
+                    showValidation={isValid}
+                  >
+                    <Form.Item label=" Component Name">
+                      <Input
+                        size="default"
+                        value={newService.component}
+                        onChange={(e) =>
+                          inputHandler("component", e.target.value)
+                        }
+                      />
+                    </Form.Item>
+                  </Field>
                 </Col>
 
                 <Col span={24}>
                   <Form size="small" layout="vertical">
-                    <Form.Item label="Specification">
-                      <Input
-                        size="default"
-                        value={newService.notes}
-                        onChange={(e) => inputHandler("notes", e.target.value)}
-                      />
-                    </Form.Item>
+                    <Field
+                      attr="required | Please enter a note"
+                      value={newService.notes}
+                      showValidation={isValid}
+                    >
+                      <Form.Item label="Specification">
+                        <Input
+                          size="default"
+                          value={newService.notes}
+                          onChange={(e) =>
+                            inputHandler("notes", e.target.value)
+                          }
+                        />
+                      </Form.Item>
+                    </Field>
                   </Form>
                 </Col>
                 <Col span={24}>

@@ -10,9 +10,10 @@ import {
   Space,
   Typography,
 } from "antd";
-import { useEffect, useState } from "react";
-import { useToast } from "../../../hooks/useToast.js";
-import { imsAxios } from "../../../axiosInterceptor";
+
+import  { useEffect, useState } from "react";
+import { useToast } from "../../../../hooks/useToast.js";
+import { imsAxios } from "../../../../axiosInterceptor";
 import { DeleteOutlined } from "@ant-design/icons";
 
 export default function ComponentImages({ showImages, setShowImages }) {
@@ -21,12 +22,13 @@ export default function ComponentImages({ showImages, setShowImages }) {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [images, setImages] = useState([]);
 
+
   const getImages = async () => {
     setSkeletonLoading(true);
     const response = await imsAxios.post("/component/fetchImageComponent", {
-      component: showImages.partNumber?.value,
+      component: showImages.partNumber,
     });
-    if (response?.success) {
+    if (response.success) {
       setImages(response.data);
     } else {
       setImages([]);
@@ -38,17 +40,18 @@ export default function ComponentImages({ showImages, setShowImages }) {
   const deleteImage = async (image) => {
     setDeleteLoading(image.image_id);
     const response = await imsAxios.post("/component/ComponentDelete", {
-      component: showImages.partNumber?.value,
+      component: showImages.partNumber,
       image: image.image_id,
     });
-
+   
+  
       if (response.success) {
         showToast(response.message, "success");
         let arr = images;
         arr = images.filter((row) => row.image_id !== image.image_id);
         setImages(arr);
       }
-    
+  
   };
   useEffect(() => {
     if (showImages) {
@@ -57,7 +60,7 @@ export default function ComponentImages({ showImages, setShowImages }) {
   }, [showImages]);
   return (
     <Drawer
-      title={`${showImages?.partNumber?.label ?? ""}`}
+      title={`${showImages?.partCode ?? ""}`}
       placement="right"
       width="40vw"
       onClose={() => setShowImages(null)}
@@ -69,10 +72,10 @@ export default function ComponentImages({ showImages, setShowImages }) {
       <Row gutter={[8, 8]}>
         {!skeletonLoading && (
           <Image.PreviewGroup>
-            {images.map((image,idx) => (
+            {images.map((image) => (
               // <Col span={24}>
               // <Row style={{ margin: "20px 0px" }} justify="center">
-              <Col span={12} key={image?.key || idx}>
+              <Col span={12} key={image.image_id}>
                 <Card
                   style={{ position: "relative", height: 300 }}
                   bodyStyle={{ padding: 5, height: 300 }}
