@@ -11,6 +11,7 @@ import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 import MyButton from "../../../Components/MyButton";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import Field from "../../../Components/Field";
 import { getBomOptions, getCostCentresOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "../../../utils/general.ts";
 import useApi from "../../../hooks/useApi.ts";
@@ -21,6 +22,9 @@ export default function NewProjectForm() {
   const [loading, setLoading] = useState(false);
   const [newProjectForm] = Form.useForm();
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
+  const projectIdValue = Form.useWatch("project_id", newProjectForm);
+  const projectNameValue = Form.useWatch("project_name", newProjectForm);
 
   const { executeFun } = useApi();
 
@@ -44,6 +48,7 @@ export default function NewProjectForm() {
   };
 
   const validateData = (values) => {
+    setIsValid(false);
     setSubmitConfirm(values);
   };
   const submitHandler = async () => {
@@ -71,6 +76,7 @@ export default function NewProjectForm() {
     };
     newProjectForm.setFieldsValue(obj);
     setAsyncOptions([]);
+    setIsValid(false);
   };
   return (
     <Form
@@ -78,6 +84,7 @@ export default function NewProjectForm() {
       layout="vertical"
       form={newProjectForm}
       onFinish={validateData}
+      onFinishFailed={() => setIsValid(true)}
     >
       <CreateSubmitConfirmModal
         showSubmitConfirm={submitConfirm}
@@ -88,7 +95,7 @@ export default function NewProjectForm() {
       />
 
       <Row gutter={10}>
-        <Col span={22}>
+        <Col span={24}>
           <Row gutter={8}>
             {/* <Col span={24}>
               <Descriptions
@@ -106,55 +113,53 @@ export default function NewProjectForm() {
               </Descriptions>
             </Col> */}
             <Col span={24}>
-              <Form.Item
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter a Project ID!",
-                  },
-                ]}
-                label="Project Id"
-                name="project_id"
+              <Field
+                attr="required | Please enter a Project ID!"
+                value={projectIdValue}
+                showValidation={isValid}
               >
-                <Input />
-                {/* <MyAsyncSelect
+                <Form.Item
+                  rules={[{ required: true, message: "" }]}
+                  label="Project Id"
+                  name="project_id"
+                >
+                  <Input />
+                  {/* <MyAsyncSelect
                 selectLoading={selectLoading}
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getProject}
                 optionsState={asyncOptions}
                 size="default"
               /> */}
-              </Form.Item>
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={24}>
-              <Form.Item
-                rules={[
-                  {
-                    required: true,
-                    message: "Please Enter a new Project Name!",
-                  },
-                ]}
-                name="project_name"
-                label="Project Name"
+              <Field
+                attr="required | Please Enter a new Project Name!"
+                value={projectNameValue}
+                showValidation={isValid}
               >
-                <Input />
-              </Form.Item>
+                <Form.Item
+                  rules={[{ required: true, message: "" }]}
+                  name="project_name"
+                  label="Project Name"
+                >
+                  <Input />
+                </Form.Item>
+              </Field>
             </Col>
             <Col span={24}>
               <Form.Item
                 name="costcenter"
                 label="Cost Center"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please Select a Cost Center!",
-                  },
-                ]}
+             
               >
                 <MyAsyncSelect
                   onBlur={() => setAsyncOptions([])}
                   optionsState={asyncOptions}
                   loadOptions={getCostCenteres}
+               
                 />
               </Form.Item>
             </Col>

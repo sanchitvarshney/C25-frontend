@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Drawer, Input, Button, Form, message } from "antd";
+import { Drawer, Input, Button, Form } from "antd";
 //@ts-ignore
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+//@ts-ignore
+import Field from "../../../Components/Field";
 //@ts-ignore
 import { getBomOptions, getCostCentresOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "@/utils/general";
@@ -14,10 +16,14 @@ const UpdateProjectModal = ({
   onUpdate 
 }:any) => {
   const [form] = Form.useForm();
+  const [isValid, setIsValid] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const descriptionValue = Form.useWatch("description", form);
+  const qtyValue = Form.useWatch("qty", form);
 
 
-  const [bomOptions, setBomOptions] = useState([]);           
-  const [costCenterOptions, setCostCenterOptions] = useState([]); 
+  const [bomOptions, setBomOptions] = useState([]);
+  const [costCenterOptions, setCostCenterOptions] = useState([]);
 
   const { executeFun } = useApi();
 
@@ -70,24 +76,31 @@ const UpdateProjectModal = ({
     setBomOptions([]);
     setCostCenterOptions([]);
     setIsModalVisible(false);
+    setIsValid(false);
   };
 
   const handleSubmit = () => {
     form
       .validateFields()
-      .then((values) => {        
+      .then(async (values) => {
+        setIsValid(false);
         const updatedData = {
           project: values.project,
           description: values.description?.trim(),
           qty: values.qty,
-          bomSubject: values.bom || null,        
-          costcenter: values.costcenter || null, 
+          bomSubject: values.bom || null,
+          costcenter: values.costcenter || null,
         };
 
-        onUpdate(updatedData); // Send to parent
+        try {
+          setSubmitLoading(true);
+          await onUpdate(updatedData); // Send to parent
+        } finally {
+          setSubmitLoading(false);
+        }
       })
       .catch((info) => {
-        message.error("Please fill in all required fields.");
+        setIsValid(true);
       });
   };
 
@@ -100,10 +113,15 @@ const UpdateProjectModal = ({
       placement="right"
       footer={
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <Button key="cancel" onClick={handleCancel}>
+          <Button key="cancel" onClick={handleCancel} disabled={submitLoading}>
             Cancel
           </Button>
-          <Button key="submit" type="primary" onClick={handleSubmit}>
+          <Button
+            key="submit"
+            type="primary"
+            onClick={handleSubmit}
+            loading={submitLoading}
+          >
             Update Project
           </Button>
         </div>
@@ -118,17 +136,33 @@ const UpdateProjectModal = ({
           <Input disabled />
         </Form.Item>
 
-        <Form.Item
-          name="description"
-          label="Project Description"
-          rules={[{ required: true, message: "Please enter project description" }]}
+        <Field
+          attr="required | Please enter project description"
+          value={descriptionValue}
+          showValidation={isValid}
         >
-          <Input.TextArea rows={3} placeholder="Enter project name/description" />
-        </Form.Item>
+          <Form.Item
+            name="description"
+            label="Project Description"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Input.TextArea rows={3} placeholder="Enter project name/description" />
+          </Form.Item>
+        </Field>
 
-        <Form.Item name="qty" label="Quantity" rules={[{ required: true }]}>
-          <Input type="number" min={1} />
-        </Form.Item>
+        <Field
+          attr="required | Please enter Quantity"
+          value={qtyValue}
+          showValidation={isValid}
+        >
+          <Form.Item
+            name="qty"
+            label="Quantity"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Input type="number" min={1} />
+          </Form.Item>
+        </Field>
 
         {/* BOM Field - Uses its own options */}
         <Form.Item name="bom" label="BOM">
