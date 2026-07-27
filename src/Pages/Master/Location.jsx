@@ -166,6 +166,7 @@ function Location() {
       location_address: values?.address,
       mapping_user: values?.username,
       vendor_loc: values?.jobworkLocation,
+      location_heading: values?.heading,
     };
     setSubmitLoading(true);
     const response = await imsAxios.post("/location/insertLocation", obj);
@@ -347,6 +348,11 @@ function Location() {
       width: 150,
     },
     {
+      field: "locationHeading",
+      headerName: "Heading",
+      width: 150,
+    },
+    {
       headerName: "Is Blocked",
       width: 180,
       field: "status",
@@ -485,6 +491,7 @@ function Location() {
       username: "",
       jobworkLocation: "N",
       address: "",
+      heading: "",
     });
     getDataTree();
     getParentLocationOptions();
@@ -633,6 +640,11 @@ function Location() {
                           </Form.Item>
                         </Col>
                       </Row>
+                    </Col>
+                    <Col span={24}>
+                      <Form.Item name="heading" label="Heading">
+                        <Input size="default" maxLength={100} />
+                      </Form.Item>
                     </Col>
                     <Col span={24}>
                       <Field
