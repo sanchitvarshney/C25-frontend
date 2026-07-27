@@ -17,6 +17,7 @@ import { downloadCSV } from "../../../Components/exportToCSV";
 import {
   CommonIcons,
 } from "../../../Components/TableActions.jsx/TableActions";
+import Field from "../../../Components/Field";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../axiosInterceptor";
 import { GridActionsCellItem } from "@mui/x-data-grid";
@@ -29,7 +30,7 @@ const ManagePO = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  // const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [viewLoading, setViewLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [showViewSidebar, setShowViewSideBar] = useState(false);
@@ -48,7 +49,7 @@ const ManagePO = () => {
     { value: "single_date_wise", text: "Date Wise" },
     { value: "po_wise", text: "PO ID Wise" },
     { value: "vendor_wise", text: "Vendor Wise" },
-    {value: "requestPo", text:"Requested PR"},
+    // {value: "requestPo", text:"Requested PR"},
   ];
   const printFun = async (poid) => {
     setLoading(true);
@@ -309,6 +310,27 @@ const ManagePO = () => {
       }
     }
   };
+
+    const validateAndSearch = () => {
+    if (!wise) {
+      setIsValid(true);
+      return;
+    }
+    if (wise === "single_date_wise" && !searchDateRange) {
+      setIsValid(true);
+      return;
+    }
+    if (wise === "po_wise" && !searchInput.trim()) {
+      setIsValid(true);
+      return;
+    }
+    if (wise === "vendor_wise"  && !searchInput) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    getSearchResults();
+  };
   //getting vendors list for filter by vendors
   const getVendors = async (search) => {
     if (search?.length > 2) {
@@ -396,7 +418,13 @@ const ManagePO = () => {
         <Col>
           <Space>
             <div style={{ width: 150 }}>
-              <MySelect options={wiseOptions} onChange={setWise} value={wise} />
+                 <MySelect
+                options={wiseOptions}
+                onChange={setWise}
+                value={wise}
+                showError={isValid}
+                message="Please select wise"
+              />
             </div>
             <div style={{ width: 300 }}>
               {wise === "single_date_wise" ? (
@@ -405,15 +433,23 @@ const ManagePO = () => {
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                        showError={isValid}
+                  message="Please select a date range"
                 />
               ) : wise === "po_wise" ? (
-                <Input
-                  style={{ width: "100%" }}
-                  type="text"
-                  placeholder="Enter Po Number"
+                   <Field
+                  attr="required | Please enter a PO number"
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                />
+                  showValidation={isValid}
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    type="text"
+                    placeholder="Enter Po Number"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </Field>
               ) : (
                 wise === "vendor_wise" && (
                   <MyAsyncSelect
@@ -425,23 +461,17 @@ const ManagePO = () => {
                     loadOptions={getVendors}
                     optionsState={asyncOptions}
                     placeholder="Select Vendor..."
+                       showError={isValid}
+                    message="Please select a vendor"
                   />
                 )
               )}
             </div>
             <MyButton
-              disabled={
-                wise === "single_date_wise"
-                  ? searchDateRange === ""
-                    ? true
-                    : false
-                  : !searchInput
-                  ? true
-                  : false
-              }
+             
               type="primary"
               loading={searchLoading}
-              onClick={getSearchResults}
+             onClick={validateAndSearch}
               id="submit"
               variant="search"
             >
