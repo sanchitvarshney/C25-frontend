@@ -27,7 +27,7 @@ import useApi from "../../../hooks/useApi.ts";
 import FormTable from "../../../Components/FormTable.jsx";
 import { useToast } from "../../../hooks/useToast.js";
 import MyButton from "../../../Components/MyButton/index.jsx";
-
+import Field from "../../../Components/Field.jsx";
 import { InboxOutlined } from "@ant-design/icons";
 
 import { downloadCSVCustomColumns } from "../../../Components/exportToCSV.jsx";
@@ -69,7 +69,7 @@ export default function AddComponents({
   const [pageLoading, setPageLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [showCurrencyModal, setShowCurrencyModal] = useState(null);
-
+  const [isValid, setIsValid] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
   const [preview, setPreview] = useState(false);
@@ -878,6 +878,25 @@ export default function AddComponents({
       },
     ]);
     setConfirmReset(false);
+    setIsValid(false);
+  };
+  const validateRowsAndSubmit = () => {
+    const hasIncompleteRow = rowCount.some(
+      (row) =>
+        !row.component ||
+        !row.qty ||
+        !row.rate ||
+        !row.currency ||
+        row.gstrate === "" ||
+        row.gstrate === undefined ||
+        !row.duedate,
+    );
+    if (hasIncompleteRow) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    submitHandler(rowCount);
   };
   useEffect(() => {
     let obj = [
@@ -954,6 +973,7 @@ export default function AddComponents({
           asyncOptions,
           loading1("select"),
           gstState,
+          isValid,
         ),
     },
     {
@@ -966,7 +986,7 @@ export default function AddComponents({
       headerName: "Ord. Qty",
       field: "qty",
       sortable: false,
-      renderCell: (params) => quantityCell(params, inputHandler),
+      renderCell: (params) => quantityCell(params, inputHandler, isValid),
       width: 130,
     },
 
@@ -975,7 +995,7 @@ export default function AddComponents({
       width: 170,
       field: "rate",
       sortable: false,
-      renderCell: (params) => rateCell(params, inputHandler, currencies),
+      renderCell: (params) => rateCell(params, inputHandler, currencies, isValid),
     },
 
     {
@@ -1081,28 +1101,38 @@ export default function AddComponents({
         ];
 
         return (
-          <select
-            style={{
-              width: "100%",
-              padding: "6px 8px",
-              border: "1px solid #d9d9d9",
-              borderRadius: 6,
-              backgroundColor: "white",
-              fontSize: 13,
-            }}
-            value={params.row.gstrate || ""}
-            onChange={(e) => {
-              const newRate = Number(e.target.value);
-              inputHandler("gstrate", newRate, params.row.id);
-            }}
+            <Field
+            attr="required | GST Rate is required"
+            value={
+              params.row.gstrate === "" || params.row.gstrate === undefined
+                ? undefined
+                : params.row.gstrate
+            }
+            showValidation={isValid}
           >
-            <option value="">Select</option>
-            {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            <select
+              style={{
+                width: "100%",
+                padding: "6px 8px",
+                border: "1px solid #d9d9d9",
+                borderRadius: 6,
+                backgroundColor: "white",
+                fontSize: 13,
+              }}
+              value={params.row.gstrate || ""}
+              onChange={(e) => {
+                const newRate = Number(e.target.value);
+                inputHandler("gstrate", newRate, params.row.id);
+              }}
+            >
+              <option value="">Select</option>
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
         );
       },
     },
@@ -1441,9 +1471,7 @@ export default function AddComponents({
         hideHeaderMenu
         loading={submitLoading}
         backFunction={() => setActiveTab("1")}
-        submitFunction={() => {
-          submitHandler(rowCount);
-        }}
+         submitFunction={validateRowsAndSubmit}
       />
 
       <Modal

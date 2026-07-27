@@ -2,6 +2,7 @@ import { Input, Tooltip } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
+import Field from "../../../Components/Field";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
   { value: "L", text: "LOCAL" },
@@ -13,7 +14,9 @@ export const componentSelect = (
   loadOptions,
   setAsyncOptions,
   asyncOptions,
-  selectLoading
+  selectLoading,
+  gstState,
+  isValid,
 ) => (
   <MyAsyncSelect
     selectLoading={selectLoading}
@@ -27,38 +30,62 @@ export const componentSelect = (
     styles={{ width: "100%" }}
     loadOptions={loadOptions}
     optionsState={asyncOptions}
+    showError={isValid}
+    message="Please select a component"
   />
 );
 
-export const quantityCell = ({ row }, inputHandler) => (
+export const quantityCell = ({ row }, inputHandler, isValid) => (
   <Tooltip
     trigger={["hover"]}
     title={"Order Qty Should be less than or equal to PR Qty"}
     placement="topLeft"
     classNames={{ root: "numeric-input" }}
     color="red"
-    open={row.qtyApproval ? undefined : false} 
+    open={row.qtyApproval ? undefined : false}
   >
-    <Input
-      style={{ borderColor: row.qtyApproval && "red" }}
+    <Field
+      attr="required | Qty is required"
       value={row.qty}
-      onChange={(e) => inputHandler("qty", e.target.value, row.id)}
-      suffix={row.unit}
-    />
+      showValidation={isValid}
+    >
+      <Input
+        style={{ borderColor: row.qtyApproval && "red" }}
+        value={row.qty}
+        onChange={(e) => inputHandler("qty", e.target.value, row.id)}
+        suffix={row.unit}
+      />
+    </Field>
   </Tooltip>
 );
-export const rateCell = ({ row }, inputHandler, currencies) => (
+export const rateCell = ({ row }, inputHandler, currencies, isValid) => (
   <Input.Group compact>
-    <Input
-      style={{ width: "62%", borderColor: row.approval && "red" }}
+    <Field
+      attr="required | Rate is required"
       value={row.rate}
-      onChange={(e) => inputHandler("rate", e.target.value, row.id)}
-    />
-    <div style={{ width: "35%" , marginLeft: "1px"}}>
+      showValidation={isValid}
+      style={{ width: "62%", display: "inline-block" }}
+    >
+      <Input
+        style={{ width: "100%", borderColor: row.approval && "red" }}
+        value={row.rate}
+        onChange={(e) => inputHandler("rate", e.target.value, row.id)}
+      />
+    </Field>
+    <div
+      style={{
+        width: "35%",
+        marginLeft: "1px",
+        display: "inline-block",
+        verticalAlign: "top",
+      }}
+    >
       <MySelect
         options={currencies}
         value={row.currency}
         onChange={(value) => inputHandler("currency", value, row.id)}
+        showError={isValid}
+        message="Please select currency"
       />
     </div>
   </Input.Group>
@@ -83,7 +110,7 @@ export const foreignCell = ({ row }) => {
     />
   );
 };
-export const invoiceDateCell = ({ row }, inputHandler) => {
+export const invoiceDateCell = ({ row }, inputHandler, isValid) => {
   return (
     <SingleDatePicker
       row={row}
@@ -93,6 +120,8 @@ export const invoiceDateCell = ({ row }, inputHandler) => {
       inputHandler={inputHandler}
       format="DD-MM-YYYY"
       placeholder="Select Date"
+      showError={isValid}
+      message="Due date is required"
     />
   );
 };
