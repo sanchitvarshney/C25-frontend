@@ -31,7 +31,7 @@ import ToolTipEllipses from "../../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { getComponentOptions } from "../../../../api/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
-import MyDataTable from "../../../../Components/MyDataTable.jsx";
+import FormTable from "../../../../Components/FormTable.jsx";
 export default function EditComponent({
   rowCount,
   setRowCount,
@@ -50,6 +50,7 @@ export default function EditComponent({
   const [confirmReset, setConfirmReset] = useState(false);
   const [submitConfirm, setSubmitConfirm] = useState(null);
   const [removePartLoading, setRemovePartLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [totalTaxValue, setTotaTaxValue] = useState([]);
   const [showCurrencyUpdateConfirmModal, setShowCurrencyUpdateConfirmModal] =
     useState(false);
@@ -357,21 +358,24 @@ export default function EditComponent({
   const resetRows = () => {
     setRowCount(resetRowsDetailsData);
     setConfirmReset(false);
+    setIsValid(false);
   };
  const validateData = () => {
   let validation = true;
 
   // Basic required field check
   rowCount.forEach((row) => {
-    if (!row.component || !row.qty || !row.rate || !row.hsncode || !row.gsttype) {
+    if (!row.component || !row.qty || !row.rate || !row.hsncode || !row.gsttype || !row.duedate) {
       validation = false;
     }
   });
-
+console.log(rowCount, "data")
   if (!validation) {
-    showToast("Please fill all required component fields", "error");
+    setIsValid(true);
+    showToast("Please fill all the required fields", "error");
     return;
   }
+  setIsValid(false);
 
   // Build components arrays
   const components = {
@@ -575,7 +579,8 @@ export default function EditComponent({
           inputHandler,
           getComponents,
           setAsyncOptions,
-          asynOptions
+          asynOptions,
+          isValid
         ),
     },
     {
@@ -589,14 +594,15 @@ export default function EditComponent({
       width: 130,
       field: "qty",
       sortable: false,
-      renderCell: (params) => quantityCell(params, inputHandler),
+      renderCell: (params) => quantityCell(params, inputHandler, isValid),
     },
     {
       headerName: "Rate",
       width: 180,
       field: "rate",
       sortable: false,
-      renderCell: (params) => rateCell(params, inputHandler, currencies),
+      renderCell: (params) =>
+        rateCell(params, inputHandler, currencies, isValid),
     },
     {
       headerName: "Last rate",
@@ -669,21 +675,21 @@ export default function EditComponent({
       width: 150,
       field: "duedate",
       sortable: false,
-      renderCell: (params) => invoiceDateCell(params, inputHandler),
+      renderCell: (params) => invoiceDateCell(params, inputHandler, isValid),
     },
     {
       headerName: "HSN Code",
       width: 150,
       field: "hsncode",
       sortable: false,
-      renderCell: (params) => HSNCell(params, inputHandler),
+      renderCell: (params) => HSNCell(params, inputHandler, isValid),
     },
     {
       headerName: "GST Type",
       width: 150,
       field: "gsttype",
       sortable: false,
-      renderCell: (params) => gstTypeCell(params, inputHandler),
+      renderCell: (params) => gstTypeCell(params, inputHandler, isValid),
     },
     {
       headerName: "GST Rate",
@@ -966,7 +972,7 @@ export default function EditComponent({
         <Col
           span={18}
         >
-          <MyDataTable columns={columns} data={rowCount} />
+             <FormTable columns={columns} data={rowCount} />
         </Col>
       </Row>
       <NavFooter

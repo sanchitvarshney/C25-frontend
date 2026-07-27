@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import EditComponents from "./EditComponents";
 import NavFooter from "../../../../Components/NavFooter";
@@ -18,6 +18,7 @@ import {
 } from "antd";
 import MySelect from "../../../../Components/MySelect";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
+import Field from "../../../../Components/Field";
 import TextArea from "antd/lib/input/TextArea";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { v4 } from "uuid";
@@ -42,17 +43,20 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
   const [resetRowsDetailsData, setResetRowsDetailsData] = useState(null);
   const [showDetailsCondirm, setShowDetailsConfirm] = useState(false);
   const [projectDesc, setProjectDesc] = useState("");
-  // const [pageLoading, setPageLoading] = useState(false);
   const [form] = Form.useForm();
+  const [isValid, setIsValid] = useState(false);
+  const vendoraddressValue = Form.useWatch("vendoraddress", form);
+  const billpannoValue = Form.useWatch("billpanno", form);
+  const billgstidValue = Form.useWatch("billgstid", form);
+  const billaddressValue = Form.useWatch("billaddress", form);
+  const shipPartynameValue = Form.useWatch("ship_partyname", form);
+  const shipaddressValue = Form.useWatch("shipaddress", form);
+  const advancePaymentValue = Form.useWatch("advancePayment", form);
+  const shipTypeValue = Form.useWatch("ship_type", form);
+  const shippannoValue = Form.useWatch("shippanno", form);
+  const shipgstidValue = Form.useWatch("shipgstid", form);
   const { executeFun, loading: loading1 } = useApi();
-  // const inputHandler = (name, value) => {
-  //   setPurchaseOrder((purchaseOrder) => {
-  //     return {
-  //       ...purchaseOrder,
-  //       [name]: value,
-  //     };
-  //   });
-  // };
+
 
   const selectInputHandler = async (name, value) => {
     if (value) {
@@ -378,7 +382,7 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
   ]);
 
   const finish = (values) => {
-    console.log(values);
+    setIsValid(false);
     setActiveTab("2");
     setPurchaseOrder(values);
   };
@@ -399,31 +403,29 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
       projectname: projectValue,
     }));
 
-    // setPageLoading(true);
+
     const response = await imsAxios.post("/backend/projectDescription", {
       project_name: typeof value === "object" ? value.value : value,
     });
-    // setPageLoading(false);
-    
-    const data = response?.data;
-    if (data) {
+
       if (response.success) {
+          const data = response?.data;
         setProjectDesc(data.description);
 
         await handleProjectCostCenter(typeof value === "object" ? value.value : value);
       } else {
-        showToast(data.message, "error");
+        showToast(response.message, "error");
       }
-    }
+  
   };
 
   const handleProjectCostCenter = async (projectName) => {
-    // setPageLoading(true);
+
     try {
       const response = await imsAxios.post("/purchaseOrder/costCenter", {
         project_name: projectName,
       });
-      // setPageLoading(false);
+
       const responseData = response?.success !== undefined ? response : response?.data || response;
 
       if (responseData && responseData.success && responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
@@ -442,7 +444,6 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
         showToast(responseData?.message || "Failed to fetch cost center", "error");
       }
     } catch (error) {
-      // setPageLoading(false);
       showToast("Error fetching project cost center", "error");
     }
   };
@@ -489,6 +490,7 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
           <Form
             form={form}
             onFinish={finish}
+            onFinishFailed={() => setIsValid(true)}
             initialValues={purchaseOrder}
             size="small"
             layout="vertical"
@@ -523,16 +525,13 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                       <Form.Item
                         label="Vendor Type"
                         name="vendortype_value"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please Select a vendor Type!",
-                          },
-                        ]}
+                        rules={[{ required: true, message: "" }]}
                       >
                         <MySelect
                           size="default"
                           options={vendorDetailsOptions}
+                          showError={isValid}
+                          message="Please Select a vendor Type!"
                         />
                       </Form.Item>
                     </Col>
@@ -541,18 +540,15 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                       <Form.Item
                         label="Vendor Name"
                         name="vendorcode"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please Select a vendor!",
-                          },
-                        ]}
+                        rules={[{ required: true, message: "" }]}
                       >
                         <MyAsyncSelect
                           onBlur={() => setAsyncOptions([])}
                           optionsState={asyncOptions}
                           labelInValue
                           loadOptions={getVendors}
+                          showError={isValid}
+                          message="Please Select a vendor!"
                         />
                       </Form.Item>
                     </Col>
@@ -561,17 +557,14 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                       <Form.Item
                         name="vendorbranch"
                         label="Vendor Branch"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please Select a vendor Branch!",
-                          },
-                        ]}
+                        rules={[{ required: true, message: "" }]}
                       >
                         <MySelect
                           size="default"
                           labelInValue
                           options={vendorBranches}
+                          showError={isValid}
+                          message="Please Select a vendor Branch!"
                         />
                       </Form.Item>
                     </Col>
@@ -583,18 +576,19 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                   </Row>
                   <Row gutter={16}>
                     <Col span={18}>
-                      <Form.Item
-                        name="vendoraddress"
-                        label="Bill From Address"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter vendor address!",
-                          },
-                        ]}
+                      <Field
+                        attr="required | Please enter vendor address!"
+                        value={vendoraddressValue}
+                        showValidation={isValid}
                       >
-                        <TextArea style={{ resize: "none" }} rows={4} />
-                      </Form.Item>
+                        <Form.Item
+                          name="vendoraddress"
+                          label="Bill From Address"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <TextArea style={{ resize: "none" }} rows={4} />
+                        </Form.Item>
+                      </Field>
                     </Col>
                   </Row>
                 </Col>
@@ -688,17 +682,14 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                       <Form.Item
                         name="costcenter"
                         label="Cost Center"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please Select a Cost Center!",
-                          },
-                        ]}
+                        rules={[{ required: true, message: "" }]}
                       >
                         <MyAsyncSelect
                           onBlur={() => setAsyncOptions([])}
                           optionsState={asyncOptions}
                           loadOptions={getCostCenteres}
+                          showError={isValid}
+                          message="Please Select a Cost Center!"
                         />
                       </Form.Item>
                     </Col>
@@ -710,12 +701,22 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                       </Form.Item>
                     </Col>
                     <Col span={5}>
-                      <Form.Item label="Advance Payment" name="advancePayment">
-                        <Radio.Group>
-                          <Radio value={1}>Yes</Radio>
-                          <Radio value={0}>No</Radio>
-                        </Radio.Group>
-                      </Form.Item>
+                      <Field
+                        attr="required | Please select advance payment"
+                        value={advancePaymentValue}
+                        showValidation={isValid}
+                      >
+                        <Form.Item
+                          label="Advance Payment"
+                          name="advancePayment"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Radio.Group>
+                            <Radio value={1}>Yes</Radio>
+                            <Radio value={0}>No</Radio>
+                          </Radio.Group>
+                        </Form.Item>
+                      </Field>
                     </Col>
                   </Row>
                 </Col>
@@ -736,63 +737,64 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                       <Form.Item
                         name="addrbillid"
                         label="Billing Id"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select a billing address!",
-                          },
-                        ]}
+                        rules={[{ required: true, message: "" }]}
                       >
-                        <MySelect options={billingOptions} />
+                        <MySelect
+                          options={billingOptions}
+                          showError={isValid}
+                          message="Please select a billing address!"
+                        />
                       </Form.Item>
                     </Col>
                     {/* pan number */}
                     <Col span={6}>
-                      <Form.Item
-                        name="billpanno"
-                        label="Pan No."
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter billing address PAN number!",
-                          },
-                        ]}
+                      <Field
+                        attr="required | Please enter billing address PAN number!"
+                        value={billpannoValue}
+                        showValidation={isValid}
                       >
-                        <Input size="default" />
-                      </Form.Item>
+                        <Form.Item
+                          name="billpanno"
+                          label="Pan No."
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Input size="default" />
+                        </Form.Item>
+                      </Field>
                     </Col>
                     {/* gstin uin */}
                     <Col span={6}>
-                      <Form.Item
-                        name="billgstid"
-                        label="GSTIN / UIN"
-                        rules={[
-                          {
-                            required: true,
-                            message:
-                              "Please enter billing address GSTIN number!",
-                          },
-                        ]}
+                      <Field
+                        attr="required | Please enter billing address GSTIN number!"
+                        value={billgstidValue}
+                        showValidation={isValid}
                       >
-                        <Input size="default" />
-                      </Form.Item>
+                        <Form.Item
+                          name="billgstid"
+                          label="GSTIN / UIN"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <Input size="default" />
+                        </Form.Item>
+                      </Field>
                     </Col>
                   </Row>
                   {/* billing address */}
                   <Row gutter={16}>
                     <Col span={18}>
-                      <Form.Item
-                        name="billaddress"
-                        label="Billing Address"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter billing address details!",
-                          },
-                        ]}
+                      <Field
+                        attr="required | Please enter billing address details!"
+                        value={billaddressValue}
+                        showValidation={isValid}
                       >
-                        <TextArea style={{ resize: "none" }} rows={4} />
-                      </Form.Item>
+                        <Form.Item
+                          name="billaddress"
+                          label="Billing Address"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <TextArea style={{ resize: "none" }} rows={4} />
+                        </Form.Item>
+                      </Field>
                     </Col>
                   </Row>
                 </Col>
@@ -812,42 +814,52 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                   {/* Shipping Type */}
                   <Row gutter={16}>
                     <Col span={8}>
-                      <Form.Item name="ship_type" label="Shipping Address Type">
-                        <Radio.Group
-                          onChange={(e) => {
-                            const type = e.target.value;
-
-                            form.setFieldsValue({
-                              addrshipid: undefined,
-                              ship_vendor: undefined,
-                              ship_vendor_branch: undefined,
-                              shipaddress: "",
-                              shippanno: "",
-                              ship_partyname: "",
-                              shipgstid: "",
-                              same_as_billing: false,
-                            });
-
-                            // Update state
-                            setPurchaseOrder((prev) => ({
-                              ...prev,
-                              ship_type: type,
-                              addrshipid: undefined,
-                              ship_vendor: undefined,
-                              ship_vendor_branch: undefined,
-                              shipaddress: "",
-                              shippanno: "",
-                              ship_partyname: "",
-                              shipgstid: "",
-                              same_as_billing: false,
-                            }));
-                          }}
+                      <Field
+                        attr="required | Please select shipping address type"
+                        value={shipTypeValue}
+                        showValidation={isValid}
+                      >
+                        <Form.Item
+                          name="ship_type"
+                          label="Shipping Address Type"
+                          rules={[{ required: true, message: "" }]}
                         >
-                          <Radio value="saved">Default (Saved)</Radio>
-                          <Radio value="vendor">Vendor Address</Radio>
-                          <Radio value="manual">Manual Entry</Radio>
-                        </Radio.Group>
-                      </Form.Item>
+                          <Radio.Group
+                            onChange={(e) => {
+                              const type = e.target.value;
+
+                              form.setFieldsValue({
+                                addrshipid: undefined,
+                                ship_vendor: undefined,
+                                ship_vendor_branch: undefined,
+                                shipaddress: "",
+                                shippanno: "",
+                                ship_partyname: "",
+                                shipgstid: "",
+                                same_as_billing: false,
+                              });
+
+                              // Update state
+                              setPurchaseOrder((prev) => ({
+                                ...prev,
+                                ship_type: type,
+                                addrshipid: undefined,
+                                ship_vendor: undefined,
+                                ship_vendor_branch: undefined,
+                                shipaddress: "",
+                                shippanno: "",
+                                ship_partyname: "",
+                                shipgstid: "",
+                                same_as_billing: false,
+                              }));
+                            }}
+                          >
+                            <Radio value="saved">Default (Saved)</Radio>
+                            <Radio value="vendor">Vendor Address</Radio>
+                            <Radio value="manual">Manual Entry</Radio>
+                          </Radio.Group>
+                        </Form.Item>
+                      </Field>
                     </Col>
 
                     {/* Same as Billing */}
@@ -907,7 +919,7 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                         <Form.Item
                           name="addrshipid"
                           label="Shipping Address"
-                          rules={[{ required: true }]}
+                          rules={[{ required: true, message: "" }]}
                         >
                           <MySelect
                             options={shippingOptions}
@@ -915,18 +927,40 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                             onChange={(val) =>
                               selectInputHandler("addrshipid", val)
                             }
+                            showError={isValid}
+                            message="Please select a shipping address"
                           />
                         </Form.Item>
                       </Col>
                       <Col span={6}>
-                        <Form.Item name="shippanno" label="PAN">
-                          <Input disabled />
-                        </Form.Item>
+                        <Field
+                          attr="required | Shipping PAN is required"
+                          value={shippannoValue}
+                          showValidation={isValid}
+                        >
+                          <Form.Item
+                            name="shippanno"
+                            label="PAN"
+                            rules={[{ required: true, message: "" }]}
+                          >
+                            <Input disabled />
+                          </Form.Item>
+                        </Field>
                       </Col>
                       <Col span={6}>
-                        <Form.Item name="shipgstid" label="GSTIN">
-                          <Input disabled />
-                        </Form.Item>
+                        <Field
+                          attr="required | Shipping GSTIN is required"
+                          value={shipgstidValue}
+                          showValidation={isValid}
+                        >
+                          <Form.Item
+                            name="shipgstid"
+                            label="GSTIN"
+                            rules={[{ required: true, message: "" }]}
+                          >
+                            <Input disabled />
+                          </Form.Item>
+                        </Field>
                       </Col>
                     </Row>
                   )}
@@ -938,13 +972,15 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                         <Form.Item
                           name="ship_vendor"
                           label="Shipping Vendor"
-                          rules={[{ required: true }]}
+                          rules={[{ required: true, message: "" }]}
                         >
                           <MyAsyncSelect
                             labelInValue
                             loadOptions={getVendors}
                             onBlur={() => setAsyncOptions([])}
                             optionsState={asyncOptions}
+                            showError={isValid}
+                            message="Please select shipping vendor"
                             onChange={async (val) => {
                               const branches = await getVendorBranches(
                                 val.value
@@ -972,11 +1008,13 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                         <Form.Item
                           name="ship_vendor_branch"
                           label="Branch"
-                          rules={[{ required: true }]}
+                          rules={[{ required: true, message: "" }]}
                         >
                           <MySelect
                             options={vendorBranches}
                             labelInValue
+                            showError={isValid}
+                            message="Please select branch"
                             onChange={async (branch) => {
                               const vendor = form.getFieldValue("ship_vendor");
                               if (!vendor) return;
@@ -1005,13 +1043,19 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                     <Row gutter={16} style={{ marginTop: 16 }}>
                       {/* //party name */}
                       <Col span={8}>
-                        <Form.Item
-                          name="ship_partyname"
-                          label="Party Name"
-                          rules={[{ required: true }]}
+                        <Field
+                          attr="required | Please enter party name"
+                          value={shipPartynameValue}
+                          showValidation={isValid}
                         >
-                          <Input />
-                        </Form.Item>
+                          <Form.Item
+                            name="ship_partyname"
+                            label="Party Name"
+                            rules={[{ required: true, message: "" }]}
+                          >
+                            <Input />
+                          </Form.Item>
+                        </Field>
                       </Col>
                       <Col span={8}>
                         <Form.Item
@@ -1037,23 +1081,29 @@ export default function EditPO({ updatePoId, setUpdatePoId, getRows }) {
                   {/* Common Shipping Address */}
                   <Row gutter={16} style={{ marginTop: 16 }}>
                     <Col span={18}>
-                      <Form.Item
-                        name="shipaddress"
-                        label="Shipping Address"
-                        rules={[{ required: true }]}
+                      <Field
+                        attr="required | Please enter shipping address"
+                        value={shipaddressValue}
+                        showValidation={isValid}
                       >
-                        <TextArea
-                          rows={5}
-                          disabled={
-                            form.getFieldValue("ship_type") !== "manual"
-                          }
-                          placeholder={
-                            form.getFieldValue("ship_type") === "manual"
-                              ? "Enter full address"
-                              : "Address populated automatically"
-                          }
-                        />
-                      </Form.Item>
+                        <Form.Item
+                          name="shipaddress"
+                          label="Shipping Address"
+                          rules={[{ required: true, message: "" }]}
+                        >
+                          <TextArea
+                            rows={5}
+                            disabled={
+                              form.getFieldValue("ship_type") !== "manual"
+                            }
+                            placeholder={
+                              form.getFieldValue("ship_type") === "manual"
+                                ? "Enter full address"
+                                : "Address populated automatically"
+                            }
+                          />
+                        </Form.Item>
+                      </Field>
                     </Col>
                   </Row>
                 </Col>

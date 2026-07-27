@@ -2,6 +2,7 @@ import { Input } from "antd";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import InputMask from "react-input-mask";
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
   { value: "L", text: "LOCAL" },
@@ -12,7 +13,8 @@ export const componenetSelect = (
   inputHandler,
   loadOptions,
   setAsyncOptions,
-  asynOptions
+  asynOptions,
+  isValid
 ) => (
   <MyAsyncSelect
     onBlur={() => setAsyncOptions([])}
@@ -24,30 +26,43 @@ export const componenetSelect = (
     styles={{ width: "100%" }}
     loadOptions={loadOptions}
     optionsState={asynOptions}
+    showError={isValid}
+    message="Please select a component"
   />
 );
 
-export const quantityCell = ({ row }, inputHandler) => (
-  <Input
-    style={{ border: row.qtyApproval && "1px solid red" }}
-    value={row.qty}
-    onChange={(e) => inputHandler("qty", e.target.value, row.id)}
-    suffix={row.unit}
-  />
-);
-
-export const rateCell = ({ row }, inputHandler, currencies) => (
-  <Input.Group compact>
+export const quantityCell = ({ row }, inputHandler, isValid) => (
+  <Field attr="required | Qty is required" value={row.qty} showValidation={isValid}>
     <Input
-      style={{ width: "65%", border: row.rateAppr && "1px solid red" }}
-      value={row.rate}
-      onChange={(e) => inputHandler("rate", e.target.value, row.id)}
+      style={{ border: row.qtyApproval && "1px solid red" }}
+      value={row.qty}
+      onChange={(e) => inputHandler("qty", e.target.value, row.id)}
+      suffix={row.unit}
     />
-    <div style={{ width: "35%" }}>
+  </Field>
+);
+
+export const rateCell = ({ row }, inputHandler, currencies, isValid) => (
+  <Input.Group compact>
+    <Field
+      attr="required | Rate is required"
+      value={row.rate}
+      showValidation={isValid}
+      style={{ width: "65%", display: "inline-block" }}
+    >
+      <Input
+        style={{ width: "100%", border: row.rateAppr && "1px solid red" }}
+        value={row.rate}
+        onChange={(e) => inputHandler("rate", e.target.value, row.id)}
+      />
+    </Field>
+    <div style={{ width: "35%", display: "inline-block", verticalAlign: "top" }}>
       <MySelect
         onChange={(value) => inputHandler("currency", value, row.id)}
         value={row.currency}
         options={currencies}
+        showError={isValid}
+        message="Please select currency"
       />
     </div>
   </Input.Group>
@@ -65,7 +80,7 @@ export const taxableCell = ({ row }) => {
 export const foreignCell = ({ row }) => {
   return <Input disabled={true} value={row.foreginValue} />;
 };
-export const invoiceDateCell = ({ row }, inputHandler) => {
+export const invoiceDateCell = ({ row }, inputHandler, isValid) => {
   return (
     // <SingleDatePicker
     //   row={row}
@@ -74,31 +89,41 @@ export const invoiceDateCell = ({ row }, inputHandler) => {
     //   tablePicker={true}
     //   inputHandler={inputHandler}
     // />
-    <InputMask
-      name="duedate"
-      value={row.duedate ?? ""}
-      onChange={(e) => inputHandler("duedate", e.target.value, row.id)}
-      className="date-text-input"
-      mask="99-99-9999"
-      placeholder="Invoice Date"
-      style={{ textAlign: "center" }}
-      // defaultValue="01-09-2022"
-    />
+    <Field
+      attr="required | Due date is required"
+      value={row.duedate}
+      showValidation={isValid}
+    >
+      <InputMask
+        name="duedate"
+        value={row.duedate ?? ""}
+        onChange={(e) => inputHandler("duedate", e.target.value, row.id)}
+        className="date-text-input"
+        mask="99-99-9999"
+        placeholder="Invoice Date"
+        style={{ textAlign: "center" }}
+        // defaultValue="01-09-2022"
+      />
+    </Field>
   );
 };
-export const HSNCell = ({ row }, inputHandler) => (
-  <Input
-    type="text"
-    value={row.hsncode}
-    onChange={(e) => inputHandler("hsncode", e.target.value, row.id)}
-    placeholder="Enter HSN"
-  />
+export const HSNCell = ({ row }, inputHandler, isValid) => (
+  <Field attr="required | HSN Code is required" value={row.hsncode} showValidation={isValid}>
+    <Input
+      type="text"
+      value={row.hsncode}
+      onChange={(e) => inputHandler("hsncode", e.target.value, row.id)}
+      placeholder="Enter HSN"
+    />
+  </Field>
 );
-export const gstTypeCell = ({ row }, inputHandler) => (
+export const gstTypeCell = ({ row }, inputHandler, isValid) => (
   <MySelect
     value={row.gsttype}
     onChange={(value) => inputHandler("gsttype", value, row.id)}
     options={gstTypeOptions}
+    showError={isValid}
+    message="Please select GST type"
   />
 );
 export const gstRate = ({ row }, inputHandler) => (

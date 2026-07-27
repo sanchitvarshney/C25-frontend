@@ -148,6 +148,7 @@ export default function CreatePo() {
   const shipGSTValue = Form.useWatch("shipGST", form);
   const shipaddressValue = Form.useWatch("shipaddress", form);
   const advancePercentageValue = Form.useWatch("advancePercentage", form);
+  const partyNameValue = Form.useWatch("partyName", form);
   const showPoExchangeField =
     String(poCurrencyWatched ?? "364907247") !== "364907247";
 
@@ -751,25 +752,23 @@ export default function CreatePo() {
   };
 
   const handleGetCurrency = async () => {
-      try {
-        const response = await imsAxios.get("/backend/fetchAllCurrecy");
-        if(response?.success) {
-      const arr = response.data.map((d) => ({
+    try {
+      const response = await imsAxios.get("/backend/fetchAllCurrecy");
+      if (response?.success) {
+        const arr = response.data.map((d) => ({
           text: d.currency_symbol,
           value: d.currency_id,
           notes: d.currency_notes,
         }));
         setPoCurrencies(arr);
-        }
-     
-  
-      } catch (error) {
-     showToast(error.message ?? "Something went wrong", "error");
       }
-  }
+    } catch (error) {
+      showToast(error.message ?? "Something went wrong", "error");
+    }
+  };
 
   useEffect(() => {
-   handleGetCurrency();
+    handleGetCurrency();
   }, []);
   const getPOs = async (searchInput) => {
     if (searchInput?.length > 2) {
@@ -1262,7 +1261,6 @@ export default function CreatePo() {
     setAsyncOptions(response.data);
   };
 
-
   const handleProjectChange = async (value) => {
     const projectValue =
       typeof value === "object" ? value : { value: value, label: value };
@@ -1289,7 +1287,6 @@ export default function CreatePo() {
             typeof value === "object" ? value.value : value,
             { showPageLoading: false },
           );
-      
         } else {
           showToast(data.message, "error");
         }
@@ -1949,68 +1946,70 @@ export default function CreatePo() {
                                 value={advancePayment}
                                 showValidation={isValid}
                               >
-                              <Form.Item
-                                label="Advance Payment"
-                                name="advancePayment"
-                                rules={[{ required: true, message: "" }]}
-                              >
-                                <Radio.Group
-                                  onChange={(e) => {
-                                    const isYes = e.target.value === 1;
-                                    if (!isYes) {
-                                      form.setFieldsValue({
-                                        advancePercentage: null,
-                                      });
-                                      setnewPurchaseOrder((prev) => ({
-                                        ...prev,
-                                        advancePercentage: null,
-                                      }));
-                                    }
-
-                                    if (
-                                      isYes &&
-                                      form.getFieldValue("paymentterms") ===
-                                        "Other"
-                                    ) {
-                                      const percent =
-                                        form.getFieldValue(
-                                          "advancePercentage",
-                                        ) || "";
-                                      const currentText =
-                                        form.getFieldValue(
-                                          "customPaymentTerm",
-                                        ) || "";
-                                      let newText = "";
-
-                                      if (percent) {
-                                        if (currentText.includes("% Advance")) {
-                                          newText = currentText.replace(
-                                            /\d+% Advance/,
-                                            `${percent}% Advance`,
-                                          );
-                                        } else {
-                                          newText = currentText
-                                            ? `${percent}% Advance, ${currentText}`
-                                            : `${percent}% Advance`;
-                                        }
-                                      } else {
-                                        newText = currentText;
+                                <Form.Item
+                                  label="Advance Payment"
+                                  name="advancePayment"
+                                  rules={[{ required: true, message: "" }]}
+                                >
+                                  <Radio.Group
+                                    onChange={(e) => {
+                                      const isYes = e.target.value === 1;
+                                      if (!isYes) {
+                                        form.setFieldsValue({
+                                          advancePercentage: null,
+                                        });
+                                        setnewPurchaseOrder((prev) => ({
+                                          ...prev,
+                                          advancePercentage: null,
+                                        }));
                                       }
 
-                                      form.setFieldsValue({
-                                        customPaymentTerm: newText,
-                                      });
-                                      setnewPurchaseOrder((prev) => ({
-                                        ...prev,
-                                        customPaymentTerm: newText,
-                                      }));
-                                    }
-                                  }}
-                                >
-                                  <Radio value={1}>Yes</Radio>
-                                  <Radio value={0}>No</Radio>
-                                </Radio.Group>
-                              </Form.Item>
+                                      if (
+                                        isYes &&
+                                        form.getFieldValue("paymentterms") ===
+                                          "Other"
+                                      ) {
+                                        const percent =
+                                          form.getFieldValue(
+                                            "advancePercentage",
+                                          ) || "";
+                                        const currentText =
+                                          form.getFieldValue(
+                                            "customPaymentTerm",
+                                          ) || "";
+                                        let newText = "";
+
+                                        if (percent) {
+                                          if (
+                                            currentText.includes("% Advance")
+                                          ) {
+                                            newText = currentText.replace(
+                                              /\d+% Advance/,
+                                              `${percent}% Advance`,
+                                            );
+                                          } else {
+                                            newText = currentText
+                                              ? `${percent}% Advance, ${currentText}`
+                                              : `${percent}% Advance`;
+                                          }
+                                        } else {
+                                          newText = currentText;
+                                        }
+
+                                        form.setFieldsValue({
+                                          customPaymentTerm: newText,
+                                        });
+                                        setnewPurchaseOrder((prev) => ({
+                                          ...prev,
+                                          customPaymentTerm: newText,
+                                        }));
+                                      }
+                                    }}
+                                  >
+                                    <Radio value={1}>Yes</Radio>
+                                    <Radio value={0}>No</Radio>
+                                  </Radio.Group>
+                                </Form.Item>
                               </Field>
                             </Col>
                             {/* Advance Percentage Input */}
@@ -2022,59 +2021,65 @@ export default function CreatePo() {
                                     value={advancePercentageValue}
                                     showValidation={isValid}
                                   >
-                                  <Form.Item
-                                    name="advancePercentage"
-                                    label="Advance %"
-                                    rules={[{ required: true, message: "" }]}
-                                  >
-                                    <InputNumber
-                                      min={1}
-                                      max={100}
-                                      formatter={(v) => `${v}%`}
-                                      parser={(v) => v.replace("%", "")}
-                                      style={{ width: "100%" }}
-                                      type="number"
-                                      onChange={(value) => {
-                                        if (
-                                          form.getFieldValue("paymentterms") ===
-                                          "Other"
-                                        ) {
-                                          const currentText =
+                                    <Form.Item
+                                      name="advancePercentage"
+                                      label="Advance %"
+                                      rules={[{ required: true, message: "" }]}
+                                    >
+                                      <InputNumber
+                                        min={1}
+                                        max={100}
+                                        formatter={(v) => `${v}%`}
+                                        parser={(v) => v.replace("%", "")}
+                                        style={{ width: "100%" }}
+                                        type="number"
+                                        onChange={(value) => {
+                                          if (
                                             form.getFieldValue(
-                                              "customPaymentTerm",
-                                            ) || "";
-                                          let newText = "";
+                                              "paymentterms",
+                                            ) === "Other"
+                                          ) {
+                                            const currentText =
+                                              form.getFieldValue(
+                                                "customPaymentTerm",
+                                              ) || "";
+                                            let newText = "";
 
-                                          if (value) {
-                                            if (
-                                              currentText.includes("% Advance")
-                                            ) {
-                                              newText = currentText.replace(
-                                                /\d+% Advance/,
-                                                `${value}% Advance`,
-                                              );
+                                            if (value) {
+                                              if (
+                                                currentText.includes(
+                                                  "% Advance",
+                                                )
+                                              ) {
+                                                newText = currentText.replace(
+                                                  /\d+% Advance/,
+                                                  `${value}% Advance`,
+                                                );
+                                              } else {
+                                                newText = currentText
+                                                  ? `${value}% Advance, ${currentText}`
+                                                  : `${value}% Advance`;
+                                              }
                                             } else {
                                               newText = currentText
-                                                ? `${value}% Advance, ${currentText}`
-                                                : `${value}% Advance`;
+                                                .replace(
+                                                  /\d+% Advance,?\s*/,
+                                                  "",
+                                                )
+                                                .trim();
                                             }
-                                          } else {
-                                            newText = currentText
-                                              .replace(/\d+% Advance,?\s*/, "")
-                                              .trim();
-                                          }
 
-                                          form.setFieldsValue({
-                                            customPaymentTerm: newText,
-                                          });
-                                          setnewPurchaseOrder((prev) => ({
-                                            ...prev,
-                                            customPaymentTerm: newText,
-                                          }));
-                                        }
-                                      }}
-                                    />
-                                  </Form.Item>
+                                            form.setFieldsValue({
+                                              customPaymentTerm: newText,
+                                            });
+                                            setnewPurchaseOrder((prev) => ({
+                                              ...prev,
+                                              customPaymentTerm: newText,
+                                            }));
+                                          }
+                                        }}
+                                      />
+                                    </Form.Item>
                                   </Field>
                                 )}
                               </Form.Item>
@@ -2113,7 +2118,6 @@ export default function CreatePo() {
                               </Form.Item>
                             </Col>
 
-                    
                             {/* project name */}
                             <Col span={5}>
                               <Form.Item label="Project Description">
@@ -2192,10 +2196,7 @@ export default function CreatePo() {
                               </Form.Item>
                             </Col>
                             <Col span={6}>
-                              <Form.Item
-                                name="po_currency"
-                                label="PO Currency"
-                              >
+                              <Form.Item name="po_currency" label="PO Currency">
                                 <MySelect options={poCurrencies} />
                               </Form.Item>
                             </Col>
@@ -2426,7 +2427,8 @@ export default function CreatePo() {
                                       size="default"
                                       disabled={
                                         sameAsBilling ||
-                                        newPurchaseOrder.shipaddressid !== "other"
+                                        newPurchaseOrder.shipaddressid !==
+                                          "other"
                                       }
                                     />
                                   </Form.Item>
@@ -2447,7 +2449,8 @@ export default function CreatePo() {
                                       size="default"
                                       disabled={
                                         sameAsBilling ||
-                                        newPurchaseOrder.shipaddressid !== "other"
+                                        newPurchaseOrder.shipaddressid !==
+                                          "other"
                                       }
                                     />
                                   </Form.Item>
@@ -2564,48 +2567,46 @@ export default function CreatePo() {
                           {form.getFieldValue("ship_type") === "manual" && (
                             <Row gutter={16} style={{ marginTop: 16 }}>
                               <Col span={6}>
-                                <Form.Item label="Party Name" name="partyName">
+                                <Field
+                                  attr="required | Please Enter Party Name!"
+                                  value={partyNameValue}
+                                  showValidation={isValid}
+                                >
+                                  <Form.Item
+                                    label="Party Name"
+                                    name="partyName"
+                                    rules={[{ required: true, message: "" }]}
+                                  >
+                                    <Input
+                                      size="default"
+                                      placeholder="Enter Party Name"
+                                    />
+                                  </Form.Item>
+                                </Field>
+                              </Col>
+                              <Col span={6}>
+                                <Form.Item
+                                  label="Pan No."
+                                  name="shipPan"
+                                  rules={[{ required: false }]}
+                                >
                                   <Input
                                     size="default"
-                                    placeholder="Enter Party Name"
+                                    placeholder="Enter Shipping PAN"
                                   />
                                 </Form.Item>
                               </Col>
                               <Col span={6}>
-                                <Field
-                                  attr="required | Please Enter Shipping PAN Number!"
-                                  value={shipPanValue}
-                                  showValidation={isValid}
+                                <Form.Item
+                                  name="shipGST"
+                                  label="GSTIN / UIN"
+                                  rules={[{ required: false }]}
                                 >
-                                  <Form.Item
-                                    label="Pan No."
-                                    name="shipPan"
-                                    rules={[{ required: true, message: "" }]}
-                                  >
-                                    <Input
-                                      size="default"
-                                      placeholder="Enter Shipping PAN"
-                                    />
-                                  </Form.Item>
-                                </Field>
-                              </Col>
-                              <Col span={6}>
-                                <Field
-                                  attr="required | Please Enter Shipping GSTIN!"
-                                  value={shipGSTValue}
-                                  showValidation={isValid}
-                                >
-                                  <Form.Item
-                                    name="shipGST"
-                                    label="GSTIN / UIN"
-                                    rules={[{ required: true, message: "" }]}
-                                  >
-                                    <Input
-                                      size="default"
-                                      placeholder="Enter Shipping GSTIN"
-                                    />
-                                  </Form.Item>
-                                </Field>
+                                  <Input
+                                    size="default"
+                                    placeholder="Enter Shipping GSTIN"
+                                  />
+                                </Form.Item>
                               </Col>
                             </Row>
                           )}
@@ -2626,7 +2627,8 @@ export default function CreatePo() {
                                   <TextArea
                                     rows={5}
                                     disabled={
-                                      form.getFieldValue("ship_type") === "saved"
+                                      form.getFieldValue("ship_type") ===
+                                      "saved"
                                         ? sameAsBilling ||
                                           newPurchaseOrder.shipaddressid !==
                                             "other"
@@ -2634,7 +2636,8 @@ export default function CreatePo() {
                                           "manual"
                                     }
                                     placeholder={
-                                      form.getFieldValue("ship_type") === "manual"
+                                      form.getFieldValue("ship_type") ===
+                                      "manual"
                                         ? "Enter complete shipping address"
                                         : "Shipping address will be populated based on selection"
                                     }

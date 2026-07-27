@@ -14,6 +14,7 @@ import EditPO from "../ManagePO/EditPO/EditPO.jsx";
 import ViewPOLogs from "./ViewPOLogs";
 import CancelPO from "../ManagePO/Sidebars/CancelPO.jsx";
 import MySelect from "../../../Components/MySelect.jsx";
+import Field from "../../../Components/Field.jsx";
 
 const wiseOptions = [
   { value: "single_date_wise", text: "Date Wise" },
@@ -32,6 +33,7 @@ const RequestPo = () => {
   const [loading, setLoading] = useState(false);
   const [viewPoLogsId, setViewPoLogsId] = useState(null);
   const [showClosePO, setShowClosePO] = useState(null);
+  const [isValid, setIsValid] = useState(false);
 
   const columns = [
     {
@@ -303,12 +305,7 @@ const RequestPo = () => {
     }
   };
 
-  const getSearchResults = async (silent = false) => {
-    if (!silent) {
-      showToast("Please select start and end dates for the results", "error");
-      return;
-    }
-
+  const getSearchResults = async () => {
     const search =
       wise === "single_date_wise" ? searchDateRange : searchInput.trim();
 
@@ -328,16 +325,29 @@ const RequestPo = () => {
         }));
         setRows(arr);
       } else if (response.message) {
-        if (!silent) {
-          showToast(response.message, "error");
-        } else {
-          showToast(response.message, "error");
-        }
+        showToast(response.message, "error");
       }
     } catch (error) {
       setSearchLoading(false);
       showToast("Error fetching PO list", "error");
     }
+  };
+
+  const validateAndSearch = () => {
+    if(!wise) {
+      setIsValid(true);
+      return;
+    }
+    if (wise === "single_date_wise" && !searchDateRange ) {
+      setIsValid(true);
+      return;
+    }
+    if (wise === "po_wise" && !searchInput.trim()) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    getSearchResults();
   };
 
   //getting component view data - now opens ViewPORequest modal
@@ -376,7 +386,7 @@ const RequestPo = () => {
         <Col>
           <Space>
             <div style={{ width: 150 }}>
-              <MySelect options={wiseOptions} onChange={setWise} value={wise} />
+              <MySelect options={wiseOptions} onChange={setWise} value={wise} message="Please select wise" showError={isValid} />
             </div>
             <div style={{ width: 300 }}>
               {wise === "single_date_wise" ? (
@@ -385,21 +395,29 @@ const RequestPo = () => {
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : (
-                <Input
-                  style={{ width: "100%" }}
-                  type="text"
-                  placeholder="Enter Po Number"
+                <Field
+                  attr="required | Please enter a PO number"
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                />
+                  showValidation={isValid}
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    type="text"
+                    placeholder="Enter Po Number"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </Field>
               )}
             </div>
             <MyButton
               type="primary"
               loading={searchLoading}
-              onClick={getSearchResults}
+              onClick={validateAndSearch}
               id="submit"
               variant="search"
             >
