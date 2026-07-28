@@ -66,8 +66,8 @@ export const materialInWithoutPo = async (values, fileName, vendorType) => {
     address: values.vendorAddress,
     vendortype: values.vendorType,
     ewaybill: values.ewaybill ?? "--",
-    cost_center: values.costCenter,
-    project_id: values.projectID,
+    cost_center: values.costCenter?.value,
+    project_id: values.projectID?.value,
     irn: values.irn,
     qrScan: values.QR == true ? "Y" : "N",
 
