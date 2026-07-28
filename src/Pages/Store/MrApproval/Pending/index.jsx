@@ -6,6 +6,7 @@ import MyDataTable from "../../../../Components/MyDataTable";
 import printFunction, {
   downloadFunction,
 } from "../../../../Components/printFunction";
+import Field from "../../../../Components/Field";
 import RequestApproveModal from "./RequestApproveModal";
 import { Form, Modal } from "antd/es";
 import {
@@ -53,40 +54,43 @@ const PendingApproval = () => {
       setLoading(false);
     }
   };
+    const renderCancelModalContent = (showValidation) => (
+    <Form form={ModalForm}>
+      <Form.Item name="remark" rules={[{ required: true, message: "" }]}>
+        <Field
+          attr="required | Please input the remark"
+          showValidation={showValidation}
+        >
+          <Input placeholder="Please input the remark" />
+        </Field>
+      </Form.Item>
+    </Form>
+  );
   const showSubmitConfirmationModal = (type) => {
     // submit confirm modal
-    Modal.confirm({
+    const modalInstance = Modal.confirm({
       title: "Do you Want to Cancel the Material Requisition?",
       icon: <ExclamationCircleOutlined />,
-      content: (
-        <Form form={ModalForm}>
-          <Form.Item name="remark">
-            <Input
-              // onChange={(e) => {
-              //   setCancelRemark(e.target.value);
-              // }}
-              placeholder="Please input the remark"
-            />
-          </Form.Item>
-        </Form>
-      ),
+      content: renderCancelModalContent(false),
       okText: "Yes",
       cancelText: "No",
       onOk: async () => {
-        await cancelmr(type);
+        let values;
+        try {
+          values = await ModalForm.validateFields();
+        } catch (error) {
+          modalInstance.update({ content: renderCancelModalContent(true) });
+          return Promise.reject(error);
+        }
+        await cancelmr(type, values);
       },
     });
   };
-  const cancelmr = async (type) => {
-    const values = await ModalForm.validateFields();
-    // console.log("type", type);
-    // console.log("values", values);
-    // return;
+  const cancelmr = async (type, values) => {
     const response = await imsAxios.post("/storeApproval/requestCancellation", {
       transaction: type.requestId,
       remark: values.remark,
     });
-    // console.log("response", response);
     if (response.success) {
       showToast(response.message, "success");
       ModalForm.resetFields();
