@@ -11,6 +11,7 @@ import {
   CaretRightOutlined,
 } from "@ant-design/icons";
 import { imsAxios } from "../../../../axiosInterceptor";
+import Field from "../../../../Components/Field.jsx";
 
 function PendingFGModal({ fGModal, setFGModal, getPendingData }) {
   const { showToast } = useToast();
@@ -18,8 +19,14 @@ function PendingFGModal({ fGModal, setFGModal, getPendingData }) {
   const [allPendingData, setAllPendingData] = useState({
     qty: "",
   });
+    const [isValid, setIsValid] = useState(false);
 
   const submitData = async () => {
+      if(allPendingData?.qty === "" || allPendingData?.qty === 0 || allPendingData?.qty === "0" || !allPendingData?.qty) {
+      setIsValid(true);
+      return
+    } 
+    setIsValid(false);
     setLoadingModal(true);
     const response = await imsAxios.post("/fgIN/saveFGs", {
       pprqty: allPendingData.qty,
@@ -53,12 +60,18 @@ function PendingFGModal({ fGModal, setFGModal, getPendingData }) {
       title="FG Inwarding"
       centered
       open={fGModal}
+         maskClosable={false}
       onOk={() => {
         submitData();
-        getPendingData();
-        setFGModal(false);
+
       }}
-      onCancel={() => setFGModal(false)}
+       onCancel={() => {
+        setFGModal(false)
+        setIsValid(false)
+        setAllPendingData({
+          qty: "",
+        });
+      }}
       width={900}
     >
       <Row>
@@ -124,21 +137,28 @@ function PendingFGModal({ fGModal, setFGModal, getPendingData }) {
               >
                 {`${fGModal.mfg_prod_planing_qty}/${fGModal.completedQTY}`}
               </Col>
-              <Col
+               <Col
                 span={8}
-                style={{ border: "1px solid grey", padding: "5px" }}
+                style={{ border: "1px solid grey", padding: "5px 40px" }}
               >
-                <Input
-                  suffix={fGModal.mfg_prod_planing_qty}
-                  placeholder="Qty"
-                  style={{ width: "60%" }}
-                  value={allPendingData.qty}
-                  onChange={(e) =>
-                    setAllPendingData((allPendingData) => {
-                      return { ...allPendingData, qty: e.target.value };
-                    })
-                  }
-                />
+                <Field
+                  attr="required | Please enter IN QTY"
+                      value={allPendingData.qty}
+                  showValidation={isValid}
+                  treatZeroAsEmpty
+                >
+                  <Input
+                    suffix={fGModal.mfg_prod_planing_qty}
+                    placeholder="Qty"
+                    style={{ width: "100%" }}
+                    value={allPendingData.qty}
+                    onChange={(e) =>
+                      setAllPendingData((allPendingData) => {
+                        return { ...allPendingData, qty: e.target.value };
+                      })
+                    }
+                  />
+                </Field>
               </Col>
             </Row>
           </Col>
