@@ -2,6 +2,7 @@ import { Input } from "antd";
 import InputMask from "react-input-mask";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
   { value: "L", text: "LOCAL" },
@@ -12,7 +13,8 @@ export const componentCell = (
   setAsyncOptions,
   getComponentDetail,
   asyncOptions,
-  selectLoading
+  selectLoading,
+  isValid,
 ) => (
   <MyAsyncSelect
     onBlur={() => setAsyncOptions([])}
@@ -24,29 +26,50 @@ export const componentCell = (
     labelInValue
     loadOptions={getComponentDetail}
     optionsState={asyncOptions}
+    showError={isValid}
+    message="Product is required"
   />
 );
-export const QuantityCell = ({ row }, inputHandler) => (
-  <Input
+export const QuantityCell = ({ row }, inputHandler, isValid) => (
+  <Field
+    attr="required | Qty is required"
     value={row.orderqty}
-    onChange={(e) => inputHandler("orderqty", e.target.value, row.id)}
-    // suffix={row.unitsname}
-    type="number"
-  />
-);
-export const rateCell = ({ row }, inputHandler, currencies) => (
-  <Input.Group compact>
+    treatZeroAsEmpty
+    showValidation={isValid}
+  >
     <Input
-      style={{ width: "65%" }}
-      value={row.orderrate}
-      onChange={(e) => inputHandler("orderrate", e.target.value, row.id)}
+      value={row.orderqty}
+      onChange={(e) => inputHandler("orderqty", e.target.value, row.id)}
+      // suffix={row.unitsname}
       type="number"
     />
-    <div style={{ width: "35%" }}>
+  </Field>
+);
+export const rateCell = ({ row }, inputHandler, currencies, isValid) => (
+  <Input.Group compact>
+    <Field
+      attr="required | Rate is required"
+      value={row.orderrate}
+      treatZeroAsEmpty
+      showValidation={isValid}
+      style={{ width: "65%", display: "inline-block" }}
+    >
+      <Input
+        style={{ width: "100%" }}
+        value={row.orderrate}
+        onChange={(e) => inputHandler("orderrate", e.target.value, row.id)}
+        type="number"
+      />
+    </Field>
+    <div
+      style={{ width: "35%", display: "inline-block", verticalAlign: "top" }}
+    >
       <MySelect
         onChange={(value) => inputHandler("currency", value, row.id)}
         value={row.currency}
         options={currencies}
+        showError={isValid}
+        message="Currency is required"
       />
     </div>
   </Input.Group>
@@ -123,14 +146,12 @@ export const taxableCell = ({ row }) => {
 export const foreignCell = ({ row }) => {
   const currency = row.currency?.value ?? row.currency;
   const isINR = String(currency) === String(INR_CURRENCY_ID);
-  const displayValue =
-    !isINR
-      ? Number(row.usdValue) ||
-        (Number(row.inrValue) || 0) * (Number(row.exchange_rate) || 0) ||
-        0
-      : "";
-  const valueToShow =
-    displayValue === "" ? "" : (Number(displayValue) || 0);
+  const displayValue = !isINR
+    ? Number(row.usdValue) ||
+      (Number(row.inrValue) || 0) * (Number(row.exchange_rate) || 0) ||
+      0
+    : "";
+  const valueToShow = displayValue === "" ? "" : Number(displayValue) || 0;
   return <Input disabled={true} value={valueToShow} />;
 };
 export const invoiceIdCell = ({ row }, inputHandler) => (
@@ -168,48 +189,48 @@ export const HSNCell = ({ row }, inputHandler) => (
     onChange={(e) => inputHandler("hsncode", e.target.value, row.id)}
   />
 );
-export const gstTypeCell = ({ row }, inputHandler) => (
+export const gstTypeCell = ({ row }, inputHandler, isValid) => (
   <MySelect
     value={row.gsttype}
     // className="table-input"
     onChange={(value) => inputHandler("gsttype", value, row.id)}
     options={gstTypeOptions}
+    showError={isValid}
+    message="GST type is required"
   />
 );
-export const gstRate = ({ row }, inputHandler) => (
-  <Input
-    type="text"
+export const gstRate = ({ row }, inputHandler, isValid) => (
+  <Field
+    attr="required | GST Rate is required"
     value={row.gstrate}
-    onChange={(e) => inputHandler("gstrate", e.target.value, row.id)}
-  />
+    showValidation={isValid}
+  >
+    <Input
+      type="text"
+      value={row.gstrate}
+      onChange={(e) => inputHandler("gstrate", e.target.value, row.id)}
+    />
+  </Field>
 );
 /** When gstType is "L" (Local): show CGST value. When "I" (Interstate): show 0 / empty. */
 export const CGSTCell = ({ row }) => (
-  <Input
-    disabled={true}
-    value={row.gsttype === "I" ? "" : (row.cgst ?? 0)}
-  />
+  <Input disabled={true} value={row.gsttype === "I" ? "" : (row.cgst ?? 0)} />
 );
 /** When gstType is "L" (Local): show SGST value. When "I" (Interstate): show 0 / empty. */
 export const SGSTCell = ({ row }) => (
-  <Input
-    disabled={true}
-    value={row.gsttype === "I" ? "" : (row.sgst ?? 0)}
-  />
+  <Input disabled={true} value={row.gsttype === "I" ? "" : (row.sgst ?? 0)} />
 );
 /** When gstType is "I" (Interstate): show IGST value. When "L" (Local): show 0 / empty. */
 export const IGSTCell = ({ row }) => (
-  <Input
-    disabled={true}
-    value={row.gsttype === "L" ? "" : (row.igst ?? 0)}
-  />
+  <Input disabled={true} value={row.gsttype === "L" ? "" : (row.igst ?? 0)} />
 );
 
 export const locationCell = (
   { row },
   inputHandler,
 
-  locationOptions
+  locationOptions,
+  isValid,
 ) => (
   <MySelect
     labelInValue
@@ -218,12 +239,14 @@ export const locationCell = (
       inputHandler("location", value, row.id);
     }}
     options={locationOptions}
+    showError={isValid}
+    message="Location is required"
   />
 );
 export const autoConsumptionCell = (
   { row },
   inputHandler,
-  autoConsumptionOptions
+  autoConsumptionOptions,
 ) => (
   <MySelect
     value={row?.autoConsumption}
