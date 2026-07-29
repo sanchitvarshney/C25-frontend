@@ -1,6 +1,7 @@
 import { Input } from "antd";
 import InputMask from "react-input-mask";
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
   { value: "L", text: "LOCAL" },
@@ -13,12 +14,19 @@ const gstTypeOptions = [
 //   />
 // );
 
-export const QuantityCell = ({ row }, inputHandler) => (
-  <Input
+export const QuantityCell = ({ row }, inputHandler, isValid) => (
+  <Field
+    attr="required | Qty is required"
     value={row.orderqty}
-    onChange={(e) => inputHandler("orderqty", e.target.value, row.id)}
-    suffix={row.unitsname}
-  />
+    treatZeroAsEmpty
+    showValidation={isValid}
+  >
+    <Input
+      value={row.orderqty}
+      onChange={(e) => inputHandler("orderqty", e.target.value, row.id)}
+      suffix={row.unitsname}
+    />
+  </Field>
 );
 
 export const manualMFGCode = ({ row }, inputHandler) => (
@@ -27,19 +35,29 @@ export const manualMFGCode = ({ row }, inputHandler) => (
     onChange={(e) => inputHandler("mfgCode", e.target.value, row.id)}
   />
 );
-export const rateCell = ({ row }, inputHandler, currencies) => (
+export const rateCell = ({ row }, inputHandler, currencies, isValid) => (
   <Input.Group compact>
-    <Input
-      style={{ width: "65%" }}
+    <Field
+      attr="required | Rate is required"
       value={row.orderrate}
-      onChange={(e) => inputHandler("orderrate", e.target.value, row.id)}
-      type="number"
-    />
-    <div style={{ width: "35%" }}>
+      treatZeroAsEmpty
+      showValidation={isValid}
+      style={{ width: "65%", display: "inline-block" }}
+    >
+      <Input
+        style={{ width: "100%" }}
+        value={row.orderrate}
+        onChange={(e) => inputHandler("orderrate", e.target.value, row.id)}
+        type="number"
+      />
+    </Field>
+    <div style={{ width: "35%", display: "inline-block", verticalAlign: "top" }}>
       <MySelect
         onChange={(value) => inputHandler("currency", value, row.id)}
         value={row.currency}
         options={currencies}
+        showError={isValid}
+        message="Currency is required"
       />
     </div>
   </Input.Group>
@@ -117,54 +135,78 @@ export const foreignCell = ({ row }) => {
     <Input disabled={true} value={hasForeignValue ? row.usdValue : ""} />
   );
 };
-export const invoiceIdCell = ({ row }, inputHandler) => {
+export const invoiceIdCell = ({ row }, inputHandler, isValid) => {
   return (
-    <>
+    <Field
+      attr="required | Invoice ID is required"
+      value={row.invoiceId}
+      showValidation={isValid}
+    >
       <Input
         value={row.invoiceId}
         onChange={(e) => inputHandler("invoiceId", e.target.value, row.id)}
         placeholder="Enter Invoice ID"
       />
-    </>
+    </Field>
   );
 };
-export const invoiceDateCell = ({ row }, inputHandler) => {
+export const invoiceDateCell = ({ row }, inputHandler, isValid) => {
   return (
-    <InputMask
-      name="due_date[]"
+    <Field
+      attr="required | Invoice Date is required"
       value={row.invoiceDate}
-      onChange={(e) => inputHandler("invoiceDate", e.target.value, row.id)}
-      className="date-text-input"
-      mask="99-99-9999"
-      placeholder="Invoice Date"
-      style={{ textAlign: "center" }}
-      // defaultValue="01-09-2022"
-    />
+      showValidation={isValid}
+    >
+      <InputMask
+        name="due_date[]"
+        value={row.invoiceDate}
+        onChange={(e) => inputHandler("invoiceDate", e.target.value, row.id)}
+        className="date-text-input"
+        mask="99-99-9999"
+        placeholder="Invoice Date"
+        style={{ textAlign: "center" }}
+        // defaultValue="01-09-2022"
+      />
+    </Field>
   );
 };
-export const HSNCell = ({ row }, inputHandler) => (
-  <Input
-    type="text"
+export const HSNCell = ({ row }, inputHandler, isValid) => (
+  <Field
+    attr="required | HSN Code is required"
     value={row.hsncode}
-    onChange={(e) => inputHandler("hsncode", e.target.value, row.id)}
-    placeholder="Enter HSN"
-  />
+    showValidation={isValid}
+  >
+    <Input
+      type="text"
+      value={row.hsncode}
+      onChange={(e) => inputHandler("hsncode", e.target.value, row.id)}
+      placeholder="Enter HSN"
+    />
+  </Field>
 );
-export const gstTypeCell = ({ row }, inputHandler) => (
+export const gstTypeCell = ({ row }, inputHandler, isValid) => (
   <MySelect
     value={row.gsttype}
     // className="table-input"
     onChange={(value) => inputHandler("gsttype", value, row.id)}
     options={gstTypeOptions}
+    showError={isValid}
+    message="GST type is required"
   />
 );
-export const gstRate = ({ row }, inputHandler) => (
-  <Input
-    type="text"
+export const gstRate = ({ row }, inputHandler, isValid) => (
+  <Field
+    attr="required | GST Rate is required"
     value={row.gstrate}
-    onChange={(e) => inputHandler("gstrate", e.target.value, row.id)}
-    placeholder="Enter HSN"
-  />
+    showValidation={isValid}
+  >
+    <Input
+      type="text"
+      value={row.gstrate}
+      onChange={(e) => inputHandler("gstrate", e.target.value, row.id)}
+      placeholder="Enter HSN"
+    />
+  </Field>
 );
 /** When gstType is "L": show CGST. When "I": show empty. */
 export const CGSTCell = ({ row }) => (
@@ -188,7 +230,7 @@ export const IGSTCell = ({ row }) => (
   />
 );
 
-export const locationCell = ({ row }, inputHandler, locationOptions) => (
+export const locationCell = ({ row }, inputHandler, locationOptions, isValid) => (
   <>
     <MySelect
       labelInValue
@@ -198,6 +240,8 @@ export const locationCell = ({ row }, inputHandler, locationOptions) => (
       }}
       options={locationOptions}
       placeholder="Select Location..."
+      showError={isValid}
+      message="Location is required"
     />
   </>
 );

@@ -47,8 +47,9 @@ import {
 import { convertSelectOptions } from "../../../../utils/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import MyButton from "../../../../Components/MyButton";
-import MyDataTable from "../../../../Components/MyDataTable.jsx";
+import FormTable from "../../../../Components/FormTable.jsx";
 import FileUpload from "../../../../Components/FileUpload/FileUpload.tsx";
+import Field from "../../../../Components/Field";
 
 export default function MaterialInWithPO() {
   const { showToast } = useToast();
@@ -59,6 +60,8 @@ export default function MaterialInWithPO() {
   const [filesData, setFilesData] = useState([]);
   const [fileName, setFileName] = useState("");
   const [irnNum, setIrnNum] = useState("");
+    const [isValid, setIsValid] = useState(false);
+  const [searchValid, setSearchValid] = useState(false);
   const [searchData, setSearchData] = useState({
     vendor: "",
     poNumber: "",
@@ -85,24 +88,30 @@ export default function MaterialInWithPO() {
   const tableContainerRef = useRef(null);
 
   const { executeFun, loading: loading1 } = useApi();
+    const hasIncompleteMaterialRow = (rows) =>
+    (rows || []).some(
+      (row) =>
+        !row?.c_partno ||
+        !row?.orderqty ||
+        Number(row?.orderqty) <= 0 ||
+        !row?.orderrate ||
+        Number(row?.orderrate) <= 0 ||
+        !row?.currency ||
+        row?.gstrate === "" ||
+        row?.gstrate === undefined ||
+        row?.gstrate === null ||
+        !row?.gsttype ||
+        !row?.hsncode ||
+        !row?.location ||
+        !row?.invoiceId ||
+        !row?.invoiceDate,
+    );
   const validateData = async () => {
-    let validation = false;
-
-    poData.materials.map((row) => {
-      if (
-        row.c_partno &&
-        row.currency &&
-        row.gstrate &&
-        row.invoiceDate &&
-        row.invoiceId &&
-        row.location &&
-        row.orderqty
-      ) {
-        validation = true;
-      } else {
-        validation = false;
-      }
-    });
+    if (hasIncompleteMaterialRow(poData.materials)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     let componentData = {
       qty: [],
       rate: [],
@@ -122,7 +131,7 @@ export default function MaterialInWithPO() {
       component: [],
     };
 
-    if (validation == true) {
+  
       let a = uploadedComponents;
       if (a?.length) {
         poData.materials.map((row) => {
@@ -156,7 +165,6 @@ export default function MaterialInWithPO() {
             componentData.currency.length) !=
           true
         ) {
-          validation = false;
           return showToast(
             "Currency of all components should be the same",
             "error",
@@ -166,7 +174,6 @@ export default function MaterialInWithPO() {
             componentData.gsttype.length) !=
           true
         ) {
-          validation = false;
           return showToast(
             "gst type of all components should be the same",
             "error",
@@ -186,9 +193,7 @@ export default function MaterialInWithPO() {
       } else {
         showToast("Please add at least one document", "error");
       }
-    } else {
-      showToast("Please Provide all the values of all the components", "error");
-    }
+
   };
   const validateInvoices = async (values) => {
     try {
@@ -200,7 +205,7 @@ export default function MaterialInWithPO() {
       setSubmitLoading(true);
       let payload = {
         invoice: invoices,
-        vendor: searchData.vendor,
+        vendor: searchData.vendor?.value,
       };
       const response = await executeFun(
         () => checkInvoiceforMIN(payload),
@@ -221,6 +226,7 @@ export default function MaterialInWithPO() {
             },
           });
         } else {
+          showToast(response.message || "Invoice Id not found", "error");
           submitMIN(values);
         }
       } else {
@@ -278,10 +284,6 @@ export default function MaterialInWithPO() {
       }
     } else {
       setSubmitLoading(false);
-      showToast(
-        "Some error occured while uploading invoices, Please try again",
-        "error",
-      );
     }
   };
   const getCurrencies = async () => {
@@ -477,12 +479,20 @@ export default function MaterialInWithPO() {
     setFileName("");
     setShowResetConfirm(false);
   };
+    const validateAndSearch = () => {
+    if (!searchData.vendor || !searchData.poNumber.trim()) {
+      setSearchValid(true);
+      return;
+    }
+    setSearchValid(false);
+    getDetail();
+  };
   const getDetail = async () => {
     setSearchLoading(true);
     setPoData({ materials: [] });
     let search = {
       po: searchData.poNumber.trim(),
-      vendor: searchData.vendor,
+      vendor: searchData.vendor?.value,
     };
     const response = await imsAxios.post(
       "/purchaseOrder/fetchVendorPO",
@@ -591,7 +601,7 @@ export default function MaterialInWithPO() {
       headerName: "QTY",
       field: "gstqty",
       sortable: false,
-      renderCell: (params) => QuantityCell(params, inputHandler),
+      renderCell: (params) => QuantityCell(params, inputHandler,isValid),
       width: 220,
     },
     {
@@ -605,7 +615,7 @@ export default function MaterialInWithPO() {
       headerName: "Rate",
       field: "orderrate",
       sortable: false,
-      renderCell: (params) => rateCell(params, inputHandler, currencies),
+      renderCell: (params) => rateCell(params, inputHandler, currencies,isValid),
       width: 180,
     },
     {
@@ -626,28 +636,28 @@ export default function MaterialInWithPO() {
       headerName: "Invoice ID",
       field: "invoiceId",
       sortable: false,
-      renderCell: (params) => invoiceIdCell(params, inputHandler),
+      renderCell: (params) => invoiceIdCell(params, inputHandler,isValid),
       width: 200,
     },
     {
       headerName: "Invoice Date",
       field: "invoiceDate",
       sortable: false,
-      renderCell: (params) => invoiceDateCell(params, inputHandler),
+      renderCell: (params) => invoiceDateCell(params, inputHandler,isValid),
       width: 120,
     },
     {
       headerName: "HSN Code",
       field: "hsncode",
       sortable: false,
-      renderCell: (params) => HSNCell(params, inputHandler),
+      renderCell: (params) => HSNCell(params, inputHandler,isValid),
       width: 150,
     },
     {
       headerName: "GST Type",
       field: "gsttype",
       sortable: false,
-      renderCell: (params) => gstTypeCell(params, inputHandler),
+      renderCell: (params) => gstTypeCell(params, inputHandler, isValid),
       // flex: 1,
       width: 200,
     },
@@ -655,7 +665,7 @@ export default function MaterialInWithPO() {
       headerName: "GST Rate",
       field: "gstrate",
       sortable: false,
-      renderCell: (params) => gstRate(params, inputHandler),
+      renderCell: (params) => gstRate(params, inputHandler, isValid),
       // flex: 1,
       width: 100,
     },
@@ -688,7 +698,7 @@ export default function MaterialInWithPO() {
       field: "location",
       sortable: false,
       renderCell: (params) =>
-        locationCell(params, inputHandler, locationOptions),
+        locationCell(params, inputHandler, locationOptions, isValid),
       width: 150,
     },
     {
@@ -844,6 +854,7 @@ export default function MaterialInWithPO() {
                 selectLoading={loading1("select")}
                 onBlur={() => setAsyncOptions([])}
                 value={searchData.vendor}
+                labelInValue
                 onChange={(value) =>
                   setSearchData((searchData) => ({
                     ...searchData,
@@ -853,26 +864,34 @@ export default function MaterialInWithPO() {
                 loadOptions={getVendors}
                 optionsState={asyncOptions}
                 placeholder="Select Vendor..."
+                       showError={searchValid}
+                message="Please select a vendor"
               />
             </div>
             <div style={{ width: 200 }}>
-              <Input
-                allowClear
-                placeholder="PO Number"
+             <Field
+                attr="required | Please enter a PO number"
                 value={searchData.poNumber}
-                onChange={(e) =>
-                  setSearchData((searchData) => ({
-                    ...searchData,
-                    poNumber: e.target.value,
-                  }))
-                }
-              />
+                showValidation={searchValid}
+              >
+                <Input
+                  allowClear
+                  placeholder="PO Number"
+                  value={searchData.poNumber}
+                  onChange={(e) =>
+                    setSearchData((searchData) => ({
+                      ...searchData,
+                      poNumber: e.target.value,
+                    }))
+                  }
+                />
+              </Field>
             </div>
             <MyButton
               disabled={searchData.vendor == "" || searchData.poNumber == ""}
               type="primary"
               loading={searchLoading}
-              onClick={getDetail}
+               onClick={validateAndSearch}
               id="submit"
               variant="search"
             >
@@ -1340,7 +1359,7 @@ export default function MaterialInWithPO() {
               }}
             >
               <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-                <MyDataTable
+                <FormTable
                   data={poData?.materials}
                   columns={columns}
                   loading={loading1("select") || pageLoading}
