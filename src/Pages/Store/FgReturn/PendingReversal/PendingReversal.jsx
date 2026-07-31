@@ -1,6 +1,6 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MyDataTable from "../../../../Components/MyDataTable";
-import {  Col, Form, Row } from "antd";
+import { Col, Form, Row } from "antd";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 import MyButton from "../../../../Components/MyButton";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -25,36 +25,49 @@ function PendingReversal() {
 
   const [form] = Form.useForm();
   const { executeFun, loading } = useApi();
-
+  const [isValid, setIsValid] = useState(false);
   const wise = Form.useWatch("wise", form);
 
   const handleFetchProductOptions = async (search) => {
     const response = await executeFun(
       () => getProductsOptions(search),
-      "select"
+      "select",
     );
 
     setAsyncOptions(response?.data);
   };
 
   const getRows = async () => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      return;
+    }
+    setIsValid(false);
+
+    const data =
+      values.wise === "skuwise"
+        ? (values.data?.value ?? values.data)
+        : values.data;
     const response = await executeFun(
-      () => getPendingReturns(values.data, values.wise),
-      "fetch"
+      () => getPendingReturns(data, values.wise),
+      "fetch",
     );
 
     setRows(response.data);
   };
   const getExecuteDetails = async (row) => {
-
     const response = await imsAxios.post("/fg_return/fetchComponentDetails", {
       product_id: row.productKey,
       fg_return_txn: row.transactionId,
     });
 
     if (response.success) {
-      
       setExecutePPR(row);
     }
   };
@@ -69,7 +82,7 @@ function PendingReversal() {
       // minWidth: "20%",
       getActions: ({ row }) => [
         <TableActions
-        key={"check"}
+          key={"check"}
           showInMenu={true}
           action="check"
           onClick={() => {
@@ -95,58 +108,65 @@ function PendingReversal() {
         editPPR={executePPR}
         setEditPPR={setExecutePPR}
       />
-  <Col span={16}>
-  <Form form={form} initialValues={initialValues}>
-    <Row gutter={10} align="middle">
+      <Col span={16}>
+        <Form form={form} initialValues={initialValues}>
+          <Row gutter={10} align="middle">
+            {/* Wise Select */}
+            <Col span={8}>
+              <Form.Item
+                name="wise"
+                label="Select Wise"
+                style={{ marginBottom: 0 }}
+                rules={[{ required: true, message: "" }]}
+              >
+                <MySelect
+                  options={wiseOptions}
+                  showError={isValid}
+                  message="Please select wise"
+                />
+              </Form.Item>
+            </Col>
 
-      {/* Wise Select */}
-      <Col span={8}>
-        <Form.Item
-          name="wise"
-          label="Select Wise"
-          style={{ marginBottom: 0 }}
-        >
-          <MySelect options={wiseOptions} />
-        </Form.Item>
+            {/* Product / Date */}
+            <Col span={10}>
+              <Form.Item
+                name="data"
+                label={wise === "skuwise" ? "Select Product" : "Select Date"}
+                style={{ marginBottom: 0 }}
+                rules={[{ required: true, message: "" }]}
+              >
+                {wise === "skuwise" ? (
+                  <MyAsyncSelect
+                    loadOptions={handleFetchProductOptions}
+                    selectLoading={loading("select")}
+                    optionsState={asyncOptions}
+                    onBlur={() => setAsyncOptions([])}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a product"
+                  />
+                ) : (
+                  <MyDatePicker
+                    setDateRange={(value) => form.setFieldValue("data", value)}
+                    showError={isValid}
+                    message="Please select a date range"
+                  />
+                )}
+              </Form.Item>
+            </Col>
+
+            {/* Button */}
+            <Col span={6}>
+              <MyButton
+                loading={loading("fetch")}
+                onClick={getRows}
+                variant="search"
+                text="Fetch"
+              />
+            </Col>
+          </Row>
+        </Form>
       </Col>
-
-      {/* Product / Date */}
-      <Col span={10}>
-        <Form.Item
-          name="data"
-          label={wise === "skuwise" ? "Select Product" : "Select Date"}
-          style={{ marginBottom: 0 }}
-        >
-          {wise === "skuwise" ? (
-            <MyAsyncSelect
-              loadOptions={handleFetchProductOptions}
-              selectLoading={loading("select")}
-              optionsState={asyncOptions}
-              onBlur={() => setAsyncOptions([])}
-            />
-          ) : (
-            <MyDatePicker
-              setDateRange={(value) =>
-                form.setFieldValue("data", value)
-              }
-            />
-          )}
-        </Form.Item>
-      </Col>
-
-      {/* Button */}
-      <Col span={6}>
-        <MyButton
-          loading={loading("fetch")}
-          onClick={getRows}
-          variant="search"
-          text="Fetch"
-        />
-      </Col>
-
-    </Row>
-  </Form>
-</Col>
       <Col span={24} style={{ height: "calc(100% - 50px)", overflowY: "auto" }}>
         <MyDataTable
           loading={loading("fetch")}

@@ -2,11 +2,12 @@ import  { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { useToast } from "../../../hooks/useToast.js";
 import { Col, Row, Select, Input } from "antd";
-import MyDataTable from "../../../Components/MyDataTable";
+import FormTable from "../../../Components/FormTable";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import NavFooter from "../../../Components/NavFooter.jsx";
 import MySelect from "../../../Components/MySelect.jsx";
+import Field from "../../../Components/Field.jsx";
 import { Add, Delete } from "@mui/icons-material";
 
 const { TextArea } = Input;
@@ -15,13 +16,13 @@ const CreateFGOut = () => {
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [locationOptions, setLocationOptions] = useState([]);
   const [selLoading, setSelLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const options = [
     { label: "Sale", value: "SL001" },
     { label: "Replacement", value: "REPL" },
     { label: "Other", value: "OT001" },
   ];
   const [asyncOptions, setAsyncOptions] = useState([]);
-  // const [searchInput, setSearchInput] = useState("");
   const [createFgOut, setCreateFgOut] = useState({
     selectType: "",
     comment: "",
@@ -41,6 +42,7 @@ const CreateFGOut = () => {
       location: "",
       remarks: "",
       uom: "",
+      rate: 0,
     },
   ]);
   // console.log(restValue);
@@ -115,51 +117,68 @@ const CreateFGOut = () => {
 
 const compInputHandler = async (name, id, value) => {
     if (name == "product") {
-  try {
+      setAddRowData((product) =>
+        product.map((h) => {
+          if (h.id == id) {
+            return {
+              ...h,
+              product: value,
+              location: "",
+              total: "",
+              uom: "",
+              rate: 0,
+            };
+          } else {
+            return h;
+          }
+        }),
+      );
+    } else if (name == "location") {
+      const currentRow = addRowData.find((h) => h.id == id);
+      if (!currentRow?.product) {
+        showToast("Please select a product first", "error");
+        return;
+      }
+      setAddRowData((location) =>
+        location.map((h) => {
+          if (h.id == id) {
+            return { ...h, location: value };
+          } else {
+            return h;
+          }
+        }),
+      );
+      try {
         const response = await imsAxios.post("/fgOUT/fetchProductData", {
-        search: value,
-      });
-         
-      if (response?.success) {
-        const totalValue = response?.data?.total;
-        const unitValue = response?.data?.unit;
-        const war = Number(response?.data?.war);
-  
-        setAddRowData((product) =>
-          product.map((h) => {
-            if (h.id == id) {
-              {
+          search: currentRow.product?.value ?? currentRow.product,
+          location: value,
+        });
+
+        if (response?.success) {
+          const totalValue = response?.data?.total;
+          const unitValue = response?.data?.unit;
+          const war = Number(response?.data?.war);
+
+          setAddRowData((product) =>
+            product.map((h) => {
+              if (h.id == id) {
                 return {
                   ...h,
-                  product: value,
                   total: totalValue,
                   uom: unitValue,
                   rate: war,
                 };
+              } else {
+                return h;
               }
-            } else {
-              return h;
-            }
-          }),
-        );
-      } else {
-        setAddRowData((product) =>
-          product.map((h) => {
-            if (h.id == id) {
-              {
-                return { ...h, product: value };
-              }
-            } else {
-              return h;
-            }
-          }),
-        );
-        showToast(response?.message, "error");
+            }),
+          );
+        } else {
+          showToast(response?.message, "error");
+        }
+      } catch (error) {
+        showToast(error?.message || "Error fetching product options", "error");
       }
-    
-  } catch (error) {
-    showToast(error?.message || "Error fetching product options", "error");
-  }
     } else if (name == "quantity") {
       setAddRowData((quantity) =>
         quantity.map((h) => {
@@ -184,76 +203,61 @@ const compInputHandler = async (name, id, value) => {
           }
         }),
       );
-    } else if (name == "location") {
-      setAddRowData((location) =>
-        location.map((h) => {
-          if (h.id == id) {
-            {
-              return { ...h, location: value };
-            }
-          } else {
-            return h;
-          }
-        }),
-      );
     }
   };
 
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (a) =>
+        !a?.product ||
+        !a?.quantity ||
+        Number(a?.quantity) <= 0 ||
+        !a?.location ||
+        !a?.rate ||
+        Number(a?.rate) <= 0,
+    );
+
   const addFGOut = async (e) => {
     e.preventDefault();
+
+    if (!createFgOut.selectType || hasIncompleteRow(addRowData)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     let arrPro = [];
     let arrQty = [];
     let arrRemark = [];
     let arrLoc = [];
     let arrRate = [];
-    addRowData.map((a) => arrPro.push(a.product));
+    addRowData.map((a) => arrPro.push(a.product?.value ?? a.product));
     addRowData.map((a) => arrQty.push(a.quantity));
     addRowData.map((a) => arrRemark.push(a.remarks));
     addRowData.map((a) => arrRate.push(a.rate));
     addRowData.map((a) => arrLoc.push(a.location));
 
-    const hasEmptyProduct = addRowData.some((a) => !a.product);
-    const hasInvalidQty = addRowData.some(
-      (a) => !a.quantity || Number(a.quantity) <= 0,
-    );
-    const hasEmptyLocation = addRowData.some((a) => !a.location);
-
-    if (!createFgOut.selectType) {
-      showToast("Please Select Option", "error");
-      return;
-    } else if (hasEmptyProduct) {
-      showToast("Please Select Product for all rows", "error");
-      return;
-    } else if (hasInvalidQty) {
-      showToast("Please Enter a valid Quantity for all rows", "error");
-      return;
-    } else if (hasEmptyLocation) {
-      showToast("Location is mandatory for all rows", "error");
-    } else {
-      try {
-        setLoadingUpdate(true);
-        const response = await imsAxios.post("/fgout/createFgOut", {
-          fg_out_type: createFgOut.selectType,
-          product: arrPro,
-          qty: arrQty,
-          rate: arrRate,
-          location: arrLoc,
-          remark: arrRemark,
-          comment: createFgOut.comment,
-        });
-        if (response?.success) {
-          resetFunction();
+    setLoadingUpdate(true);
+    try {
+      const response = await imsAxios.post("/fgout/createFgOut", {
+        fg_out_type: createFgOut.selectType,
+        product: arrPro,
+        qty: arrQty,
+        rate: arrRate,
+        location: arrLoc,
+        remark: arrRemark,
+        comment: createFgOut.comment,
+      });
+      if (response?.success) {
+        resetFunction();
         showToast(response.message, "success");
-          setLoadingUpdate(false);
-        } else {
-        
-          showToast(response.message, "error");
-          setLoadingUpdate(false);
-        }
-      } catch (error) {
-        showToast(error?.message, "error");
-      
+      } else {
+        showToast(response.message, "error");
       }
+    } catch (error) {
+      showToast(error?.message ?? "Something went wrong", "error");
+    } finally {
+      setLoadingUpdate(false);
     }
   };
 
@@ -272,6 +276,7 @@ const compInputHandler = async (name, id, value) => {
         remarks: "",
       },
     ]);
+    setIsValid(false);
     showToast("Form Reset", "success");
   };
 
@@ -319,14 +324,30 @@ const compInputHandler = async (name, id, value) => {
       renderCell: ({ row }) => (
         <MyAsyncSelect
           selectLoading={selLoading}
-          style={{ width: "100%" }}
           onBlur={() => setAsyncOptions([])}
-          // onInputChange={(e) => setSearchInput(e)}
           loadOptions={getOption}
-          value={addRowData?.product}
+          value={row?.product}
           optionsState={asyncOptions}
+          labelInValue
+          showError={isValid}
+          message="Product is required"
           onChange={(e) => compInputHandler("product", row.id, e)}
           // placeholder="Part/Name"
+        />
+      ),
+    },
+    {
+      headerName: "Location *",
+      field: "location",
+      width: 400,
+      renderCell: ({ row }) => (
+        <MySelect
+          value={row?.location}
+          onChange={(value) => compInputHandler("location", row.id, value)}
+          options={locationOptions}
+          placeholder="Select location"
+          showError={isValid}
+          message="Location is required"
         />
       ),
     },
@@ -342,33 +363,38 @@ const compInputHandler = async (name, id, value) => {
       headerName: "Rate",
       field: "rate",
       width: 170,
-
+      renderCell: ({ row }) => (
+        <Field
+          attr="required | Rate is required"
+          value={row?.rate}
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
+          <Input disabled value={row?.rate} />
+        </Field>
+      ),
     },
     {
       headerName: "Issue Qty",
       field: "quantity ",
       width: 170,
       renderCell: ({ row }) => (
-        <Input
-          placeholder="Qty"
-          suffix={row?.uom}
-          value={addRowData?.quantity}
-          onChange={(e) => compInputHandler("quantity", row.id, e.target.value)}
-          type="number"
-        />
-      ),
-    },
-    {
-      headerName: "Location *",
-      field: "location",
-      width: 400,
-      renderCell: ({ row }) => (
-        <MySelect
-          value={row?.location}
-          onChange={(value) => compInputHandler("location", row.id, value)}
-          options={locationOptions}
-          placeholder="Select location"
-        />
+        <Field
+          attr="required | Qty is required"
+          value={row?.quantity}
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
+          <Input
+            placeholder="Qty"
+            suffix={row?.uom}
+            value={row?.quantity}
+            onChange={(e) =>
+              compInputHandler("quantity", row.id, e.target.value)
+            }
+            type="number"
+          />
+        </Field>
       ),
     },
     {
@@ -392,23 +418,29 @@ const compInputHandler = async (name, id, value) => {
         <Col span={16}>
           <Row gutter={16}>
             <Col span={8}>
-              <Select
-                style={{
-                  width: "100%",
-                  marginBottom: "10px",
-                }}
-                options={options}
-                placeholder="Select"
+              <Field
+                attr="required | Please select type"
                 value={createFgOut.selectType}
-                onChange={(e) =>
-                  setCreateFgOut((createFgOut) => {
-                    return {
-                      ...createFgOut,
-                      selectType: e,
-                    };
-                  })
-                }
-              />
+                showValidation={isValid}
+              >
+                <Select
+                  style={{
+                    width: "100%",
+                    marginBottom: "10px",
+                  }}
+                  options={options}
+                  placeholder="Select"
+                  value={createFgOut.selectType}
+                  onChange={(e) =>
+                    setCreateFgOut((createFgOut) => {
+                      return {
+                        ...createFgOut,
+                        selectType: e,
+                      };
+                    })
+                  }
+                />
+              </Field>
             </Col>
             <Col span={8}>
               <TextArea
@@ -430,13 +462,13 @@ const compInputHandler = async (name, id, value) => {
         </Col>
         <Col
           span={24}
-          style={{ height: "calc(100% - 50px)", overflowY: "auto" }}
+          style={{ height: "calc(100% - 50px)", overflowY: "auto", }}
         >
-          <MyDataTable
-            // loading={loading}
+          <FormTable
             data={addRowData}
             columns={columns}
             hideHeaderMenu
+            hideFooter
           />
         </Col>
       </Row>
@@ -446,6 +478,7 @@ const compInputHandler = async (name, id, value) => {
           submitFunction={addFGOut}
           nextLabel="Submit"
           loading={loadingUpdate}
+          
         />
       </Row>
     </>
