@@ -1,6 +1,5 @@
 import { Input } from "antd";
-// import InputMask from "react-input-mask";
-// import MySelect from "./MySelect";
+import Field from "./Field";
 import MyAsyncSelect from "./MyAsyncSelect";
 // const gstTypeOptions = [
 //   { value: "I", text: "INTER STATE" },
@@ -15,6 +14,8 @@ export const asyncSelectComponent = ({
   asyncOptions,
   selectLoading,
   value,
+  showError = false,
+  message,
 }) => (
   <MyAsyncSelect
     selectLoading={selectLoading}
@@ -26,17 +27,33 @@ export const asyncSelectComponent = ({
     labelInValue
     loadOptions={loadOptions}
     optionsState={asyncOptions}
+    showError={showError}
+    message={message}
   />
 );
-export const inputComponent = ({ ...args }) => (
-  <Input
-    value={
-      args.type == "calculated" ? args.value : args.row[args.value?.toString()]
-    }
-    onChange={(e) => {
-      args.inputHandler(args.value, e.target.value, args.row?.id);
-    }}
-    disabled={args.disabled}
-    suffix={args.suffix ?? ""}
-  />
-);
+
+export const inputComponent = ({ ...args }) => {
+  const fieldValue =
+    args.type == "calculated" ? args.value : args.row[args.value?.toString()];
+  const input = (
+    <Input
+      value={fieldValue}
+      onChange={(e) => {
+        args.inputHandler(args.value, e.target.value, args.row?.id);
+      }}
+      disabled={args.disabled}
+      suffix={args.suffix ?? ""}
+    />
+  );
+  if (!args.showError) return input;
+  return (
+    <Field
+      attr={`required | ${args.message ?? "This field is required"}`}
+      value={fieldValue}
+      treatZeroAsEmpty={args.treatZeroAsEmpty}
+      showValidation={args.showError}
+    >
+      {input}
+    </Field>
+  );
+};

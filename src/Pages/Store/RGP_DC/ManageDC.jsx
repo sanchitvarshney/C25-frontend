@@ -1,4 +1,4 @@
-import  { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { Button, Col, Input, Row, Select } from "antd";
 import { Link } from "react-router-dom";
@@ -13,75 +13,75 @@ import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
 import validateResponse from "../../../Components/validateResponse";
-import printFunction, { downloadFunction } from "../../../Components/printFunction";
-
+import printFunction, {
+  downloadFunction,
+} from "../../../Components/printFunction";
+import Field from "../../../Components/Field.jsx";
 const SELECT_OPTIONS = [
   { label: "Date Wise", value: "datewise" },
   { label: "GP ID Wise", value: "gpwise" },
 ];
 
-
-
 function ManageDC() {
   const { showToast } = useToast();
   const COLUMNS = [
-  {
-    headerName: "",
-    width: 30,
-    type: "actions",
-    getActions: ({ row }) => [
-      <GridActionsCellItem
-        key="edit"
-        showInMenu
-        label="Edit"
-        onClick={() => setUpdateDCId(row.transaction_id)}
-      />,
-      <GridActionsCellItem
-        key="download"
-        showInMenu
-        label="Download"
-        onClick={() => downloadFun(row.transaction_id)}
-      />,
-      <GridActionsCellItem
-        key="print"
-        showInMenu
-        label="Print"
-        onClick={() => printFun(row.transaction_id)}
-      />,
-      <GridActionsCellItem
-        key="ewaybill"
-        showInMenu
-        label={
-          <Link
-            style={{ textDecoration: "none", color: "black" }}
-            to={`/warehouse/e-way/dc/${row.transaction_id.replaceAll("/", "_")}`}
-            target="_blank"
-          >
-            Create E-Way Bill
-          </Link>
-        }
-      />,
-    ],
-  },
-  {
-    field: "transaction_id",
-    headerName: "Journal ID",
-    width: 200,
-    renderCell: ({ row }) => (
-      <ToolTipEllipses text={row.transaction_id} copy />
-    ),
-  },
-  { field: "vendor_name", headerName: "To (Name)", width: 500 },
-  { field: "insert_date", headerName: "Created Date/Time", width: 200 },
-  { field: "component_name", headerName: "Component Name", width: 200 },
-  { field: "part_no", headerName: "Part No.", width: 200 },
-  { field: "quantity", headerName: "Quantity", width: 200 },
-  { field: "rate", headerName: "Rate", width: 200 },
-  { field: "hsn", headerName: "HSN", width: 200 },
-  { field: "total", headerName: "Amount", width: 200 },
-  { field: "ewaybill_status", headerName: "E WayBill Status", width: 200 },
-  { field: "ewaybill_no", headerName: "E WayBill No.", width: 200 },
-];
+    {
+      headerName: "",
+      width: 30,
+      type: "actions",
+      getActions: ({ row }) => [
+        <GridActionsCellItem
+          key="edit"
+          showInMenu
+          label="Edit"
+          onClick={() => setUpdateDCId(row.transaction_id)}
+        />,
+        <GridActionsCellItem
+          key="download"
+          showInMenu
+          label="Download"
+          onClick={() => downloadFun(row.transaction_id)}
+        />,
+        <GridActionsCellItem
+          key="print"
+          showInMenu
+          label="Print"
+          onClick={() => printFun(row.transaction_id)}
+        />,
+        <GridActionsCellItem
+          key="ewaybill"
+          showInMenu
+          label={
+            <Link
+              style={{ textDecoration: "none", color: "black" }}
+              to={`/warehouse/e-way/dc/${row.transaction_id.replaceAll("/", "_")}`}
+              target="_blank"
+            >
+              Create E-Way Bill
+            </Link>
+          }
+        />,
+      ],
+    },
+    {
+      field: "transaction_id",
+      headerName: "Journal ID",
+      width: 200,
+      renderCell: ({ row }) => (
+        <ToolTipEllipses text={row.transaction_id} copy />
+      ),
+    },
+    { field: "vendor_name", headerName: "To (Name)", width: 500 },
+    { field: "insert_date", headerName: "Created Date/Time", width: 200 },
+    { field: "component_name", headerName: "Component Name", width: 200 },
+    { field: "part_no", headerName: "Part No.", width: 200 },
+    { field: "quantity", headerName: "Quantity", width: 200 },
+    { field: "rate", headerName: "Rate", width: 200 },
+    { field: "hsn", headerName: "HSN", width: 200 },
+    { field: "total", headerName: "Amount", width: 200 },
+    { field: "ewaybill_status", headerName: "E WayBill Status", width: 200 },
+    { field: "ewaybill_no", headerName: "E WayBill No.", width: 200 },
+  ];
   const [state, setState] = useState({
     selType: "datewise",
     gpInput: "",
@@ -90,22 +90,18 @@ function ManageDC() {
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState("");
   const [updatedDCId, setUpdateDCId] = useState(null);
-
+  const [isValid, setIsValid] = useState(false);
   const fetchData = useCallback(async () => {
-    if (!state.selType) {
-      showToast("Please select a type", "error");
-      return;
-    }
+    const hasEmptyField =
+      !state.selType ||
+      (state.selType === "datewise" && !dateRange) ||
+      (state.selType === "gpwise" && !state.gpInput.trim());
 
-    if (state.selType === "datewise" && !dateRange) {
-      showToast("Please select a date range", "error");
+    if (hasEmptyField) {
+      setIsValid(true);
       return;
     }
-
-    if (state.selType === "gpwise" && !state.gpInput.trim()) {
-      showToast("Please enter a valid GP ID", "error");
-      return;
-    }
+    setIsValid(false);
 
     setLoading(true);
     try {
@@ -190,17 +186,23 @@ function ManageDC() {
       )}
       <Row gutter={16} style={{ paddingBottom: 5 }}>
         <Col span={4}>
-          <Select
-            style={{ width: "100%" }}
-            options={SELECT_OPTIONS}
-            placeholder="Select Option"
+          <Field
+            attr="required | Please select a type"
             value={state.selType}
-            onChange={(value) =>
-              setState((prev) => ({ ...prev, selType: value, gpInput: "" }))
-            }
-            disabled={loading}
-            aria-label="Select search type"
-          />
+            showValidation={isValid}
+          >
+            <Select
+              style={{ width: "100%" }}
+              options={SELECT_OPTIONS}
+              placeholder="Select Option"
+              value={state.selType}
+              onChange={(value) =>
+                setState((prev) => ({ ...prev, selType: value, gpInput: "" }))
+              }
+              disabled={loading}
+              aria-label="Select search type"
+            />
+          </Field>
         </Col>
         {state.selType === "datewise" && (
           <>
@@ -208,7 +210,10 @@ function ManageDC() {
               <MyDatePicker
                 setDateRange={setDateRange}
                 size="default"
+                value={dateRange}
                 disabled={loading}
+                showError={isValid}
+                message="Please select a date range"
               />
             </Col>
             <Col span={2}>
@@ -216,7 +221,7 @@ function ManageDC() {
                 variant="search"
                 type="primary"
                 onClick={fetchData}
-                disabled={loading || !dateRange}
+                disabled={loading}
               >
                 Fetch
               </MyButton>
@@ -226,23 +231,29 @@ function ManageDC() {
         {state.selType === "gpwise" && (
           <>
             <Col span={5}>
-              <Input
-                style={{ width: "100%" }}
-                placeholder="Enter GP ID"
+              <Field
+                attr="required | Please enter a valid GP ID"
                 value={state.gpInput}
-                onChange={(e) =>
-                  setState((prev) => ({ ...prev, gpInput: e.target.value }))
-                }
-                disabled={loading}
-                aria-label="Gate Pass ID"
-              />
+                showValidation={isValid}
+              >
+                <Input
+                  style={{ width: "100%" }}
+                  placeholder="Enter GP ID"
+                  value={state.gpInput}
+                  onChange={(e) =>
+                    setState((prev) => ({ ...prev, gpInput: e.target.value }))
+                  }
+                  disabled={loading}
+                  aria-label="Gate Pass ID"
+                />
+              </Field>
             </Col>
             <Col span={2}>
               <MyButton
                 variant="search"
                 type="primary"
                 onClick={fetchData}
-                disabled={loading || !state.gpInput.trim()}
+                disabled={loading}
               >
                 Fetch
               </MyButton>

@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import "../../common.css";
 import { v4 } from "uuid";
-import { Button, Col, Input, Row, Select } from "antd";
+import { Button, Card, Col, Input, Row, Select } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import MyDataTable from "../../../Components/MyDataTable";
+import FormTable from "../../../Components/FormTable";
 import { DeleteTwoTone, DeleteOutlined } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 const { TextArea } = Input;
 
@@ -17,18 +18,12 @@ const Rejection = () => {
   const [loadingRejection, setLoadingRejection] = useState(false);
   const [rejectedValue, setRejectedvalue] = useState({
     selValue: "",
-    remark: "",
   });
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [allDataComes, setAllDataComes] = useState([]);
   const [loctionData, setloctionData] = useState([]);
-  // const [valueComesApi, setValueComesApi] = useState({
-  //   branch: "",
-  //   component: [],
-  //   quantity: [],
-  //   loc_to: [],
-  //   remark: "",
-  // });
+  const [isValid, setIsValid] = useState(false);
+  const [remark, setRemark] = useState("");
 
   const getRejectedList = async (e) => {
     if (e?.length > 2) {
@@ -52,10 +47,16 @@ const Rejection = () => {
   };
 
   const rejectListFunction = async () => {
+    if (!rejectedValue.selValue) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setAllDataComes([]);
     setLoading(true);
     const response = await imsAxios.post("/rejection/fetchMINData", {
-      min_transaction: rejectedValue?.selValue,
+      min_transaction:
+        rejectedValue?.selValue?.value ?? rejectedValue?.selValue,
     });
     if (response?.success) {
       let arr = response?.data.map((row, index) => {
@@ -76,6 +77,8 @@ const Rejection = () => {
 
   const reset = () => {
     setAllDataComes([]);
+    setIsValid(false);
+    setRemark("");
   };
 
   const resetData = (i) => {
@@ -127,16 +130,41 @@ const Rejection = () => {
         </>
       ),
     },
-    { field: "componentName", headerName: "Component", width: 300 },
-    { field: "partno", headerName: "Part", width: 100 },
-    { field: "hsncode", headerName: "HSN", width: 100 },
-    { field: "gsttype", headerName: "GST", width: 100 },
+    {
+      field: "componentName",
+      headerName: "Component",
+      width: 300,
+      renderCell: ({ row }) => row.componentName,
+    },
+    {
+      field: "partno",
+      headerName: "Part",
+      width: 100,
+      renderCell: ({ row }) => row.partno,
+    },
+    {
+      field: "hsncode",
+      headerName: "HSN",
+      width: 100,
+      renderCell: ({ row }) => row.hsncode,
+    },
+    {
+      field: "gsttype",
+      headerName: "GST",
+      width: 100,
+      renderCell: ({ row }) => row.gsttype,
+    },
     {
       field: "inward_qty",
       headerName: "Total",
       width: 140,
       renderCell: ({ row }) => (
-        <>
+        <Field
+          attr="required | Qty is required"
+          value={row.inward_qty}
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
           <Input
             suffix={row.uom}
             value={row.inward_qty}
@@ -145,12 +173,27 @@ const Rejection = () => {
               compInputHandler("inward_qty", e.target.value, row.id)
             }
           />
-        </>
+        </Field>
       ),
     },
-    { field: "rejected_qty", headerName: "Reject Qty", width: 100 },
-    { field: "min_date", headerName: "Date", width: 180 },
-    { field: "location", headerName: "Pick(-) From", width: 120 },
+    {
+      field: "rejected_qty",
+      headerName: "Reject Qty",
+      width: 100,
+      renderCell: ({ row }) => row.rejected_qty,
+    },
+    {
+      field: "min_date",
+      headerName: "Date",
+      width: 180,
+      renderCell: ({ row }) => row.min_date,
+    },
+    {
+      field: "location",
+      headerName: "Pick(-) From",
+      width: 120,
+      renderCell: ({ row }) => row.location,
+    },
     {
       field: "loc",
       headerName: "Drop (+)To",
@@ -165,7 +208,16 @@ const Rejection = () => {
     },
   ];
 
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((aa) => !aa?.inward_qty || Number(aa?.inward_qty) <= 0);
+
   const rejectionFun = async () => {
+    if (!rejectedValue.selValue || hasIncompleteRow(allDataComes)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     setLoadingRejection(true);
     let compArry = [];
     let qtyArry = [];
@@ -174,17 +226,18 @@ const Rejection = () => {
     allDataComes.map((aa) => qtyArry.push(aa?.inward_qty));
     allDataComes.map((aa) => locArry.push(aa?.loc));
     const response = await imsAxios.post("/rejection/saveRejection", {
-      branch: "BROAKTRC25",
+      branch: "BRALWR36",
       component: compArry,
       qty: qtyArry,
       loc_to: locArry,
-      remark: rejectedValue.remark,
-      min_transaction: rejectedValue.selValue,
+      remark: remark,
+      min_transaction: rejectedValue.selValue?.value ?? rejectedValue.selValue,
     });
 
     if (response?.success) {
       showToast(response?.message, "success");
       setAllDataComes([]);
+      setRemark("");
       setLoadingRejection(false);
     } else {
       // allDataComes([]);
@@ -195,69 +248,72 @@ const Rejection = () => {
 
   return (
     <div style={{ padding: 10, height: "100%" }}>
-      <Row gutter={10}>
-        <Col span={4}>
-          <MyAsyncSelect
-            style={{ width: "100%" }}
-            onBlur={() => setAsyncOptions([])}
-            loadOptions={getRejectedList}
-            placeholder="MIN / TXN ID"
-            optionsState={asyncOptions}
-            onChange={(e) =>
-              setRejectedvalue((rejectedValue) => {
-                return { ...rejectedValue, selValue: e };
-              })
-            }
-          />
+      <Row gutter={10} style={{ height: "100%" }}>
+        <Col span={6}>
+          <Card style={{ height: "100%", width: "100%" }}>
+            <Row gutter={[10, 10]}>
+              <Col span={24}>
+                <MyAsyncSelect
+                  style={{ width: "100%" }}
+                  onBlur={() => setAsyncOptions([])}
+                  loadOptions={getRejectedList}
+                  placeholder="MIN / TXN ID"
+                  optionsState={asyncOptions}
+                  value={rejectedValue.selValue}
+                  labelInValue
+                  showError={isValid}
+                  message="Please select MIN / TXN ID"
+                  onChange={(e) =>
+                    setRejectedvalue((rejectedValue) => {
+                      return { ...rejectedValue, selValue: e };
+                    })
+                  }
+                />
+              </Col>
+              <Col span={24}>
+                <MyButton
+                  variant="search"
+                  type="primary"
+                  onClick={rejectListFunction}
+                  loading={loading}
+                  block
+                >
+                  Fetch
+                </MyButton>
+              </Col>
+              <Col span={24}>
+                <TextArea
+                  rows={4}
+                  placeholder="Reject Comment (Not Compulsory)"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                />
+              </Col>
+              {allDataComes.length > 0 && (
+                <Col span={24}>
+                  <div style={{ textAlign: "end" }}>
+                    <Button onClick={reset} style={{ marginRight: "5px" }}>
+                      Reset
+                    </Button>
+                    <Button
+                      icon={<DeleteOutlined />}
+                      onClick={rejectionFun}
+                      loading={loadingRejection}
+                      style={{ background: "red", color: "white" }}
+                    >
+                      Rejection
+                    </Button>
+                  </div>
+                </Col>
+              )}
+            </Row>
+          </Card>
         </Col>
-        <Col span={2}>
-          <MyButton
-            variant="search"
-            type="primary"
-            onClick={rejectListFunction}
-            loading={loading}
-          >
-            Fetch
-          </MyButton>
+
+        <Col span={18} style={{ height: "100%" }}>
+          <FormTable data={allDataComes} columns={columns} loading={loading} />
         </Col>
-        {allDataComes.length > 0 && (
-          <Col span={8} offset={10}>
-            <TextArea
-              placeholder="Reject Comment (Not Compulsory)"
-              value={rejectedValue.remark}
-              onChange={(e) =>
-                setRejectedvalue((rejectedValue) => {
-                  return { ...rejectedValue, remark: e.target.value };
-                })
-              }
-            />
-          </Col>
-        )}
       </Row>
-
-      <div style={{ height: "calc(100% - 50px)", marginTop: "10px" }}>
-        <MyDataTable data={allDataComes} columns={columns} loading={loading} />
-      </div>
-
-      {allDataComes.length > 0 && (
-        <Row gutter={16}>
-          <Col span={24}>
-            <div style={{ textAlign: "end" }}>
-              <Button onClick={reset} style={{ marginRight: "5px" }}>
-                Reset
-              </Button>
-              <Button
-                icon={<DeleteOutlined />}
-                onClick={rejectionFun}
-                loading={loadingRejection}
-                style={{ background: "red", color: "white" }}
-              >
-                Rejection
-              </Button>
-            </div>
-          </Col>
-        </Row>
-      )}
     </div>
   );
 };

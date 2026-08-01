@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import {
   Col,
@@ -22,10 +22,8 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import { getVendorOptions } from "../../../../api/general.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
-import { useToast } from "../../../../hooks/useToast.js";
-
+import Field from "../../../../Components/Field.jsx";
 export default function CreateDC() {
-  const { showToast } = useToast();
   const [newGatePass, setNewGatePass] = useState({
     passType: "R",
     vendorName: "",
@@ -50,7 +48,7 @@ export default function CreateDC() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [billToOptions, setBillTopOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
-  // const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("1");
@@ -61,9 +59,7 @@ export default function CreateDC() {
     { text: "NRGP (Non-Returnable Gate Pass)", value: "NR", disabled: true },
   ];
 
-
   const inputHandler = async (name, value) => {
-   
     let obj = newGatePass;
     if (name === "vendorName") {
       const branches = await getVendorBracnch(value.value);
@@ -109,14 +105,13 @@ export default function CreateDC() {
   };
   //getting vendor branches
   const getVendorBracnch = async (vendorCode) => {
-    
     setPageLoading(true);
     const response = await imsAxios.post("/backend/vendorBranchList", {
       vendorcode: vendorCode,
     });
     setPageLoading(false);
     let validatedData = validateResponse(response);
-   
+
     const arr = validatedData.map((d) => {
       return { value: d.id, text: d.text };
     });
@@ -129,7 +124,7 @@ export default function CreateDC() {
     if (search?.length > 2) {
       const response = await executeFun(
         () => getVendorOptions(search),
-        "select"
+        "select",
       );
       let arr = [];
       if (response.success) {
@@ -178,18 +173,20 @@ export default function CreateDC() {
     };
   };
   const validateDCDetails = () => {
-    if (!newGatePass.passType) {
-      return showToast("Please select Pass Type", "error");
+    const hasEmptyField =
+      !newGatePass.passType ||
+      !newGatePass.vendorName?.value ||
+      !newGatePass.vendorBranch ||
+      !newGatePass.vendorAddress?.trim() ||
+      !newGatePass.billingId ||
+      !newGatePass.billinAddress?.trim() ||
+      !newGatePass.vehicleNumber?.trim();
+
+    if (hasEmptyField) {
+      setIsValid(true);
+      return;
     }
-    if (!newGatePass.vendorName || !newGatePass.vendorName?.value) {
-      return showToast("Please select a Vendor", "error");
-    }
-    if (!newGatePass.vendorBranch) {
-      return showToast("Please select a Vendor Branch", "error");
-    }
-    if (!newGatePass.billingId) {
-      return showToast("Please select a Billing Address", "error");
-    }
+    setIsValid(false);
     setActiveTab("2");
   };
 
@@ -216,12 +213,19 @@ export default function CreateDC() {
       billingGSTIN: "",
     });
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   useEffect(() => {
     getBillTo();
   }, []);
   return (
-    <div style={{ height: "calc(100vh - 145px)", overflow: "hidden", padding: "10px" }}>
+    <div
+      style={{
+        height: "calc(100vh - 145px)",
+        overflow: "hidden",
+        padding: "10px",
+      }}
+    >
       {!successPage && (
         <>
           {pageLoading && <Loading />}
@@ -240,9 +244,7 @@ export default function CreateDC() {
               key="1"
             >
               <>
-                <div
-                
-                >
+                <div>
                   {/* reset confirm modal */}
                   <Modal
                     title="Confirm Reset!"
@@ -304,6 +306,8 @@ export default function CreateDC() {
                                 size="default"
                                 options={passTypes}
                                 value={newGatePass.passType}
+                                showError={isValid}
+                                message="Please select Pass Type"
                                 onChange={(value) =>
                                   inputHandler("passType", value)
                                 }
@@ -357,6 +361,8 @@ export default function CreateDC() {
                                   inputHandler("vendorName", value);
                                 }}
                                 loadOptions={getVendors}
+                                showError={isValid}
+                                message="Please select a Vendor"
                               />
                             </Form.Item>
                           </Form>
@@ -388,6 +394,8 @@ export default function CreateDC() {
                                   inputHandler("vendorBranch", value);
                                 }}
                                 options={vendorBranches}
+                                showError={isValid}
+                                message="Please select a Vendor Branch"
                               />
                             </Form.Item>
                           </Form>
@@ -419,17 +427,26 @@ export default function CreateDC() {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                rows={4}
-                                value={newGatePass?.vendorAddress?.replaceAll(
-                                  "<br>",
-                                  "\n"
-                                )}
-                                onChange={(e) => {
-                                  inputHandler("vendorAddress", e.target.value);
-                                }}
-                                style={{ resize: "none" }}
-                              />
+                              <Field
+                                attr="required | Please enter Bill From Address"
+                                value={newGatePass.vendorAddress}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  rows={4}
+                                  value={newGatePass?.vendorAddress?.replaceAll(
+                                    "<br>",
+                                    "\n",
+                                  )}
+                                  onChange={(e) => {
+                                    inputHandler(
+                                      "vendorAddress",
+                                      e.target.value,
+                                    );
+                                  }}
+                                  style={{ resize: "none" }}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -524,7 +541,7 @@ export default function CreateDC() {
                                 onChange={(e) =>
                                   inputHandler(
                                     "otherReferences",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -558,7 +575,7 @@ export default function CreateDC() {
                                 onChange={(e) =>
                                   inputHandler(
                                     "buyerOrderNumber",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -585,7 +602,7 @@ export default function CreateDC() {
                                 onChange={(e) =>
                                   inputHandler(
                                     "dispatchDocNumber",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 value={newGatePass.dispatchDocNumber}
@@ -687,13 +704,22 @@ export default function CreateDC() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("vehicleNumber", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter a Vehicle Number"
                                 value={newGatePass.vehicleNumber}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "vehicleNumber",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.vehicleNumber}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -766,6 +792,8 @@ export default function CreateDC() {
                                   inputHandler("billingId", value);
                                 }}
                                 options={billToOptions}
+                                showError={isValid}
+                                message="Please select a Billing Address"
                               />
                             </Form.Item>
                           </Form>
@@ -835,17 +863,26 @@ export default function CreateDC() {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                style={{ resize: "none" }}
-                                rows={4}
-                                onChange={(e) =>
-                                  inputHandler("billinAddress", e.target.value)
-                                }
-                                value={newGatePass.billinAddress?.replaceAll(
-                                  "<br>",
-                                  " "
-                                )}
-                              />
+                              <Field
+                                attr="required | Please enter a Billing Address"
+                                value={newGatePass.billinAddress}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  style={{ resize: "none" }}
+                                  rows={4}
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "billinAddress",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.billinAddress?.replaceAll(
+                                    "<br>",
+                                    " ",
+                                  )}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -861,9 +898,7 @@ export default function CreateDC() {
               </>
             </Tabs.TabPane>
             <Tabs.TabPane
-              tab={
-                <span >Component Details</span>
-              }
+              tab={<span>Component Details</span>}
               key="2"
               disabled={activeTab !== "2"}
               style={{ height: "100%", overflowY: "hidden" }}
