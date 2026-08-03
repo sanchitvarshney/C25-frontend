@@ -247,7 +247,7 @@ export const updateBoxQty = async (componentKey, values, stock) => {
     box: values.components.map((row) => row["label"]),
     avlQty: values.components.map((row) => row.availabelQty),
     is_open: values.components.map((row) => row.opened ?? false),
-    component: componentKey,
+  component:  componentKey?.value || componentKey ,
     remark: values.remarks,
     imsQty: stock.toString(),
   };

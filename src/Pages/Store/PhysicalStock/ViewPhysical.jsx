@@ -22,14 +22,17 @@ import { getLogs, getVerifiedStocks } from "../../../api/store/physical-stock";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import { convertSelectOptions } from "../../../utils/general.ts";
+import { useToast } from "../../../hooks/useToast.js";
+import Loading from "../../../Components/Loading.jsx";
 
 function ViewPhysical() {
+  const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [rows, setRows] = useState([]);
   const [logs, setLogs] = useState([]);
   const [showLogs, setShowLogs] = useState(false);
   const [selectedAudit, setSelectedAudit] = useState(null);
-
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm();
 
@@ -38,7 +41,7 @@ function ViewPhysical() {
   const handleFetchComponentOptions = async (search) => {
     const response = await executeFun(
       () => getComponentOptions(search),
-      "fetchComponent"
+      "fetchComponent",
     );
     let arr = [];
     if (response.success) {
@@ -48,12 +51,27 @@ function ViewPhysical() {
   };
 
   const handleFetchRows = async () => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      return;
+    }
+    setIsValid(false);
+
+    const searchValue =
+      values.wise === "partwise"
+        ? (values.data?.value ?? values.data)
+        : values.data;
     const response = await executeFun(
-      () => getVerifiedStocks(values.wise, values.data),
-      "fetchRows"
+      () => getVerifiedStocks(values.wise, searchValue),
+      "fetchRows",
     );
-   
+
     let arr = [];
     if (response.success) {
       arr = response.data.map((row, index) => ({
@@ -80,6 +98,28 @@ function ViewPhysical() {
     setShowLogs(false);
     setSelectedAudit(null);
   };
+  const handleViewLogs = async (row) => {
+    const response = await executeFun(() => getLogs(row.auditKey), "viewLogs");
+
+    if (response.success) {
+      const arr = response.data.data.map((log, index) => ({
+        id: index + 1,
+        auditBy: log.audit_by,
+        auditDate: log.audit_dt,
+        auditStock: log.audit_qty,
+        imsQty: log.ims_qty,
+        remark: log.remark,
+        updatedOn: log.update_date,
+        updatedBy: log.update_user,
+      }));
+      setLogs(arr);
+      setSelectedAudit(row);
+      setShowLogs(true);
+    } else {
+      showToast(response.message || "Failed to fetch logs", "error");
+    }
+  };
+
   const actionColumn = {
     headerName: "",
     type: "actions",
@@ -87,14 +127,10 @@ function ViewPhysical() {
     getActions: ({ row }) => [
       // show logs icon
       <GridActionsCellItem
-      key={"logs"}
         showInMenu
-        // disabled={disabled}
+        key="logs"
         label={"View Logs"}
-        onClick={() => {
-          setShowLogs(true);
-          setSelectedAudit(row);
-        }}
+        onClick={() => handleViewLogs(row)}
       />,
     ],
   };
@@ -104,6 +140,7 @@ function ViewPhysical() {
 
   return (
     <Row gutter={6} style={{ height: "100%", padding: 10 }}>
+      {loading("viewLogs") && <Loading />}
       <Logs
         open={showLogs}
         hide={hideLogs}
@@ -112,78 +149,82 @@ function ViewPhysical() {
         logs={logs}
         setLogs={setLogs}
       />
-  <Col span={16}>
-  <Form
-    form={form}
-    initialValues={initialValues}
-  >
-    <Row gutter={10} align="bottom">
+      <Col span={16}>
+        <Form form={form} initialValues={initialValues}>
+          <Row gutter={10} align="bottom">
+            {/* Filter Select */}
+            <Col span={6}>
+              <Form.Item
+                name="wise"
+                label="Select Filter"
+                style={{ marginBottom: 0 }}
+                rules={[{ required: true, message: "" }]}
+              >
+                <MySelect
+                  options={wiseOptions}
+                  showError={isValid}
+                  message="Please select a filter"
+                />
+              </Form.Item>
+            </Col>
 
-      {/* Filter Select */}
-      <Col span={6}>
-        <Form.Item
-          name="wise"
-          label="Select Filter"
-          style={{ marginBottom: 0 }}
-        >
-          <MySelect options={wiseOptions} />
-        </Form.Item>
+            {/* Dynamic Input */}
+            <Col span={10}>
+              <Form.Item
+                name="data"
+                label={`Select ${
+                  wise === "datewise"
+                    ? "Date"
+                    : wise === "partwise"
+                      ? "Component"
+                      : ""
+                }`}
+                style={{ marginBottom: 0 }}
+                rules={[{ required: true, message: "" }]}
+              >
+                {wise === "partwise" && (
+                  <MyAsyncSelect
+                    optionsState={asyncOptions}
+                    selectLoading={loading("fetchComponent")}
+                    loadOptions={handleFetchComponentOptions}
+                    onBlur={() => setAsyncOptions([])}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a component"
+                  />
+                )}
+
+                {wise === "datewise" && (
+                  <MyDatePicker
+                    setDateRange={(value) => form.setFieldValue("data", value)}
+                    showError={isValid}
+                    message="Please select a date"
+                  />
+                )}
+              </Form.Item>
+            </Col>
+
+            {/* Buttons */}
+            <Col>
+              <Space>
+                <Button
+                  onClick={handleFetchRows}
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  loading={loading("fetchRows")}
+                >
+                  Fetch
+                </Button>
+
+                <CommonIcons
+                  action="downloadButton"
+                  onClick={handleDownloadExcel}
+                />
+              </Space>
+            </Col>
+          </Row>
+        </Form>
       </Col>
-
-      {/* Dynamic Input */}
-      <Col span={10}>
-        <Form.Item
-          name="data"
-          label={`Select ${
-            wise === "datewise"
-              ? "Date"
-              : wise === "partwise"
-              ? "Component"
-              : ""
-          }`}
-          style={{ marginBottom: 0 }}
-        >
-          {wise === "partwise" && (
-            <MyAsyncSelect
-              optionsState={asyncOptions}
-              selectLoading={loading("fetchComponent")}
-              loadOptions={handleFetchComponentOptions}
-              onBlur={() => setAsyncOptions([])}
-            />
-          )}
-
-          {wise === "datewise" && (
-            <MyDatePicker
-              setDateRange={(value) =>
-                form.setFieldValue("data", value)
-              }
-            />
-          )}
-        </Form.Item>
-      </Col>
-
-      {/* Buttons */}
-      <Col>
-        <Space>
-          <Button
-            onClick={handleFetchRows}
-            type="primary"
-            icon={<SearchOutlined />}
-            loading={loading("fetchRows")}
-          >
-            Fetch
-          </Button>
-
-          <CommonIcons
-            action="downloadButton"
-            onClick={handleDownloadExcel}
-          />
-        </Space>
-      </Col>
-
-    </Row>
-  </Form>
-</Col>
       <Col span={24} style={{ height: "calc(100% - 50px)", overflowY: "auto" }}>
         <MyDataTable
           data={rows}
@@ -264,41 +305,15 @@ const columns = [
   },
 ];
 
-const Logs = ({ open, hide, selectedAudit, logs, setLogs }) => {
-  const { executeFun, loading } = useApi();
-
-  const handleFetchLogs = async (auditKey) => {
-    const response = await executeFun(() => getLogs(auditKey), "fetch");
-
-    let arr = [];
-    if (response.success) {
-      arr = response.data.data.map((row, index) => ({
-        id: index + 1,
-        auditBy: row.audit_by,
-        auditDate: row.audit_dt,
-        auditStock: row.audit_qty,
-        imsQty: row.ims_qty,
-        remark: row.remark,
-        updatedOn: row.update_date,
-        updatedBy: row.update_user,
-      }));
-    }
-    setLogs(arr);
-  };
-
+const Logs = ({ open, hide, selectedAudit, logs }) => {
   const handleDownloadExcel = () => {
     downloadCSV(
       logs,
       logsColumns,
-      `Verified Physical Stock logs - ${selectedAudit.component}`
+      `Verified Physical Stock logs - ${selectedAudit.component}`,
     );
   };
 
-  useEffect(() => {
-    if (selectedAudit) {
-      handleFetchLogs(selectedAudit.auditKey);
-    }
-  }, [selectedAudit]);
   return (
     <Modal
       size="small"
@@ -328,11 +343,7 @@ const Logs = ({ open, hide, selectedAudit, logs, setLogs }) => {
         </Col>
         <Divider />
         <Col span={24} style={{ height: 500, overflow: "auto" }}>
-          <MyDataTable
-            columns={logsColumns}
-            data={logs}
-            loading={loading("fetch")}
-          />
+          <MyDataTable columns={logsColumns} data={logs} />
         </Col>
       </Row>
     </Modal>

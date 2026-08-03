@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Col,
   Descriptions,
@@ -23,6 +23,7 @@ import { getVendorOptions } from "../../../../api/general.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import { useToast } from "../../../../hooks/useToast.js";
+import Field from "../../../../Components/Field.jsx";
 
 export default function CreateBranchTransferChallan() {
   const { showToast } = useToast();
@@ -53,7 +54,7 @@ export default function CreateBranchTransferChallan() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [billToOptions, setBillTopOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
-  // const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState();
@@ -62,20 +63,19 @@ export default function CreateBranchTransferChallan() {
   const [droplocation, setdroplocation] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
 
-
   const getfromtolocations = async (value) => {
     const response = await imsAxios.post("/branchTransfer/transferLocations", {
       from_branch: newGatePass.pickupbranch,
       to_branch: value,
     });
-    if (response.success ) {
+    if (response.success) {
       const droparr = [];
       const pickuparr = [];
       response.data.droplocs.map((a) =>
-        droparr.push({ text: a.text, value: a.value })
+        droparr.push({ text: a.text, value: a.value }),
       );
       response.data.picklocs.map((a) =>
-        pickuparr.push({ text: a.text, value: a.value })
+        pickuparr.push({ text: a.text, value: a.value }),
       );
       setpickuplocation(pickuparr);
       setdroplocation(droparr);
@@ -148,7 +148,7 @@ export default function CreateBranchTransferChallan() {
     if (search?.length > 2) {
       const response = await executeFun(
         () => getVendorOptions(search),
-        "select"
+        "select",
       );
       let arr = [];
       if (response.success) {
@@ -207,21 +207,29 @@ export default function CreateBranchTransferChallan() {
     };
   };
   const validateDCDetails = () => {
-    if (!newGatePass.pickupbranch) {
-      return showToast("Please select Pick Up Branch", "error");
+    const hasEmptyField =
+      !newGatePass.pickupbranch ||
+      !newGatePass.dropoffbranch ||
+      !newGatePass.vendorName?.value ||
+      !newGatePass.vendorBranch ||
+      !newGatePass.vendorAddress?.trim() ||
+      !newGatePass.paymentTerms?.trim() ||
+      !newGatePass.referenceDate?.trim() ||
+      !newGatePass.otherReferences?.trim() ||
+      !newGatePass.dispatchDocNumber?.trim() ||
+      !newGatePass.dipatchThrough?.trim() ||
+      !newGatePass.destination?.trim() ||
+      !newGatePass.deliveryTerms?.trim() ||
+      !newGatePass.vehicleNumber?.trim() ||
+      !newGatePass.narration?.trim() ||
+      !newGatePass.billingId ||
+      !newGatePass.billinAddress?.trim();
+
+    if (hasEmptyField) {
+      setIsValid(true);
+      return;
     }
-    if (!newGatePass.dropoffbranch) {
-      return showToast("Please select Drop Off Branch", "error");
-    }
-    if (!newGatePass.vendorName || !newGatePass.vendorName?.value) {
-      return showToast("Please select a Vendor", "error");
-    }
-    if (!newGatePass.vendorBranch) {
-      return showToast("Please select a Vendor Branch", "error");
-    }
-    if (!newGatePass.billingId) {
-      return showToast("Please select a Billing Address", "error");
-    }
+    setIsValid(false);
     setActiveTab("2");
   };
 
@@ -249,13 +257,16 @@ export default function CreateBranchTransferChallan() {
       billingGSTIN: "",
     });
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   useEffect(() => {
     getBillTo();
     getallbranchs();
   }, []);
   return (
-    <div style={{ height: "calc(100vh - 155px)", overflow: "hidden", padding:10 }}>
+    <div
+      style={{ height: "calc(100vh - 155px)", overflow: "hidden", padding: 10 }}
+    >
       {!successPage && (
         <>
           {pageLoading && <Loading />}
@@ -274,9 +285,7 @@ export default function CreateBranchTransferChallan() {
               key="1"
             >
               <>
-                <div
-                
-                >
+                <div>
                   {/* reset confirm modal */}
                   <Modal
                     title="Confirm Reset!"
@@ -338,6 +347,8 @@ export default function CreateBranchTransferChallan() {
                                 size="default"
                                 options={branchOptions}
                                 value={newGatePass.pickupbranch}
+                                showError={isValid}
+                                message="Please select Pick Up Branch"
                                 onChange={(value) => {
                                   inputHandler("pickupbranch", value);
                                 }}
@@ -364,6 +375,8 @@ export default function CreateBranchTransferChallan() {
                                 size="default"
                                 options={branchOptions}
                                 value={newGatePass.dropoffbranch}
+                                showError={isValid}
+                                message="Please select Drop Off Branch"
                                 onChange={(value) => {
                                   inputHandler("dropoffbranch", value);
                                   getfromtolocations(value);
@@ -418,6 +431,8 @@ export default function CreateBranchTransferChallan() {
                                   inputHandler("vendorName", value);
                                 }}
                                 loadOptions={getVendors}
+                                showError={isValid}
+                                message="Please select a Vendor"
                               />
                             </Form.Item>
                           </Form>
@@ -449,6 +464,8 @@ export default function CreateBranchTransferChallan() {
                                   inputHandler("vendorBranch", value);
                                 }}
                                 options={vendorBranches}
+                                showError={isValid}
+                                message="Please select a Vendor Branch"
                               />
                             </Form.Item>
                           </Form>
@@ -480,17 +497,26 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                rows={4}
-                                value={newGatePass?.vendorAddress?.replaceAll(
-                                  "<br>",
-                                  "\n"
-                                )}
-                                onChange={(e) => {
-                                  inputHandler("vendorAddress", e.target.value);
-                                }}
-                                style={{ resize: "none" }}
-                              />
+                              <Field
+                                attr="required | Please enter Bill From Address"
+                                value={newGatePass.vendorAddress}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  rows={4}
+                                  value={newGatePass?.vendorAddress?.replaceAll(
+                                    "<br>",
+                                    "\n",
+                                  )}
+                                  onChange={(e) => {
+                                    inputHandler(
+                                      "vendorAddress",
+                                      e.target.value,
+                                    );
+                                  }}
+                                  style={{ resize: "none" }}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -529,13 +555,19 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("paymentTerms", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter Mode / Terms and Conditions"
                                 value={newGatePass.paymentTerms}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler("paymentTerms", e.target.value)
+                                  }
+                                  value={newGatePass.paymentTerms}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -554,13 +586,22 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("referenceDate", e.target.value)
-                                } // onChange={inputHandler}
+                              <Field
+                                attr="required | Please enter Reference Number & Date"
                                 value={newGatePass.referenceDate}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "referenceDate",
+                                      e.target.value,
+                                    )
+                                  } // onChange={inputHandler}
+                                  value={newGatePass.referenceDate}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -579,16 +620,22 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
+                              <Field
+                                attr="required | Please enter Other Terms"
                                 value={newGatePass.otherReferences}
-                                onChange={(e) =>
-                                  inputHandler(
-                                    "otherReferences",
-                                    e.target.value
-                                  )
-                                }
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  value={newGatePass.otherReferences}
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "otherReferences",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -609,13 +656,22 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("deliveryTerms", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter Terms of Delivery"
                                 value={newGatePass.deliveryTerms}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "deliveryTerms",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.deliveryTerms}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -634,16 +690,22 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler(
-                                    "dispatchDocNumber",
-                                    e.target.value
-                                  )
-                                }
+                              <Field
+                                attr="required | Please enter Dispatch Doc Number"
                                 value={newGatePass.dispatchDocNumber}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "dispatchDocNumber",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.dispatchDocNumber}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -662,12 +724,21 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                onChange={(e) =>
-                                  inputHandler("dipatchThrough", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter Dispatched Through"
                                 value={newGatePass.dipatchThrough}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "dipatchThrough",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.dipatchThrough}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -691,13 +762,19 @@ export default function CreateBranchTransferChallan() {
                                 </div>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("destination", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter Destination"
                                 value={newGatePass.destination}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler("destination", e.target.value)
+                                  }
+                                  value={newGatePass.destination}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -716,13 +793,22 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("vehicleNumber", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter a Vehicle Number"
                                 value={newGatePass.vehicleNumber}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "vehicleNumber",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.vehicleNumber}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -742,14 +828,20 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                rows={4}
-                                value={newGatePass?.narration}
-                                onChange={(e) =>
-                                  inputHandler("narration", e.target.value)
-                                }
-                                style={{ resize: "none" }}
-                              />
+                              <Field
+                                attr="required | Please enter Narration"
+                                value={newGatePass.narration}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  rows={4}
+                                  value={newGatePass?.narration}
+                                  onChange={(e) =>
+                                    inputHandler("narration", e.target.value)
+                                  }
+                                  style={{ resize: "none" }}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -795,6 +887,8 @@ export default function CreateBranchTransferChallan() {
                                   inputHandler("billingId", value);
                                 }}
                                 options={billToOptions}
+                                showError={isValid}
+                                message="Please select a Billing Address"
                               />
                             </Form.Item>
                           </Form>
@@ -864,17 +958,26 @@ export default function CreateBranchTransferChallan() {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                style={{ resize: "none" }}
-                                rows={4}
-                                onChange={(e) =>
-                                  inputHandler("billinAddress", e.target.value)
-                                }
-                                value={newGatePass.billinAddress?.replaceAll(
-                                  "<br>",
-                                  " "
-                                )}
-                              />
+                              <Field
+                                attr="required | Please enter a Billing Address"
+                                value={newGatePass.billinAddress}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  style={{ resize: "none" }}
+                                  rows={4}
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "billinAddress",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.billinAddress?.replaceAll(
+                                    "<br>",
+                                    " ",
+                                  )}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -890,9 +993,7 @@ export default function CreateBranchTransferChallan() {
               </>
             </Tabs.TabPane>
             <Tabs.TabPane
-              tab={
-                <span>Component Details</span>
-              }
+              tab={<span>Component Details</span>}
               disabled={activeTab !== "2"}
               key="2"
               style={{ height: "100%", overflowY: "hidden" }}
