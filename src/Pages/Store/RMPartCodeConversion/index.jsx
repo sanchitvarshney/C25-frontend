@@ -12,6 +12,7 @@ import {
   Typography,
 } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import Field from "../../../Components/Field.jsx";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
 import { EditFilled, DeleteFilled } from "@ant-design/icons";
@@ -30,7 +31,7 @@ const RMPartCodeConversion = () => {
   });
   const [editingComponent, setEditingComponent] = useState(false);
   const [componentStock, setComponentStock] = useState("--");
-  // rate per component id, captured from the options API (options get
+  const [isValid, setIsValid] = useState(false);
   // cleared on blur, so the selected component's rate is kept here)
   const [componentRates, setComponentRates] = useState({});
 
@@ -146,6 +147,7 @@ const RMPartCodeConversion = () => {
       "qtyOut",
       "locationOut",
     ]);
+    setIsValid(false);
   };
   const addBoth = async () => {
     if (addedComponents.in.length >= 1) {
@@ -155,14 +157,26 @@ const RMPartCodeConversion = () => {
       );
       return;
     }
-    const values = await addComponentForm.validateFields([
-      "componentIn",
-      "qtyIn",
-      "locationIn",
-      "componentOut",
-      "qtyOut",
-      "locationOut",
-    ]);
+     let values;
+    try {
+      values = await addComponentForm.validateFields([
+        "componentIn",
+        "qtyIn",
+        "locationIn",
+        "componentOut",
+        "qtyOut",
+        "locationOut",
+      ]);
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
+
     setAddedComponents({
       in: [
         {
@@ -205,14 +219,35 @@ const RMPartCodeConversion = () => {
     } else {
       addComponentForm.resetFields(["componentOut", "qtyOut", "locationOut"]);
     }
+       setIsValid(false);
   };
   const saveEditing = async () => {
+   let values;
+    try {
+      if (editingComponent.type === "initial") {
+        values = await addComponentForm.validateFields([
+          "componentIn",
+          "qtyIn",
+          "locationIn",
+        ]);
+      } else {
+        values = await addComponentForm.validateFields([
+          "componentOut",
+          "qtyOut",
+          "locationOut",
+        ]);
+      }
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
+
     if (editingComponent.type === "initial") {
-      const values = await addComponentForm.validateFields([
-        "componentIn",
-        "qtyIn",
-        "locationIn",
-      ]);
       const updatedComponent = {
         id: editingComponent.id,
         component: values.componentIn,
@@ -231,11 +266,6 @@ const RMPartCodeConversion = () => {
         }),
       }));
     } else {
-      const values = await addComponentForm.validateFields([
-        "componentOut",
-        "qtyOut",
-        "locationOut",
-      ]);
 
       setAddedComponents((curr) => ({
         ...curr,
@@ -425,6 +455,8 @@ const RMPartCodeConversion = () => {
                       labelInValue
                       loadOptions={getComponentOption}
                       optionsState={asyncOptions}
+                          showError={isValid}
+                      message="Please select a component"
                     />
                   </Form.Item>
                 </Col>
@@ -441,12 +473,19 @@ const RMPartCodeConversion = () => {
                       labelInValue
                       loadOptions={getLocationOptions}
                       optionsState={asyncOptions}
+                                showError={isValid}
+                      message="Please select a location"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={4}>
                   <Form.Item label="Qty" rules={rules.qtyIn} name="qtyIn">
-                    <Input />
+                    <Field
+                      attr="required | Please enter a quantity"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
                   </Form.Item>
                 </Col>
               </Row>
@@ -484,6 +523,8 @@ const RMPartCodeConversion = () => {
                       labelInValue
                       loadOptions={getComponentOption}
                       optionsState={asyncOptions}
+                           showError={isValid}
+                      message="Please select a component"
                     />
                   </Form.Item>
                 </Col>
@@ -492,13 +533,7 @@ const RMPartCodeConversion = () => {
                   <Form.Item
                     label="Drop Location"
                     name="locationOut"
-                    rules={[
-                      {
-                        required: true,
-                        message:
-                          "Please select a location on the Initial side first",
-                      },
-                    ]}
+                 rules={rules.locationOut}
                   >
                     <MyAsyncSelect
                       selectLoading={loading === "select"}
@@ -508,12 +543,19 @@ const RMPartCodeConversion = () => {
                       optionsState={asyncOptions}
                       disabled
                       placeholder="Same as Location above"
+                                            showError={isValid}
+                      message="Please select a location on the Initial side first"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={4}>
                   <Form.Item label="Qty" rules={rules.qtyOut} name="qtyOut">
-                    <Input />
+                        <Field
+                      attr="required | Please enter a quantity"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
                   </Form.Item>
                 </Col>
               </Row>
@@ -726,36 +768,12 @@ const RMPartCodeConversion = () => {
 };
 
 const rules = {
-  componentIn: [
-    {
-      required: true,
-      message: "Please select a component",
-    },
-  ],
-  qtyIn: [
-    {
-      required: true,
-      message: "Please enter a quantity",
-    },
-  ],
-  locationIn: [
-    {
-      required: true,
-      message: "Please select a location",
-    },
-  ],
-  componentOut: [
-    {
-      required: true,
-      message: "Please select a component",
-    },
-  ],
-  qtyOut: [
-    {
-      required: true,
-      message: "Please enter a quantity",
-    },
-  ],
+  componentIn: [{ required: true, message: "" }],
+  qtyIn: [{ required: true, message: "" }],
+  locationIn: [{ required: true, message: "" }],
+  componentOut: [{ required: true, message: "" }],
+  qtyOut: [{ required: true, message: "" }],
+  locationOut: [{ required: true, message: "" }],
 };
 const defaultValues = {
   componentIn: null,

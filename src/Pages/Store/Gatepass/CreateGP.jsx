@@ -10,7 +10,7 @@ import TextArea from "antd/lib/input/TextArea";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { imsAxios } from "../../../axiosInterceptor";
 import { getComponentOptions } from "../../../api/general.ts";
-
+import Field from "../../../Components/Field.jsx";
 import useApi from "../../../hooks/useApi.ts";
 import FormTable from "../../../Components/FormTable.jsx";
 export default function CreateGP() {
@@ -30,7 +30,7 @@ export default function CreateGP() {
   });
   const [loading, setLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
-
+  const [isValid, setIsValid] = useState(false);
   const getComponentDetail = async (searchInputText) => {
     const response = await executeFun(
       () => getComponentOptions(searchInputText),
@@ -55,7 +55,7 @@ export default function CreateGP() {
       const response = await imsAxios.post(
         "/component/getComponentDetailsByCode",
         {
-          component_code: value,
+         component_code: value?.value ?? value,
         },
       );
       setFetchDetailsLoading(false);
@@ -153,6 +153,9 @@ export default function CreateGP() {
           loadOptions={getComponentDetail}
           optionsState={asyncOptions}
           selectLoading={loading1("select")}
+               labelInValue
+          showError={isValid}
+          message="Component is required"
         />
       ),
 
@@ -162,15 +165,22 @@ export default function CreateGP() {
       headerName: "UoM",
       width: 200,
       renderCell: ({ row }) => (
-        <Input
-          onChange={(e) => inputHandler("qty", e.target.value, row.id)}
+   <Field
+          attr="required | Qty is required"
           value={row.qty}
-          placeholder="0"
-          // inputType="number"
-          name="qty"
-          suffix={row.uom}
-          id={row.id}
-        />
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
+          <Input
+            onChange={(e) => inputHandler("qty", e.target.value, row.id)}
+            value={row.qty}
+            placeholder="0"
+            // inputType="number"
+            name="qty"
+            suffix={row.uom}
+            id={row.id}
+          />
+        </Field>
       ),
 
       field: "uom",
@@ -189,61 +199,56 @@ export default function CreateGP() {
       field: "remarks",
     },
   ];
-  const submitFunction = async () => {
-    let problem = false;
-    if (!otherData.passType) {
-      problem = "Pass Type";
-    } else if (!otherData.name) {
-      problem = "Name";
-    } else if (!otherData.address) {
-      problem = "Address";
-    } else if (!otherData.email) {
-      problem = "Email";
-    } else if (!otherData.mobile) {
-      problem = "Mobile";
-    }
-    rows.map((row) => {
-      if (row.component == "") {
-        problem = "Component Name for all the rows.";
-      } else if (row.qty.uom || row.qty == "") {
-        problem = "Quantity for all the rows";
-      }
-    });
-    if (problem) {
-      showToast("Please provide " + problem, "error");
-    } else {
-      let mat = {
-        component: rows.map((row) => row.component),
-        qty: rows.map((row) => row.qty),
-        remark: rows.map((row) => row.remark),
-      };
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (row) => !row?.component || !row?.qty || Number(row?.qty) <= 0,
+    );
 
-      let finalObj = {
-        recipient: {
-          passtype: otherData.passType,
-          name: otherData.name,
-          address: otherData.address,
-        },
-        contact: {
-          email: otherData.email,
-          mobile: otherData.mobile,
-        },
-        other: {
-          narration: otherData.narration,
-        },
-        material: mat,
-      };
-      setLoading(true);
-      const response = await imsAxios.post("/gatepass/createGP", {
-        ...finalObj,
-      });
-      setLoading(false);
-      if (response.success) {
-        showToast(response.message, "success");
-        resetFunction();
-      } else {
-        showToast(response.message || "Some Error Occurred", "error");
-      }
+  const submitFunction = async () => {
+    const hasEmptyField =
+      !otherData.passType ||
+      !otherData.name ||
+      !otherData.address ||
+      !otherData.email ||
+      !otherData.mobile;
+
+    if (hasEmptyField || hasIncompleteRow(rows)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
+    let mat = {
+      component: rows.map((row) => row.component?.value ?? row.component),
+      qty: rows.map((row) => row.qty),
+      remark: rows.map((row) => row.remark),
+    };
+
+    let finalObj = {
+      recipient: {
+        passtype: otherData.passType,
+        name: otherData.name,
+        address: otherData.address,
+      },
+      contact: {
+        email: otherData.email,
+        mobile: otherData.mobile,
+      },
+      other: {
+        narration: otherData.narration,
+      },
+      material: mat,
+    };
+    setLoading(true);
+    const response = await imsAxios.post("/gatepass/createGP", {
+      ...finalObj,
+    });
+    setLoading(false);
+    if (response.success) {
+      showToast(response.message, "success");
+      resetFunction();
+    } else {
+      showToast(response.message || "Some Error Occurred", "error");
     }
   };
   const resetFunction = async () => {
@@ -256,6 +261,7 @@ export default function CreateGP() {
       address: "",
       narration: "",
     });
+    setIsValid(false);
   };
 
   return (
@@ -317,6 +323,8 @@ export default function CreateGP() {
                       options={passTypes}
                       value={otherData.passType}
                       onChange={(value) => otherInputHandler("passType", value)}
+                              showError={isValid}
+                      message="Please select a Pass Type"
                     />
                   </Form.Item>
                 </Form>
@@ -341,13 +349,19 @@ export default function CreateGP() {
                       },
                     ]}
                   >
-                    <Input
+                          <Field
+                      attr="required | Please enter name"
                       value={otherData.name}
-                      onChange={(e) =>
-                        otherInputHandler("name", e.target.value)
-                      }
-                      size="default"
-                    />
+                      showValidation={isValid}
+                    >
+                      <Input
+                        value={otherData.name}
+                        onChange={(e) =>
+                          otherInputHandler("name", e.target.value)
+                        }
+                        size="default"
+                      />
+                    </Field>
                   </Form.Item>
                 </Form>
               </Col>
@@ -371,13 +385,19 @@ export default function CreateGP() {
                       },
                     ]}
                   >
-                    <Input
-                      size="default"
+                       <Field
+                      attr="required | Please enter Mobile Number"
                       value={otherData.mobile}
-                      onChange={(e) =>
-                        otherInputHandler("mobile", e.target.value)
-                      }
-                    />
+                      showValidation={isValid}
+                    >
+                      <Input
+                        size="default"
+                        value={otherData.mobile}
+                        onChange={(e) =>
+                          otherInputHandler("mobile", e.target.value)
+                        }
+                      />
+                    </Field>
                   </Form.Item>
                 </Form>
               </Col>
@@ -403,15 +423,21 @@ export default function CreateGP() {
                       },
                     ]}
                   >
-                    <TextArea
-                      style={{ resize: "none" }}
-                      row={4}
-                      size="default"
+                      <Field
+                      attr="required | Please enter Address"
                       value={otherData.address}
-                      onChange={(e) =>
-                        otherInputHandler("address", e.target.value)
-                      }
-                    />
+                      showValidation={isValid}
+                    >
+                      <TextArea
+                        style={{ resize: "none" }}
+                        row={4}
+                        size="default"
+                        value={otherData.address}
+                        onChange={(e) =>
+                          otherInputHandler("address", e.target.value)
+                        }
+                      />
+                    </Field>
                   </Form.Item>
                 </Form>
               </Col>
@@ -434,13 +460,19 @@ export default function CreateGP() {
                       },
                     ]}
                   >
-                    <Input
-                      size="default"
+                  <Field
+                      attr="required | Please enter Email"
                       value={otherData.email}
-                      onChange={(e) =>
-                        otherInputHandler("email", e.target.value)
-                      }
-                    />
+                      showValidation={isValid}
+                    >
+                      <Input
+                        size="default"
+                        value={otherData.email}
+                        onChange={(e) =>
+                          otherInputHandler("email", e.target.value)
+                        }
+                      />
+                    </Field>
                   </Form.Item>
                 </Form>
               </Col>
