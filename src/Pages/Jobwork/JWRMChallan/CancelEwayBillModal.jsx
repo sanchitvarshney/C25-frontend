@@ -31,8 +31,8 @@ const CancelEwayBillModal = ({ show, hide }) => {
     try {
   
       const response = await imsAxios.post("/jwEwaybill/cancel", payload);
-      const { data } = response;
-      if (data) {
+   
+
         if (response.success) {
           showToast(response.message, "success");
           hide();
@@ -40,10 +40,12 @@ const CancelEwayBillModal = ({ show, hide }) => {
         } else {
           showToast(response.message?.msg || response.message, "error");
         }
-      }
+
     } catch (error) {
-      showToast("Error while cancelling E-way bill", "error");
-    } 
+      showToast(error.message, "error");
+    } finally {
+      //   setLoading(false);
+    }
   };
   return (
     <Modal

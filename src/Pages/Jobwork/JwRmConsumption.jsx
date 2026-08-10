@@ -1,4 +1,4 @@
-import { useState } from "react";
+import  { useState } from "react";
 import { Button, Col, Input, Row, Select } from "antd";
 import MyDatePicker from "../../Components/MyDatePicker.jsx";
 import MyAsyncSelect from "../../Components/MyAsyncSelect.jsx";
@@ -9,49 +9,49 @@ import JwRmConsumptionModal from "./Modal/JwRmConsumptionModal.jsx";
 import { imsAxios } from "../../axiosInterceptor.js";
 import useLoading from "../../hooks/useLoading.js";
 import useApi from "../../hooks/useApi.ts";
-import { getVendorOptions } from "../../api/general.ts";
+import { getVendorOptions, getProductsOptions } from "../../api/general.ts";
 import { convertSelectOptions } from "../../utils/general.ts";
-import MyButton from "../../Components/MyButton/index.jsx";
 import { useToast } from "../../hooks/useToast.js";
+import Field from "../../Components/Field.jsx";
+
+const WISE_OPTIONS = [
+  { label: "Date Wise", value: "date" },
+  { label: "JW ID Wise", value: "jw" },
+  { label: "SFG SKU Wise", value: "sfg" },
+  { label: "Vendor Wise", value: "vendor" },
+];
+
+const EMPTY_RESULTS = {
+  date: [],
+  jw: [],
+  sfg: [],
+  vendor: [],
+};
 
 const JwRmConsumption = () => {
   const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useLoading(false);
-  const [jwLoadingId, setJwLoadingId] = useState("");
   const [editModal, setEditModal] = useState(false);
-  const [rowActionLoading, setRowActionLoading] = useState(false);
   const [datee, setDatee] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [allData, setAllData] = useState({
     setType: "date",
     jw: "",
     sku: "",
     ven: "",
   });
-  const [dateData, setDateData] = useState([]);
-  const [jwData, setDJWData] = useState([]);
-  const [skuData, setSKUData] = useState([]);
-  const [vendorData, setVendorData] = useState([]);
-  // console.log(allData);
-  const { executeFun } = useApi();
-  const option = [
-    { label: "Date Wise", value: "date" },
-    { label: "JW ID Wise", value: "jw" },
-    { label: "SFG SKU Wise", value: "sfg" },
-    { label: "Vendor Wise", value: "vendor" },
-  ];
+  const [results, setResults] = useState(EMPTY_RESULTS);
+  const [actionRowId, setActionRowId] = useState(null);
+  const { executeFun, loading: selectLoading } = useApi();
 
   const getOption = async (e) => {
     if (e?.length > 2) {
-      const { data } = await imsAxios.post("/backend/getProductByNameAndNo", {
-        search: e,
-      });
-      // console.log(data);
-      let arr = [];
-      arr = data.map((d) => {
-        return { text: d.text, value: d.id };
-      });
-      setAsyncOptions(arr);
+      const response = await executeFun(
+        () => getProductsOptions(e),
+        "select"
+      );
+      setAsyncOptions(response.success ? response.data : []);
     }
   };
 
@@ -59,7 +59,7 @@ const JwRmConsumption = () => {
     if (search.length > 2) {
       const response = await executeFun(
         () => getVendorOptions(search),
-        "select",
+        "select"
       );
       let arr = [];
       if (response.success) {
@@ -69,150 +69,58 @@ const JwRmConsumption = () => {
     }
   };
 
-  const fetchDatewise = async () => {
-    if (allData?.setType == "") {
-      showToast("Please Select Option", "error");
-    } else {
-      setLoading("fetch", true);
-      const response = await imsAxios.get(
-        `jobwork/rm-consumption/view?data=${encodeURIComponent(datee)}&wise=${
-          allData.setType
-        }`,
-      );
-      if (response.success) {
-        let arr = response.data.map((row, index) => {
-          return {
-            id: v4(),
-            index: index + 1,
-            date: row.date,
-            transaction_id: row.transaction,
-            transaction: row.transaction,
-            vendor: row.vendor?.name || "",
-            vendorCode: row.vendor?.code || "",
-            sku_code: row.product?.sku || "",
-            sku_name: row.product?.name || "",
-            productKey: row.product?.skey || "",
-            ord_qty: row.qty?.order || "0",
-            consump_qty: row.qty?.consump || "0",
-            // Keep original nested structure for reference
-            originalData: row,
-          };
-        });
-        setDateData(arr);
-        setLoading("fetch", false);
-      } else {
-        showToast(response.message, "error");
-        setLoading("fetch", false);
-      }
+  const getFilterValue = () => {
+    switch (allData.setType) {
+      case "jw":
+        return allData.jw;
+      case "sfg":
+        return allData.sku?.value;
+      case "vendor":
+        return allData.ven?.value;
+      default:
+        return datee;
     }
   };
 
-  const fetchJWwise = async () => {
+  const fetchData = async () => {
+    const value = getFilterValue();
+    if (!value) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading("fetch", true);
     const response = await imsAxios.get(
-      `jobwork/rm-consumption/view?data=${allData.jw}&wise=${allData.setType}`,
+      `jobwork/rm-consumption/view?data=${encodeURIComponent(
+        value
+      )}&wise=${allData.setType}`
     );
     if (response.success) {
-      let arr = response.data.map((row, index) => {
-        return {
-          id: v4(),
-          index: index + 1,
-          date: row.date,
-          transaction_id: row.transaction,
-          transaction: row.transaction,
-          vendor: row.vendor?.name || "",
-          vendorCode: row.vendor?.code || "",
-          sku_code: row.product?.sku || "",
-          sku_name: row.product?.name || "",
-          productKey: row.product?.skey || "",
-          ord_qty: row.qty?.order || "0",
-          consump_qty: row.qty?.consump || "0",
-          // Keep original nested structure for reference
-          originalData: row,
-        };
-      });
-      setDJWData(arr);
-      setLoading("fetch", false);
+      const arr = response.data.map((row, index) => ({
+        id: v4(),
+        index: index + 1,
+        date: row.date,
+        transaction_id: row.transaction,
+        transaction: row.transaction,
+        vendor: row.vendor?.name || "",
+        vendorCode: row.vendor?.code || "",
+        sku_code: row.product?.sku || "",
+        sku_name: row.product?.name || "",
+        productKey: row.product?.skey || "",
+        ord_qty: row.qty?.order || "0",
+        consump_qty: row.qty?.consump || "0",
+        // Keep original nested structure for reference
+        originalData: row,
+      }));
+      setResults((prev) => ({ ...prev, [allData.setType]: arr }));
     } else {
       showToast(response.message, "error");
-      setLoading("fetch", false);
     }
-  };
-
-  const fetchSKUwise = async () => {
-    setLoading("fetch", true);
-    // Extract the value from the select object if it's an object
-    const skuValue =
-      typeof allData.sku === "object"
-        ? allData.sku?.value || allData.sku?.id
-        : allData.sku;
-    const response = await imsAxios.get(
-      `jobwork/rm-consumption/view?data=${skuValue}&wise=${allData.setType}`,
-    );
-    if (response.success) {
-      let arr = response.data.map((row, index) => {
-        return {
-          id: v4(),
-          index: index + 1,
-          date: row.date,
-          transaction_id: row.transaction,
-          transaction: row.transaction,
-          vendor: row.vendor?.name || "",
-          vendorCode: row.vendor?.code || "",
-          sku_code: row.product?.sku || "",
-          sku_name: row.product?.name || "",
-          productKey: row.product?.skey || "",
-          ord_qty: row.qty?.order || "0",
-          consump_qty: row.qty?.consump || "0",
-          // Keep original nested structure for reference
-          originalData: row,
-        };
-      });
-      setSKUData(arr);
-      setLoading("fetch", false);
-    } else {
-      showToast(response.message, "error");
-      setLoading("fetch", false);
-    }
-  };
-  const fetchVendorwise = async () => {
-    setLoading("fetch", true);
-    // Extract the value from the select object if it's an object
-    const venValue =
-      typeof allData.ven === "object"
-        ? allData.ven?.value || allData.ven?.id
-        : allData.ven;
-    const response = await imsAxios.get(
-      `jobwork/rm-consumption/view?data=${venValue}&wise=${allData.setType}`,
-    );
-    if (response.success) {
-      let arr = response.data.map((row, index) => {
-        return {
-          id: v4(),
-          index: index + 1,
-          date: row.date,
-          transaction_id: row.transaction,
-          transaction: row.transaction,
-          vendor: row.vendor?.name || "",
-          vendorCode: row.vendor?.code || "",
-          sku_code: row.product?.sku || "",
-          sku_name: row.product?.name || "",
-          productKey: row.product?.skey || "",
-          ord_qty: row.qty?.order || "0",
-          consump_qty: row.qty?.consump || "0",
-          // Keep original nested structure for reference
-          originalData: row,
-        };
-      });
-      setVendorData(arr);
-      setLoading("fetch", false);
-    } else {
-      showToast(response.message, "error");
-      setLoading("fetch", false);
-    }
+    setLoading("fetch", false);
   };
 
   const handleActionsClick = async (row) => {
+    if (actionRowId) return;
     // Use transaction_id or transaction field from the mapped data
     const jwId =
       row?.transaction_id || row?.transaction || row?.originalData?.transaction;
@@ -229,31 +137,31 @@ const JwRmConsumption = () => {
       return;
     }
 
-    setRowActionLoading(true);
+    setActionRowId(row.id);
     try {
       // Execute GET request to fetch BOM data
       const response = await imsAxios.get(
         `/jobwork/rm-consumption/view/bom?jw=${encodeURIComponent(
-          jwId,
-        )}&qty=${qty}`,
+          jwId
+        )}&qty=${qty}`
       );
 
       if (response.success || response.data) {
-        // API can return the header/body either nested under `data`
-        // or as the top-level payload itself - handle both shapes.
-        const bomHeader = response.data?.header;
-        const bomBody =
-          response.data?.body || response.data?.data || response.data || [];
         showToast("BOM data fetched successfully", "success");
-        // Open the edit modal only once the BOM data is ready
-        setEditModal({ row: { header: bomHeader, body: bomBody } });
+        // Open the edit modal with the row data, including qty for BOM API call
+        setEditModal({
+          all: allData.setType,
+          row: row,
+          bomData: response.data?.header?.bom || response,
+          qty: qty, // Store qty for use in getFetchData
+        });
       } else {
         showToast(response.message || "Failed to fetch BOM data", "error");
       }
     } catch (error) {
       showToast(error.message || "Error fetching BOM data", "error");
     } finally {
-      setRowActionLoading(false);
+      setActionRowId(null);
     }
   };
 
@@ -261,7 +169,7 @@ const JwRmConsumption = () => {
     { field: "index", headerName: "S No.", width: 80 },
     { field: "date", headerName: "JW Date", width: 120 },
     { field: "vendor", headerName: "Vendor", width: 250 },
-    { field: "transaction_id", headerName: "JW Id", width: 150 },
+    { field: "transaction_id", headerName: "JW Id", width: 190 },
     { field: "sku_code", headerName: "SKU", width: 120 },
     { field: "sku_name", headerName: "Product", width: 300 },
     { field: "ord_qty", headerName: "JW PO Order Qty", width: 150 },
@@ -271,9 +179,7 @@ const JwRmConsumption = () => {
       headerName: "Actions",
       width: 100,
       getActions: ({ row }) =>
-        rowActionLoading && (row?.transaction_id ||
-                    row?.transaction ||
-                    row?.originalData?.transaction) === jwLoadingId
+        actionRowId === row.id
           ? [
               <LoadingOutlined
                 key={row.id}
@@ -283,51 +189,47 @@ const JwRmConsumption = () => {
           : [
               <ArrowRightOutlined
                 key={row.id}
-                onClick={() => {
-                  const jwId =
-                    row?.transaction_id ||
-                    row?.transaction ||
-                    row?.originalData?.transaction;
-                  setJwLoadingId(jwId);
-                  handleActionsClick(row);
-                }}
+                onClick={() => handleActionsClick(row)}
                 style={{
                   color: "#1890ff",
                   fontSize: "15px",
-                  cursor: "pointer",
+                  cursor: actionRowId ? "not-allowed" : "pointer",
+                  opacity: actionRowId ? 0.5 : 1,
                 }}
               />,
             ],
     },
   ];
+
   return (
     <div style={{ height: "95%", padding: 10 }}>
-      {/* <InternalNav links={JobworkLinks} /> */}
       <Row gutter={10}>
         <Col span={4}>
           <Select
             placeholder="Please Select Option"
             style={{ width: "100%" }}
-            options={option}
+            options={WISE_OPTIONS}
             value={allData.setType}
-            onChange={(e) =>
+            onChange={(e) => {
+              setIsValid(false);
               setAllData((allData) => {
                 return { ...allData, setType: e };
-              })
-            }
+              });
+            }}
           />
         </Col>
         {allData.setType == "date" ? (
           <>
             <Col span={5}>
-              <MyDatePicker setDateRange={setDatee} size="default" />
+              <MyDatePicker
+                setDateRange={setDatee}
+                value={datee}
+                size="default"
+                showError={isValid}
+              />
             </Col>
             <Col span={2}>
-              <Button
-                type="primary"
-                loading={loading("fetch")}
-                onClick={fetchDatewise}
-              >
+              <Button type="primary" loading={loading("fetch")} onClick={fetchData}>
                 Fetch
               </Button>
             </Col>
@@ -335,22 +237,21 @@ const JwRmConsumption = () => {
         ) : allData.setType == "jw" ? (
           <>
             <Col span={6}>
-              <Input
-                placeholder="JW/Challan"
+              <Field
+                attr="required | Please enter JW/Challan"
                 value={allData.jw}
+                showValidation={isValid}
                 onChange={(e) =>
                   setAllData((allData) => {
                     return { ...allData, jw: e.target.value };
                   })
                 }
-              />
+              >
+                <Input placeholder="JW/Challan" />
+              </Field>
             </Col>
             <Col span={2}>
-              <Button
-                loading={loading("fetch")}
-                type="primary"
-                onClick={fetchJWwise}
-              >
+              <Button loading={loading("fetch")} type="primary" onClick={fetchData}>
                 Fetch
               </Button>
             </Col>
@@ -363,6 +264,9 @@ const JwRmConsumption = () => {
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getOption}
                 value={allData.sku}
+                labelInValue={true}
+                showError={isValid}
+                selectLoading={selectLoading("select")}
                 optionsState={asyncOptions}
                 onChange={(e) =>
                   setAllData((allData) => {
@@ -373,16 +277,12 @@ const JwRmConsumption = () => {
               />
             </Col>
             <Col span={2}>
-              <Button
-                loading={loading("fetch")}
-                type="primary"
-                onClick={fetchSKUwise}
-              >
+              <Button loading={loading("fetch")} type="primary" onClick={fetchData}>
                 Fetch
               </Button>
             </Col>
           </>
-        ) : allData.setType == "vendor" ? (
+        ) : (
           <>
             <Col span={6}>
               <MyAsyncSelect
@@ -390,6 +290,9 @@ const JwRmConsumption = () => {
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getVendor}
                 value={allData.ven}
+                labelInValue={true}
+                showError={isValid}
+                selectLoading={selectLoading("select")}
                 optionsState={asyncOptions}
                 onChange={(e) =>
                   setAllData((allData) => {
@@ -400,59 +303,26 @@ const JwRmConsumption = () => {
               />
             </Col>
             <Col span={2}>
-              <Button
-                loading={loading("fetch")}
-                type="primary"
-                onClick={fetchVendorwise}
-              >
+              <Button loading={loading("fetch")} type="primary" onClick={fetchData}>
                 Fetch
               </Button>
-            </Col>
-          </>
-        ) : (
-          <>
-            <Col span={5}>
-              <MyDatePicker setDateRange={setDatee} size="default" />
-            </Col>
-            <Col span={2}>
-              <MyButton
-                variant="search"
-                type="primary"
-                loading={loading("fetch")}
-                onClick={fetchDatewise}
-              >
-                Fetch
-              </MyButton>
             </Col>
           </>
         )}
       </Row>
 
       <div style={{ height: "95%", marginTop: "10px" }}>
-        {allData.setType == "date" ? (
-          <MyDataTable
-            loading={loading("fetch")}
-            data={dateData}
-            columns={columns}
-          />
-        ) : allData.setType == "jw" ? (
-          <MyDataTable data={jwData} columns={columns} />
-        ) : allData.setType == "sfg" ? (
-          <MyDataTable data={skuData} columns={columns} />
-        ) : allData.setType == "vendor" ? (
-          <MyDataTable data={vendorData} columns={columns} />
-        ) : (
-          <MyDataTable data={dateData} columns={columns} />
-        )}
+        <MyDataTable
+          loading={loading("fetch")}
+          data={results[allData.setType] ?? []}
+          columns={columns}
+        />
       </div>
 
       <JwRmConsumptionModal
         editModal={editModal}
         setEditModal={setEditModal}
-        fetchDatewise={fetchDatewise}
-        fetchJWwise={fetchJWwise}
-        fetchSKUwise={fetchSKUwise}
-        fetchVendorwise={fetchVendorwise}
+        fetchData={fetchData}
       />
     </div>
   );

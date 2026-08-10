@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+ 
   Card,
   Col,
   Divider,
@@ -31,7 +32,10 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useLoading();
+  // const [loadChallan, setLoadChallan] = useState(false);
   const [locationOptions, setLocationOptions] = useState([]);
+  // const [asyncOptions, setAsyncOptions] = useState([]);
+  // const [dropLocationOptions, setDropLocationOptions] = useState([]);
   const [dispatchBranches, setDispatchBranches] = useState([]);
   const [billingBranches, setBillingBranches] = useState([]);
   const [restCom, setRestCom] = useState({
@@ -51,7 +55,8 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
       otherRef: "",
     });
     setLocationOptions([]);
- 
+    // setDropLocationOptions([]);
+    // setAsyncOptions([]);
   };
 
   const handleClose = () => {
@@ -231,15 +236,15 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
     };
     const response = await executeFun(() => saveCreateChallan(final), "select");
     setLoading("submit", false);
-    if (response.success) {
-      showToast(response.data.message, "success");
-      handleClose();
+    if (response.success || response.status === "success") {
+      showToast(response.message ?? response.message?.msg, "success");
+      setEditJWAll(false);
       getRows();
     } else {
-      if (response.data.message.msg) {
+      if (response.message.msg) {
         showToast(response.data.message.msg, "error");
       } else {
-        showToast(errorToast(response.data.message), "error");
+        showToast(errorToast(response?.message ?? response?.message?.msg), "error");
       }
     }
   };
@@ -756,7 +761,7 @@ function JWRMChallanEditAll({ setEditJWAll, editiJWAll, getRows }) {
           </Card>
         </Col>
         <Col span={15} style={{ height: "95%" }}>
-         {(loading("tableSpinner") || loading1("select")) && <Loading isDrawerLoading />}
+          {(loading("tableSpinner") || loading1("select")) && <Loading isDrawerLoading />}
           <FormTableDataGrid
             data={rows}
             columns={columns}

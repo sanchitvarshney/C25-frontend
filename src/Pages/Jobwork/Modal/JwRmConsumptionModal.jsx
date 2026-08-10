@@ -33,6 +33,7 @@ import SuccessPage from "../../Store/MaterialIn/SuccessPage.jsx";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses.jsx";
 import SingleProduct from "../../Master/Vendor/SingleProduct.jsx";
 import { useToast } from "../../../hooks/useToast.js";
+import Field from "../../../Components/Field.jsx";
 export default function JwRmConsumptionModal({ editModal, setEditModal }) {
   const { showToast } = useToast();
   // const [asyncOptions, setAsyncOptions] = useState([]);
@@ -56,6 +57,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
   const [modalForm] = Form.useForm();
   const [challanDate, setChallanDate] = useState(null);
   const [consumpLoc, setConsumpLoc] = useState("20211028124102");
+  const [isValid, setIsValid] = useState(false);
   // const fileComponents = Form.useWatch("fileComponents", modalForm);
   const [uplaoaClicked, setUploadClicked] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
@@ -299,6 +301,15 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
         })
       );
   } else if (name == "consumptionQty") {
+      if (value === "") {
+        setBomList((a) =>
+          a.map((aa) =>
+            aa.id == id ? { ...aa, consumptionQty: "" } : aa,
+          ),
+        );
+        return;
+      }
+
       const numValue = Number.parseFloat(value);
 
       const currentRow = bomList.find((aa) => aa.id == id);
@@ -389,17 +400,23 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
         const stockQty =
           row?.venLocationStock || row?.stock || row?.orderqty || 0;
         return (
-          <Input
-            type="number"
-            placeholder="Consumption Qty"
-            value={row.consumptionQty || ""}
+          <Field
+            attr="required | Consumption Qty is required"
+            value={row.consumptionQty}
+            treatZeroAsEmpty
+            showValidation={isValid}
             onChange={(e) =>
               inputHandler("consumptionQty", row.id, e.target.value)
             }
-            max={stockQty}
-            min={0}
-            step="any"
-          />
+          >
+            <Input
+              type="number"
+              placeholder="Consumption Qty"
+              max={stockQty}
+              min={0}
+              step="any"
+            />
+          </Field>
         );
       },
     },
@@ -454,18 +471,22 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
     // Check if we're in BOM mode (from view/bom API) - skip upload modal
     if (showBomList && editModal.qty && bomList.length > 0) {
       // Validate required fields
-      if (!challanNo || challanNo.trim() === "") {
-        showToast("Please enter Challan Number", "error");
+      const hasIncompleteRow = bomList.some(
+        (r) => !r.consumptionQty || Number(r.consumptionQty) <= 0
+      );
+      if (
+        !challanNo ||
+        challanNo.trim() === "" ||
+        !challanDate ||
+        challanDate.trim() === "" ||
+        !consumpLoc ||
+        consumpLoc.trim() === "" ||
+        hasIncompleteRow
+      ) {
+        setIsValid(true);
         return;
       }
-      if (!challanDate || challanDate.trim() === "") {
-        showToast("Please select Challan Date", "error");
-        return;
-      }
-      if (!consumpLoc || consumpLoc.trim() === "") {
-        showToast("Please select Consumption Location", "error");
-        return;
-      }
+      setIsValid(false);
       // if (!fetchAttachment) {
       //   const fileComponentsValue = modalForm.getFieldValue("fileComponents");
       //   if (!fileComponentsValue || fileComponentsValue.length === 0) {
@@ -848,75 +869,40 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
                 <Col span={5} style={{ height: "50vh" }}>
                   <Card size="small" title="Details" style={{ height: "100%" }}>
                     <Form size="small" layout="vertical">
-                      <Form.Item
-                        label="Challan Number"
-                        required
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter Challan Number",
-                          },
-                        ]}
-                      >
-                        <Input
-                          size="medium"
+                      <Form.Item label="Challan Number" required>
+                        <Field
+                          attr="required | Please enter Challan Number"
                           value={challanNo}
+                          showValidation={isValid}
                           onChange={(e) => setChallanNo(e.target.value)}
-                          placeholder="Enter Challan Number"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter Challan Number",
-                            },
-                          ]}
-                        />
+                        >
+                          <Input
+                            size="medium"
+                            placeholder="Enter Challan Number"
+                          />
+                        </Field>
                       </Form.Item>
-                      <Form.Item
-                        label="Challan Date"
-                        name="challanDate"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select Challan Date",
-                          },
-                        ]}
-                      >
+                      <Form.Item label="Challan Date">
                         <SingleDatePicker
                           size="medium"
                           value={challanDate}
                           setDate={(date) => setChallanDate(date)}
                           placeholder="Select Challan Date"
                           format={"DD-MM-YYYY"}
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select Challan Date",
-                            },
-                          ]}
+                          showError={isValid}
+                          message="Please select Challan Date"
                         />
                       </Form.Item>
-                      <Form.Item
-                        label="Consumption Location"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select Consumption Location",
-                          },
-                        ]}
-                        name="consumpLoc"
-                      >
+                      <Form.Item label="Consumption Location">
                         <MySelect
                           options={[
                             { text: "AL_CONS01", value: "1765454664276" },
                           ]}
+                          value={consumpLoc}
                           onChange={(value) => setConsumpLoc(value)}
                           placeholder="Select Consumption Location"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select Consumption Location",
-                            },
-                          ]}
+                          showError={isValid}
+                          message="Please select Consumption Location"
                         />
                       </Form.Item>
 

@@ -1,5 +1,6 @@
-
-import {Col, Form, Input, Modal, Row } from "antd";
+import  { useState } from "react";
+import { Col, Form, Input, Modal, Row } from "antd";
+import Field from "../../../Components/Field.jsx";
 
 export default function JwApprovalModel({
   open,
@@ -8,16 +9,31 @@ export default function JwApprovalModel({
   loading,
 }) {
   const [poApprovalForm] = Form.useForm();
+  const [isValid, setIsValid] = useState(false);
   const handleSubmit = async () => {
-    const values = await poApprovalForm.validateFields();
+    let values;
+    try {
+      values = await poApprovalForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      return;
+    }
+    setIsValid(false);
     submitHandler(open, values.remarks);
+  };
+  const handleClose = () => {
+    setIsValid(false);
+    close();
   };
   return (
     <Modal
       title="Basic Modal"
       open={open}
       onOk={handleSubmit}
-      onCancel={close}
+      onCancel={handleClose}
       okText="Submit"
       confirmLoading={loading}
     >
@@ -29,7 +45,12 @@ export default function JwApprovalModel({
               name="remarks"
               rules={rules.remarks}
             >
-              <Input.TextArea rows={4} />
+              <Field
+                attr="required | Please enter remarks"
+                showValidation={isValid}
+              >
+                <Input.TextArea rows={4} />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -43,7 +64,7 @@ const rules = {
   remarks: [
     {
       required: true,
-      message: "Please enter remarks",
+      message: "",
     },
   ],
 };
