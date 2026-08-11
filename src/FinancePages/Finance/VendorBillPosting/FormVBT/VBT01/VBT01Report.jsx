@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Col, Drawer, Form, Modal, Row } from "antd";
 import { imsAxios } from "../../../../../axiosInterceptor";
 import VBTHeaders from "./VBTHeaders";
@@ -7,6 +7,16 @@ import NavFooter from "../../../../../Components/NavFooter";
 import validateResponse from "../../../../../Components/validateResponse";
 import Loading from "../../../../../Components/Loading";
 import SingleComponent from "./SingleProduct";
+
+
+function applyRoundOffToLast(amounts, roundOffSign, roundOffValue) {
+  if (amounts.length === 0) return amounts;
+  const last = +Number(amounts[amounts.length - 1]);
+  const adjustment = +Number(roundOffValue.toString());
+  const sign = roundOffSign.toString();
+  const adjusted = sign === "+" ? last + adjustment : sign === "-" ? last - adjustment : last;
+  return [...amounts.slice(0, -1), adjusted];
+}
 
 function VBT01Report({
   editingVBT,
@@ -41,7 +51,6 @@ function VBT01Report({
     if (editingVBT) {
       setEditingVBT(null);
       setIsCreate(false);
-      // resetForm();
     } else {
       setEditVbtDrawer(null);
     }
@@ -56,16 +65,12 @@ function VBT01Report({
     if (res.success) {
       let arr = res.data;
       if (arr.checkInvoice) {
-        // setConfirmModal(true);
-
         Modal.confirm({
           okText: "Continue",
           cancelText: "Go Back",
           title:
             "Invoice of this vbt has already been created, Are you sure you want to continue?",
-          onOk() {
-            //  submitHandler(values);
-          },
+          onOk() {},
           onCancel() {
             setEditingVBT(null);
           },
@@ -77,53 +82,41 @@ function VBT01Report({
   };
   //edit vbt fn
   const getEditVbtDetails = async (vbtCode) => {
-    try {
-      setLoading(true);
-      const response = await imsAxios.get(
-        `/tally/vbt/getData?vbtKey=${vbtCode}`,
-      );
+    setLoading(true);
+    const response = await imsAxios.get(`/tally/vbt/getData?vbtKey=${vbtCode}`);
 
-      if (response?.success) {
-        const { data } = response;
-        getGl();
+    if (response.data.length > 0) {
+      const { data } = response;
+      getGl();
 
-        const arr = data.map((row) => ({
-          ...row,
-          tdsAssValue: row.tdsAssValue,
-          venAmmount: row.venAmmount,
-          poNumber: row.poNumber,
-          projectID: row.projectID,
-          partCode: row.part.partCode,
-          partName: row.part.partName,
-          glName: row.tds?.tdsName,
-          tds_gl_code: row?.tds?.tdsGlKey,
-          tdsName: {
-            label: row.tds?.tdsName,
-            value: row?.tds?.tdsKey,
-          },
-          tds_key: row?.tds?.tdsKey,
-          tdsPercent: row?.tds?.tdsPercent,
-          tdsAmount: row.tdsAmount,
-          gstType: row.gstType === "L" ? "L" : "I",
-          insertDate: row.insertDate,
-          insertBy: row.insertBy,
-          roundOffSigns: row.roundOffSign,
-          roundOffValue: row.roundOffValue,
-          purchase_gl: row?.purchase_gl,
-          billAmm: row?.taxableValue,
-        }));
-        setEditVBTCode(arr);
-        setVbtComponent(arr);
-        Vbt01.setFieldValue("components", arr);
-        setLoading(false);
-      } else {
-        showToast(response.message || "Failed to get VBT details", "error");
-        setLoading(false);
-      }
-    } catch (error) {
-      showToast(error.message || "Failed to get VBT details", "error");
-      setLoading(false);
-    } finally {
+      const arr = data.map((row) => ({
+        ...row,
+        tdsAssValue: row.tdsAssValue,
+        venAmmount: row.venAmmount,
+        poNumber: row.poNumber,
+        projectID: row.projectID,
+        partCode: row.part.partCode,
+        partName: row.part.partName,
+        glName: row.tds?.tdsName,
+        tds_gl_code: row?.tds?.tdsGlKey,
+        tdsName: {
+          label: row.tds?.tdsName,
+          value: row?.tds?.tdsKey,
+        },
+        tds_key: row?.tds?.tdsKey,
+        tdsPercent: row?.tds?.tdsPercent,
+        tdsAmount: row.tdsAmount,
+        gstType: row.gstType === "L" ? "L" : "I",
+        insertDate: row.insertDate,
+        insertBy: row.insertBy,
+        roundOffSigns: row.roundOffSign,
+        roundOffValue: row.roundOffValue,
+        purchase_gl: row?.purchase_gl,
+        billAmm: row?.taxableValue,
+      }));
+      setEditVBTCode(arr);
+      setVbtComponent(arr);
+      Vbt01.setFieldValue("components", arr);
       setLoading(false);
     }
   };
@@ -162,6 +155,7 @@ function VBT01Report({
     const response = await imsAxios.post(link, payload);
 
     if (response.success) {
+      const data = response?.data;
       setVbtComponent(response.data);
       const arr = response.data.map((row) => ({
         ...row,
@@ -204,7 +198,7 @@ function VBT01Report({
         freightAmount: 0,
       }));
       getGl();
-      const venTds = response.data[0]?.tds ? [...response.data[0].tds] : [];
+      const venTds = data[0]?.tds ? [...data[0].tds] : [];
       venTds.push({
         ladger_name: "--",
         ledger_key: "--",
@@ -235,35 +229,26 @@ function VBT01Report({
     }
     setLoading(false);
   };
-  const getGstGlOptions = async () => {
-    try {
-      const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
 
-      if (response?.success) {
-        const { data } = response;
-        if (data[0]) {
-          let arr = data.map((row) => ({ value: row.id, text: row.text }));
-          setglState(arr);
-        }
-      } else {
-        showToast(response.message || "Failed to get GL options", "error");
+  const getGstGlOptions = useCallback(async () => {
+    const response = await imsAxios.get("/tally/vbt/fetch_gst_ledger");
+    const { data } = response;
+    if (data) {
+      if (data[0]) {
+        let arr = data.map((row) => ({ value: row.id, text: row.text }));
+        setglState(arr);
       }
-    } catch (error) {
-      showToast(error.message || "Failed to get GL options", "error");
     }
-  };
+  }, []);
 
   const getFreightGlOptions = async (vbtCode) => {
-    // const vbtType = vbtCodes[0].split("/")[0].toLowerCase;
     try {
-      // setLoading("fetch");
       const response = await imsAxios.post("/tally/vbt/fetch_freight_group", {
         search: vbtCode,
       });
-
+      const { data } = response;
       let arr = [];
-      if (response.success) {
-        const { data } = response;
+      if (data.length > 0) {
         arr = data.map((row) => ({
           value: row.id,
           text: row.text,
@@ -275,7 +260,7 @@ function VBT01Report({
     }
   };
 
-  const getGl = async () => {
+  const getGl = useCallback(async () => {
     let link;
     if (editVbtDrawer) {
       let apiLink = getApiUrl(editVbtDrawer);
@@ -296,7 +281,7 @@ function VBT01Report({
       });
       setGlCodes(arr);
     }
-  };
+  }, [editVbtDrawer, apiUrl]);
 
   const showCofirmModal = () => {
     Modal.confirm({
@@ -319,19 +304,11 @@ function VBT01Report({
       const roundarr = values.components.map(
         (component) => component.venAmmount,
       );
-
-      let a;
-      let val = roundarr[roundarr.length - 1];
-      val = +Number(val);
-      if (roundOffSign.toString() === "+") {
-        a = val + +Number(roundOffValue.toString());
-      } else if (roundOffSign.toString() === "-") {
-        a = val -= +Number(roundOffValue.toString());
-      } else {
-        a = val;
-      }
-      const modifiedArray =
-        roundarr.length > 0 ? [...roundarr.slice(0, -1), a] : roundarr;
+      const modifiedArray = applyRoundOffToLast(
+        roundarr,
+        roundOffSign,
+        roundOffValue,
+      );
 
       let finalObj = {
         bill_amount: values.billAmmount,
@@ -348,14 +325,6 @@ function VBT01Report({
         component: values.components.map((component) => component.partName),
         eff_date: values.effectiveDate,
         freight: values.components.map((component) => component.freightAmount),
-        ///condition added for create
-        // apiUrl === "vbt04" ||
-        // apiUrl === "vbt05"
-        // g_l_codes: values.components.map((component) =>
-        //   apiUrl === "vbt01" || apiUrl === "vbt06"
-        //     ? component.glCodeValue
-        //     : component.glCodeValue
-        // ),
         g_l_codes: values.components.map((component) =>
           component?.glCodeValue && component.glCodeValue?.key
             ? component.glCodeValue.value
@@ -379,7 +348,6 @@ function VBT01Report({
         in_rates: values.components.map((component) => component.vbtInRate),
         invoice_date: values.invoiceDate,
         invoice_no: values.invoiceNo,
-        // invoice_no: values.components.map((component) => component.invoiceNo),
         item_description: values.components.map(
           (component) => component.itemDescription,
         ),
@@ -411,19 +379,12 @@ function VBT01Report({
         vbt_gstin: values.gst,
         acknowledgeIRN: values.ackNum,
         ven_address: values.venAddress,
-        // ven_amounts: values.components.map((component) => component.venAmmount),
         ven_amounts: modifiedArray,
 
         ven_code: values.components[0]?.venCode,
         cifValue: values.components.map((component) => component.cifValue),
         cifPrice: values.components.map((component) => component.cifPrice),
         inrPrice: values.components.map((component) => component.inrPrice),
-
-        // vbt_gstin: values.components[0]?.gstin_option[0],
-        // poNumber: values.components.map((component) => component.poNumber),
-        // projectID: values.components.map((component) => component.projectID),
-        // // vbtKey: editVbtDrawer,
-        // insertDate: values.components[0]?.insertDate,
       };
       const finalData = {
         ...finalObj,
@@ -439,21 +400,15 @@ function VBT01Report({
 
       addVbt(finalData, typeParam);
     } else {
-      const values = await Vbt01.validateFields();
 
       const roundarr = values.components.map(
         (component) => component.venAmmount,
       );
-      let a;
-      if (roundOffSign.toString() === "+") {
-        a = roundarr[roundarr.length - 1] + +Number(roundOffValue.toString());
-      } else if (roundOffSign.toString() === "-") {
-        a = roundarr[roundarr.length - 1] -= +Number(roundOffValue.toString());
-      } else {
-        a = roundarr[roundarr.length - 1];
-      }
-      const editmodifiedArray =
-        roundarr.length > 0 ? [...roundarr.slice(0, -1), a] : roundarr;
+      const editmodifiedArray = applyRoundOffToLast(
+        roundarr,
+        roundOffSign,
+        roundOffValue,
+      );
 
       let finalObj = {
         bill_amount: values.billAmmount,
@@ -469,13 +424,6 @@ function VBT01Report({
         g_l_codes: values.components.map(
           (component) => component.purchase_gl.value,
         ),
-        // g_l_codes: values.components.map((component) =>
-        //   apiUrl === "vbt01" || apiUrl === "vbt06"
-        //     ? component.purchase_gl
-        //     : editApiUrl === "vbt02"
-        //     ? component.purchase_gl.value
-        //     : component.purchase_gl.value
-        // ),
         gst_ass_vals: values.components.map(
           (component) => component.gstAssValue,
         ),
@@ -489,7 +437,6 @@ function VBT01Report({
         in_rates: values.components.map((component) => component.vbtInRate),
         invoice_date: values.invoiceDate,
         invoice_no: values.invoiceNo,
-        // invoice_no: values.components.map((component) => component.invoiceNo),
         item_description: values.components.map(
           (component) => component.itemDescription,
         ),
@@ -517,7 +464,6 @@ function VBT01Report({
         vbt_gstin: values.gst,
         ven_address: values.venAddress,
         ven_amounts: editmodifiedArray,
-        // ven_amounts: values.components.map((component) => component.venAmmount),
         ven_code: values.components[0]?.venCode,
         poNumber: values.components.map((component) => component.poNumber),
         projectID: values.components.map((component) => component.projectID),
@@ -575,21 +521,15 @@ function VBT01Report({
   };
 
   const getLastPrice = async (venCode, partArr) => {
-    try {
-      const response = await imsAxios.post("/tally/vbt/lastOptions", {
-        partCode: partArr,
-        vendorCode: venCode,
-      });
-
-      if (response?.success) {
-        const { data } = response;
-        setLastRateArr(data);
-      } else {
-        setLastRateArr([]);
-      }
-    } catch (error) {
+    const response = await imsAxios.post("/tally/vbt/lastOptions", {
+      partCode: partArr,
+      vendorCode: venCode,
+    });
+    const { data } = response;
+    if (typeof data === "object" && data?.length) {
+      setLastRateArr(data);
+    } else {
       setLastRateArr([]);
-      showToast(error?.message || "Failed to get last price", "error");
     }
   };
 
@@ -620,73 +560,51 @@ function VBT01Report({
       ]);
     }
   }, [editVbtDrawer]);
+
   useEffect(() => {
-    var billvalues = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.totalBilAmm).toFixed(2),
-      0,
-    );
-    setBillam(billvalues);
-    const values = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.taxableValue).toFixed(2),
-      0,
+
+    const totals = components?.reduce(
+      (acc, item) => {
+        acc.billValue += +Number(item.totalBilAmm).toFixed(2);
+        acc.taxableValue += +Number(item.taxableValue).toFixed(2);
+        acc.freight += +Number(item.freightAmount).toFixed(2);
+        acc.cgst += +Number(item.cgstAmount).toFixed(2);
+        acc.sgst += +Number(item.sgstAmount).toFixed(2);
+        acc.igst += +Number(item.igstAmount).toFixed(2);
+        acc.vendorAmount += +Number(item.venAmmount).toFixed(2);
+        acc.tds += +Number(item.tdsAmount ?? 0).toFixed(0);
+        return acc;
+      },
+      {
+        billValue: 0,
+        taxableValue: 0,
+        freight: 0,
+        cgst: 0,
+        sgst: 0,
+        igst: 0,
+        vendorAmount: 0,
+        tds: 0,
+      },
     );
 
-    const value = +Number(values).toFixed(2);
-    const freight = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.freightAmount).toFixed(2),
-      0,
-    );
-    const cgsts = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.cgstAmount).toFixed(2),
-      0,
-    );
-    const cgst = +Number(cgsts).toFixed(2);
-    const sgsts = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.sgstAmount).toFixed(2),
-      0,
-    );
-    const sgst = +Number(sgsts).toFixed(2);
-    const igsts = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.igstAmount).toFixed(2),
-      0,
-    );
-    const igst = +Number(igsts).toFixed(2);
+    setBillam(totals?.billValue);
+    const value = +Number(totals?.taxableValue).toFixed(2);
+    const freight = totals?.freight;
+    const cgst = +Number(totals?.cgst).toFixed(2);
+    const sgst = +Number(totals?.sgst).toFixed(2);
+    const igst = +Number(totals?.igst).toFixed(2);
+    const tds = totals?.tds;
+    let vendorAmount = +Number(totals?.vendorAmount).toFixed(2);
 
-    let vendorAmounts = components?.reduce(
-      (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(2),
-      0,
-    );
-    var vendorAmount = +Number(vendorAmounts).toFixed(2);
-    const tds = components?.reduce(
-      (a, b) => a + +Number(b.tdsAmount ?? 0).toFixed(0),
-      0,
-    );
-
-    if (isCreate) {
-      if (roundOffSign === "+") {
-        let newven =
-          // vendorAmount =
-          vendorAmount + +Number(roundOffValue.toString()).toFixed(2);
-        vendorAmount = newven.toFixed(2);
-      }
-      if (roundOffSign.toString() === "-") {
-        let newven = (vendorAmount -= +Number(roundOffValue.toString()).toFixed(
-          2,
-        ));
-        vendorAmount = newven.toFixed(2);
-      }
-    } else {
-      if (roundOffSign.toString() === "+") {
-        let newven =
-          vendorAmount + +Number(roundOffValue.toString()).toFixed(2);
-        vendorAmount = newven.toFixed(2);
-      }
-      if (roundOffSign.toString() === "-") {
-        let newven = (vendorAmount -= +Number(roundOffValue.toString()).toFixed(
-          2,
-        ));
-        vendorAmount = newven.toFixed(2);
-      }
+    if (roundOffSign === "+") {
+      let newven = vendorAmount + +Number(roundOffValue.toString()).toFixed(2);
+      vendorAmount = newven.toFixed(2);
+    }
+    if (roundOffSign.toString() === "-") {
+      let newven = (vendorAmount -= +Number(roundOffValue.toString()).toFixed(
+        2,
+      ));
+      vendorAmount = newven.toFixed(2);
     }
 
     const arr = [
@@ -723,7 +641,6 @@ function VBT01Report({
     ];
     setTaxDetails(arr);
   }, [components, roundOffSign, roundOffValue]);
-  useEffect(() => {}, [components]);
   return (
     <Drawer
       bodyStyle={{ padding: 5 }}
@@ -762,10 +679,7 @@ function VBT01Report({
               setRoundOffValue={setRoundOffValue}
               apiUrl={apiUrl}
               components={components}
-              // billvalues={billvalues}
               billam={billam}
-              // fields={fields}
-              // field={field}
             />
           </Col>
 
@@ -782,7 +696,7 @@ function VBT01Report({
                 <>
                   <Col>
                     {fields.map((field, index) => (
-                      <Form.Item noStyle key={field.key ?? index}>
+                      <Form.Item noStyle key={field.key || index}>
                         <SingleComponent
                           fields={fields}
                           field={field}

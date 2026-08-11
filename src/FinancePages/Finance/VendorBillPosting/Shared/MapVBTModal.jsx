@@ -1,32 +1,38 @@
 import { Button, Drawer, Space, Divider } from "antd";
-
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
 import { imsAxios } from "../../../../axiosInterceptor";
 import Loading from "../../../../Components/Loading";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import MySelect from "../../../../Components/MySelect";
 
+const VBT_OPTIONS = [
+  { value: "vbt01", text: "VBT 1" },
+  { value: "vbt02", text: "VBT 2" },
+  { value: "vbt03", text: "VBT 3" },
+  { value: "vbt04", text: "VBT 4" },
+  { value: "vbt05", text: "VBT 5" },
+  { value: "vbt06", text: "VBT 6" },
+  { value: "vbt07", text: "VBT 7" },
+];
+
+const decodeGroupLabel = (label) =>
+  label.replaceAll("&amp;", " & ").replaceAll("amp;", "");
+
 export default function MapVBTModal({ mapVBT, setMapVBT }) {
   const { showToast } = useToast();
   const [selectedVBT, setSelectedVBT] = useState();
-  // const [selectedGroup, setSelectedGroup] = useState("");
   const [groups, setGroups] = useState([]);
   const [gstGlGroups, setGstGlGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
-  const [selectLoading, setSelectLoading] = useState(false);
   const [gstSubmitLoading, setGstSubmitLoading] = useState(false);
-  const [asyncOptions, setAsyncOptions] = useState([]);
-  const vbtOptions = [
-    { value: "vbt01", text: "VBT 1" },
-    { value: "vbt02", text: "VBT 2" },
-    { value: "vbt03", text: "VBT 3" },
-    { value: "vbt04", text: "VBT 4" },
-    { value: "vbt05", text: "VBT 5" },
-    { value: "vbt06", text: "VBT 6" },
-    { value: "vbt07", text: "VBT 7" },
-  ];
+
+  const [groupSearchOptions, setGroupSearchOptions] = useState([]);
+  const [groupSelectLoading, setGroupSelectLoading] = useState(false);
+  const [gstGlSearchOptions, setGstGlSearchOptions] = useState([]);
+  const [gstGlSelectLoading, setGstGlSelectLoading] = useState(false);
+
   const getGroups = async () => {
     if (selectedVBT) {
       setFetchLoading(true);
@@ -35,12 +41,10 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
       });
       setFetchLoading(false);
       if (response.success) {
-        let arr = response.data.vbt_group_key.map((row) => {
-          return {
-            value: row.code,
-            label: row.label.replaceAll("&amp;", " & ").replaceAll("amp;", ""),
-          };
-        });
+        const arr = response.data.vbt_group_key.map((row) => ({
+          value: row.code,
+          label: decodeGroupLabel(row.label),
+        }));
         setGroups(arr);
       } else {
         setGroups([]);
@@ -54,38 +58,45 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setFetchLoading(false);
     if (response.success) {
-      // let arr = data.data.vbt_group_key.split(",");
-      let arr = response.data.vbt_group_key.map((row) => {
-        return {
-          value: row.code,
-          label: row.label.replaceAll("&amp;", " & ").replaceAll("amp;", ""),
-        };
-      });
+      const arr = response.data.vbt_group_key.map((row) => ({
+        value: row.code,
+        label: decodeGroupLabel(row.label),
+      }));
       setGstGlGroups(arr);
     } else {
       setGstGlGroups([]);
     }
   };
   const searchGroups = async (search) => {
-    setSelectLoading(true);
+    setGroupSelectLoading(true);
     const response = await imsAxios.post("/tally/getSubgroup", {
       search: search,
     });
-    setSelectLoading(false);
+    setGroupSelectLoading(false);
     if (response.success) {
-      let arr = response.data.map((row) => ({
-        text: row.label,
-        value: row.id,
-      }));
-      setAsyncOptions(arr);
+      setGroupSearchOptions(
+        response.data.map((row) => ({ text: row.label, value: row.id })),
+      );
     } else {
-      setAsyncOptions([]);
+      setGroupSearchOptions([]);
+    }
+  };
+  const searchGstGlGroups = async (search) => {
+    setGstGlSelectLoading(true);
+    const response = await imsAxios.post("/tally/getSubgroup", {
+      search: search,
+    });
+    setGstGlSelectLoading(false);
+    if (response.success) {
+      setGstGlSearchOptions(
+        response.data.map((row) => ({ text: row.label, value: row.id })),
+      );
+    } else {
+      setGstGlSearchOptions([]);
     }
   };
   const submitGSTGlFunction = async () => {
-    let selGroups = gstGlGroups.map((group) => {
-      return group.value;
-    });
+    const selGroups = gstGlGroups.map((group) => group.value);
     setGstSubmitLoading(true);
     const response = await imsAxios.post("/tally/vbt/update_vbt_group_module", {
       vbt_module: "gst",
@@ -93,19 +104,14 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setGstSubmitLoading(false);
     if (response.success) {
-     
-        showToast(response.data.message, "error");
-  
-      // setSelectedGroup(null);
+      showToast(response.message, "success");
       setMapVBT(null);
     } else {
       showToast(response.message?.msg || response.message, "error");
     }
   };
   const submitFunction = async () => {
-    let selGroups = groups.map((group) => {
-      return group.value;
-    });
+    const selGroups = groups.map((group) => group.value);
     setLoading(true);
     const response = await imsAxios.post("/tally/vbt/update_vbt_group_module", {
       vbt_module: selectedVBT,
@@ -113,24 +119,18 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setLoading(false);
     if (response.success) {
-   
-        showToast(response?.message, "error");
-     
-      // setSelectedGroup(null);
+      showToast(response.message, "success");
       setMapVBT(null);
     } else {
       showToast(response.message?.msg || response.message, "error");
     }
   };
   useEffect(() => {
-
     getGroups();
-    // setSelectedGroup([]);
   }, [selectedVBT]);
   useEffect(() => {
     if (mapVBT) {
-      let sel = mapVBT;
-      setSelectedVBT(sel);
+      setSelectedVBT(mapVBT);
       getGSTGlGroups();
     }
   }, [mapVBT]);
@@ -150,7 +150,7 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
         <div style={{ marginBottom: "20px" }}>
           <p style={{ marginBottom: "10px" }}>Select VBT Type</p>
           <MySelect
-            options={vbtOptions}
+            options={VBT_OPTIONS}
             value={selectedVBT}
             onChange={(value) => setSelectedVBT(value)}
           />
@@ -159,13 +159,13 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
           <p style={{ marginBottom: "10px" }}>Select VBT Group</p>
           <MyAsyncSelect
             mode="multiple"
-            selectLoading={selectLoading}
-            onBlur={() => setAsyncOptions([])}
+            selectLoading={groupSelectLoading}
+            onBlur={() => setGroupSearchOptions([])}
             value={groups}
             labelInValue
             onChange={(value) => setGroups(value)}
             loadOptions={searchGroups}
-            optionsState={asyncOptions}
+            optionsState={groupSearchOptions}
             placeholder="Select Group..."
           />
         </div>
@@ -182,13 +182,13 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
             <p style={{ marginBottom: "10px" }}>Select GST GL</p>
             <MyAsyncSelect
               mode="multiple"
-              selectLoading={selectLoading}
-              onBlur={() => setAsyncOptions([])}
+              selectLoading={gstGlSelectLoading}
+              onBlur={() => setGstGlSearchOptions([])}
               value={gstGlGroups}
               labelInValue
               onChange={(value) => setGstGlGroups(value)}
-              loadOptions={searchGroups}
-              optionsState={asyncOptions}
+              loadOptions={searchGstGlGroups}
+              optionsState={gstGlSearchOptions}
               placeholder="Select Group..."
             />
           </div>
