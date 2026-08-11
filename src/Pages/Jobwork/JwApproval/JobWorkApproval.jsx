@@ -6,9 +6,7 @@ import { useEffect } from "react";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
-import  {
-  CommonIcons,
-} from "../../../Components/TableActions.jsx/TableActions";
+import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import MyDataTable from "../../../Components/MyDataTable";
 import PoDetailsView from "./JwDetailsView.jsx";
 import { downloadCSV } from "../../../Components/exportToCSV";
@@ -20,10 +18,12 @@ import { getProjectOptions, getVendorOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "../../../utils/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 export default function JobWorkApproval() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [wise, setWise] = useState("jwwise");
   const [searchInput, setSearchInput] = useState("");
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -32,7 +32,8 @@ export default function JobWorkApproval() {
   const [rows, setRows] = useState([]);
   const [approvePo, setApprovePo] = useState(null);
   const [selectedPo, setSelectedPo] = useState([]);
-  const { executeFun, loading: loading1 } = useApi();
+  const [isValid, setIsValid] = useState(false);
+  const { executeFun } = useApi();
   const wiseOptions = [
     { text: "Date Wise", value: "datewise" },
     { text: "PO Wise", value: "jwwise" },
@@ -40,26 +41,58 @@ export default function JobWorkApproval() {
     { text: "Project Wise", value: "projectwise" },
   ];
   const getVendorOption = async (search) => {
-    const response = await executeFun(() => getVendorOptions(search), "select");
-    let arr = [];
-    if (response?.success) {
-      arr = convertSelectOptions(response?.data);
+    try {
+      setSearchLoading("vendor");
+      const response = await executeFun(
+        () => getVendorOptions(search),
+        "select",
+      );
+      if (response?.success) {
+        let arr = [];
+        if (response?.success) {
+          arr = convertSelectOptions(response?.data);
+        }
+        setAsyncOptions(arr);
+      }
+    } catch (error) {
+      showToast(error?.message || "Something went wrong", "error");
+      setAsyncOptions([]);
     }
-    setAsyncOptions(arr);
   };
   const handleFetchProjectOptions = async (search) => {
-    const response = await executeFun(
-      () => getProjectOptions(search),
-      "select"
-    );
+    try {
+      setSearchLoading("project");
+      const response = await executeFun(
+        () => getProjectOptions(search),
+        "select",
+      );
+      if (response?.success) {
+
     setAsyncOptions(response?.data);
+      }
+    } catch (error) {
+      showToast(error?.message || "Something went wrong", "error");
+      setAsyncOptions([]);
+    }
+
   };
 
   const getRows = async () => {
+    const searchValue =
+      wise === "vendorwise" || wise === "projectwise"
+        ? (searchInput?.value ?? searchInput)
+        : searchInput;
+
+    if (!wise || !searchValue) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     setRows([]);
     setLoading("fetch");
     const response = await imsAxios.post("/jobwork/fetchneededApprovalJW", {
-      data: searchInput,
+      data: searchValue,
       wise: wise,
     });
     setLoading(false);
@@ -128,7 +161,7 @@ export default function JobWorkApproval() {
     {
       headerName: "PO ID",
       field: "jw_transaction",
-      width: 150,
+      width: 180,
     },
     {
       headerName: "Cost Center",
@@ -154,7 +187,7 @@ export default function JobWorkApproval() {
       headerName: "Vendor",
       field: "vendor_name",
       flex: 1,
-      minWidth: 200,
+      minWidth: 300,
     },
     {
       headerName: "PO Date / Time",
@@ -184,6 +217,7 @@ export default function JobWorkApproval() {
   ];
   useEffect(() => {
     setSearchInput("");
+    setIsValid(false);
   }, [wise]);
   return (
     <div style={{ height: "calc(100vh - 160px)", padding: 10 }}>
@@ -212,6 +246,8 @@ export default function JobWorkApproval() {
                 options={wiseOptions}
                 value={wise}
                 onChange={(value) => setWise(value)}
+                showError={isValid}
+                message="Please select wise"
               />
             </Col>
             <Col span={8}>
@@ -220,13 +256,21 @@ export default function JobWorkApproval() {
                   setDateRange={setSearchInput}
                   dateRange={searchInput}
                   value={searchInput}
+                  showError={isValid}
+                  message="Please select a date"
                 />
               )}
               {wise === "jwwise" && (
-                <Input
-                  onChange={(e) => setSearchInput(e.target.value)}
+                <Field
+                  attr="required | Please enter a JW ID"
                   value={searchInput}
-                />
+                  showValidation={isValid}
+                >
+                  <Input
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    value={searchInput}
+                  />
+                </Field>
               )}
               {wise === "vendorwise" && (
                 <MyAsyncSelect
@@ -235,7 +279,10 @@ export default function JobWorkApproval() {
                   optionsState={asyncOptions}
                   loadOptions={getVendorOption}
                   onBlur={() => setAsyncOptions([])}
-                  loading={loading1("select")}
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a vendor"
+                  selectLoading={searchLoading === "vendor"}
                 />
               )}
               {wise === "projectwise" && (
@@ -245,7 +292,10 @@ export default function JobWorkApproval() {
                   optionsState={asyncOptions}
                   loadOptions={handleFetchProjectOptions}
                   onBlur={() => setAsyncOptions([])}
-                  loading={loading1("select")}
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a project"
+                  selectLoading={searchLoading === "project"}
                 />
               )}
             </Col>

@@ -66,8 +66,8 @@ export const materialInWithoutPo = async (values, fileName, vendorType) => {
     address: values.vendorAddress,
     vendortype: values.vendorType,
     ewaybill: values.ewaybill ?? "--",
-    cost_center: values.costCenter,
-    project_id: values.projectID,
+    cost_center: values.costCenter?.value,
+    project_id: values.projectID?.value,
     irn: values.irn,
     qrScan: values.QR == true ? "Y" : "N",
 
@@ -247,7 +247,7 @@ export const updateBoxQty = async (componentKey, values, stock) => {
     box: values.components.map((row) => row["label"]),
     avlQty: values.components.map((row) => row.availabelQty),
     is_open: values.components.map((row) => row.opened ?? false),
-    component: componentKey,
+  component:  componentKey?.value || componentKey ,
     remark: values.remarks,
     imsQty: stock.toString(),
   };

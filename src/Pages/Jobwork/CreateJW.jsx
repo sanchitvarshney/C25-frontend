@@ -31,6 +31,7 @@ import {
 } from "../../api/general.ts";
 import { convertSelectOptions } from "../../utils/general.ts";
 import useApi from "../../hooks/useApi.ts";
+import Field from "../../Components/Field.jsx";
 
 // vendor type options
 const vendorTypeOptions = [
@@ -95,6 +96,7 @@ export default function CreateJW() {
   // initialize loading state
   const { showToast } = useToast();
   const [loading, setLoading] = useLoading();
+  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [bomOptions, setBomOptions] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [asyncLocationOptions, setAsyncLocationOptions] = useState([]);
@@ -117,6 +119,7 @@ export default function CreateJW() {
     totalValue: "0",
   });
   const [uom, setUom] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [createPoForm] = Form.useForm();
   // get po options
   //   in case of po type change
@@ -167,7 +170,7 @@ export default function CreateJW() {
     if (response.success) {
       createPoForm.setFieldValue(
         "vendoraddress",
-        data?.address?.replaceAll("<br>", "\n")
+        data?.address?.replaceAll("<br>", "\n"),
       );
       createPoForm.setFieldValue("gstin", data?.gstid);
     } else {
@@ -195,12 +198,12 @@ export default function CreateJW() {
     getData(response);
   };
 
-    const getDropLocation = async () => {
+  const getDropLocation = async () => {
     let vendor = createPoForm.getFieldValue("vendorname")?.value;
     if (vendor) {
       try {
         const response = await imsAxios.get(
-          `/backend/fetchVendorJWLocation?vendor=${vendor}`
+          `/backend/fetchVendorJWLocation?vendor=${vendor}`,
         );
         if (response.success) {
           let arr = [];
@@ -218,16 +221,16 @@ export default function CreateJW() {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     getDropLocation();
-  },[createPoForm.getFieldValue("vendorname")?.value])
+  }, [createPoForm.getFieldValue("vendorname")?.value]);
 
   //   get cost center options
 
   const handleFetchCostCenterOptions = async (search) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response?.success) arr = convertSelectOptions(response?.data);
@@ -238,7 +241,7 @@ export default function CreateJW() {
   const handleFetchProjectOptions = async (search) => {
     const response = await executeFun(
       () => getProjectOptions(search),
-      "select"
+      "select",
     );
     setAsyncOptions(response?.data);
   };
@@ -247,7 +250,7 @@ export default function CreateJW() {
   const getProjectDetails = async (inputValue) => {
     setLoading("select", true);
     const response = await imsAxios.post("/backend/projectDescription", {
-      project_name: inputValue,
+      project_name: inputValue?.value ?? inputValue,
     });
     setLoading("select", false);
     const { data } = response;
@@ -284,7 +287,7 @@ export default function CreateJW() {
   const getBillingAddressDetails = async (inputValue) => {
     setLoading("fetch", true);
     const response = await imsAxios.post("/backend/billingAddress", {
-      billing_code: inputValue,
+      billing_code: inputValue?.value ?? inputValue,
     });
     setLoading("fetch", false);
     const { data } = response;
@@ -318,7 +321,7 @@ export default function CreateJW() {
   const geShipAddressDetails = async (inputValue) => {
     setLoading("fetch", true);
     const response = await imsAxios.post("/backend/shippingAddress", {
-      shipping_code: inputValue,
+      shipping_code: inputValue?.value ?? inputValue,
     });
     setLoading("fetch", false);
     const { data } = response;
@@ -326,7 +329,7 @@ export default function CreateJW() {
     if (response.success) {
       createPoForm.setFieldValue(
         "shipaddress",
-        data?.address?.replaceAll("<br>", "\n")
+        data?.address?.replaceAll("<br>", "\n"),
       );
       createPoForm.setFieldValue("shipGST", data?.gstin);
       createPoForm.setFieldValue("shipPan", data?.pan);
@@ -374,7 +377,7 @@ export default function CreateJW() {
   const getComponentDetails = async (inputValue) => {
     setLoading("fetch", true);
     const response = await imsAxios.get(
-      `jobwork/fetchProductData4Table?key=${inputValue}`
+      `jobwork/fetchProductData4Table?key=${inputValue?.value ?? inputValue}`,
     );
     setLoading("fetch", false);
     if (response?.success) {
@@ -383,7 +386,7 @@ export default function CreateJW() {
         response?.data?.bom?.map((row) => ({
           text: row.name,
           value: row.key,
-        }))
+        })),
       );
       createPoForm.setFieldValue("qty", response?.data?.description);
       createPoForm.setFieldValue("rate", response?.data?.rate);
@@ -434,7 +437,21 @@ export default function CreateJW() {
     createPoForm.setFieldsValue(obj);
   };
   // show submit confirmation modal
-  const showSubmitConfirmationModal = () => {
+  const showSubmitConfirmationModal = async () => {
+    //validating form values before showing the confirmation modal
+    let values;
+    try {
+      values = await createPoForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
+
     // submit confirm modal
     Modal.confirm({
       title: "Do you Want to submit the PO?",
@@ -443,33 +460,32 @@ export default function CreateJW() {
       okText: "Yes",
       cancelText: "No",
       onOk: () => {
-        submitHandler();
+        submitHandler(values);
       },
     });
   };
   // submit handler
-  const submitHandler = async () => {
-    //validating form values
-    const values = await createPoForm.validateFields();
+  const submitHandler = async (values) => {
+    setIsSubmitLoading(true);
     let finalObj = {
       poType: values.pocreatetype,
       qty: [values.qty],
       gstRate: [values.gstRate],
       gstType: [values.gstType],
-      product: [values.component],
-      project: values.project_name,
-      bom: values.bom,
+      product: [values.component?.value ?? values.component],
+      project: values.project_name?.value ?? values.project_name,
+      bom: values.bom?.value ?? values.bom,
       rate: [values.rate],
-      costCenter: values.pocostcenter,
-      raiseBy: values.jw_raise_by,
-      pickLocation: values.location,
-      venJwLocation: values.venJwLocation,
-      billingAddressId: values.billaddressid,
+      costCenter: values.pocostcenter?.value ?? values.pocostcenter,
+      raiseBy: values.jw_raise_by?.value ?? values.jw_raise_by,
+      pickLocation: values.location?.value ?? values.location,
+      venJwLocation: values.venJwLocation?.value ?? values.venJwLocation,
+      billingAddressId: values.billaddressid?.value ?? values.billaddressid,
       billingAddress: values.billaddress,
-      dispatchId: values.shipaddressid,
+      dispatchId: values.shipaddressid?.value ?? values.shipaddressid,
       vendorBranch: values.vendorbranch,
       vendorAddress: values.vendoraddress,
-      dispatchAddress : values.shipaddress,
+      dispatchAddress: values.shipaddress,
       termsCondition: values.termscondition ?? "--",
       quotationDetail: values.quotationdetail ?? "--",
       paymentTerms: values.paymentterms ?? "--",
@@ -484,26 +500,25 @@ export default function CreateJW() {
       cgst: [values.cgst],
       sgst: [values.sgst],
     };
-    setLoading("submitting", true);
+
     const response = await executeFun(
       () => createJobWorkReq(finalObj),
-      "select"
+      "select",
     );
 
     if (response.success) {
       showToast(response.message, "success");
       resetHandler();
-      setLoading("submitting", false);
+      setIsSubmitLoading(false);
     } else {
       showToast(response.message, "error");
-      setLoading("submitting", false);
+      setIsSubmitLoading(false);
     }
-
-    setLoading("submitting", false);
   };
   // reset handlerd
   const resetHandler = () => {
     createPoForm.resetFields();
+    setIsValid(false);
   };
   // show reset confirm
   const showResetConfirm = () => {
@@ -565,14 +580,14 @@ export default function CreateJW() {
                 <Form.Item
                   name="pocreatetype"
                   label="PO Type"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a PO Type!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect size="default" options={poTypeOptions} />
+                  <MySelect
+                    size="default"
+                    options={poTypeOptions}
+                    showError={isValid}
+                    message="Please select a PO Type"
+                  />
                 </Form.Item>
               </Col>
 
@@ -638,14 +653,14 @@ export default function CreateJW() {
                       Vendor Type
                     </span>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a vendor Type!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect size="default" options={vendorTypeOptions} />
+                  <MySelect
+                    size="default"
+                    options={vendorTypeOptions}
+                    showError={isValid}
+                    message="Please select a vendor Type"
+                  />
                 </Form.Item>
               </Col>
               {/* vendor name */}
@@ -673,12 +688,7 @@ export default function CreateJW() {
                       </span>
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a vendor Name!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading1("select")}
@@ -688,6 +698,8 @@ export default function CreateJW() {
                     optionsState={asyncOptions}
                     loadOptions={getVendorOption}
                     onChange={(value) => getVendorBranchOptions(value.value)}
+                    showError={isValid}
+                    message="Please select a vendor Name"
                   />
                 </Form.Item>
               </Col>
@@ -716,7 +728,7 @@ export default function CreateJW() {
                               })
                             : showToast(
                                 "Please Select a vendor first",
-                                "error"
+                                "error",
                               );
                         }}
                         style={{ color: "#1890FF" }}
@@ -725,12 +737,7 @@ export default function CreateJW() {
                       </span>
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a vendor Branch!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MySelect
                     onChange={(value) => {
@@ -741,6 +748,8 @@ export default function CreateJW() {
                       });
                     }}
                     options={vendorBranchOptions}
+                    showError={isValid}
+                    message="Please select a vendor Branch"
                   />
                 </Form.Item>
               </Col>
@@ -756,14 +765,14 @@ export default function CreateJW() {
                 <Form.Item
                   name="vendoraddress"
                   label="Bill From Address"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter bill from address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input.TextArea rows={3} style={{ resize: "none" }} />
+                  <Field
+                    attr="required | Please enter bill from address"
+                    showValidation={isValid}
+                  >
+                    <Input.TextArea rows={3} style={{ resize: "none" }} />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -844,18 +853,16 @@ export default function CreateJW() {
                       </span>
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Cost Center!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
                     onBlur={() => setAsyncOptions([])}
                     loadOptions={handleFetchCostCenterOptions}
                     optionsState={asyncOptions}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Cost Center"
                   />
                 </Form.Item>
               </Col>
@@ -883,12 +890,7 @@ export default function CreateJW() {
                       </span>
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Project!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
@@ -896,6 +898,9 @@ export default function CreateJW() {
                     loadOptions={handleFetchProjectOptions}
                     optionsState={asyncOptions}
                     onChange={getProjectDetails}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Project"
                   />
                 </Form.Item>
               </Col>
@@ -918,12 +923,7 @@ export default function CreateJW() {
                 <Form.Item
                   label="Requested By"
                   name="jw_raise_by"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select Requested By!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
@@ -931,6 +931,9 @@ export default function CreateJW() {
                     onBlur={() => setRequestByOptions([])}
                     optionsState={requestByOptions}
                     loadOptions={getusers}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select Requested By"
                   />
                 </Form.Item>
               </Col>
@@ -958,12 +961,7 @@ export default function CreateJW() {
                 <Form.Item
                   name="billaddressid"
                   label="Billing Id"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Billing Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
@@ -971,6 +969,9 @@ export default function CreateJW() {
                     optionsState={billingAddressOptions}
                     options={billingAddressOptions}
                     onChange={getBillingAddressDetails}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Billing Address"
                   />
                 </Form.Item>
               </Col>
@@ -979,15 +980,14 @@ export default function CreateJW() {
                 <Form.Item
                   name="billPan"
                   label="Pan No."
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter Billing PAN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.billPan} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Billing PAN Number"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* gstin uin */}
@@ -995,15 +995,14 @@ export default function CreateJW() {
                 <Form.Item
                   name="billGST"
                   label="GSTIN / UIN"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter Billing GSTIN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.billGST} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Billing GSTIN Number"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -1013,14 +1012,14 @@ export default function CreateJW() {
                 <Form.Item
                   name="billaddress"
                   label="Billing Address"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Billing Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  <Field
+                    attr="required | Please enter Billing Address"
+                    showValidation={isValid}
+                  >
+                    <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -1047,18 +1046,16 @@ export default function CreateJW() {
                 <Form.Item
                   name="shipaddressid"
                   label="Shipping Id"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Shipping Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
                     loadOptions={getShipingAddressOptions}
                     optionsState={shippingAddressOptions}
                     onChange={geShipAddressDetails}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Shipping Address"
                   />
                 </Form.Item>
               </Col>
@@ -1067,15 +1064,14 @@ export default function CreateJW() {
                 <Form.Item
                   label="Pan No."
                   name="shipPan"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Shipping PAN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.shipPan} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Shipping PAN Number"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* gstin uin */}
@@ -1083,15 +1079,14 @@ export default function CreateJW() {
                 <Form.Item
                   name="shipGST"
                   label=" GSTIN / UIN"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Shipping GSTIN!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.shipGST} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Shipping GSTIN"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -1101,14 +1096,14 @@ export default function CreateJW() {
                 <Form.Item
                   label="Shipping Address"
                   name="shipaddress"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Shipping Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  <Field
+                    attr="required | Please enter Shipping Address"
+                    showValidation={isValid}
+                  >
+                    <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -1136,18 +1131,16 @@ export default function CreateJW() {
                 <Form.Item
                   name="component"
                   label="Component"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Component!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
                     loadOptions={getComponentOptions}
                     optionsState={asyncOptions}
                     onChange={getComponentDetails}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Component"
                   />
                 </Form.Item>
               </Col>
@@ -1156,18 +1149,16 @@ export default function CreateJW() {
                 <Form.Item
                   name="bom"
                   label="BOM"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select bom code",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading("select")}
                     optionsState={bomOptions}
                     onBlur={() => setBomOptions([])}
                     loadOptions={() => {}}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select bom code"
                   />
                 </Form.Item>
               </Col>
@@ -1175,14 +1166,15 @@ export default function CreateJW() {
                 <Form.Item
                   label="Qty"
                   name="qty"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Qty should be greater than zero!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" suffix={uom} type="number" />
+                  <Field
+                    attr="required | Qty should be greater than zero"
+                    showValidation={isValid}
+                    treatZeroAsEmpty
+                  >
+                    <Input size="default" suffix={uom} type="number" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* Rate */}
@@ -1190,14 +1182,15 @@ export default function CreateJW() {
                 <Form.Item
                   name="rate"
                   label="Rate"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Rate should be greater than zero!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" type="number" />
+                  <Field
+                    attr="required | Rate should be greater than zero"
+                    showValidation={isValid}
+                    treatZeroAsEmpty
+                  >
+                    <Input size="default" type="number" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* Rate */}
@@ -1217,12 +1210,7 @@ export default function CreateJW() {
               <Col span={4}>
                 <Form.Item
                   label="Pick Location"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Pick Location!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                   name="location"
                 >
                   <MyAsyncSelect
@@ -1230,18 +1218,16 @@ export default function CreateJW() {
                     loadOptions={getLocatonOptions}
                     optionsState={asyncLocationOptions}
                     selectLoading={loading === "selectLocation"}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Pick Location"
                   />
                 </Form.Item>
               </Col>
               <Col span={4}>
                 <Form.Item
                   label="Drop Location(Vendor Location)"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Drop Location!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                   name="venJwLocation"
                 >
                   <MyAsyncSelect
@@ -1249,6 +1235,9 @@ export default function CreateJW() {
                     loadOptions={getDropLocation}
                     optionsState={dropLocationOptions}
                     selectLoading={loading === "selectDropLocation"}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Drop Location"
                   />
                 </Form.Item>
               </Col>
@@ -1256,42 +1245,42 @@ export default function CreateJW() {
                 <Form.Item
                   name="hsn"
                   label="HSN Code"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter HSN code",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter HSN code"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
               <Col span={4}>
                 <Form.Item
                   name="gstType"
                   label="GST Type"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select GST type",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect options={gstTypeOptions} size="default" />
+                  <MySelect
+                    options={gstTypeOptions}
+                    size="default"
+                    showError={isValid}
+                    message="Please select GST type"
+                  />
                 </Form.Item>
               </Col>
               <Col span={4}>
                 <Form.Item
                   name="gstRate"
                   label="GST Rate"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter GST Rate",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect options={gstRateOptions} size="default" />
+                  <MySelect
+                    options={gstRateOptions}
+                    size="default"
+                    showError={isValid}
+                    message="Please select GST Rate"
+                  />
                 </Form.Item>
               </Col>
               <Col span={4}>
@@ -1372,7 +1361,7 @@ export default function CreateJW() {
             </Card>
           </Col>
           <NavFooter
-            loading={loading("submitting")}
+            loading={isSubmitLoading}
             nextLabel="Submit"
             submitFunction={showSubmitConfirmationModal}
             resetFunction={showResetConfirm}

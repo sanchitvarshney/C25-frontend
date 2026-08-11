@@ -2,14 +2,22 @@ import  { useState } from "react";
 import { Col, Input, Modal, Row } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
+import Field from "../../../Components/Field.jsx";
 
 function CloseModal({ closeModalOpen, setCloseModalOpen, getRows }) {
   const { showToast } = useToast();
   const [remark, setRemark] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const { row } = closeModalOpen;
   // console.log(row);
 
   const generateFun = async () => {
+    if (!remark) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     const response = await imsAxios.post("/jobwork/closePO", {
       skucode: row.skuKey,
       transaction: row.jwId,
@@ -24,6 +32,10 @@ function CloseModal({ closeModalOpen, setCloseModalOpen, getRows }) {
       showToast(response.message?.msg || response.message, "error");
     }
   };
+  const handleCancel = () => {
+    setCloseModalOpen(false);
+    setIsValid(false);
+  };
 
   return (
     <form>
@@ -34,7 +46,7 @@ function CloseModal({ closeModalOpen, setCloseModalOpen, getRows }) {
         onOk={() => {
           generateFun();
         }}
-        onCancel={() => setCloseModalOpen(false)}
+        onCancel={handleCancel}
         width={800}
       >
         <Row>
@@ -65,11 +77,17 @@ function CloseModal({ closeModalOpen, setCloseModalOpen, getRows }) {
             (*mandatory)
           </Col>
           <Col span={24} style={{ marginTop: "10px" }}>
-            <Input
-              placeholder="Remark"
+            <Field
+              attr="required | Remark is mandatory"
               value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-            />
+              showValidation={isValid}
+            >
+              <Input
+                placeholder="Remark"
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+              />
+            </Field>
           </Col>
         </Row>
       </Modal>

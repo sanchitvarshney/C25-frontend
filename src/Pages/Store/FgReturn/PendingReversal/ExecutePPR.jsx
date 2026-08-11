@@ -18,7 +18,8 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import MyButton from "../../../../Components/MyButton";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import { InfoCircleOutlined } from "@ant-design/icons";
-import MyDataTable from "../../../../Components/MyDataTable.jsx";
+import FormTable from "../../../../Components/FormTable.jsx";
+import Field from "../../../../Components/Field.jsx";
 
 export default function ExecutePPR({ editPPR, setEditPPR }) {
   const { showToast } = useToast();
@@ -30,7 +31,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
   const [tableData, setTableData] = useState([]);
   const [headerData, setHeaderData] = useState({});
   const [locationOptions, setLocationOptions] = useState([]);
-
+  const [isValid, setIsValid] = useState(false);
   const locationOptionsRef = useRef(null);
   const onChange = (newActiveKey) => {
     setActiveKey(newActiveKey);
@@ -209,11 +210,14 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
     setHeaderData(obj);
   };
   const validateHandler = () => {
-    if (headerData.location == "") {
-      return showToast("Please select a location", "error");
-    } else if (headerData.mfgQty == "") {
-      return showToast("Please enter manufacutre quantity", "error");
+      const hasEmptyLocation = !headerData.location;
+    const hasInvalidQty =
+      !headerData.mfgQty || Number(headerData.mfgQty) <= 0;
+    if (hasEmptyLocation || hasInvalidQty) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     let arr = [];
     arr = tabsExist.map((tab) => {
       return tableData.filter((row) => row.type == tab);
@@ -228,7 +232,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
       fg_return_txn: headerData.fg_return_txn,
       qty: headerData.mfgQty,
       product_id: headerData.product_id,
-      location: headerData.location,
+       location: headerData.location?.value ?? headerData.location,
       comment: headerData.remark,
       component: arr.map((row) => row.key),
       comp_qty: arr.map((row) => row.actQty),
@@ -281,6 +285,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
     if (!editPPR) {
       setHeaderData({});
       setTableData([]);
+         setIsValid(false);
     } else if (editPPR && !Array.isArray(editPPR)) {
       getPPRData(editPPR);
       setTabsExist(["1", "P", "PCK", "O", "PCB"]);
@@ -306,7 +311,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
             <div className=" remove-cell-border" style={{ height: "73vh" }}>
               <div style={{ height: "95%" }}>
                 {/* {pageLoading && <Loading />} */}
-                <MyDataTable
+                <FormTable
                   columns={columns}
                   data={tableData?.filter((row) => row.type == tab)}
                 />
@@ -335,7 +340,7 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
                     {headerData?.location && (
                       <Col span={6}>
                         Location: <br />
-                        {headerData?.location}
+                           {headerData?.location?.label ?? headerData?.location}
                       </Col>
                     )}
 
@@ -375,6 +380,9 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
                             }
                             loadOptions={getLocations}
                             optionsState={locationOptions}
+                                    labelInValue
+                            showError={isValid}
+                            message="Please select a location"
                           />
                         </Form.Item>
                       </Form>
@@ -398,13 +406,20 @@ export default function ExecutePPR({ editPPR, setEditPPR }) {
                             },
                           ]}
                         >
-                          <Input
+                             <Field
+                            attr="required | Enter Inward Qty"
                             value={headerData.mfgQty}
-                            onChange={(e) =>
-                              headerInputhandler("mfgQty", +e.target.value)
-                            }
-                            size="default"
-                          />
+                            showValidation={isValid}
+                            treatZeroAsEmpty
+                          >
+                            <Input
+                              value={headerData.mfgQty}
+                              onChange={(e) =>
+                                headerInputhandler("mfgQty", +e.target.value)
+                              }
+                              size="default"
+                            />
+                          </Field>
                         </Form.Item>
                       </Form>
                     </Col>

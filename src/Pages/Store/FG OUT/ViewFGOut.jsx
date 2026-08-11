@@ -6,13 +6,14 @@ import MyDataTable from "../../../Components/MyDataTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import MyButton from "../../../Components/MyButton";
-
+import Field from "../../../Components/Field.jsx";
 const ViewFGOut = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [localVar, setLocalVar] = useState({
     sel: "",
   });
+   const [isValid, setIsValid] = useState(false);
   const [selectDate, setSelectDate] = useState("");
   const opt = [{ label: "Out", value: "O" }];
   const [fetchDataFromDate, setFetchDataFromDate] = useState([]);
@@ -21,29 +22,29 @@ const ViewFGOut = () => {
   const dateWise = async (e) => {
     e.preventDefault();
 
-    if (!localVar.sel) {
-      showToast("Please Select Button", "error");
-    } else if (!selectDate) {
-      showToast("Please Select Date", "error");
-    } else {
-      setLoading(true);
-      const response = await imsAxios.post("/fgout/fetchFgOutRpt", {
-        method: localVar.sel,
-        date: selectDate,
+    if (!localVar.sel || !selectDate) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
+    setLoading(true);
+    const response = await imsAxios.post("/fgout/fetchFgOutRpt", {
+      method: localVar.sel,
+      date: selectDate,
+    });
+    if (response?.success) {
+      let arr = response.data.map((row) => {
+        return {
+          ...row,
+          id: v4(),
+        };
       });
-      if (response?.success) {
-        let arr = response.data.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setFetchDataFromDate(arr);
-        setLoading(false);
-      } else {
-        showToast(response?.message, "error");
-        setLoading(false);
-      }
+      setFetchDataFromDate(arr);
+      setLoading(false);
+    } else {
+      showToast(response?.message, "error");
+      setLoading(false);
     }
   };
 
@@ -67,22 +68,33 @@ const ViewFGOut = () => {
       <Row gutter={16}>
         <Col span={4} className="gutter-row">
           <div>
-            <Select
-              options={opt}
-              style={{ width: "100%" }}
-              placeholder="Select type"
+               <Field
+              attr="required | Please select type"
               value={localVar.sel}
-              onChange={(e) =>
-                setLocalVar((localVar) => {
-                  return { ...localVar, sel: e };
-                })
-              }
-            />
+              showValidation={isValid}
+            >
+              <Select
+                options={opt}
+                style={{ width: "100%" }}
+                placeholder="Select type"
+                value={localVar.sel}
+                onChange={(e) =>
+                  setLocalVar((localVar) => {
+                    return { ...localVar, sel: e };
+                  })
+                }
+              />
+            </Field>
           </div>
         </Col>
         <Col span={4} className="gutter-row">
           <div>
-            <SingleDatePicker setDate={setSelectDate} />
+              <SingleDatePicker
+              setDate={setSelectDate}
+              value={selectDate}
+              showError={isValid}
+              message="Please select a date"
+            />
             {/* <DatePicker
               style={{
                 width: "100%",

@@ -8,22 +8,24 @@ import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import JwIssurModel from "./Modal/JwIssurModel";
 import { imsAxios } from "../../axiosInterceptor";
-import useLoading from "../../hooks/useLoading";
+import useLoading from "../../hooks/useLoadingUpdated";
 import useApi from "../../hooks/useApi.ts";
 import { getVendorOptions } from "../../api/general.ts";
 import { convertSelectOptions } from "../../utils/general.ts";
 import MyButton from "../../Components/MyButton";
+import Field from "../../Components/Field.jsx";
 
 const JwIssue = () => {
   const { showToast } = useToast();
   const [openModal, setOpenModal] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [datee, setDatee] = useState("");
-  const [loading, setLoading] = useLoading();
+  const { loading, setLoading } = useLoading();
   const [dateData, setDateData] = useState([]);
   const [sfgData, setSFGData] = useState([]);
   const [jwData, setJWData] = useState([]);
   const [vendorData, setVendorData] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [allData, setAllData] = useState({
     setType: "datewise",
     sfg: "",
@@ -40,6 +42,7 @@ const JwIssue = () => {
 
   const getOption = async (e) => {
     if (e?.length > 2) {
+      setLoading("select", true);
       const response = await imsAxios.post("/backend/getProductByNameAndNo", {
         search: e,
       });
@@ -48,11 +51,13 @@ const JwIssue = () => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
+      setLoading("select", false);
     }
   };
 
   const getVendor = async (search) => {
     if (search.length > 2) {
+      setLoading("select", true);
       const response = await executeFun(
         () => getVendorOptions(search),
         "select",
@@ -62,38 +67,47 @@ const JwIssue = () => {
         arr = convertSelectOptions(response?.data);
       }
       setAsyncOptions(arr);
+      setLoading("select", false);
     }
   };
 
   const datewiseFetchData = async () => {
-    if (allData.setType == "") {
-      showToast("Please Select Option", "error");
-    } else {
-      setLoading("fetch", true);
-      setDateData([]);
-      const response = await imsAxios.post("/jobwork/jw_rm_issue_list", {
-        data: datee,
-        wise: allData.setType,
+    if (!allData.setType || !datee) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
+    setLoading("fetch", true);
+    setDateData([]);
+    const response = await imsAxios.post("/jobwork/jw_rm_issue_list", {
+      data: datee,
+      wise: allData.setType,
+    });
+
+    if (response.success) {
+      let arr = response.data.map((row, index) => {
+        return {
+          ...row,
+          id: v4(),
+          index: index + 1,
+        };
       });
+      setDateData(arr);
       setLoading("fetch", false);
-      if (response.success) {
-        let arr = response.data.map((row, index) => {
-          return {
-            ...row,
-            id: v4(),
-            index: index + 1,
-          };
-        });
-        setDateData(arr);
-        setLoading("fetch", false);
-      } else if (!response.success) {
-        showToast(response.message?.msg || response.message, "error");
-        setLoading("fetch", false);
-      }
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+      setLoading("fetch", false);
     }
   };
 
   const JWFecthData = async () => {
+    if (!allData.setType || !allData.jwId) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     setLoading("fetch", true);
     setJWData([]);
     const response = await imsAxios.post("/jobwork/jw_rm_issue_list", {
@@ -119,10 +133,17 @@ const JwIssue = () => {
   };
 
   const dataFetchSFG = async () => {
+    const sfgValue = allData.sfg?.value ?? allData.sfg;
+    if (!allData.setType || !sfgValue) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     setLoading("fetch", true);
     setSFGData([]);
     const response = await imsAxios.post("/jobwork/jw_rm_issue_list", {
-      data: allData.sfg,
+      data: sfgValue,
       wise: allData.setType,
     });
     // console.log(data.data);
@@ -137,17 +158,24 @@ const JwIssue = () => {
       });
       setSFGData(arr);
       setLoading("fetch", false);
-    } else if (!response.success) {
+    } else {
       showToast(response.message?.msg || response.message, "error");
       setLoading("fetch", false);
     }
   };
 
   const vendorFetch = async () => {
+    const vendorValue = allData.vendorName?.value ?? allData.vendorName;
+    if (!allData.setType || !vendorValue) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     setLoading("fetch", true);
     setVendorData([]);
     const response = await imsAxios.post("/jobwork/jw_rm_issue_list", {
-      data: allData.vendorName,
+      data: vendorValue,
       wise: allData.setType,
     });
     if (response.success) {
@@ -177,8 +205,8 @@ const JwIssue = () => {
 
   const columns = [
     { field: "index", headerName: "S No.", width: 8 },
-    { field: "date", headerName: "Date", width: 100 },
-    { field: "jw_transaction_id", headerName: "JW ID", width: 150 },
+    { field: "date", headerName: "Date", width: 130 },
+    { field: "jw_transaction_id", headerName: "JW ID", width: 190 },
     {
       field: "vendor",
       headerName: "Vendor",
@@ -216,26 +244,39 @@ const JwIssue = () => {
   ];
   return (
     <>
-      <div style={{ height: "95%", padding:10 }}>
+      <div style={{ height: "95%", padding: 10 }}>
         {/* <InternalNav links={JobworkLinks} /> */}
         <Row gutter={10}>
           <Col span={4}>
-            <Select
-              placeholder="Select Option"
-              style={{ width: "100%" }}
-              options={options}
+            <Field
+              attr="required | Please select an option"
               value={allData.setType}
-              onChange={(w) =>
-                setAllData((allData) => {
-                  return { ...allData, setType: w };
-                })
-              }
-            />
+              showValidation={isValid}
+            >
+              <Select
+                placeholder="Select Option"
+                style={{ width: "100%" }}
+                options={options}
+                value={allData.setType}
+                onChange={(w) => {
+                  setAllData((allData) => {
+                    return { ...allData, setType: w };
+                  });
+                  setIsValid(false);
+                }}
+              />
+            </Field>
           </Col>
           {allData.setType == "datewise" ? (
             <>
               <Col span={4}>
-                <MyDatePicker size="default" setDateRange={setDatee} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setDatee}
+                  value={datee}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               </Col>
               <Col span={1}>
                 <Button
@@ -250,15 +291,21 @@ const JwIssue = () => {
           ) : allData.setType == "jw_transaction_wise" ? (
             <>
               <Col span={4}>
-                <Input
-                  placeholder="JW ID"
+                <Field
+                  attr="required | Please enter a JW ID"
                   value={allData.jwId}
-                  onChange={(e) =>
-                    setAllData((allData) => {
-                      return { ...allData, jwId: e.target.value };
-                    })
-                  }
-                />
+                  showValidation={isValid}
+                >
+                  <Input
+                    placeholder="JW ID"
+                    value={allData.jwId}
+                    onChange={(e) =>
+                      setAllData((allData) => {
+                        return { ...allData, jwId: e.target.value };
+                      })
+                    }
+                  />
+                </Field>
               </Col>
               <Col span={1}>
                 <Button
@@ -279,12 +326,16 @@ const JwIssue = () => {
                   loadOptions={getOption}
                   value={allData.sfg}
                   optionsState={asyncOptions}
+                  selectLoading={loading("select")}
                   onChange={(e) => {
                     setAllData((allData) => {
                       return { ...allData, sfg: e };
                     });
                   }}
                   placeholder="SFG SKU wise"
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a SFG SKU"
                 />
               </Col>
               <Col span={1}>
@@ -306,12 +357,16 @@ const JwIssue = () => {
                   loadOptions={getVendor}
                   value={allData.vendorName}
                   optionsState={asyncOptions}
+                  selectLoading={loading("select")}
                   onChange={(e) =>
                     setAllData((allData) => {
                       return { ...allData, vendorName: e };
                     })
                   }
                   placeholder="Vendor wise"
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a vendor"
                 />
               </Col>
               <Col span={1}>

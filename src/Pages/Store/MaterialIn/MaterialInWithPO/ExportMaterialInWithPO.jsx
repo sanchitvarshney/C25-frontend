@@ -14,9 +14,9 @@ import {
   Form,
   Upload,
   Drawer,
-  DatePicker,
 } from "antd";
 import { remarkCell, manualMFGCode, HSNCell } from "./TableCollumns.jsx";
+import SingleDatePicker from "../../../../Components/SingleDatePicker.jsx";
 import SingleProduct from "../../../Master/Vendor/SingleProduct.jsx";
 import CurrenceModal from "../CurrenceModal.jsx";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect.jsx";
@@ -39,6 +39,8 @@ import MyButton from "../../../../Components/MyButton/index.jsx";
 import MySelect from "../../../../Components/MySelect.jsx";
 import { v4 } from "uuid";
 import FileUpload from "../../../../Components/FileUpload/FileUpload.tsx";
+import FormTable from "../../../../Components/FormTable.jsx";
+import Field from "../../../../Components/Field.jsx";
 
 export default function ExportMaterialInWithPO() {
   const { showToast } = useToast();
@@ -54,7 +56,7 @@ export default function ExportMaterialInWithPO() {
     vendor: "",
     poNumber: "",
   });
-  const [currency, setCurrency] = useState(null);
+  const [ setCurrency] = useState(null);
   const [invoice, setInvoice] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(null);
   const [showCurrency, setShowCurrenncy] = useState(null);
@@ -82,22 +84,40 @@ export default function ExportMaterialInWithPO() {
   let costCode;
   const { executeFun, loading: loading1 } = useApi();
   const { loading } = useApi();
+ const [isValid, setIsValid] = useState(false);
+  const [searchValid, setSearchValid] = useState(false);
+  const hasIncompleteMaterialRow = (rows) =>
+    (rows || []).some(
+      (row) =>
+        !row?.component ||
+        !row?.orderQty ||
+        Number(row?.orderQty) <= 0 ||
+        !row?.rate ||
+        Number(row?.rate) <= 0 ||
+        row?.customDuty === "" ||
+        row?.customDuty === undefined ||
+        row?.customDuty === null ||
+        row?.freightValue === "" ||
+        row?.freightValue === undefined ||
+        row?.freightValue === null ||
+        !(row?.hsncode ?? row?.hsn),
+    );
   const validateData = async () => {
-    let validation = false;
-    // let validation = true;
-    // poData.materials.map((row) => {
     if (
-      currency &&
-      invoice &&
-      invoiceDate &&
-      poData.materials.length &&
-      selectLocation
+      !selectLocation ||
+      !invoice.trim() ||
+      !invoiceDate ||
+      !poData.materials.length
     ) {
-      validation = true;
-    } else {
-      validation = false;
-      // }
+      setIsValid(true);
+      return;
     }
+    if (hasIncompleteMaterialRow(poData.materials)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+  
     let componentData = {
       qty: [],
       rate: [],
@@ -119,7 +139,7 @@ export default function ExportMaterialInWithPO() {
       customDuty: [],
       freight: [],
     };
-    if (validation == true) {
+
       let a = uploadedComponents;
       if (a?.length) {
         if (!fileName) {
@@ -162,9 +182,7 @@ export default function ExportMaterialInWithPO() {
       } else {
         showToast("Please add at least one document", "error");
       }
-    } else {
-      showToast("Please Provide all the values of all the components", "error");
-    }
+ 
   };
 
   const closeDrawer = () => {
@@ -627,13 +645,14 @@ export default function ExportMaterialInWithPO() {
     setPoData(resetPoData);
     setFileName("");
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   const getDetail = async () => {
     setSearchLoading(true);
     setPoData({ materials: [] });
     let search = {
       po: searchData.poNumber.trim(),
-      vendor: searchData.vendor,
+      vendor: searchData.vendor?.value,
     };
     const response = await imsAxios.post(
       "/purchaseOrder/fetchVendorPO",
@@ -759,12 +778,19 @@ export default function ExportMaterialInWithPO() {
       field: "orderQty",
       sortable: false,
       renderCell: (params) => (
-        <Input
+        <Field
+          attr="required | Qty is required"
           value={params.row.orderQty}
-          onChange={(e) =>
-            inputHandler("orderQty", e.target.value, params.row.id)
-          }
-        />
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
+          <Input
+            value={params.row.orderQty}
+            onChange={(e) =>
+              inputHandler("orderQty", e.target.value, params.row.id)
+            }
+          />
+        </Field>
       ),
       width: 120,
     },
@@ -786,11 +812,18 @@ export default function ExportMaterialInWithPO() {
       headerName: "Rate",
       field: "rate",
       sortable: false,
-      renderCell: (params) => (
-        <Input
+       renderCell: (params) => (
+        <Field
+          attr="required | Rate is required"
           value={params.row.rate}
-          onChange={(e) => inputHandler("rate", e.target.value, params.row.id)}
-        />
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
+          <Input
+            value={params.row.rate}
+            onChange={(e) => inputHandler("rate", e.target.value, params.row.id)}
+          />
+        </Field>
       ),
       width: 100,
     },
@@ -799,12 +832,18 @@ export default function ExportMaterialInWithPO() {
       field: "customDuty",
       sortable: false,
       renderCell: (params) => (
-        <Input
+        <Field
+          attr="required | Custom Duty is required"
           value={params.row.customDuty}
-          onChange={(e) =>
-            inputHandler("customDuty", e.target.value, params.row.id)
-          }
-        />
+          showValidation={isValid}
+        >
+          <Input
+            value={params.row.customDuty}
+            onChange={(e) =>
+              inputHandler("customDuty", e.target.value, params.row.id)
+            }
+          />
+        </Field>
       ),
       width: 100,
     },
@@ -812,13 +851,19 @@ export default function ExportMaterialInWithPO() {
       headerName: "Freight Charge",
       field: "freightValue",
       sortable: false,
-      renderCell: (params) => (
-        <Input
+     renderCell: (params) => (
+        <Field
+          attr="required | Freight Charge is required"
           value={params.row.freightValue}
-          onChange={(e) =>
-            inputHandler("freightValue", e.target.value, params.row.id)
-          }
-        />
+          showValidation={isValid}
+        >
+          <Input
+            value={params.row.freightValue}
+            onChange={(e) =>
+              inputHandler("freightValue", e.target.value, params.row.id)
+            }
+          />
+        </Field>
       ),
       width: 100,
     },
@@ -872,7 +917,7 @@ export default function ExportMaterialInWithPO() {
       headerName: "HSN Code",
       field: "hsn",
       sortable: false,
-      renderCell: (params) => HSNCell(params, inputHandler),
+      renderCell: (params) => HSNCell(params, inputHandler, isValid),
       width: 150,
     },
     {
@@ -1073,6 +1118,7 @@ export default function ExportMaterialInWithPO() {
         margin: 8,
       }}
     >
+       {!materialInSuccess && (
       <Row>
         {(pageLoading || submitLoading == true) && <Loading />}
         <Col>
@@ -1090,28 +1136,44 @@ export default function ExportMaterialInWithPO() {
                     vendor: value,
                   }))
                 }
+                labelInValue
                 loadOptions={getVendors}
                 optionsState={asyncOptions}
                 placeholder="Select Vendor..."
+                   showError={searchValid}
+                message="Please select a vendor"
               />
             </div>
             <div style={{ width: 180 }}>
-              <Input
-                placeholder="PO Number"
+           <Field
+                attr="required | Please enter a PO number"
                 value={searchData.poNumber}
-                onChange={(e) =>
-                  setSearchData((searchData) => ({
-                    ...searchData,
-                    poNumber: e.target.value,
-                  }))
-                }
-              />
+                showValidation={searchValid}
+              >
+                <Input
+                  placeholder="PO Number"
+                  value={searchData.poNumber}
+                  onChange={(e) =>
+                    setSearchData((searchData) => ({
+                      ...searchData,
+                      poNumber: e.target.value,
+                    }))
+                  }
+                />
+              </Field>
             </div>
             <MyButton
               disabled={searchData.vendor == "" || searchData.poNumber == ""}
               type="primary"
               loading={searchLoading}
-              onClick={getDetail}
+                onClick={() => {
+                if (!searchData.vendor || !searchData.poNumber) {
+                  setSearchValid(true);
+                  return;
+                }
+                setSearchValid(false);
+                getDetail();
+              }}
               id="submit"
               variant="search"
             >
@@ -1155,7 +1217,7 @@ export default function ExportMaterialInWithPO() {
             />
           </FileUpload>
         </Col>
-      </Row>
+      </Row>)}
       {/* vendor info modal */}
       <Modal
         style={{
@@ -1511,6 +1573,8 @@ export default function ExportMaterialInWithPO() {
                         value={selectLocation}
                         options={locationOptions}
                         label="Location"
+                            showError={isValid}
+                        message="Location is required"
                       />
                     </Col>
                     <Col span={24}>
@@ -1523,19 +1587,19 @@ export default function ExportMaterialInWithPO() {
                       >
                         Invoice Number
                       </Typography.Title>
-                      <Input
-                        name="invoice_number"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter invoice number",
-                          },
-                        ]}
-                        onChange={(value) => {
-                          setInvoice(value.target.value);
-                        }}
+                      <Field
+                        attr="required | Please enter invoice number"
                         value={invoice}
-                      />
+                        showValidation={isValid}
+                      >
+                        <Input
+                          name="invoice_number"
+                          onChange={(value) => {
+                            setInvoice(value.target.value);
+                          }}
+                          value={invoice}
+                        />
+                      </Field>
                     </Col>
                     <Col span={24}>
                       <Typography.Title
@@ -1547,14 +1611,11 @@ export default function ExportMaterialInWithPO() {
                       >
                         Invoice Date
                       </Typography.Title>
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        name="invoice_date"
-                        onChange={(value) => setInvoiceDate(value)}
+                           <SingleDatePicker
+                        setDate={(value) => setInvoiceDate(value)}
                         value={invoiceDate}
-                        disabledDate={(current) =>
-                          current && current.valueOf() > Date.now()
-                        }
+                        showError={isValid}
+                        message="Please select an invoice date"
                       />
                     </Col>
                   </Row>
@@ -1795,7 +1856,7 @@ export default function ExportMaterialInWithPO() {
                 display: "flex",
               }}
             >
-              <MyDataTable
+              <FormTable
                 columns={columns}
                 data={poData?.materials}
                 loading={loading("select" || pageLoading)}

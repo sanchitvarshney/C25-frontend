@@ -1,6 +1,5 @@
-import  { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import MyDatePicker from "../../../../Components/MyDatePicker";
-import "../../../../";
 import { useToast } from "../../../../hooks/useToast.js";
 import { AiFillEdit } from "react-icons/ai";
 import MyDataTable from "../../../../Components/MyDataTable";
@@ -12,7 +11,6 @@ import { Button, Checkbox, Form, Input, Modal, Row, Space } from "antd";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
 import VBT01Report from "./VBT01/VBT01Report";
-// import VBT02Report from "./VBTtype2/VBT02Report";
 import useApi from "../../../../hooks/useApi.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
 import { getVendorOptions } from "../../../../api/general.ts";
@@ -20,6 +18,25 @@ import MyButton from "../../../../Components/MyButton";
 import { FaInfoCircle } from "react-icons/fa";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { RiProhibitedLine } from "react-icons/ri";
+
+const VBT_ROUTE_TO_API_URL = {
+  "vb-1": "vbt01",
+  "vb-2": "vbt02",
+  "vb-3": "vbt03",
+  "vb-4": "vbt04",
+  "vb-5": "vbt05",
+  "vb-6": "vbt06",
+  "vb-7": "vbt07",
+};
+
+const wiseOptions = [
+  { value: "date_wise", text: "Date Wise" },
+  { value: "min_wise", text: "MIN Wise" },
+  { value: "vendor_wise", text: "Vendor Wise" },
+];
+
+const hasDisableWorkflow = (apiUrl) => apiUrl === "vbt01" || apiUrl === "vbt06";
+
 const VBTMainTable = ({ editVbtDrawer }) => {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
@@ -33,11 +50,11 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [previewdisData, setPreviewdisData] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
-  const [url, setUrl] = useState("");
   const [apiUrl, setApiUrl] = useState("");
   const [ModalForm] = Form.useForm();
   const [extracted, setExtracted] = useState([]);
   const [combinedData, setCombinedDate] = useState([]);
+
   useEffect(() => {
     if (editVbtDrawer) {
       setEditingVBT(editVbtDrawer);
@@ -45,217 +62,16 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   }, [editVbtDrawer]);
 
   useEffect(() => {
-    const pageUrl = window.location.href.split("/");
-    let splitUrl = pageUrl.at(-1);
-    setUrl(splitUrl);
+    const routeSegment = window.location.href.split("/").at(-1);
+    setApiUrl(VBT_ROUTE_TO_API_URL[routeSegment] ?? "");
   }, []);
 
-  useEffect(() => {
-    // console.log("url", url);
-    if (url === "vb-1") {
-      setApiUrl("vbt01");
-    } else if (url === "vb-2") {
-      setApiUrl("vbt02");
-    } else if (url === "vb-3") {
-      setApiUrl("vbt03");
-    } else if (url === "vb-4") {
-      setApiUrl("vbt04");
-    } else if (url === "vb-5") {
-      setApiUrl("vbt05");
-    } else if (url === "vb-6") {
-      setApiUrl("vbt06");
-    } else if (url === "vb-") {
-      setApiUrl("vbt07");
-    }
-  }, [url]);
-
-  const showTypeColumn = vbtData?.some(
-    (r) => r?.type != null && String(r.type).trim() !== "",
+  const showTypeColumn = useMemo(
+    () => vbtData?.some((r) => r?.type != null && String(r.type).trim() !== ""),
+    [vbtData],
   );
 
-  const vbtTableColumnsonesix = [
-    {
-      headerName: "Sr. No.",
-      renderCell: ({ row }) => <span>{vbtData?.indexOf(row) + 1}</span>,
-      sortable: true,
-      flex: 1,
-      id: "serial-no",
-      width: "120px",
-    },
-    ...(showTypeColumn
-      ? [
-          {
-            headerName: "Type",
-            field: "type",
-            sortable: true,
-            flex: 1,
-            id: "type",
-          },
-        ]
-      : []),
-
-    {
-      headerName: "Vendor Code",
-      field: "venCode",
-      sortable: true,
-      flex: 1,
-      id: "vendor code",
-          renderCell: ({ row }) => <span>{row?.venCode ?? row?.ven_code}</span>,
-    },
-    {
-      headerName: "Transaction",
-      field: "transaction",
-      sortable: true,
-      flex: 1,
-      id: "min id",
-       renderCell: ({ row }) => <span>{row?.min_transaction ?? row?.transaction}</span>,
-    },
-    {
-      headerName: "PART / SKU",
-      field: "itemCode",
-      flex: 1,
-      sortable: true,
-      id: "part id",
-        renderCell: ({ row }) => <span>{row?.itemCode ?? row?.part_code}</span>,
-    },
-    {
-      headerName: "DATE",
-      field: "minDate",
-      flex: 1,
-      sortable: true,
-      id: "min date",
-       renderCell: ({ row }) => <span>{row?.minDate ?? row?.min_in_date}</span>,
-    },
-
-    {
-      headerName: "ACTIONS",
-      button: true,
-      field: "action",
-      type: "actions",
-      flex: 1,
-      getActions: ({ row }) =>
-        (apiUrl == "vbt06" && (row.vbpStatus ?? row.vbp_status)== "PENDING") ||
-        (apiUrl === "vbt01" && (row.vbpStatus ?? row.vbp_status)== "PENDING")
-          ? [
-              <>
-                <GridActionsCellItem
-                  icon={
-                    <FaInfoCircle
-                      style={{ color: "#003E7E" }}
-                      onClick={() => disableVbt(row)}
-                    />
-                  }
-                />
-                <GridActionsCellItem
-                  icon={<AiFillEdit />}
-                  onClick={() => setEditingVBT([row])}
-                  label="Edit"
-                />
-              </>,
-            ]
-          : [
-              <>
-                <GridActionsCellItem
-                  icon={
-                    <RiProhibitedLine
-                      style={{ color: "red" }}
-                      onClick={() => showToast(row.remark, "error")}
-                    />
-                  }
-                />
-                {/* <GridActionsCellItem
-                  icon={<AiFillEdit />}
-                  onClick={() => setEditingVBT([row.min_transaction])}
-                  label="Edit"
-                /> */}
-              </>,
-            ],
-    },
-  ];
-  const vbtTableColumnselse = [
-    {
-      headerName: "Sr. No.",
-      renderCell: ({ row }) => <span>{vbtData?.indexOf(row) + 1}</span>,
-      sortable: true,
-      flex: 1,
-      id: "serial-no",
-      width: "120px",
-    },
-     ...(showTypeColumn
-      ? [
-          {
-            headerName: "Type",
-            field: "type",
-            sortable: true,
-            flex: 1,
-            id: "type",
-          },
-        ]
-      : []),
-    {
-      headerName: "Vendor Code",
-      field: "venCode",
-      sortable: true,
-      flex: 1,
-      id: "vendor code",
-         renderCell: ({ row }) => <span>{row?.venCode ?? row?.ven_code}</span>,
-    },
-    {
-      headerName: "Transaction",
-      field: "transaction",
-      sortable: true,
-      flex: 1,
-      id: "min id",
-        renderCell: ({ row }) => <span>{row?.min_transaction ?? row?.transaction}</span>,
-    },
-    {
-      headerName: "PART / SKU",
-      field: "part_code",
-      flex: 1,
-      sortable: true,
-      id: "part id",
-            renderCell: ({ row }) => <span>{row?.itemCode ?? row?.part_code}</span>,
-    },
-    {
-      headerName: "DATE",
-      field: "min_in_date",
-      flex: 1,
-      sortable: true,
-      id: "min date",
-           renderCell: ({ row }) => <span>{row?.minDate ?? row?.min_in_date}</span>,
-    },
-
-    {
-      headerName: "ACTIONS",
-      button: true,
-      field: "action",
-      type: "actions",
-      flex: 1,
-      getActions: ({ row }) => [
-        <GridActionsCellItem
-        key="edit"
-          icon={<AiFillEdit />}
-          onClick={() => setEditingVBT([row])}
-          label="Edit"
-        />,
-      ],
-    },
-  ];
-  const getVendors = async (search) => {
-    console.log("this is the search", search);
-    const response = await executeFun(() => getVendorOptions(search), "select");
-    let arr = [];
-    if (response.success) {
-      arr = convertSelectOptions(response.data);
-    }
-    setAsyncOptions(arr);
-  };
-
-  const getMultipleVBTDetail = async () => {
-    let mins = selectedRows.map((row) => vbtData.filter((r) => r.id == row)[0]);
-    setEditingVBT(mins?.map((row) => row));
-  };
-  const getRows = async () => {
+  const getRows = useCallback(async () => {
     setPreviewdisData(false);
     let d;
     if (wise === "date_wise") {
@@ -278,147 +94,250 @@ const VBTMainTable = ({ editVbtDrawer }) => {
       }
     }
     setSearchLoading(true);
-    let response;
-    if (apiUrl === "vbt06") {
-      response = await imsAxios.post(`/tally/${apiUrl}/fetch_vbtjw`, {
-        wise: wise,
-        data: d,
-      });
-    } else {
-      response = await imsAxios.post(`/tally/${apiUrl}/fetch_${apiUrl}`, {
-        wise: wise,
-        data: d,
-      });
-    }
+    const fetchPath =
+      apiUrl === "vbt06"
+        ? `/tally/${apiUrl}/fetch_vbtjw`
+        : `/tally/${apiUrl}/fetch_${apiUrl}`;
+    const response = await imsAxios.post(fetchPath, { wise, data: d });
 
     const { data } = response;
     if (response.success) {
-      const arr = data.map((row) => {
-        return {
-          ...row,
-          id: v4(),
-        };
-      });
-      //for disable purpose
-      const alldata = data?.disable?.map((row) => {
-        return {
-          ...row,
-          id: v4(),
-        };
-      });
+      const arr = data.map((row) => ({ ...row, id: v4() }));
+      const allData = data?.disable?.map((row) => ({ ...row, id: v4() }));
       setVBTData(arr);
-      if (alldata) {
-        setCombinedDate(alldata);
+      if (allData) {
+        setCombinedDate(allData);
         setExtracted(arr);
-        // setVBTData(combinedData);
       }
     } else {
       showToast(response.message?.msg || response.message, "error");
       setVBTData([]);
     }
     setSearchLoading(false);
-    // console.log(data);
-  };
-  // const submitHandler = () => {
-  //   setEditingVBT(null);
-  // };
-  const wiseOptions = [
-    { value: "date_wise", text: "Date Wise" },
-    { value: "min_wise", text: "MIN Wise" },
-    { value: "vendor_wise", text: "Vendor Wise" },
-  ];
+  }, [wise, searchDateRange, searchInput, apiUrl, showToast]);
 
-  const disableVbt = async (singleRow) => {
-    if (singleRow) {
-      ModalForm.setFieldValue("min_transaction", singleRow.transaction ?? singleRow.min_transaction);
-      ModalForm.setFieldValue("part_code", singleRow.itemCode ?? singleRow.part_code);
-    }
+  const disableVbt = useCallback(
+    (singleRow) => {
+      if (singleRow) {
+        ModalForm.setFieldValue(
+          "min_transaction",
+          singleRow.transaction ?? singleRow.min_transaction,
+        );
+        ModalForm.setFieldValue(
+          "part_code",
+          singleRow.itemCode ?? singleRow.part_code,
+        );
+      }
 
-    Modal.confirm({
-      title: "Are you sure you want to disbale this VBT?",
-      icon: <ExclamationCircleOutlined />,
-      content: (
-        <Form form={ModalForm} layout="vertical">
-          <Form.Item
-            name="min_transaction"
-            label="Transaction"
-            rules={[
-              {
-                required: true,
-                message: "Please Enter Transaction Number!",
-              },
-            ]}
-          >
-            <Input disabled />
-          </Form.Item>
-          <Form.Item
-            name="part_code"
-            label="Part / SKU"
-            // rules={rules.nos_of_boxes}
-            rules={[
-              {
-                required: true,
-                message: "Please Enter Part Code!",
-              },
-            ]}
-          >
-            <Input disabled />
-          </Form.Item>
+      Modal.confirm({
+        title: "Are you sure you want to disbale this VBT?",
+        icon: <ExclamationCircleOutlined />,
+        content: (
+          <Form form={ModalForm} layout="vertical">
+            <Form.Item
+              name="min_transaction"
+              label="Transaction"
+              rules={[
+                {
+                  required: true,
+                  message: "Please Enter Transaction Number!",
+                },
+              ]}
+            >
+              <Input disabled />
+            </Form.Item>
+            <Form.Item
+              name="part_code"
+              label="Part / SKU"
+              rules={[
+                {
+                  required: true,
+                  message: "Please Enter Part Code!",
+                },
+              ]}
+            >
+              <Input disabled />
+            </Form.Item>
 
-          <Form.Item
-            name="remark"
-            label="Remark"
-            rules={[
-              {
-                required: true,
-                message: "Please Enter Remark!",
-              },
-            ]}
-          >
-            <Input.TextArea rows={3} placeholder="Please input the remark" />
-          </Form.Item>
-        </Form>
-      ),
-      okText: "Yes",
-      cancelText: "No",
-      onOk: async () => {
-        await disabletheSelelcted();
+            <Form.Item
+              name="remark"
+              label="Remark"
+              rules={[
+                {
+                  required: true,
+                  message: "Please Enter Remark!",
+                },
+              ]}
+            >
+              <Input.TextArea rows={3} placeholder="Please input the remark" />
+            </Form.Item>
+          </Form>
+        ),
+        okText: "Yes",
+        cancelText: "No",
+        onOk: async () => {
+          const values = await ModalForm.validateFields();
+          const response = await imsAxios.put("/tally/vbt/disable_vbtprocess", {
+            min_transaction: values.min_transaction,
+            part_code: values.part_code,
+            remark: values.remark,
+          });
+          if (response.success) {
+            showToast(response.data.status, "success");
+            getRows();
+          } else {
+            showToast(response.data.message, "error");
+          }
+        },
+      });
+    },
+    [ModalForm, showToast, getRows],
+  );
+
+  const vbtTableColumns = useMemo(
+    () => [
+      {
+        headerName: "Sr. No.",
+        renderCell: ({ row }) => <span>{vbtData?.indexOf(row) + 1}</span>,
+        sortable: true,
+        flex: 1,
+        id: "serial-no",
+        width: "120px",
       },
-    });
-  };
-  const disabletheSelelcted = async () => {
-    const values = await ModalForm.validateFields();
-    const response = await imsAxios.put("/tally/vbt/disable_vbtprocess", {
-      min_transaction: values.min_transaction,
-      part_code: values.part_code,
-      remark: values.remark,
-    });
-    if (response.success) {
-      showToast(response.data.status, "success");
-      getRows();
-    } else {
-      showToast(response.data.message, "error");
-    }
-  };
-  // ----------------------------
-  useEffect(() => {
-    if (wise == "min_wise") {
-      setSearchInput("");
-    } else {
-      setSearchInput(null);
-    }
+      ...(showTypeColumn
+        ? [
+            {
+              headerName: "Type",
+              field: "type",
+              sortable: true,
+              flex: 1,
+              id: "type",
+            },
+          ]
+        : []),
+      {
+        headerName: "Vendor Code",
+        field: "venCode",
+        sortable: true,
+        flex: 1,
+        id: "vendor-code",
+        renderCell: ({ row }) => <span>{row?.venCode ?? row?.ven_code}</span>,
+      },
+      {
+        headerName: "Transaction",
+        field: "transaction",
+        sortable: true,
+        flex: 1,
+        id: "min-id",
+        renderCell: ({ row }) => (
+          <span>{row?.min_transaction ?? row?.transaction}</span>
+        ),
+      },
+      {
+        headerName: "PART / SKU",
+        field: "itemCode",
+        flex: 1,
+        sortable: true,
+        id: "part-id",
+        renderCell: ({ row }) => <span>{row?.itemCode ?? row?.part_code}</span>,
+      },
+      {
+        headerName: "DATE",
+        field: "minDate",
+        flex: 1,
+        sortable: true,
+        id: "min-date",
+        renderCell: ({ row }) => (
+          <span>{row?.minDate ?? row?.min_in_date}</span>
+        ),
+      },
+      {
+        headerName: "ACTIONS",
+        button: true,
+        field: "action",
+        type: "actions",
+        flex: 1,
+        getActions: ({ row }) => {
+          if (!hasDisableWorkflow(apiUrl)) {
+            return [
+              <GridActionsCellItem
+                key="edit"
+                icon={<AiFillEdit />}
+                onClick={() => setEditingVBT([row])}
+                label="Edit"
+              />,
+            ];
+          }
 
+          const status = row.vbpStatus ?? row.vbp_status;
+          if (status === "PENDING") {
+            return [
+              <GridActionsCellItem
+                key="info"
+                icon={
+                  <FaInfoCircle
+                    style={{ color: "#003E7E" }}
+                    onClick={() => disableVbt(row)}
+                  />
+                }
+              />,
+              <GridActionsCellItem
+                key="edit"
+                icon={<AiFillEdit />}
+                onClick={() => setEditingVBT([row])}
+                label="Edit"
+              />,
+            ];
+          }
+
+          return [
+            <GridActionsCellItem
+              key="disabled"
+              icon={
+                <RiProhibitedLine
+                  style={{ color: "red" }}
+                  onClick={() => showToast(row.remark, "error")}
+                />
+              }
+            />,
+          ];
+        },
+      },
+    ],
+    [vbtData, showTypeColumn, apiUrl, disableVbt, showToast],
+  );
+
+  const getVendors = useCallback(
+    async (search) => {
+      const response = await executeFun(
+        () => getVendorOptions(search),
+        "select",
+      );
+      setAsyncOptions(
+        response.success ? convertSelectOptions(response.data) : [],
+      );
+    },
+    [executeFun],
+  );
+
+  const getMultipleVBTDetail = useCallback(() => {
+    const mins = selectedRows.map(
+      (row) => vbtData.filter((r) => r.id == row)[0],
+    );
+    setEditingVBT(mins);
+  }, [selectedRows, vbtData]);
+
+  useEffect(() => {
+    setSearchInput(wise === "min_wise" ? "" : null);
     setVBTData([]);
     setPreviewdisData(false);
   }, [wise]);
 
   useEffect(() => {
-    if (previewdisData) {
-      setVBTData(combinedData);
-    } else {
-      setVBTData(extracted);
-    }
+    setVBTData(previewdisData ? combinedData : extracted);
   }, [previewdisData]);
+
+  const searchDisabled = wise === "date_wise" ? !searchDateRange : !searchInput;
 
   return (
     <div style={{ height: "100%", padding: 10 }}>
@@ -430,29 +349,13 @@ const VBTMainTable = ({ editVbtDrawer }) => {
           overflow: "hidden",
         }}
       >
-        {/* search header
-        <CreateVBT1
+        <VBT01Report
           setVBTData={setVBTData}
           editingVBT={editingVBT}
           setEditingVBT={setEditingVBT}
-        /> */}
-        {apiUrl === "vbt03" ? (
-          <VBT01Report
-            setVBTData={setVBTData}
-            editingVBT={editingVBT}
-            setEditingVBT={setEditingVBT}
-            setApiUrl={setApiUrl}
-            apiUrl={apiUrl}
-          />
-        ) : (
-          <VBT01Report
-            setVBTData={setVBTData}
-            editingVBT={editingVBT}
-            setEditingVBT={setEditingVBT}
-            setApiUrl={setApiUrl}
-            apiUrl={apiUrl}
-          />
-        )}
+          setApiUrl={setApiUrl}
+          apiUrl={apiUrl}
+        />
         <Row justify="space-between">
           <div className="left">
             <Space>
@@ -475,7 +378,6 @@ const VBTMainTable = ({ editVbtDrawer }) => {
                   <Input
                     type="text"
                     size="default"
-                    // className="form-control w-100 "
                     placeholder="Enter MIN Number"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
@@ -498,15 +400,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
               </div>
               <MyButton
                 size="default"
-                disabled={
-                  wise === "date_wise"
-                    ? searchDateRange === ""
-                      ? true
-                      : false
-                    : !searchInput
-                      ? true
-                      : false
-                }
+                disabled={searchDisabled}
                 loading={searchLoading}
                 type="primary"
                 onClick={getRows}
@@ -518,30 +412,16 @@ const VBTMainTable = ({ editVbtDrawer }) => {
                 <Button
                   onClick={getMultipleVBTDetail}
                   disabled={selectedRows.length < 2}
-                  // loading={loading}
                   type="primary"
                 >
                   Create VBT
                 </Button>
               )}
-              {/* {confirmModal && (
-                <ConfirmModal
-                  open={open}
-                  setOpen={setOpen}
-                  // submitHandler={submitHandler}
-                  loading={loading}
-                  setCreateVBT={setCreateVBT}
-                  createVBT={createVBT}
-                  setEditingVBT={setEditingVBT}
-                  editingVBT={editingVBT}
-                />
-              )} */}
             </Space>
           </div>
           <Space>
-            {(apiUrl == "vbt06" || apiUrl == "vbt01") && (
+            {hasDisableWorkflow(apiUrl) && (
               <Checkbox
-                // onClick={() => setPreviewdisData(!previewdisData)}
                 disabled={vbtData.length == 0}
                 checked={previewdisData}
                 onChange={(e) => setPreviewdisData(e.target.checked)}
@@ -564,11 +444,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
           <MyDataTable
             checkboxSelection={wise == "vendor_wise"}
             loading={searchLoading}
-            columns={
-              apiUrl == "vbt06" || apiUrl == "vbt01"
-                ? vbtTableColumnsonesix
-                : vbtTableColumnselse
-            }
+            columns={vbtTableColumns}
             data={vbtData}
             onSelectionModelChange={(newSelectionModel) => {
               setSelectedRows(newSelectionModel);

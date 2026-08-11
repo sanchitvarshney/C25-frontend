@@ -2,7 +2,7 @@ import { useState } from "react";
 import { v4 } from "uuid";
 import {  Col, Input, Row, Tabs } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
-import MyDataTable from "../../../Components/MyDataTable";
+import FormTable from "../../../Components/FormTable";
 import { PlusCircleTwoTone, MinusCircleTwoTone } from "@ant-design/icons";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -10,6 +10,7 @@ import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import MyButton from "../../../Components/MyButton";
 import PIAScan from "@/Pages/Store/MINLabel/PIAScan.tsx";
+import Field from "../../../Components/Field.jsx";
 
 function CreatePhysical() {
   // console.log(addrow);
@@ -44,32 +45,31 @@ const Manual = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
-  // const [availData, setAvailData] = useState({});
+  const [isValid, setIsValid] = useState(false);
   const { executeFun } = useApi();
-  // const [searchInput, setSearchInput] = useState("");
-  // const [allData, setAllData] = useState({
-  //   selType: "",
+    const [searchLoading, setSearchLoading] = useState(false);
 
-  //   component: [],
-  //   existStock: [],
-  //   physicalStock: [],
-  //   uom: [],
-  //   remark: [],
-  // });
 
   const getComponent = async (e) => {
     if (e?.length > 2) {
+      setSearchLoading(true);
       // const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
       //   search: e,
       // });
       const response = await executeFun(() => getComponentOptions(e), "select");
+     if(response?.success){
       const { data } = response;
       let arr = [];
       arr = data.map((d) => {
         return { text: d.text, value: d.id };
       });
       setAsyncOptions(arr);
-      // return arr;
+      setSearchLoading(false);
+
+    } else {
+      setAsyncOptions([]);
+      setSearchLoading(false);
+     }
     }
   };
 
@@ -89,7 +89,7 @@ const Manual = () => {
 
     if (name == "comp") {
       const response = await imsAxios.post("/audit/RMStock", {
-        component: value,
+        component: value?.value ?? value,
       });
       // console.log(data.data);
       const exist1 = response?.data.available_qty;
@@ -152,7 +152,22 @@ const Manual = () => {
     });
   };
 
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (a) =>
+        !a?.comp ||
+        a?.phyStock === undefined ||
+        a?.phyStock === null ||
+        a?.phyStock === "",
+    );
+
   const savePhysical = async () => {
+    if (hasIncompleteRow(addrow)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     setLoading(true);
     let comName = [];
     let existStock = [];
@@ -203,6 +218,7 @@ const Manual = () => {
         rem: "",
       },
     ]);
+      setIsValid(false);
   };
 
   const columns = [
@@ -235,13 +251,16 @@ const Manual = () => {
       flex: 1,
       sortable: false,
       renderCell: ({ row }) => (
-        <MyAsyncSelect
+       <MyAsyncSelect
           style={{ width: "100%" }}
           onBlur={() => setAsyncOptions([])}
-          // onInputChange={(e) => setSearchInput(e)}
           loadOptions={getComponent}
-          value={addrow?.comp}
+          value={row?.comp}
+          labelInValue
+          showError={isValid}
+          message="Product is required"
           optionsState={asyncOptions}
+          selectLoading={searchLoading}
           onChange={(e) => inputHandler("comp", row.id, e)} // value={addRowData.product}
         />
       ),
@@ -264,10 +283,17 @@ const Manual = () => {
       flex: 1,
       sortable: false,
       renderCell: ({ row }) => (
-        <Input
-          placeholder="Qty"
-          onChange={(e) => inputHandler("phyStock", row.id, e.target.value)}
-        />
+         <Field
+          attr="required | Physical Stock is required"
+          value={row?.phyStock}
+          showValidation={isValid}
+        >
+          <Input
+            placeholder="Qty"
+            value={row?.phyStock}
+            onChange={(e) => inputHandler("phyStock", row.id, e.target.value)}
+          />
+        </Field>
       ),
     },
     {
@@ -278,7 +304,7 @@ const Manual = () => {
       renderCell: ({ row }) => (
         <Input
           placeholder="Remark"
-          value={addrow?.remarks}
+       value={row?.rem}
           onChange={(e) => inputHandler("rem", row.id, e.target.value)}
         />
       ),
@@ -289,7 +315,7 @@ const Manual = () => {
     <div>
     
         <div style={{ height: "75vh",  }}>
-          <MyDataTable data={addrow} columns={columns} hideHeaderMenu />
+          <FormTable data={addrow} columns={columns} hideHeaderMenu />
      
       </div>
       <Row gutter={16}>

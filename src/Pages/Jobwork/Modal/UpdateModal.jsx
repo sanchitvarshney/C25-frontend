@@ -3,9 +3,10 @@ import {CloseCircleFilled } from "@ant-design/icons";
 import { useToast } from "../../../hooks/useToast.js";
 import { v4 } from "uuid";
 import { Button, Col, Drawer, Row, Skeleton, Space, Input,Tooltip } from "antd";
-import MyDataTable from "../../../Components/MyDataTable";
+import FormTable from "../../../Components/FormTable";
 import { imsAxios } from "../../../axiosInterceptor";
 import TableActions from "../../../Components/TableActions.jsx/TableActions";
+import Field from "../../../Components/Field.jsx";
 
 function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
   const { showToast } = useToast();
@@ -13,6 +14,7 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [view, setView] = useState([]);
   const [mainData, setMainData] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   let row = updateModalInfo.row;
 
@@ -87,7 +89,7 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
     });
   };
   const columns = [
-    { field: "index", headerName: "S No.", width: 8 },
+    { field: "index", headerName: "S No.", width: 60 },
     { field: "part_code", headerName: "Part Code.", width: 120 },
     { field: "component_name", headerName: "Component Name", width: 450 },
     { field: "part_status", headerName: "Status", width: 100 },
@@ -136,11 +138,18 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
       headerName: "Rate",
       width: 180,
       renderCell: ({ row }) => (
-        <Input
-          value={row.rate}
-          type="number"
-          onChange={(e) => compInputHandler("rate", e.target.value, row.id)}
-        />
+        <Field
+          attr="required | Rate is required"
+          value={row?.rate}
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
+          <Input
+            value={row.rate}
+            type="number"
+            onChange={(e) => compInputHandler("rate", e.target.value, row.id)}
+          />
+        </Field>
       ),
     },
     { field: "uom", headerName: "UoM", width: 100 },
@@ -149,16 +158,21 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
       headerName: "Update Qty",
       width: 240,
       renderCell: ({ row }) => (
-        <>
+        <Field
+          attr="required | Update Qty is required"
+          value={row?.bom_req}
+          treatZeroAsEmpty
+          showValidation={isValid}
+        >
           <Input
             disabled={row?.recipeStatus == "PENDING"}
             type="number"
-            // value={row?.bom_req_qty}
+            value={row?.bom_req}
             onChange={(e) =>
               compInputHandler("bom_req", e.target.value, row.id)
             }
           />
-        </>
+        </Field>
       ),
     },
     {
@@ -179,15 +193,24 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
     },
   ];
 
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (a) =>
+        !a?.rate ||
+        Number(a?.rate) <= 0 ||
+        !a?.bom_req ||
+        Number(a?.bom_req) <= 0,
+    );
+
   const updateFun = async () => {
+    if (hasIncompleteRow(mainData)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     let allCompArray = [];
     let allQtyArray = [];
-    // const invalidRates = mainData.filter((row) => !row.rate || row.rate <= 0);
-
-    // if (invalidRates.length > 0) {
-    //   toast.error("Rate field cannot be empty for all rows.");
-    //   return;  // Prevent submission if validation fails
-    // }
     mainData.map((a) => allCompArray.push(a.component_key));
     mainData.map((a) => allQtyArray.push(a.bom_req ?? "")); 
 
@@ -224,6 +247,11 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
     //  console.log(data)
   };
 
+  const handleClose = () => {
+    setUpdateModalInfo(false);
+    setIsValid(false);
+  };
+
   useEffect(() => {
     if (updateModalInfo) {
       getAllData();
@@ -240,7 +268,7 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
         }
         placement="right"
         closable={false}
-        onClose={() => setUpdateModalInfo(false)}
+        onClose={handleClose}
         open={updateModalInfo}
         getContainer={false}
         style={
@@ -250,7 +278,7 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
         }
         extra={
           <Space>
-            <CloseCircleFilled onClick={() => setUpdateModalInfo(false)} />
+            <CloseCircleFilled onClick={handleClose} />
           </Space>
         }
       >
@@ -325,15 +353,16 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
         </Skeleton>
 
         <Skeleton loading={loading} active>
-          <div style={{ height: "75%", marginTop: "20px" }}>
-            <div style={{ height: "100%" }}>
-              <MyDataTable
-                loading={loading}
+          <div style={{ height: "calc(100vh - 220px)", marginTop: "10px" }}>
+        
+              <FormTable
+            
                 columns={columns}
                 data={mainData}
+        
               />
             </div>
-          </div>
+       
         </Skeleton>
 
         <Skeleton loading={loading} active>

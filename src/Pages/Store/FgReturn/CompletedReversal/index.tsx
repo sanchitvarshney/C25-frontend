@@ -20,17 +20,22 @@ const CompletedFgReturn = () => {
   const [rows, setRows] = useState([]);
   const [form] = Form.useForm();
   const { executeFun, loading } = useApi();
+  const [isValid, setIsValid] = useState(false);
 
   const handleFetchRows = async () => {
     const values = await form.validateFields();
+   if(!values.date) {
+    setIsValid(true);
+    return
+   };
 
-    if (values) {
+    setIsValid(false);
       const response = await executeFun(
         () => getCompletedReturns(values.date),
         "fetch"
       );
       setRows(response.data);
-    }
+  
   };
 
   const handleDownload = () => [
@@ -53,6 +58,8 @@ const CompletedFgReturn = () => {
             setDateRange={(value:any) =>
               form.setFieldValue("date", value)
             }
+                showError={isValid}
+            value={form.getFieldValue("date")}
           />
         </Form.Item>
       </Col>

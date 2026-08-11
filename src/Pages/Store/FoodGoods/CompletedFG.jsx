@@ -27,25 +27,30 @@ const CompletedFG = () => {
     { label: "Date Wise", value: "datewise" },
     { label: "SKU Wise", value: "skuwise" },
   ];
-  // filter date
+  const [isValidate, setIsValidate] = useState(false);
 
   const { executeFun } = useApi();
   const getOption = async (searchInput) => {
     const response = await executeFun(
       () => getProductsOptions(searchInput, true),
-      "select"
+      "select",
     );
-    let  data  = response?.data;
+    let data = response?.data;
 
     setAsyncSelect(data);
   };
 
   const skuWise = async () => {
+    if (!all.selOption) {
+      setIsValidate(true);
+      return;
+    }
+    setIsValidate(false);
     setLoading(true);
     setSkuData([]);
     const response = await imsAxios.post("/fgIN/fgInCompleted", {
       searchBy: all.info,
-      searchValue: all.selOption,
+      searchValue: all.selOption?.value,
     });
     if (response?.success) {
       let arr = response?.data.map((row, index) => {
@@ -65,6 +70,11 @@ const CompletedFG = () => {
 
   const dateWise = async (e) => {
     e.preventDefault();
+    if (!datee) {
+      setIsValidate(true);
+      return;
+    }
+    setIsValidate(false);
     setLoading(true);
     setDateData([]);
 
@@ -131,7 +141,7 @@ const CompletedFG = () => {
   };
 
   return (
-    <div style={{ height: "calc(100vh - 140px)", margin:10 }} >
+    <div style={{ height: "calc(100vh - 140px)", margin: 10 }}>
       <Row gutter={5}>
         <Col span={3}>
           <Select
@@ -150,22 +160,26 @@ const CompletedFG = () => {
         {all.info == "datewise" ? (
           <>
             <Col span={5} className="gutter-row">
-              <MyDatePicker setDateRange={setDatee} size="default" />
+              <MyDatePicker
+                setDateRange={setDatee}
+                size="default"
+                value={datee}
+                showError={isValidate}
+              />
             </Col>
             <Col span={2} className="gutter-row">
               <MyButton onClick={dateWise} type="primary" variant="search">
                 Fetch
               </MyButton>
             </Col>
-           
-              <Col span={2} offset={12} className="gutter-row">
-                <div>
-                  <Button onClick={handleDownloadingCSV}>
-                    <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
-                  </Button>
-                </div>
-              </Col>
-       
+
+            <Col span={2} offset={12} className="gutter-row">
+              <div>
+                <Button onClick={handleDownloadingCSV}>
+                  <MdOutlineDownloadForOffline style={{ fontSize: "20px" }} />
+                </Button>
+              </div>
+            </Col>
           </>
         ) : all.info == "skuwise" ? (
           <>
@@ -184,6 +198,9 @@ const CompletedFG = () => {
                         return { ...all, selOption: e };
                       })
                     }
+                    labelInValue
+                    message="Select SKU"
+                    showError={isValidate}
                   />
                 </div>
               </Col>

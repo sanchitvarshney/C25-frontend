@@ -1,5 +1,4 @@
-
-import  { useState } from "react";
+import { useState } from "react";
 import { CommonIcons } from "../../../../Components/TableActions.jsx/TableActions";
 import {
   asyncSelectComponent,
@@ -13,7 +12,8 @@ import validateResponse from "../../../../Components/validateResponse";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { getComponentOptions } from "../../../../api/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
-import MyDataTable from "../../../../Components/MyDataTable.jsx";
+import FormTable from "../../../../Components/FormTable.jsx";
+
 export default function AddDCComponents({
   newGatePass,
   setActiveTab,
@@ -38,6 +38,8 @@ export default function AddDCComponents({
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
+  const [isValid, setIsValid] = useState(false);
+
   const getComponents = async (searchInput) => {
     if (searchInput.length > 2) {
       // setSelectLoading(true);
@@ -47,7 +49,7 @@ export default function AddDCComponents({
       // setSelectLoading(false);
       const response = await executeFun(
         () => getComponentOptions(searchInput),
-        "select"
+        "select",
       );
       const { data } = response;
       let arr = [];
@@ -69,7 +71,7 @@ export default function AddDCComponents({
         "/component/getComponentDetailsByCode",
         {
           component_code: value.value,
-        }
+        },
       );
       let validatedData = validateResponse(response);
       setPageLoading(false);
@@ -124,31 +126,49 @@ export default function AddDCComponents({
     let arr = rows.filter((row) => row.id != id);
     setRows(arr);
   };
+  const hasIncompleteRow = (data) =>
+    (data || []).some(
+      (row) =>
+        !row?.component ||
+        !row?.qty ||
+        Number(row?.qty) <= 0 ||
+        !row?.rate ||
+        Number(row?.rate) <= 0,
+    );
+
   const validateData = () => {
-    let validate = false;
-    if (newGatePass.passType == "") {
-      return showToast("Please select Pass Type", "error");
-    } else if (newGatePass.vendorName == "") {
-      return showToast("Please select a Vendor", "error");
-    } else if (newGatePass.vendorBranch == "") {
-      return showToast("Please select a Vendor Branch", "error");
-    } else if (newGatePass.billingId == "") {
-      return showToast("Please select a Billing Address", "error");
-    } else if (newGatePass.vehicleNumber == "") {
-      return showToast("Please enter a Vehicle Number", "error");
+    if (
+      newGatePass.passType == "" ||
+      !newGatePass.vendorName ||
+      newGatePass.vendorBranch == "" ||
+      newGatePass.billingId == "" ||
+      newGatePass.vehicleNumber == ""
+    ) {
+      return showToast(
+        "Please complete the DC Details tab before adding components",
+        "error",
+      );
     }
-    rows.map((row) => {
-      if (row.component == "") {
-        validate = "Please select a component for all the material entries";
-      } else if (row.qty == "" || row.qty == 0) {
-        validate = "Quantity of a component should be more than 0";
-      } else if (row.rate == "" || row.rate == 0) {
-        validate = "Component rate should be more than 0";
-      }
-    });
-    if (validate) {
-      return showToast(validate, "error");
+
+    const componentValues = rows.map((row) => row.component);
+    const duplicateFound = componentValues.some(
+      (comp, index) =>
+        comp &&
+        componentValues.findIndex((c) => c?.value === comp?.value) !== index,
+    );
+    if (duplicateFound) {
+      return showToast(
+        "You have entered the same component twice in a single request.",
+        "error",
+      );
     }
+
+    if (hasIncompleteRow(rows)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     let final = {
       trans_type: "DC",
       vendor: {
@@ -189,11 +209,11 @@ export default function AddDCComponents({
       setSubmitLoading(true);
       const response = await imsAxios.post(
         "/gatepass/createGatePass",
-        showSubmitConfirm
+        showSubmitConfirm,
       );
       setSubmitLoading(false);
       if (response.success) {
-           setShowSubmitConfirm(false);
+        setShowSubmitConfirm(false);
         detailsResetFunction();
         resetFunction();
         let successInfo = {
@@ -202,13 +222,13 @@ export default function AddDCComponents({
           vendorName: newGatePass.vendorName.label,
         };
         setSuccessPage(successInfo);
-     
       } else {
         showToast(response.message, "error");
       }
     }
     setShowSubmitConfirm(false);
   };
+
   const resetFunction = () => {
     setRows([
       {
@@ -222,6 +242,7 @@ export default function AddDCComponents({
       },
     ]);
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   const columns = [
     {
@@ -248,6 +269,8 @@ export default function AddDCComponents({
           asyncOptions: asyncOptions,
           selectLoading: loading1("select"),
           value: row.component,
+          showError: isValid,
+          message: "Component is required",
         }),
     },
     {
@@ -260,6 +283,9 @@ export default function AddDCComponents({
           inputHandler: inputHandler,
           value: "qty",
           suffix: row.uom,
+          showError: isValid,
+          treatZeroAsEmpty: true,
+          message: "Qty is required",
         }),
     },
     {
@@ -271,6 +297,9 @@ export default function AddDCComponents({
           row: row,
           inputHandler: inputHandler,
           value: "rate",
+          showError: isValid,
+          treatZeroAsEmpty: true,
+          message: "Rate is required",
         }),
     },
     {
@@ -351,7 +380,7 @@ export default function AddDCComponents({
           Challan?
         </p>
       </Modal>
-      <MyDataTable columns={columns} data={rows} />
+      <FormTable columns={columns} data={rows} />
       <NavFooter
         nextLabel="Create"
         resetFunction={() => setShowResetConfirm(true)}

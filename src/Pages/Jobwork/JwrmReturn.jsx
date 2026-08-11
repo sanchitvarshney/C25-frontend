@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import MyDatePicker from "../../Components/MyDatePicker";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { useToast } from "../../hooks/useToast.js";
@@ -9,10 +9,24 @@ import { ArrowRightOutlined } from "@ant-design/icons";
 import JwReturnModel from "./Modal/JwReturnModel";
 import { imsAxios } from "../../axiosInterceptor";
 import useLoading from "../../hooks/useLoading";
-import { getVendorOptions } from "../../api/general.ts";
+import { getVendorOptions, getProductsOptions } from "../../api/general.ts";
 import { convertSelectOptions } from "../../utils/general.ts";
 import useApi from "../../hooks/useApi.ts";
-import MyButton from "../../Components/MyButton";
+import Field from "../../Components/Field.jsx";
+
+const WISE_OPTIONS = [
+  { label: "Date Wise", value: "datewise" },
+  { label: "JW ID Wise", value: "jw_transaction_wise" },
+  { label: "SFG SKU Wise", value: "jw_sfg_wise" },
+  { label: "Vendor Wise", value: "vendorwise" },
+];
+
+const EMPTY_RESULTS = {
+  datewise: [],
+  jw_transaction_wise: [],
+  jw_sfg_wise: [],
+  vendorwise: [],
+};
 
 const JwrmReturn = () => {
   const { showToast } = useToast();
@@ -20,36 +34,20 @@ const JwrmReturn = () => {
   const [loading, setLoading] = useLoading();
   const [editModal, setEditModal] = useState(false);
   const [datee, setDatee] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [allData, setAllData] = useState({
     setType: "datewise",
     jw: "",
     sku: "",
     ven: "",
   });
-
-  const [dateData, setDateData] = useState([]);
-  const [jwData, setDJWData] = useState([]);
-  const [skuData, setSKUData] = useState([]);
-  const [vendorData, setVendorData] = useState([]);
-  const { executeFun, } = useApi();
-  const option = [
-    { label: "Date Wise", value: "datewise" },
-    { label: "JW ID Wise", value: "jw_transaction_wise" },
-    { label: "SFG SKU Wise", value: "jw_sfg_wise" },
-    { label: "Vendor Wise", value: "vendorwise" },
-  ];
+  const [results, setResults] = useState(EMPTY_RESULTS);
+  const { executeFun, loading: selectLoading } = useApi();
 
   const getOption = async (e) => {
     if (e?.length > 2) {
-      const response = await imsAxios.post("/backend/getProductByNameAndNo", {
-        search: e,
-      });
-   
-      let arr = [];
-      arr = response?.data.map((d) => {
-        return { text: d.text, value: d.id };
-      });
-      setAsyncOptions(arr);
+      const response = await executeFun(() => getProductsOptions(e), "select");
+      setAsyncOptions(response.success ? response.data : []);
     }
   };
 
@@ -57,7 +55,7 @@ const JwrmReturn = () => {
     if (search.length > 2) {
       const response = await executeFun(
         () => getVendorOptions(search),
-        "select"
+        "select",
       );
       let arr = [];
       if (response.success) {
@@ -67,106 +65,52 @@ const JwrmReturn = () => {
     }
   };
 
-  const fetchDatewise = async () => {
-    if (allData?.setType == "") {
-      showToast("Please Select Option", "error");
+  const getFilterValue = () => {
+    switch (allData.setType) {
+      case "jw_transaction_wise":
+        return allData.jw;
+      case "jw_sfg_wise":
+        return allData.sku?.value;
+      case "vendorwise":
+        return allData.ven?.value;
+      default:
+        return datee;
+    }
+  };
+
+  const fetchData = async () => {
+    const value = getFilterValue();
+    if (!value) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setLoading("fetch", true);
+    const response = await imsAxios.post("/jobwork/fetchJwRmReturn", {
+      data: value,
+      wise: allData.setType,
+    });
+    if (response.success) {
+      const arr = response.data.map((row, index) => ({
+        ...row,
+        id: v4(),
+        index: index + 1,
+      }));
+      setResults((prev) => ({ ...prev, [allData.setType]: arr }));
     } else {
-      setLoading("fetch", true);
-      const response = await imsAxios.post("/jobwork/fetchJwRmReturn", {
-        data: datee,
-        wise: allData.setType,
-      });
-      if (response.success) {
-        let arr = response.data.map((row, index) => {
-          return {
-            ...row,
-            id: v4(),
-            index: index + 1,
-          };
-        });
-        setDateData(arr);
-        setLoading("fetch", false);
-      } else if (!response.success) {
-        showToast(response.message, "error");
-        setLoading("fetch", false);
-      }
-    }
-  };
-
-  const fetchJWwise = async () => {
-    setLoading("fetch", true);
-    const response = await imsAxios.post("/jobwork/fetchJwRmReturn", {
-      data: allData.jw,
-      wise: allData.setType,
-    });
-    if (response.success) {
-      let arr = response.data.map((row, index) => {
-        return {
-          ...row,
-          id: v4(),
-          index: index + 1,
-        };
-      });
-      setDJWData(arr);
-      setLoading("fetch", false);
-    } else if (!response.success) {
       showToast(response.message, "error");
-      setLoading("fetch", false);
     }
-  };
-
-  const fetchSKUwise = async () => {
-    setLoading("fetch", true);
-    const response = await imsAxios.post("/jobwork/fetchJwRmReturn", {
-      data: allData.sku,
-      wise: allData.setType,
-    });
-    if (response.success) {
-      let arr = response.data.map((row, index) => {
-        return {
-          ...row,
-          id: v4(),
-          index: index + 1,
-        };
-      });
-      setSKUData(arr);
-      setLoading("fetch", false);
-    } else if (!response.success) {
-      showToast(response.message, "error");
-      setLoading("fetch", false);
-    }
-  };
-  const fetchVendorwise = async () => {
-    setLoading("fetch", true);
-    const response = await imsAxios.post("/jobwork/fetchJwRmReturn", {
-      data: allData.ven,
-      wise: allData.setType,
-    });
-    if (response.success) {
-      let arr = response.data.map((row, index) => {
-        return {
-          ...row,
-          id: v4(),
-          index: index + 1,
-        };
-      });
-      setVendorData(arr);
-      setLoading("fetch", false);
-    } else if (!response.success) {
-      showToast(response.message, "error");
-      setLoading("fetch", false);
-    }
+    setLoading("fetch", false);
   };
 
   const columns = [
     { field: "index", headerName: "S No.", width: 8 },
     { field: "date", headerName: "JW Date", width: 120 },
-    { field: "transaction_id", headerName: "JW Id", width: 150 },
+    { field: "transaction_id", headerName: "JW Id", width: 180 },
     { field: "vendor", headerName: "Vendor", width: 350 },
     { field: "sku_code", headerName: "SKU", width: 100 },
     { field: "sku_name", headerName: "Name", width: 300 },
     { field: "ord_qty", headerName: "Required Qty", width: 150 },
-
     {
       field: "actions",
       type: "actions",
@@ -186,31 +130,36 @@ const JwrmReturn = () => {
 
   return (
     <div style={{ height: "95%", padding: "10px" }}>
-      {/* <InternalNav links={JobworkLinks} /> */}
       <Row gutter={10}>
         <Col span={4}>
           <Select
             placeholder="Please Select Option"
             style={{ width: "100%" }}
-            options={option}
+            options={WISE_OPTIONS}
             value={allData.setType}
-            onChange={(e) =>
+            onChange={(e) => {
+              setIsValid(false);
               setAllData((allData) => {
                 return { ...allData, setType: e };
-              })
-            }
+              });
+            }}
           />
         </Col>
         {allData.setType == "datewise" ? (
           <>
             <Col span={5}>
-              <MyDatePicker setDateRange={setDatee} size="default" />
+              <MyDatePicker
+                setDateRange={setDatee}
+                value={datee}
+                size="default"
+                showError={isValid}
+              />
             </Col>
             <Col span={2}>
               <Button
                 type="primary"
                 loading={loading("fetch")}
-                onClick={fetchDatewise}
+                onClick={fetchData}
               >
                 Fetch
               </Button>
@@ -219,21 +168,24 @@ const JwrmReturn = () => {
         ) : allData.setType == "jw_transaction_wise" ? (
           <>
             <Col span={6}>
-              <Input
-                placeholder="JW/Challan"
+              <Field
+                attr="required | Please enter JW/Challan"
                 value={allData.jw}
+                showValidation={isValid}
                 onChange={(e) =>
                   setAllData((allData) => {
                     return { ...allData, jw: e.target.value };
                   })
                 }
-              />
+              >
+                <Input placeholder="JW/Challan" />
+              </Field>
             </Col>
             <Col span={2}>
               <Button
                 loading={loading("fetch")}
                 type="primary"
-                onClick={fetchJWwise}
+                onClick={fetchData}
               >
                 Fetch
               </Button>
@@ -247,6 +199,9 @@ const JwrmReturn = () => {
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getOption}
                 value={allData.sku}
+                labelInValue={true}
+                showError={isValid}
+                selectLoading={selectLoading("select")}
                 optionsState={asyncOptions}
                 onChange={(e) =>
                   setAllData((allData) => {
@@ -260,13 +215,13 @@ const JwrmReturn = () => {
               <Button
                 loading={loading("fetch")}
                 type="primary"
-                onClick={fetchSKUwise}
+                onClick={fetchData}
               >
                 Fetch
               </Button>
             </Col>
           </>
-        ) : allData.setType == "vendorwise" ? (
+        ) : (
           <>
             <Col span={6}>
               <MyAsyncSelect
@@ -274,6 +229,9 @@ const JwrmReturn = () => {
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getVendor}
                 value={allData.ven}
+                labelInValue={true}
+                showError={isValid}
+                selectLoading={selectLoading("select")}
                 optionsState={asyncOptions}
                 onChange={(e) =>
                   setAllData((allData) => {
@@ -287,47 +245,21 @@ const JwrmReturn = () => {
               <Button
                 loading={loading("fetch")}
                 type="primary"
-                onClick={fetchVendorwise}
+                onClick={fetchData}
               >
                 Fetch
               </Button>
-            </Col>
-          </>
-        ) : (
-          <>
-            <Col span={5}>
-              <MyDatePicker setDateRange={setDatee} size="default" />
-            </Col>
-            <Col span={2}>
-              <MyButton
-                variant="search"
-                type="primary"
-                loading={loading("fetch")}
-                onClick={fetchDatewise}
-              >
-                Fetch
-              </MyButton>
             </Col>
           </>
         )}
       </Row>
 
       <div style={{ height: "95%", marginTop: "10px" }}>
-        {allData.setType == "datewise" ? (
-          <MyDataTable
-            loading={loading("fetch")}
-            data={dateData}
-            columns={columns}
-          />
-        ) : allData.setType == "jw_transaction_wise" ? (
-          <MyDataTable data={jwData} columns={columns} />
-        ) : allData.setType == "jw_sfg_wise" ? (
-          <MyDataTable data={skuData} columns={columns} />
-        ) : allData.setType == "vendorwise" ? (
-          <MyDataTable data={vendorData} columns={columns} />
-        ) : (
-          <MyDataTable data={dateData} columns={columns} />
-        )}
+        <MyDataTable
+          loading={loading("fetch")}
+          data={results[allData.setType] ?? []}
+          columns={columns}
+        />
       </div>
 
       <JwReturnModel show={editModal} close={() => setEditModal(false)} />

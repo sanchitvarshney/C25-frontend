@@ -35,6 +35,7 @@ import { getVendorOptions } from "../../api/general.ts";
 import { convertSelectOptions } from "../../utils/general.ts";
 import MyButton from "../../Components/MyButton";
 import { downloadCSV } from "../../Components/exportToCSV.jsx";
+import Field from "../../Components/Field.jsx";
 
 const POAnalysis = () => {
   const { showToast } = useToast();
@@ -48,15 +49,33 @@ const POAnalysis = () => {
   // const [selectedRow, setSelectedRow] = useState("");
   const [advancedFilter, setAdvancedFilter] = useState(false);
   const [advancedDate, setAdvancedDate] = useState("");
+  const [isValid, setIsValid] = useState(false);
 
   const [filterForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const wise = Form.useWatch("wise", filterForm);
 
   const getRows = async () => {
-    const values = await filterForm.validateFields();
+    let values;
+    try {
+      values = await filterForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+
+    if (advancedFilter && !advancedDate) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     const payload = {
-      data: values.value,
+      data: values.value?.value ?? values.value,
       wise: wise.value,
       advanced: advancedFilter,
       dateRange: advancedDate,
@@ -91,9 +110,21 @@ const POAnalysis = () => {
   };
 
   const handleSocketDownload = async () => {
-    const values = await filterForm.validateFields();
+    let values;
+    try {
+      values = await filterForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
+
     const payload = {
-      vendor: values.value,
+      vendor: values.value?.value ?? values.value,
       notificationId: v4(),
     };
     socket.emit("jw_analysis", payload);
@@ -105,26 +136,25 @@ const POAnalysis = () => {
     setLoading("print");
     const response = await imsAxios.post("/jobwork/print_jw_analysis", payload);
     setLoading(false);
- 
+    const { data } = response;
     if (response.success) {
-         const { data } = response;
       if (action === "print") {
-        printFunction(data?.buffer?.data);
+        printFunction(data?.buffer);
       } else {
         downloadFunction(data?.buffer?.data, jwId);
       }
     } else {
-      showToast(response?.message?.msg || response.message, "error");
+  
+      showToast(response?.message || "Something went wrong", "error");
     }
   };
 
   const vendorLogin = async () => {
     setConfirmLoading(true);
     const values = await passwordForm.validateFields();
-    // let vencode = selectedRow.vendor.split("( ")[1].split(" )")[0];
     const response = await imsAxios.post("/auth/redirectVendor", {
       currentPassword: values.password,
-      // vendorCode: vencode,
+      vendorCode: values.vendorCode,
     });
     const { data } = response;
     setConfirmLoading(true);
@@ -135,7 +165,7 @@ const POAnalysis = () => {
       setOpen(false);
       passwordForm.resetFields();
     } else {
-      showToast(response?.message?.msg || response.message, "error");
+      showToast(response?.message || "Something went wrong", "error");
       setConfirmLoading(false);
     }
     // navigate("");
@@ -144,6 +174,7 @@ const POAnalysis = () => {
     if (wise !== "datewise") {
       filterForm.setFieldValue("value", "");
     }
+    setIsValid(false);
   }, [wise]);
   const actionColumn = {
     field: "actions",
@@ -203,10 +234,19 @@ const POAnalysis = () => {
                 layout="vertical"
                 form={filterForm}
               >
-                <Form.Item label="Select Wise" name="wise">
-                  <MySelect options={wiseOptions} labelInValue />
+                <Form.Item
+                  label="Select Wise"
+                  name="wise"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <MySelect
+                    options={wiseOptions}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select wise"
+                  />
                 </Form.Item>
-                {valueInput(wise, filterForm)}
+                {valueInput(wise, filterForm, isValid)}
 
                 <Form.Item name="advancedFilter" valuePropName="checked">
                   <Checkbox
@@ -219,6 +259,9 @@ const POAnalysis = () => {
                 {advancedFilter && (
                   <MyDatePicker
                     setDateRange={(value) => setAdvancedDate(value)}
+                    value={advancedDate}
+                    showError={isValid}
+                    message="Please select an advanced date range"
                   />
                 )}
               </Form>
@@ -234,7 +277,7 @@ const POAnalysis = () => {
                       />
                     </Tooltip>
                   )}{" "}
-                  <MyButton variant="search" type="primary" onClick={getRows}>
+                  <MyButton variant="search" type="primary" onClick={getRows} loading={loading === "fetch"}>
                     Fetch
                   </MyButton>
                   {rows.length > 0 && (
@@ -331,7 +374,7 @@ const columns = [
   {
     headerName: "Date",
     field: "date",
-    width: 150,
+    width: 160,
     renderCell: ({ row }) => <ToolTipEllipses text={row.date} />,
   },
   {
@@ -343,7 +386,7 @@ const columns = [
   {
     headerName: "Vendor",
     field: "vendor",
-    minWidth: 150,
+    minWidth: 300,
     flex: 1,
     renderCell: ({ row }) => <ToolTipEllipses text={row.vendor} />,
   },
@@ -356,7 +399,7 @@ const columns = [
   {
     headerName: "Product",
     field: "product",
-    minWidth: 150,
+    minWidth: 250,
     flex: 1,
     renderCell: ({ row }) => <ToolTipEllipses text={row.product} />,
   },
@@ -376,38 +419,50 @@ const columns = [
   {
     headerName: "Project Description",
     field: "project_description",
-    width: 200,
+    width: 250,
     renderCell: ({ row }) => (
       <ToolTipEllipses text={row.project_description} copy={true} />
     ),
   },
 ];
 
-const valueInput = (wise, form) => {
+const valueInput = (wise, form, isValid) => {
   if (wise?.value === "datewise") {
-    return <DateWise form={form} wise={wise} />;
+    return <DateWise form={form} wise={wise} isValid={isValid} />;
   } else if (wise?.value === "jw_transaction_wise") {
-    return <JWIDInput wise={wise} />;
+    return <JWIDInput wise={wise} isValid={isValid} />;
   } else if (wise?.value === "jw_sfg_wise") {
-    return <SKUSelect wise={wise} />;
+    return <SKUSelect wise={wise} isValid={isValid} />;
   } else if (wise?.value === "vendorwise") {
-    return <VendorSelect wise={wise} useApi={useApi} />;
+    return <VendorSelect wise={wise} useApi={useApi} isValid={isValid} />;
   }
 };
 
-const DateWise = ({ form, wise }) => (
-  <Form.Item label={wise?.label} name="value">
+const DateWise = ({ form, wise, isValid }) => (
+  <Form.Item
+    label={wise?.label}
+    name="value"
+    rules={[{ required: true, message: "" }]}
+  >
     <MyDatePicker
       setDateRange={(value) => form.setFieldValue("value", value)}
+      showError={isValid}
+      message="Please select a date"
     />
   </Form.Item>
 );
-const JWIDInput = ({ wise }) => (
-  <Form.Item label={wise?.label} name="value">
-    <Input />
+const JWIDInput = ({ wise, isValid }) => (
+  <Form.Item
+    label={wise?.label}
+    name="value"
+    rules={[{ required: true, message: "" }]}
+  >
+    <Field attr="required | Please enter a JobWork ID" showValidation={isValid}>
+      <Input />
+    </Field>
   </Form.Item>
 );
-const SKUSelect = ({ wise }) => {
+const SKUSelect = ({ wise, isValid }) => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -432,20 +487,26 @@ const SKUSelect = ({ wise }) => {
   };
 
   return (
-    <Form.Item label={wise?.label} name="value">
+    <Form.Item
+      label={wise?.label}
+      name="value"
+      rules={[{ required: true, message: "" }]}
+    >
       <MyAsyncSelect
         loadOptions={getSkuOptions}
         optionsState={asyncOptions}
         onBlur={() => setAsyncOptions([])}
         selectLoading={loading}
+        labelInValue
+        showError={isValid}
+        message="Please select a SKU"
       />
     </Form.Item>
   );
 };
-const VendorSelect = ({ wise, useApi }) => {
+const VendorSelect = ({ wise, useApi, isValid }) => {
   const { executeFun } = useApi();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  // const [loading, setLoading] = useState(false);
 
   const getSkuOptions = async (search) => {
     const response = await executeFun(() => getVendorOptions(search), "select");
@@ -456,11 +517,18 @@ const VendorSelect = ({ wise, useApi }) => {
     setAsyncOptions(arr);
   };
   return (
-    <Form.Item label={wise?.label} name="value">
+    <Form.Item
+      label={wise?.label}
+      name="value"
+      rules={[{ required: true, message: "" }]}
+    >
       <MyAsyncSelect
         loadOptions={getSkuOptions}
         optionsState={asyncOptions}
         onBlur={() => setAsyncOptions([])}
+        labelInValue
+        showError={isValid}
+        message="Please select a vendor"
       />
     </Form.Item>
   );

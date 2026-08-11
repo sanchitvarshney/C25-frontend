@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Col,
   Descriptions,
@@ -22,6 +22,7 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import { convertSelectOptions } from "../../../../utils/general.ts";
 import { getVendorOptions } from "../../../../api/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
+import Field from "../../../../Components/Field.jsx";
 
 export default function EditDC({ updatedDCId, setUpdateDCId }) {
   const [newGatePass, setNewGatePass] = useState({
@@ -48,11 +49,10 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [billToOptions, setBillTopOptions] = useState([]);
   const [vendorBranches, setVendorBranches] = useState([]);
-  // const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("1");
-  // const [successPage, setSuccessPage] = useState(false);
   const [resetData, setResetData] = useState({});
   const [skeletonLoading, setSkeletonLoading] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
@@ -124,7 +124,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
     if (search?.length > 2) {
       const response = await executeFun(
         () => getVendorOptions(search),
-        "select"
+        "select",
       );
       let arr = [];
       if (response.success) {
@@ -172,9 +172,27 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
       address: validatedData?.address,
     };
   };
+  const validateDCDetails = () => {
+    const hasEmptyField =
+      !newGatePass.passType ||
+      !newGatePass.vendorName?.value ||
+      !newGatePass.vendorBranch ||
+      !newGatePass.vendorAddress?.trim() ||
+      !newGatePass.billingId ||
+      !newGatePass.billinAddress?.trim() ||
+      !newGatePass.vehicleNumber?.trim();
+
+    if (hasEmptyField) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setActiveTab("2");
+  };
   const resetFunction = () => {
     setNewGatePass(resetData);
     setShowResetConfirm(false);
+    setIsValid(false);
   };
   const getDCDetail = async () => {
     setSkeletonLoading(true);
@@ -328,6 +346,8 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 onChange={(value) =>
                                   inputHandler("passType", value)
                                 }
+                                showError={isValid}
+                                message="Please select Pass Type"
                               />
                             </Form.Item>
                           </Form>
@@ -377,6 +397,8 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                   inputHandler("vendorName", value);
                                 }}
                                 loadOptions={getVendors}
+                                showError={isValid}
+                                message="Please select a Vendor"
                               />
                             </Form.Item>
                           </Form>
@@ -419,6 +441,8 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                   inputHandler("vendorBranch", value);
                                 }}
                                 options={vendorBranches}
+                                showError={isValid}
+                                message="Please select a Vendor Branch"
                               />
                             </Form.Item>
                           </Form>
@@ -450,17 +474,26 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                rows={4}
-                                value={newGatePass?.vendorAddress?.replaceAll(
-                                  "<br>",
-                                  "\n"
-                                )}
-                                onChange={(e) => {
-                                  inputHandler("vendorAddress", e.target.value);
-                                }}
-                                style={{ resize: "none" }}
-                              />
+                              <Field
+                                attr="required | Please enter Bill From Address"
+                                value={newGatePass.vendorAddress}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  rows={4}
+                                  value={newGatePass?.vendorAddress?.replaceAll(
+                                    "<br>",
+                                    "\n",
+                                  )}
+                                  onChange={(e) => {
+                                    inputHandler(
+                                      "vendorAddress",
+                                      e.target.value,
+                                    );
+                                  }}
+                                  style={{ resize: "none" }}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -555,7 +588,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 onChange={(e) =>
                                   inputHandler(
                                     "otherReferences",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -589,7 +622,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 onChange={(e) =>
                                   inputHandler(
                                     "buyerOrderNumber",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -616,7 +649,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 onChange={(e) =>
                                   inputHandler(
                                     "dispatchDocNumber",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 value={newGatePass.dispatchDocNumber}
@@ -718,13 +751,22 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 </span>
                               }
                             >
-                              <Input
-                                size="default"
-                                onChange={(e) =>
-                                  inputHandler("vehicleNumber", e.target.value)
-                                }
+                              <Field
+                                attr="required | Please enter a Vehicle Number"
                                 value={newGatePass.vehicleNumber}
-                              />
+                                showValidation={isValid}
+                              >
+                                <Input
+                                  size="default"
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "vehicleNumber",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.vehicleNumber}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -796,6 +838,8 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                   inputHandler("billingId", value);
                                 }}
                                 options={billToOptions}
+                                showError={isValid}
+                                message="Please select a Billing Address"
                               />
                             </Form.Item>
                           </Form>
@@ -865,17 +909,26 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                                 </span>
                               }
                             >
-                              <Input.TextArea
-                                style={{ resize: "none" }}
-                                rows={4}
-                                onChange={(e) =>
-                                  inputHandler("billinAddress", e.target.value)
-                                }
-                                value={newGatePass.billinAddress?.replaceAll(
-                                  "<br>",
-                                  " "
-                                )}
-                              />
+                              <Field
+                                attr="required | Please enter a Billing Address"
+                                value={newGatePass.billinAddress}
+                                showValidation={isValid}
+                              >
+                                <Input.TextArea
+                                  style={{ resize: "none" }}
+                                  rows={4}
+                                  onChange={(e) =>
+                                    inputHandler(
+                                      "billinAddress",
+                                      e.target.value,
+                                    )
+                                  }
+                                  value={newGatePass.billinAddress?.replaceAll(
+                                    "<br>",
+                                    " ",
+                                  )}
+                                />
+                              </Field>
                             </Form.Item>
                           </Form>
                         </Col>
@@ -887,7 +940,7 @@ export default function EditDC({ updatedDCId, setUpdateDCId }) {
                 <NavFooter
                   backFunction={() => setUpdateDCId(false)}
                   resetFunction={() => setShowResetConfirm(true)}
-                  submitFunction={() => setActiveTab("2")}
+                  submitFunction={validateDCDetails}
                 />
               </>
             </Tabs.TabPane>

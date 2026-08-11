@@ -20,6 +20,7 @@ const ProccessedMrRequest = () => {
   const [showDetails, setShowDetails] = useState(null);
   const [rows, setRows] = useState([]);
   const [filterForm] = Form.useForm();
+  const [isValid, setIsValid] = useState(false);
 
   const getUser = async (search) => {
     try {
@@ -41,12 +42,23 @@ const ProccessedMrRequest = () => {
   };
 
   const getRows = async () => {
+    let values;
     try {
-      const values = await filterForm.validateFields();
+      values = await filterForm.validateFields();
+    } catch (error) {
+      if (error?.errorFields) {
+        setIsValid(true);
+        return;
+      }
+      showToast(error?.message || "Something went wrong", "error");
+      return;
+    }
+    setIsValid(false);
+    try {
       setLoading("fetch", true);
       const payload = {
         date: values.date,
-        user: values.user,
+        user: values.user?.value,
       };
       const response = await imsAxios.post(
         "/transaction/viewApprovalStatus",
@@ -83,7 +95,7 @@ const ProccessedMrRequest = () => {
     getActions: ({ row }) => [
       // VIEW Icon
       <GridActionsCellItem
-      key={"view"}
+        key={"view"}
         showInMenu
         // disabled={disabled}
         label="View"
@@ -96,27 +108,37 @@ const ProccessedMrRequest = () => {
 
   return (
     <Row gutter={0} style={{ padding: 10, height: "100%" }}>
-      <Col span={24} style={{marginBottom: 0}}>
+      <Col span={24} style={{ marginBottom: 0 }}>
         <Form form={filterForm}>
           <Row gutter={10}>
-              <Col span={5}>
-                <Form.Item name="user" label="User">
-              <MyAsyncSelect
-                selectLoading={loading("select")}
-                onBlur={() => setAsyncOptions([])}
-                loadOptions={getUser}
-                optionsState={asyncOptions}
-              />
-            </Form.Item>
-              </Col>
+            <Col span={5}>
+              <Form.Item
+                name="user"
+                label="User"
+                rules={[{ required: true, message: "" }]}
+              >
+                <MyAsyncSelect
+                  selectLoading={loading("select")}
+                  onBlur={() => setAsyncOptions([])}
+                  loadOptions={getUser}
+                  optionsState={asyncOptions}
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a user"
+                />
+              </Form.Item>
+            </Col>
             <Col span={6}>
               <Form.Item
                 name="date"
                 label="Select Date"
                 style={{ marginBottom: 0 }}
+                rules={[{ required: true, message: "" }]}
               >
                 <SingleDatePicker
                   setDate={(value) => filterForm.setFieldValue("date", value)}
+                  showError={isValid}
+                  message="Please select a date"
                 />
               </Form.Item>
             </Col>
@@ -135,7 +157,7 @@ const ProccessedMrRequest = () => {
           </Row>
         </Form>
       </Col>
-      <Col span={24} style={{ height: "calc(100% - 60px)", overflowY: "auto" }} >
+      <Col span={24} style={{ height: "calc(100% - 60px)", overflowY: "auto" }}>
         <MyDataTable data={rows} columns={[actionColumn, ...columns]} />
       </Col>
       {showDetails && (

@@ -1,5 +1,5 @@
-import {Col, Row, Space } from "antd";
-import {  useState } from "react";
+import { Col, Row, Space } from "antd";
+import { useState } from "react";
 import { useToast } from "../../hooks/useToast.js";
 import { downloadCSV } from "../../Components/exportToCSV";
 import MyDataTable from "../../Components/MyDataTable";
@@ -29,6 +29,7 @@ function JwPendingRequest() {
   const [editiJWAll, setEditJWAll] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   // const wiseOptions = [
   //   { text: "Issue Request Date Wise", value: "issuedtwise" },
@@ -54,21 +55,31 @@ function JwPendingRequest() {
   //   }
   // };
   const getRows = async () => {
-    setLoading("fetch");
-    const response = await imsAxios.post("/jobwork/getJobworkChallan", {
-      data: searchInput,
-      wise: "issuedtwise",
-    });
-    setLoading(false);
-    if (response.success) {
-      let arr = response.data.map((row, index) => ({
-        id: index + 1,
-        ...row,
-      }));
-      setRows(arr);
-    } else {
-      setRows([]);
-      showToast(response.message, "error");
+    if (searchInput === "" || !searchInput) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    try {
+      setLoading("fetch");
+      const response = await imsAxios.post("/jobwork/getJobworkChallan", {
+        data: searchInput,
+        wise: "issuedtwise",
+      });
+      setLoading(false);
+      if (response.success) {
+        let arr = response.data.map((row, index) => ({
+          id: index + 1,
+          ...row,
+        }));
+        setRows(arr);
+      } else {
+        setRows([]);
+        showToast(response?.message ?? "Something went wrong", "error");
+      }
+    } catch (error) {
+      setLoading(false);
+      showToast(error?.message ?? "Something went wrong", "error");
     }
   };
   const handlePrint = async (challan_id, refId, btn_status, invoice_id) => {
@@ -83,7 +94,6 @@ function JwPendingRequest() {
       ref_id: refId,
       challan: challan_id,
     });
-
 
     setLoading(false);
     if (response.success) {
@@ -188,7 +198,7 @@ function JwPendingRequest() {
               row.challan_id,
               row.issue_transaction_id,
               row.status,
-              row.jw_transaction_id
+              row.jw_transaction_id,
             )
           }
         />,
@@ -201,7 +211,7 @@ function JwPendingRequest() {
               row.challan_id,
               row.issue_transaction_id,
               row.status,
-              row.jw_transaction_id
+              row.jw_transaction_id,
             )
           }
         />,
@@ -238,7 +248,7 @@ function JwPendingRequest() {
   ];
 
   return (
-    <div style={{ height: "100%", padding:10 }}>
+    <div style={{ height: "100%", padding: 10 }}>
       <JWRMChallanEditMaterials
         editingJWMaterials={editingJWMaterials}
         setEditingJWMaterials={setEditingJWMaterials}
@@ -254,10 +264,7 @@ function JwPendingRequest() {
         setShowCancel={setShowCancel}
         getRows={getRows}
       />
-      <Row
-        justify="space-between"
-       
-      >
+      <Row justify="space-between">
         <Col>
           <Space>
             {/* <div style={{ width: 250 }}>
@@ -314,18 +321,19 @@ function JwPendingRequest() {
                 />
               )} */}
               {/* {wise === "issuedtwise" && ( */}
-                <MyDatePicker
-                  size="default"
-                  setDateRange={setSearchInput}
-                  dateRange={searchInput}
-                  value={searchInput}
-                />
+              <MyDatePicker
+                size="default"
+                setDateRange={setSearchInput}
+                dateRange={searchInput}
+                value={searchInput}
+                showError={isValid}
+              />
               {/* )} */}
             </div>
             <MyButton
               variant="search"
               type="primary"
-              disabled={ searchInput === ""}
+              disabled={searchInput === ""}
               loading={loading === "fetch"}
               onClick={getRows}
               id="submit"

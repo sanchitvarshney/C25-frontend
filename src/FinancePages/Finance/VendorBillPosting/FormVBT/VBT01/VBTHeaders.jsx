@@ -1,7 +1,18 @@
 import { Card, Col, Form, Input, Row, Typography } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import InputMask from "react-input-mask";
 import TaxDetails from "./TaxDetails";
+
+const COMMENT_TEMPLATES = {
+  vbt06: (invoiceId) =>
+    `Being Jobwork charges due of challan no:____on inv: ${invoiceId} dt:____of amount:____TDS:___ payable amt:____`,
+  vbt07: (invoiceId) =>
+    `Being -- purchase on inv ${invoiceId} date:____ of amt: ___ TDS:___ `,
+  vbt01: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
+  vbt02: (invoiceId) =>
+    `Being Service charges due to INV no. ${invoiceId} date of amount TDS:___ `,
+};
 
 function VBTHeaders({
   form,
@@ -15,39 +26,21 @@ function VBTHeaders({
   apiUrl,
   editVBTCode,
 }) {
-  
 
-  const [pageHeaders, setPageHeaders] = useState("");
   useEffect(() => {
-    let obj = {};
     if (editingVBT && vbtComponent?.length > 0) {
-      if (vbtComponent && vbtComponent?.length > 0) {
-        setPageHeaders(vbtComponent[0]);
-      }
-
-      if (editingVBT && pageHeaders) {
-        obj = {
-          invoiceNo: pageHeaders?.invoiceId,
-          venAddress: pageHeaders?.venAddress,
-          gst: pageHeaders?.gstin?.[0],
-          venCode: pageHeaders?.venCode,
-          comment:
-            apiUrl === "vbt06"
-              ? `Being Jobwork charges due of challan no:____on inv: ${pageHeaders?.invoiceId} dt:____of amount:____TDS:___ payable amt:____`
-              : apiUrl === "vbt07"
-              ? `Being -- purchase on inv ${pageHeaders?.invoiceId} date:____ of amt: ___ TDS:___ `
-              : apiUrl === "vbt01"
-              ? `Being purchased for on INV no. ${pageHeaders?.invoiceId} date: ___ amount: ___ TDS:___ `
-              : apiUrl === "vbt02"
-              ? `Being Service charges due to INV no. ${pageHeaders?.invoiceId} date of amount TDS:___ `
-              : "",
-          ackNum: pageHeaders?.acknowledgeIRN,
-     
-        };
-        form.setFieldsValue(obj);
-      }
+      const header = vbtComponent[0];
+      const buildComment = COMMENT_TEMPLATES[apiUrl];
+      form.setFieldsValue({
+        invoiceNo: header?.invoiceId,
+        venAddress: header?.venAddress,
+        gst: header?.gstin?.[0],
+        venCode: header?.venCode,
+        comment: buildComment ? buildComment(header?.invoiceId) : "",
+        ackNum: header?.acknowledgeIRN,
+      });
     } else {
-      obj = {
+      form.setFieldsValue({
         invoiceNo: editVBTCode[0]?.invoiceNo,
         invoiceDate: editVBTCode[0]?.invoiceDate,
         venAddress: editVBTCode[0]?.venAddress,
@@ -56,36 +49,20 @@ function VBTHeaders({
         effectiveDate: editVBTCode[0]?.effectiveDate,
         billAmmount: editVBTCode[0]?.billAmount,
         ackNum: editVBTCode[0]?.acknowledgeIRN,
-        // billAmmount: billam,
-        // billAmmount: editVBTCode?.reduce(
-        //   (partialSum, a) => partialSum + +Number(a.venAmmount).toFixed(3),
-        //   0
-        // ),
-      };
-      form.setFieldsValue(obj);
+      });
     }
-  }, [vbtComponent, pageHeaders]);
-  useEffect(() => {
-    if (editVBTCode) {
-      console.log("setting vbt data to", editVBTCode);
-      // setVbtComponent(editVBTCode); //changed here
-    }
-  }, [editVBTCode]);
+  }, [vbtComponent, editingVBT, editVBTCode, apiUrl, form]);
+
   useEffect(() => {
     if (editVBTCode.length > 0) {
-      let roundoffv = editVBTCode.map(
-        (component) => component.roundOffValue ?? "--"
+      const roundoffv = editVBTCode.map(
+        (component) => component.roundOffValue ?? "--",
       );
-      let rov = roundoffv.filter((i) => i !== "--");
-      // console.log("rov", rov.toString());
-      // console.log("roundoffv", roundoffv);
-      setRoundOffValue(rov);
-      let roundoffs = editVBTCode.map(
-        (component) => component.roundOffSign ?? "--"
+      setRoundOffValue(roundoffv.filter((i) => i !== "--"));
+      const roundoffs = editVBTCode.map(
+        (component) => component.roundOffSign ?? "--",
       );
-      let ros = roundoffs.filter((i) => i !== "--");
-      // console.log("ros", ros.toString());
-      setRoundOffSign(ros);
+      setRoundOffSign(roundoffs.filter((i) => i !== "--"));
     }
   }, [editVBTCode]);
 
@@ -108,15 +85,7 @@ function VBTHeaders({
                   },
                 ]}
               >
-                {/* <SingleDatePicker
-                  setDate={(value) => form.setFieldValue("invoiceDate", value)}
-                /> */}
                 <InputMask
-                  // name="due_date[]"
-                  // value={vendorData?.invoice_date}
-                  // onChange={(e) =>
-                  //   vendorInputHandler("invoice_date", e.target.value)
-                  // }
                   className="input-date"
                   mask="99-99-9999"
                   placeholder="__-__-____"
@@ -125,7 +94,6 @@ function VBTHeaders({
             </Col>
             <Col span={12}>
               <Form.Item
-                // rules={formRules.effectiveDate}
                 name="effectiveDate"
                 label="Effective Date"
                 rules={[
@@ -135,16 +103,7 @@ function VBTHeaders({
                   },
                 ]}
               >
-                {/* <SingleDatePicker
-                  setDate={(value) =>
-                    form.setFieldValue("effectiveDate", value)
-                  }
-                /> */}
                 <InputMask
-                  // value={vendorData?.effective_date}
-                  // onChange={(e) =>
-                  //   vendorInputHandler("effective_date", e.target.value)
-                  // }
                   className="date-text-input"
                   mask="99-99-9999"
                   placeholder="__-__-____"
@@ -200,16 +159,13 @@ function VBTHeaders({
             </Col>
             <Col span={24}>
               <Form.Item label="Acknowledgement Number" name="ackNum">
-                <Input
-                // value={roundOffValue}
-                // onChange={(e) => setRoundOffValue(e.target.value)}
-                />
+                <Input />
               </Form.Item>
             </Col>
 
             <Col span={24}>
               <Form.Item label="Comments" name="comment">
-                <Input.TextArea placeholder="Comments"  />
+                <Input.TextArea placeholder="Comments" />
               </Form.Item>
             </Col>
             <Col span={24}>
