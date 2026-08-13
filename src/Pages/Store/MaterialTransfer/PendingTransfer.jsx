@@ -11,11 +11,13 @@ import { v4 } from "uuid";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 function PendingTransfer() {
   const { showToast } = useToast();
   const [locationData, setLocationData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [allData, setAllData] = useState({
     typeWise: "datewise",
     selectdate: "",
@@ -24,12 +26,7 @@ function PendingTransfer() {
   });
 
   const [datee, setDatee] = useState("");
-  const [dataComesFromDateWise, setDataComesFromDateWise] = useState([]);
-  const [dataComesFromTransactionWise, setDataComesFromTransactionWise] =
-    useState([]);
-  const [dataComesFromLocationWise, setdataComesFromLocationWise] = useState(
-    []
-  );
+  const [tableData, setTableData] = useState([]);
   const [viewModal, setViewModal] = useState(false);
 
   const opt = [
@@ -68,75 +65,59 @@ function PendingTransfer() {
     },
   ];
 
-  // fetch Date wise
-  const dateWise = async (e) => {
-    setLoading(true);
-    e.preventDefault();
-
-    const response = await imsAxios.post("/godown/fetchPending_tranfers", {
-      data: datee,
-      wise: allData.typeWise,
-    });
-
-    if (response?.success) {
-      let arr = response?.data.map((row) => {
-        return { ...row, id: v4() };
-      });
-      setDataComesFromDateWise(arr);
-      setLoading(false);
-    } else {
-      showToast(response?.message, "error");
-      setLoading(false);
-    }
+  const wiseValueMap = {
+    datewise: datee,
+    transactionwise: allData.transactionText,
+    locationwise: allData.locationText,
   };
 
-  const transactionWise = async () => {
-    setLoading(true);
-    const response = await imsAxios.post("/godown/fetchPending_tranfers", {
-      data: allData.transactionText,
-      wise: allData.typeWise,
-    });
-
-    if (response?.success) {
-      let arr = response?.data.map((row) => {
-        return { ...row, id: v4() };
-      });
-      setDataComesFromTransactionWise(arr);
-      setLoading(false);
-      // setFilterDate(data.data);
-    } else {
-      showToast(response?.message, "error");
-      setLoading(false);
+  const fetchPendingTransfers = async (e) => {
+    e?.preventDefault?.();
+    const wiseValue = wiseValueMap[allData.typeWise];
+    if (!wiseValue) {
+      setIsValid(true);
+      return;
     }
-    
-  };
-
-
-  const locationWiseDateFecth = async () => {
+    setIsValid(false);
     setLoading(true);
-    const response = await imsAxios.post("/godown/fetchPending_tranfers", {
-      data: allData.locationText,
-      wise: allData.typeWise,
-    });
-  
-    if (response?.success) {
-      let arr = response?.data.map((row) => {
-        return { ...row, id: v4() };
+    try {
+      const response = await imsAxios.post("/godown/fetchPending_tranfers", {
+        data: wiseValue,
+        wise: allData.typeWise,
       });
-      setdataComesFromLocationWise(arr);
-      setLoading(false);
-      // setFilterDate(data.data);
-    } else {
-      showToast(response?.message, "error");
+
+      if (response?.success) {
+        setTableData(
+          (response?.data || []).map((row) => ({ ...row, id: v4() })),
+        );
+      } else {
+        setTableData([]);
+        showToast(response?.message, "error");
+      }
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch pending transfers",
+        "error",
+      );
+    } finally {
       setLoading(false);
     }
   };
 
   const getLocation = async () => {
-    const response = await imsAxios.post("/backend/fetchLocation");
-    const arr = [];
-    response?.data.map((a) => arr.push({ text: a.text, value: a.id }));
-    setLocationData(arr);
+    try {
+      const response = await imsAxios.post("/backend/fetchLocation");
+      const arr = (response?.data || []).map((a) => ({
+        text: a.text,
+        value: a.id,
+      }));
+      setLocationData(arr);
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch locations",
+        "error",
+      );
+    }
   };
 
   useEffect(() => {
@@ -153,22 +134,29 @@ function PendingTransfer() {
               options={opt}
               placeholder="Select Option"
               value={allData.typeWise}
-              onChange={(e) =>
+              onChange={(e) => {
+                setIsValid(false);
+                setTableData([]);
                 setAllData((allData) => {
                   return { ...allData, typeWise: e };
-                })
-              }
+                });
+              }}
             />
           </div>
         </Col>
         {allData.typeWise == "datewise" ? (
           <>
             <Col span={5} className="gutter-row">
-              <MyDatePicker setDateRange={setDatee} size="default" />
+              <MyDatePicker
+                setDateRange={setDatee}
+                value={datee}
+                size="default"
+                showError={isValid}
+              />
             </Col>
             <Col span={2}>
               <MyButton
-                onClick={dateWise}
+                onClick={fetchPendingTransfers}
                 loading={loading}
                 type="primary"
                 variant="search"
@@ -180,19 +168,22 @@ function PendingTransfer() {
         ) : allData.typeWise == "transactionwise" ? (
           <>
             <Col span={5} className="gutter-row">
-              <Input
-                style={{ width: "100%" }}
+              <Field
+                attr="required | Please enter Transaction Id"
                 value={allData.transactionText}
+                showValidation={isValid}
                 onChange={(e) =>
                   setAllData((allData) => {
                     return { ...allData, transactionText: e.target.value };
                   })
                 }
-              />
+              >
+                <Input style={{ width: "100%" }} />
+              </Field>
             </Col>
             <Col span={2}>
               <MyButton
-                onClick={transactionWise}
+                onClick={fetchPendingTransfers}
                 loading={loading}
                 type="primary"
                 variant="search"
@@ -211,11 +202,14 @@ function PendingTransfer() {
                     return { ...allData, locationText: e };
                   })
                 }
+                value={allData.locationText}
+                showError={isValid}
+                message="Please select a Location"
               />
             </Col>
             <Col span={2}>
               <MyButton
-                onClick={locationWiseDateFecth}
+                onClick={fetchPendingTransfers}
                 loading={loading}
                 type="primary"
                 variant="search"
@@ -230,31 +224,7 @@ function PendingTransfer() {
       </Row>
 
       <div style={{ height: "calc(100% - 50px)", marginTop: "10px" }}>
-        {allData.typeWise == "datewise" ? (
-          <MyDataTable
-            loading={loading}
-            data={dataComesFromDateWise}
-            columns={columns}
-          />
-        ) : allData.typeWise == "transactionwise" ? (
-          <MyDataTable
-            loading={loading}
-            data={dataComesFromTransactionWise}
-            columns={columns}
-          />
-        ) : allData.typeWise == "locationwise" ? (
-          <MyDataTable
-            loading={loading}
-            data={dataComesFromLocationWise}
-            columns={columns}
-          />
-        ) : (
-          <MyDataTable
-            loading={loading}
-            data={dataComesFromDateWise}
-            columns={columns}
-          />
-        )}
+        <MyDataTable loading={loading} data={tableData} columns={columns} />
       </div>
 
       <ViewModal setViewModal={setViewModal} viewModal={viewModal} />

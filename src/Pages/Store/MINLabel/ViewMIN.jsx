@@ -1,5 +1,5 @@
 import { Button, Col, Flex, Form, Row, Tooltip } from "antd";
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
@@ -28,6 +28,7 @@ const ViewMIN = () => {
   const [showLabelDrawer, setShowLabelDrawer] = useState(false);
   const [preselected, setPreselected] = useState(null);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [form] = Form.useForm();
   const { executeFun, loading } = useApi();
 
@@ -43,11 +44,20 @@ const ViewMIN = () => {
   };
 
   const handleFetchRows = async () => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setRows([]);
+    const value =
+      values.wise === "minwise" ? values.value?.value : values.value;
     const response = await executeFun(
-      () => getMINLabelRows(values.wise, values.value),
-      "fetch"
+      () => getMINLabelRows(values.wise, value),
+      "fetch",
     );
 
     setRows(response?.data);
@@ -60,7 +70,7 @@ const ViewMIN = () => {
   const handleDownloadConsumptionList = async (minId) => {
     await executeFun(
       () => downloadConsumptionList(minId, consuptionColumns),
-      "print"
+      "print",
     );
   };
   const handleDownloadAttachement = async (transactionId) => {
@@ -68,7 +78,7 @@ const ViewMIN = () => {
 
     const response = await executeFun(
       () => downloadAttachement(transactionId),
-      "download"
+      "download",
     );
     if (response.success) {
       downloadFromLink(response.data.url);
@@ -148,94 +158,86 @@ const ViewMIN = () => {
         selectLoading={loading("select")}
         preSelected={preselected}
       />
-  <Col span={24}>
- 
-    <Form
-      form={form}
-      
-      initialValues={initialFilterValues}
-    >
-      <Row gutter={8}>
+      <Col span={24}>
+        <Form form={form} initialValues={initialFilterValues}>
+          <Row gutter={8}>
+            {/* Wise */}
+            <Col span={6}>
+              <Form.Item
+                name="wise"
+                label="Select Wise"
+                rules={[{ required: true, message: "" }]}
+                style={{ marginBottom: 8 }}
+              >
+                <MySelect
+                  options={wiseOptions}
+                  showError={isValid}
+                  message="This is required"
+                  allowClear={false}
+                />
+              </Form.Item>
+            </Col>
 
-        {/* Wise */}
-        <Col span={6}>
-          <Form.Item
-            name="wise"
-            label="Select Wise"
-            rules={rules.wise}
-            style={{ marginBottom: 8 }}
-          >
-            <MySelect options={wiseOptions} />
-          </Form.Item>
-        </Col>
-
-        {/* Value */}
-        <Col span={6}>
-          <Form.Item
-            name="value"
-            label={
-              selectedWise === "datewise"
-                ? "Select Date"
-                : "Select MIN"
-            }
-            rules={
-              selectedWise === "datewise"
-                ? rules.date
-                : rules.minId
-            }
-            style={{ marginBottom: 8 }}
-          >
-            {selectedWise === "datewise" && (
-              <SingleDatePicker
-                setDate={(value) =>
-                  form.setFieldValue("value", value)
+            {/* Value */}
+            <Col span={6}>
+              <Form.Item
+                name="value"
+                label={
+                  selectedWise === "datewise" ? "Select Date" : "Select MIN"
                 }
-              />
-            )}
+                rules={[{ required: true, message: "" }]}
+                style={{ marginBottom: 8 }}
+              >
+                {selectedWise === "datewise" && (
+                  <SingleDatePicker
+                    setDate={(value) => form.setFieldValue("value", value)}
+                    showError={isValid}
+                    message="Date is required"
+                  />
+                )}
 
-            {selectedWise === "minwise" && (
-              <MyAsyncSelect
-                selectLoading={loading("select")}
-                onBlur={() => setAsyncOptions([])}
-                loadOptions={handleFetchMINOptions}
-                optionsState={asyncOptions}
-              />
-            )}
-          </Form.Item>
-        </Col>
+                {selectedWise !== "datewise" && (
+                  <MyAsyncSelect
+                    selectLoading={loading("select")}
+                    onBlur={() => setAsyncOptions([])}
+                    loadOptions={handleFetchMINOptions}
+                    optionsState={asyncOptions}
+                    labelInValue={true}
+                    showError={isValid}
+                    message="MIN ID is required"
+                  />
+                )}
+              </Form.Item>
+            </Col>
 
-        {/* Actions */}
-        <Col span={4}>
-          <Flex justify="end" gap={8}>
-               <MyButton
-              variant="search"
-              loading={loading("fetch")}
-              onClick={handleFetchRows}
-            />
-            <Tooltip title="Download Labels">
-              <Button
-                onClick={() => setShowLabelDrawer(true)}
-                shape="circle"
-                icon={<PrinterFilled />}
-              />
-            </Tooltip>
+            {/* Actions */}
+            <Col span={4}>
+              <Form.Item label=" " colon={false} style={{ marginBottom: 8 }}>
+                <Flex justify="end" gap={8}>
+                  <MyButton
+                    variant="search"
+                    loading={loading("fetch")}
+                    onClick={handleFetchRows}
+                  />
+                  <Tooltip title="Download Labels">
+                    <Button
+                      onClick={() => setShowLabelDrawer(true)}
+                      shape="circle"
+                      icon={<PrinterFilled />}
+                    />
+                  </Tooltip>
 
-            <CommonIcons
-              action="downloadButton"
-              onClick={() =>
-                downloadCSV(rows, columns, "MIN Report")
-              }
-            />
-
-         
-          </Flex>
-        </Col>
-
-      </Row>
-    </Form>
-
-</Col>
-      <Col span={24} style={{ height: "calc(100% - 60px)", overflowY: "auto" }} >
+                  <CommonIcons
+                    action="downloadButton"
+                    onClick={() => downloadCSV(rows, columns, "MIN Report")}
+                  />
+                </Flex>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Col>
+      <Col span={24} style={{ height: "calc(100% - 60px)", overflowY: "auto" }}>
         <MyDataTable
           loading={loading("fetch") || loading("print")}
           columns={[...actionColumns, ...columns]}
@@ -268,8 +270,7 @@ const columns = [
   {
     headerName: "Vendor",
     field: "vendor",
-    //   width: 200,
-    flex: 1,
+    width: 260,
   },
   {
     headerName: "Part Code",
@@ -284,7 +285,7 @@ const columns = [
   {
     headerName: "In Loc",
     field: "location",
-    width: 120,
+    width: 180,
   },
   {
     headerName: "In By",
@@ -342,10 +343,4 @@ const wiseOptions = [
 
 const initialFilterValues = {
   wise: "datewise",
-};
-
-const rules = {
-  date: [{ required: true, message: "Date is required" }],
-  minId: [{ required: true, message: "MIN ID is required" }],
-  wise: [{ required: true, message: "This is required" }],
 };

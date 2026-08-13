@@ -1,4 +1,4 @@
-import { Col, Flex, Form, Row } from "antd";
+import {  Col, Flex, Form, Row } from "antd";
 import  { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect.jsx";
 import SingleDatePicker from "../../../Components/SingleDatePicker.jsx";
@@ -24,8 +24,8 @@ const ViewFGMIN = () => {
  const { showToast } = useToast();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [showLabelDrawer, setShowLabelDrawer] = useState(false);
-  // const [preselected, setPreselected] = useState(null);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const { executeFun, loading } = useApi();
@@ -42,33 +42,40 @@ const ViewFGMIN = () => {
   };
 
   const handleFetchRows = async () => {
-    setIsLoading(true);
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setRows([]);
     const { wise, value } = values;
 
+    setIsLoading(true);
     try {
       const response = await imsAxios.post("/fgMIN/getFGMinTransactionByDate", {
         data: value,
         wise,
       });
-    
 
       if (response.status === "success") {
         setRows(response.data);
-        setIsLoading(false);
       } else {
         setRows([]);
-        setIsLoading(false);
         showToast(response.message, "error");
       }
     } catch (error) {
+      showToast(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to fetch MIN transactions",
+        "error",
+      );
+    } finally {
       setIsLoading(false);
-      console.error(error);
-      showToast(error.message, "error");
     }
-
-  
   };
 
   const handlePrintMIN = async (minId, action) => {
@@ -103,7 +110,7 @@ const ViewFGMIN = () => {
           label="Download Attachement"
         />,
         <GridActionsCellItem
-        key={"print"}
+          key={"print"}
           showInMenu
           onClick={() => handlePrintMIN(row.transaction)}
           label="Print MIN"
@@ -124,7 +131,6 @@ const ViewFGMIN = () => {
         hide={() => setShowLabelDrawer(false)}
         handleFetchMINOptions={handleFetchMINOptions}
         selectLoading={loading("select")}
-        // preSelected={preselected}
       />
   <Col span={16} style={{marginBottom: 12}}>
 
@@ -143,7 +149,12 @@ const ViewFGMIN = () => {
             rules={rules.wise}
             style={{ marginBottom: 0 }}
           >
-            <MySelect options={wiseOptions} />
+            <MySelect
+              options={wiseOptions}
+              showError={isValid}
+              message="This is required"
+              allowClear={false}
+            />
           </Form.Item>
         </Col>
 
@@ -168,15 +179,20 @@ const ViewFGMIN = () => {
                 setDate={(value) =>
                   form.setFieldValue("value", value)
                 }
+                showError={isValid}
+                message="Date is required"
               />
             )}
 
-            {selectedWise === "minwise" && (
+            {selectedWise !== "datewise" && (
               <MyAsyncSelect
                 selectLoading={loading("select")}
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={handleFetchMINOptions}
                 optionsState={asyncOptions}
+                labelInValue
+                showError={isValid}
+                message="MIN ID is required"
               />
             )}
           </Form.Item>
@@ -274,7 +290,7 @@ const initialFilterValues = {
 };
 
 const rules = {
-  date: [{ required: true, message: "Date is required" }],
-  minId: [{ required: true, message: "MIN ID is required" }],
-  wise: [{ required: true, message: "This is required" }],
+  date: [{ required: true, message: "" }],
+  minId: [{ required: true, message: "" }],
+  wise: [{ required: true, message: "" }],
 };
