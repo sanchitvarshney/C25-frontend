@@ -8,21 +8,28 @@ import { downloadAttachement } from "../../../../api/store/material-in";
 import { downloadFromLink } from "../../../../utils/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import { useToast } from "../../../../hooks/useToast.js";
+import Field from "../../../../Components/Field.jsx";
 
 function ViewDocuments() {
   const { showToast } = useToast();
   const [minId, setMinId] = useState("");
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const { executeFun } = useApi();
   const getData = async () => {
+    if (!minId) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading(true);
     const response = await imsAxios.post("/backend/documents", {
       id: minId,
     });
-    console.log("response", response);
-    let { data } = response;
+
     if (response.success) {
+      let { data } = response;
       let arr = data.map((r, id) => {
         return {
           ...r,
@@ -42,7 +49,7 @@ function ViewDocuments() {
   const handleDownloadAttachement = async (transactionId) => {
     const response = await executeFun(
       () => downloadAttachement(transactionId),
-      "download"
+      "download",
     );
     if (response.success) {
       downloadFromLink(response.data.url);
@@ -57,7 +64,7 @@ function ViewDocuments() {
       getActions: ({ row }) => [
         // Upload DOC Icon
         <GridActionsCellItem
-        key={"download"}
+          key={"download"}
           showInMenu
           onClick={() => handleDownloadAttachement(row.txnID)}
           //   disabled={row.invoiceStatus == false}
@@ -94,7 +101,7 @@ function ViewDocuments() {
   ];
 
   return (
-    <div style={{ height: "100%", padding:10 }}>
+    <div style={{ height: "100%", padding: 10 }}>
       <Row gutter={[10]}>
         {/* <Col 
           style={{ overflowY: "auto", height: "100%", paddingBottom: 50 }}
@@ -102,11 +109,17 @@ function ViewDocuments() {
         > */}
 
         <Col span={4}>
-          <Input
-            // label="search Id"
-            placeholder="Search Id"
-            onChange={(e) => setMinId(e.target.value)}
-          />
+          <Field
+            attr="required | Please enter Id"
+            value={minId}
+            showValidation={isValid}
+          >
+            <Input
+              // label="search Id"
+              placeholder="Search Id"
+              onChange={(e) => setMinId(e.target.value)}
+            />
+          </Field>
         </Col>
         <MyButton
           variant="search"

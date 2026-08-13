@@ -12,6 +12,7 @@ import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import useApi from "../../../hooks/useApi.ts";
 import { downloadAttachement } from "../../../api/store/material-in";
@@ -26,6 +27,7 @@ const TransactionIn = () => {
   const [searchInput, setSearchInput] = useState("");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const { user } = useSelector((state) => state.login);
   const { executeFun, loading: loading1 } = useApi();
@@ -34,26 +36,33 @@ const TransactionIn = () => {
     { text: "PO Wise", value: "P" },
   ];
   const getRows = async () => {
+    if (!wise || !searchInput) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading("fetch");
-    const response = await imsAxios.get(`/transaction/transactionIn?data=${searchInput}&type=${wise}`);
+    const response = await imsAxios.get(
+      `/transaction/transactionIn?data=${searchInput}&type=${wise}`,
+    );
     setLoading(false);
-      if (response.success) {
-        let arr = response.data.map((row, index) => ({
-          index: index + 1,
-          id: v4(),
-          ...row,
-        }));
-        setRows(arr);
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-        setRows([]);
-      }
+    if (response.success) {
+      let arr = response.data.map((row, index) => ({
+        index: index + 1,
+        id: v4(),
+        ...row,
+      }));
+      setRows(arr);
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+      setRows([]);
+    }
   };
 
   const handleDownloadAttachement = async (transactionId) => {
     const response = await executeFun(
       () => downloadAttachement(transactionId),
-      "download"
+      "download",
     );
     if (response.success) {
       downloadFromLink(response.data.url);
@@ -81,7 +90,7 @@ const TransactionIn = () => {
     {
       headerName: "Date",
       field: "DATE",
-      width: 120,
+      width: 150,
       renderCell: ({ row }) => <ToolTipEllipses text={row.DATE} />,
     },
     { headerName: "Transaction Type", field: "TYPE", width: 120 },
@@ -90,18 +99,18 @@ const TransactionIn = () => {
     {
       headerName: "Component",
       field: "COMPONENT",
-      minWidth: 200,
+      minWidth: 250,
       flex: 1,
       renderCell: ({ row }) => <ToolTipEllipses text={row.COMPONENT} />,
     },
-    { headerName: "In Location", field: "LOCATION", width: 120 },
+    { headerName: "In Location", field: "LOCATION", width: 150 },
     { headerName: "Rate", field: "RATE", width: 100 },
     { headerName: "Currency", field: "CURRENCY", width: 100 },
     { headerName: "In Qty", field: "INQTY", width: 120 },
     {
       headerName: "Vendor",
       field: "VENDOR",
-      width: 150,
+      width: 300,
       renderCell: ({ row }) => <ToolTipEllipses text={row.VENDOR} />,
     },
     {
@@ -113,7 +122,7 @@ const TransactionIn = () => {
     { headerName: "Transaction Id", field: "TRANSACTION", width: 150 },
     { headerName: "Document Date", field: "DOC_DATE", width: 150 },
     { headerName: "Cost Center", field: "COSTCENTER", width: 150 },
-    { headerName: "By", field: "ISSUEBY", width: 120 },
+    { headerName: "Created By", field: "ISSUEBY", width: 120 },
   ];
   const handleDownloadingCSV = useCallback(() => {
     const newId = v4();
@@ -145,7 +154,10 @@ const TransactionIn = () => {
             <MySelect
               options={wiseOptions}
               defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
-              onChange={setWise}
+              onChange={(e) => {
+                setIsValid(false);
+                setWise(e);
+              }}
               value={wise}
             />
           </div>
@@ -156,13 +168,20 @@ const TransactionIn = () => {
                 setDateRange={setSearchInput}
                 dateRange={searchInput}
                 value={searchInput}
+                showError={isValid}
               />
             )}
             {wise === "P" && (
-              <Input
+              <Field
+                attr="required | Please enter PO"
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
+                showValidation={isValid}
+              >
+                <Input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+              </Field>
             )}
           </div>
           <MyButton
@@ -170,7 +189,6 @@ const TransactionIn = () => {
             onClick={getRows}
             type="primary"
             loading={loading === "fetch"}
-            disabled={wise === "" || searchInput === ""}
           >
             Fetch
           </MyButton>

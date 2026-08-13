@@ -5,9 +5,7 @@ import MyDataTable from "../../../Components/MyDataTable";
 import { v4 } from "uuid";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import socket from "../../../Components/socket";
-import {
-  downloadCSV,
-} from "../../../Components/exportToCSV";
+import { downloadCSV } from "../../../Components/exportToCSV";
 import { imsAxios } from "../../../axiosInterceptor";
 import { DownloadOutlined } from "@ant-design/icons";
 import MyButton from "../../../Components/MyButton/index.jsx";
@@ -31,10 +29,9 @@ const TransactionOut = () => {
   const [loading, setLoading] = useState(false);
   const [datee, setDatee] = useState("");
   const [dateData, setDateData] = useState([]);
-  // const [fetchData, setFetchData] = useState([]);
-  // const [search, setSearch] = useState("");
   const [wise, setWise] = useState("ISSUE");
-  const { user } = useSelector((state) => state.login);
+  const user = useSelector((state) => state.login?.user);
+  const [isValid, setIsValid] = useState(false);
 
   const content1 = (row) => (
     <div>
@@ -100,14 +97,18 @@ const TransactionOut = () => {
   const rmIssue = async (e) => {
     e.preventDefault();
 
-    if (!datee[0] || !datee[1]) {
-      showToast("a", "error");
+    if (!datee) {
+      setIsValid(true);
     } else {
       setLoading(true);
       setDateData([]);
-      const response = await imsAxios.get(`/transaction/transactionOut?data=${datee}&type=${wise}`, {
-        data: datee,
-      });
+      setIsValid(false);
+      const response = await imsAxios.get(
+        `/transaction/transactionOut?data=${datee}&type=${wise}`,
+        {
+          data: datee,
+        },
+      );
       // console.log("Response", data);
       if (response.success) {
         let arr = response.data.map((row) => {
@@ -125,28 +126,28 @@ const TransactionOut = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const ress = dateData.filter((a) => {
-  //     return a.PART.toLowerCase().match(search.toLowerCase());
-  //   });
-  //   setFetchData(ress);
-  // }, [search]);
-
   // console.log(dateData);
   return (
-    <div style={{ height: "calc(100vh - 120px)", padding:10}}>
-      <Row gutter={10}  justify="space-between">
+    <div style={{ height: "calc(100vh - 120px)", padding: 10 }}>
+      <Row gutter={10} justify="space-between">
         <Col>
           <Space>
-              <div style={{ width: "200px" }}> 
-             <MySelect
-              options={wiseOptions}
-              defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
-              onChange={setWise}
-              value={wise}
+            <div style={{ width: "200px" }}>
+              <MySelect
+                options={wiseOptions}
+                defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
+                onChange={setWise}
+                value={wise}
+                showError={isValid}
+                message="Please select a wise"
+              />
+            </div>
+            <MyDatePicker
+              setDateRange={setDatee}
+              size="default"
+              value={datee}
+              showError={isValid}
             />
-           </div>
-            <MyDatePicker setDateRange={setDatee} size="default" />
 
             <MyButton
               variant="search"
@@ -172,7 +173,7 @@ const TransactionOut = () => {
         </Col>
         {/* // )} */}
       </Row>
-      <div style={{ height:"calc(100vh - 180px)", marginTop: "10px" }}>
+      <div style={{ height: "calc(100vh - 180px)", marginTop: "10px" }}>
         <MyDataTable loading={loading} data={dateData} columns={columns} />
       </div>
     </div>
