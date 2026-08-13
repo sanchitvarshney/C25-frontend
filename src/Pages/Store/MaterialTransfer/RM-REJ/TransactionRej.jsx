@@ -8,14 +8,16 @@ import MyDataTable from "../../../../Components/MyDataTable";
 import MyDatePicker from "../../../../Components/MyDatePicker";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyButton from "../../../../Components/MyButton";
+import Field from "../../../../Components/Field.jsx";
 
 function TransactionRej() {
   const { showToast } = useToast();
   const options = [{ label: "Date Wise", value: "datewise" }];
   const [allData, setAllData] = useState({
-    selectdate: "",
+    selectdate: "datewise",
   });
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [datee, setDatee] = useState("");
   const [dataComesFromDateWise, setDataComesFromDateWise] = useState([]);
 
@@ -55,12 +57,14 @@ function TransactionRej() {
   };
 
   const dataComesFromDBWhenClickButton = async () => {
-    if (!allData.selectdate) {
-      showToast("Please Select date wise then proceed", "error");
-    } else if (!datee[0]) {
-      showToast("Please Select date ", "error");
-    } else {
-      setLoading(true);
+    if (!allData.selectdate || !datee) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
+    setLoading(true);
+    try {
       const response = await imsAxios.post("/godown/report_rm_rej", {
         data: datee,
         wise: allData.selectdate,
@@ -74,12 +78,17 @@ function TransactionRej() {
         });
         setDataComesFromDateWise(arr);
         // setFilterDate(data.data);
-        setLoading(false);
       } else {
         setDataComesFromDateWise([]);
         showToast(response?.message, "error");
-        setLoading(false);
       }
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch transactions",
+        "error",
+      );
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -87,21 +96,33 @@ function TransactionRej() {
       <Row gutter={16}>
         <Col span={4} className="gutter-row">
           <div>
-            <Select
-              options={options}
-              style={{ width: "100%" }}
-              placeholder="Select"
+            <Field
+              attr="required | Please select Date Wise"
               value={allData.selectdate}
-              onChange={(e) =>
+              showValidation={isValid}
+          
+            >
+              <Select
+                options={options}
+                style={{ width: "100%" }}
+                placeholder="Select"
+                    onChange={(e) =>
                 setAllData((allData) => {
                   return { ...allData, selectdate: e };
                 })
               }
-            />
+              />
+            </Field>
           </div>
         </Col>
         <Col span={5} className="gutter-row">
-          <MyDatePicker size="default" setDateRange={setDatee} />
+          <MyDatePicker
+            size="default"
+            value={datee}
+            setDateRange={setDatee}
+            showError={isValid}
+            message="Please Select Date"
+          />
         </Col>
         <Col span={1} className="gutter-row">
           <div>
