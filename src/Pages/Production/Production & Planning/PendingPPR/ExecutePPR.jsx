@@ -16,9 +16,11 @@ import MySelect from "../../../../Components/MySelect";
 import NavFooter from "../../../../Components/NavFooter";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyDataTable from "../../../../Components/MyDataTable.jsx";
+import Field from "../../../../Components/Field.jsx";
 
 export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
   const { showToast } = useToast();
+  const [isValid, setIsValid] = useState(false);
   const [tabItems, setTabItems] = useState([]);
   const [tabsExist, setTabsExist] = useState(["1", "P", "PCK", "O", "PCB"]);
   const [activeKey, setActiveKey] = useState("1");
@@ -84,12 +86,8 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
 
         setTableData(arr);
         setHeaderData(arr1);
-        showToast(response?.message, "success");
       } else {
         setEditPPR(null);
-        setHeaderData({});
-        setTableData([]);
-        showToast(response?.message || "Failed to fetch PPR data", "error");
       }
     } catch (error) {
       showToast(
@@ -98,9 +96,6 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
           "Failed to fetch PPR data",
         "error",
       );
-      setEditPPR(null);
-      setHeaderData({});
-      setTableData([]);
     } finally {
       setPageLoading(false);
     }
@@ -290,7 +285,7 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
         showToast(response.message, "error");
       }
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setSubmitLoading(false);
     }
@@ -305,9 +300,27 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
     }));
     setTableData(arr);
   };
+  const handleNextFromHeader = () => {
+    if (
+      !headerData.location ||
+      !headerData.mfgQty ||
+      Number(headerData.mfgQty) <= 0
+    ) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    calcActualQty();
+    setActiveKey("P");
+  };
   useEffect(() => {
-    if (editPPR != null) {
-      getLocations();
+    getLocations();
+    setIsValid(false);
+    if (!editPPR) {
+      setHeaderData({});
+      setTableData([]);
+    } else if (editPPR);
+    {
       getPPRData();
       setTabsExist(["1", "P", "PCK", "O", "PCB"]);
     }
@@ -330,10 +343,11 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
         children:
           tab != "1" ? (
             <div className=" remove-cell-border" style={{ height: "73vh" }}>
-              <div style={{ height: "95%" }}>
+              <div style={{ height: "calc(100% - 00px)" }}>
                 {/* {pageLoading && <Loading />} */}
                 <MyDataTable
                   columns={columns}
+                  hideFooter
                   data={tableData?.filter((row) => row.type == tab)}
                 />
               </div>
@@ -380,12 +394,6 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
                               Select Location
                             </div>
                           }
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please  Select Location",
-                            },
-                          ]}
                         >
                           <MySelect
                             value={headerData?.location}
@@ -395,6 +403,8 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
                               })
                             }
                             options={locationOptions}
+                            showError={isValid}
+                            message="Please Select Location"
                           />
                         </Form.Item>
                       </Form>
@@ -411,20 +421,17 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
                               MFG Qty
                             </div>
                           }
-                          rules={[
-                            {
-                              required: true,
-                              message: "Enter MFG Qty",
-                            },
-                          ]}
                         >
-                          <Input
+                          <Field
+                            attr="required | Enter MFG Qty"
                             value={headerData.mfgQty}
+                            showValidation={isValid}
                             onChange={(e) =>
                               headerInputhandler("mfgQty", +e.target.value)
                             }
-                            size="default"
-                          />
+                          >
+                            <Input size="default" />
+                          </Field>
                         </Form.Item>
                       </Form>
                     </Col>
@@ -490,12 +497,7 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
                 </>
               )}
 
-              <NavFooter
-                submitFunction={() => {
-                  calcActualQty();
-                  setActiveKey("P");
-                }}
-              />
+              <NavFooter submitFunction={handleNextFromHeader} />
             </div>
           ),
         closable: tab == "1" ? false : true,
@@ -503,7 +505,7 @@ export default function ExecutePPR({ editPPR, setEditPPR, getRows }) {
     });
 
     setTabItems(arr);
-  }, [tableData, headerData]);
+  }, [tableData, headerData, isValid]);
   return (
     <Drawer
       title={`Manage PPR: ${editPPR?.prod_transaction}`}
