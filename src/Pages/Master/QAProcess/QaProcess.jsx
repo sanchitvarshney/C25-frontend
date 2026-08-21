@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast.js";
+import Field from "../../../Components/Field.jsx";
 
 function QaProcess() {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const addRows = async (values) => {
     setLoading(true);
     const response = await imsAxios.post(
@@ -21,6 +23,7 @@ function QaProcess() {
       showToast(response.message, "success");
       getRows();
       form.resetFields();
+      setIsValid(false);
     } else {
       showToast(response.message, "error");
     }
@@ -41,7 +44,14 @@ function QaProcess() {
     }
   };
   const submitForm = async () => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     addRows(values);
   };
   const columns = [
@@ -95,7 +105,12 @@ function QaProcess() {
           rules={rules.processName}
           style={{ marginBottom: 0 }}
         >
-          <Input />
+          <Field
+            attr="required | Process Name is required"
+            showValidation={isValid}
+          >
+            <Input />
+          </Field>
         </Form.Item>
         <Form.Item
           name="processDesc"
@@ -103,7 +118,12 @@ function QaProcess() {
           rules={rules.processDesc}
           style={{ marginBottom: 0 }}
         >
-          <Input />
+          <Field
+            attr="required | Process description is required"
+            showValidation={isValid}
+          >
+            <Input />
+          </Field>
         </Form.Item>
         <Form.Item style={{ marginBottom: 0 }}>
           <Button onClick={() => form.resetFields()}>Reset</Button>
@@ -133,13 +153,13 @@ const rules = {
   processName: [
     {
       required: true,
-      message: "Process Name is required",
+      message: "",
     },
   ],
   processDesc: [
     {
       required: true,
-      message: "Process description is required",
+      message: "",
     },
   ],
 };
