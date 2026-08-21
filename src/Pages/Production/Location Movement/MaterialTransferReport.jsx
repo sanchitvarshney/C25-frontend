@@ -1,5 +1,5 @@
 import  { useState } from "react";
-import { Row, Space } from "antd";
+import {  Row, Space } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
@@ -17,13 +17,19 @@ export default function MaterialTransferReport({ type }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchDateRange, setSearchDateRange] = useState("");
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const wiseOptions = [{ text: "Date Wise", value: "datewise" }];
   const getRows = async () => {
+    if(!searchDateRange || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     let link = "";
     if (type == "sftosf") {
       link = "/godown/report_rmsf_same";
-    } else if ((type == "sftorej")) {
+    } else if (type == "sftorej") {
       link = "/godown/report_sf_rej";
     }
     setSearchLoading(true);
@@ -81,6 +87,8 @@ export default function MaterialTransferReport({ type }) {
               defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
               onChange={setWise}
               value={wise}
+              showError={isValid}
+              message="Wise is required"
             />
           </div>
           <div style={{ width: 300 }}>
@@ -90,6 +98,8 @@ export default function MaterialTransferReport({ type }) {
                 setDateRange={setSearchDateRange}
                 dateRange={searchDateRange}
                 value={searchDateRange}
+                showError={isValid}
+                message="Date Range is required"
               />
             )}{" "}
           </div>

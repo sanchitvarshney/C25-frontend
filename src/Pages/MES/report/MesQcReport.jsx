@@ -1,6 +1,6 @@
-import { useState } from "react";
+import  { useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
-import { Button, Row, Space,Form, Drawer } from "antd";
+import { Button, Row, Space, Form, Drawer } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDatePicker from "../../../Components/MyDatePicker";
@@ -12,18 +12,19 @@ import { useEffect } from "react";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import Loading from "../../../Components/Loading";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import printFunction from "../../../Components/printFunction";
+import printFunction, {
+} from "../../../Components/printFunction";
 import MyButton from "../../../Components/MyButton";
 
 function MesQcaReport() {
   const { showToast } = useToast();
-  // const [searchLoading, setSearchLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState();
   const [loading, setLoading] = useState(false);
   const [processOptions, setProcessOptions] = useState([]);
   const [rows, setRows] = useState([]);
   const [showViewModel, setShowViewModal] = useState(false);
   const [detailData, setDetailData] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const [qcReportForm] = Form.useForm();
   const ppr = Form.useWatch("ppr", qcReportForm);
@@ -40,7 +41,7 @@ function MesQcaReport() {
         Lot_Number: row.lot,
         Lot_qty: row.barcodes.length,
         Lot_type: ltype,
-        PPR_No: ppr,
+        PPR_No: ppr?.value ?? ppr,
         Sku: row.sku,
         Process: pname.label,
       };
@@ -49,9 +50,9 @@ function MesQcaReport() {
         "qcalable/generateQcaLableforlot",
         generateqrdata
       );
-      printFunction(response.data.data.buffer.data);
+      printFunction(response.data.buffer.data);
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ function MesQcaReport() {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
-        key={"view"}
+        key="view"
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -74,7 +75,7 @@ function MesQcaReport() {
         label="View"
       />,
       <GridActionsCellItem
-        key={"print"}
+        key="print"
         showInMenu
         // disabled={loading}
         onClick={() => {
@@ -105,7 +106,7 @@ function MesQcaReport() {
         setAsyncOptions(arr);
       }
     } catch (error) {
-      showToast(error?.message || "Something went wrong", "error");
+      showToast(error?.message || "Failed to fetch", "error");
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ function MesQcaReport() {
       });
       const { data } = response;
       if (data) {
-        sku = data.data[0].product_sku;
+        sku = data?.product_sku;
       }
 
       // getting process list from sku
@@ -133,7 +134,7 @@ function MesQcaReport() {
 
       const { data: processData } = processResponse;
       if (processData) {
-        const arr = processData.data.map((row) => ({
+        const arr = processData?.map((row) => ({
           text: row.process.name,
           value: row.process.key,
         }));
@@ -141,15 +142,22 @@ function MesQcaReport() {
         setProcessOptions(arr);
       }
     } catch (error) {
-      showToast(error, "error");
+      showToast(error?.message || "Failed to fetch", "error");
     } finally {
       setLoading(false);
     }
   };
   const getRows = async () => {
+    let values;
+    try {
+      values = await qcReportForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     try {
       setRows([]);
-      const values = await qcReportForm.validateFields();
       let url = "";
       if (values.status === "A") {
         url = "/createqca/fetchPassedPCB";
@@ -158,16 +166,14 @@ function MesQcaReport() {
       }
       setLoading("rows");
       const response = await imsAxios.post(url, {
-        qca_ppr: values.ppr,
+        qca_ppr: values.ppr?.value ?? values.ppr,
         qca_process: values.process.value,
         data: values.date,
       });
-      const { data } = response;
-      if (data.status === "error") {
-        showToast(data.message, "error");
-      } else if (response.success ) {
-        if (data.response.data) {
-          const arr = data.response.data.map((row, index) => {
+    
+     if (response.success ) {
+     
+          const arr = response.data.map((row, index) => {
             const date = row.barcode[0].insert_dt.split(" ");
             const qty = row.barcode.length;
             return {
@@ -191,10 +197,12 @@ function MesQcaReport() {
             };
           });
           setRows(arr);
+        } else {
+          showToast(response.message, "error");
         }
-      }
+  
     } catch (error) {
-      showToast(error?.errorFields?.[0]?.errors?.[0] || "Something went wrong", "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -202,7 +210,7 @@ function MesQcaReport() {
 
   useEffect(() => {
     if (ppr) {
-      getPPRDetails(ppr);
+      getPPRDetails(ppr?.value ?? ppr);
     }
   }, [ppr]);
   const extraColumn = {
@@ -214,16 +222,14 @@ function MesQcaReport() {
   return (
     <>
       <div style={{ height: "100%", padding:10 }}>
-        <Row
-          justify="space-between"
-        >
+        <Row justify="space-between">
           {loading === "fetch" && <Loading />}
-          <Form
-            form={qcReportForm}
-            layout="vertical"
-            initialValues={defaultValues}
-          >
-            <div>
+          <div>
+            <Form
+              form={qcReportForm}
+              layout="vertical"
+              initialValues={defaultValues}
+            >
               <Space>
                 <div style={{ width: 200 }}>
                   <Form.Item name="ppr" label="PPR Number" rules={rules.ppr}>
@@ -232,6 +238,9 @@ function MesQcaReport() {
                       onBlur={() => setAsyncOptions([])}
                       selectLoading={loading === "select"}
                       optionsState={asyncOptions}
+                      labelInValue
+                      showError={isValid}
+                      message="Please select PPR Number"
                     />
                   </Form.Item>
                 </div>
@@ -241,12 +250,21 @@ function MesQcaReport() {
                     label="Select Process"
                     rules={rules.process}
                   >
-                    <MySelect labelInValue options={processOptions} />
+                    <MySelect
+                      labelInValue
+                      options={processOptions}
+                      showError={isValid}
+                      message="Please select Process"
+                    />
                   </Form.Item>
                 </div>
                 <div style={{ width: 200 }}>
                   <Form.Item name="status" label="Status" rules={rules.status}>
-                    <MySelect options={statusOptions} />
+                    <MySelect
+                      options={statusOptions}
+                      showError={isValid}
+                      message="Please select Status"
+                    />
                   </Form.Item>
                 </div>
                 <div style={{ width: 240 }}>
@@ -255,6 +273,8 @@ function MesQcaReport() {
                       setDateRange={(value) =>
                         qcReportForm.setFieldValue("date", value)
                       }
+                      showError={isValid}
+                      message="Please select Date"
                     />
                   </Form.Item>
                 </div>
@@ -269,8 +289,8 @@ function MesQcaReport() {
                   Search
                 </MyButton>
               </Space>
-            </div>
-          </Form>
+            </Form>
+          </div>
           <Space>
             <Button
               type="primary"
@@ -288,11 +308,7 @@ function MesQcaReport() {
           </Space>
         </Row>
         <div style={{ height: "calc(100% - 70px)", marginTop: "10px" }}>
-          <MyDataTable
-            columns={[actionColumn, ...columns]}
-            data={rows}
-            // loading={searchLoading}
-          />
+          <MyDataTable columns={[actionColumn, ...columns]} data={rows} />
         </div>
       </div>
       <ViewModal
@@ -396,7 +412,7 @@ const ViewModal = ({ show, setshow, detaildata, status }) => {
     failReason: row.fail_reason,
   }));
 
-  console.log(arr);
+
 
   const viewcolumns = [
     {
