@@ -4,14 +4,23 @@ import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import printFunction from "../../../Components/printFunction";
 import { useToast } from "../../../hooks/useToast.js";
+import Field from "../../../Components/Field.jsx";
 
 const PrintQCALabel = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [printLabelForm] = Form.useForm();
 
   const printHandler = async () => {
-    const values = await printLabelForm.validateFields();
+    let values;
+    try {
+      values = await printLabelForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     try {
       setLoading(true);
       const response = await imsAxios.post("/qcalable/generateQcaLable", {
@@ -42,10 +51,20 @@ const PrintQCALabel = () => {
             layout="vertical"
           >
             <Form.Item label="SKU Type" name="type" rules={rules.type}>
-              <MySelect options={typeOptions} />
+              <MySelect
+                options={typeOptions}
+                showError={isValid}
+                message="Please select FG type"
+              />
             </Form.Item>
             <Form.Item label="Quantity" name="quantity" rules={rules.quantity} >
-              <Input  type="number" />
+              <Field
+                attr="required | Please input quantity"
+                showValidation={isValid}
+                treatZeroAsEmpty
+              >
+                <Input type="number" />
+              </Field>
             </Form.Item>
           </Form>
           <Row>
@@ -86,13 +105,13 @@ const rules = {
   type: [
     {
       required: true,
-      message: "Please select FG type",
+      message: "",
     },
   ],
   quantity: [
     {
       required: true,
-      message: "Please input quantity",
+      message: "",
     },
   ],
 };
