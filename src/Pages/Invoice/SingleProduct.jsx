@@ -5,6 +5,7 @@ import Loading from "../../Components/Loading";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import MySelect from "../../Components/MySelect";
 import { imsAxios } from "../../axiosInterceptor";
+import Field from "../../Components/Field.jsx";
 import { useToast } from "../../hooks/useToast.js";
 
 export default function SingleProduct({
@@ -18,10 +19,14 @@ export default function SingleProduct({
   gstGlOptions,
   gstType,
   glOptions,
+  isValid,
 }) {
+  // const { loading } = useSelector((state) => state.imsData);
+
   const [loading, setLoading] = useState(false);
-const { showToast } = useToast();
+  const { showToast } = useToast();
   const [optionState, setOptionState] = useState([]);
+
   const qty = Form.useWatch(["components", field.name, "qty"], form) ?? 0;
   const rate = Form.useWatch(["components", field.name, "rate"], form) ?? 0;
   const product =
@@ -29,6 +34,7 @@ const { showToast } = useToast();
   const tcs = Form.useWatch(["components", field.name, "tcs"], form) ?? 0;
   const freight =
     Form.useWatch(["components", field.name, "freight"], form) ?? 0;
+
   const gstRate =
     Form.useWatch(["components", field.name, "gstRate"], form)?.replaceAll(
       "%",
@@ -44,13 +50,13 @@ const { showToast } = useToast();
         search: searchTerm,
       });
 
-      let arr = response.data.map((row) => ({
+      let arr = response?.data.map((row) => ({
         text: row.text,
         value: row.id,
       }));
       setOptionState(arr);
     } catch (error) {
-      showToast("Error while fetching products", "error");
+      showToast(error.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -63,8 +69,9 @@ const { showToast } = useToast();
         product_key: product.value,
       });
 
-      if (response?.success) {
+      if (response.success) {
         let arr = response.data;
+      
         form.setFieldValue(
           ["components", field.name, "hsnCode"],
           arr[0].hsncode
@@ -150,20 +157,36 @@ const { showToast } = useToast();
         </Typography.Text>
       </Col>
       <Col span={5}>
-        <Form.Item label="Product" name={[field.name, "product"]}>
+        <Form.Item
+          label="Product"
+          name={[field.name, "product"]}
+          rules={[{ required: true, message: "" }]}
+        >
           <MyAsyncSelect
             labelInValue
             loadOptions={getProduct}
             optionsState={optionState}
             onBlur={() => setOptionState([])}
+            showError={isValid}
+            message="Product is required"
           />
         </Form.Item>
       </Col>
       <Col span={3}>
         <Form.Item label="Qty">
           <Space.Compact>
-            <Form.Item name={[field.name, "qty"]} noStyle>
-              <Input />
+            <Form.Item
+              name={[field.name, "qty"]}
+              noStyle
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | Qty is required"
+                showValidation={isValid}
+                treatZeroAsEmpty
+              >
+                <Input />
+              </Field>
             </Form.Item>
             <Form.Item name={[field.name, "uom"]} noStyle>
               <Input
@@ -177,13 +200,29 @@ const { showToast } = useToast();
         </Form.Item>
       </Col>
       <Col span={2}>
-        <Form.Item label="Rate" name={[field.name, "rate"]}>
-          <Input />
+        <Form.Item
+          label="Rate"
+          name={[field.name, "rate"]}
+          rules={[{ required: true, message: "" }]}
+        >
+          <Field
+            attr="required | Rate is required"
+            showValidation={isValid}
+            treatZeroAsEmpty
+          >
+            <Input />
+          </Field>
         </Form.Item>
       </Col>
       <Col span={3}>
-        <Form.Item label="HSN Code" name={[field.name, "hsnCode"]}>
-          <Input />
+        <Form.Item
+          label="HSN Code"
+          name={[field.name, "hsnCode"]}
+          rules={[{ required: true, message: "" }]}
+        >
+          <Field attr="required | HSN Code is required" showValidation={isValid}>
+            <Input />
+          </Field>
         </Form.Item>
       </Col>
       <Col span={3}>
@@ -197,8 +236,16 @@ const { showToast } = useToast();
         </Form.Item>
       </Col>
       <Col span={4}>
-        <Form.Item label="GL" name={[field.name, "glCode"]}>
-          <MySelect options={glOptions} />
+        <Form.Item
+          label="GL"
+          name={[field.name, "glCode"]}
+          rules={[{ required: true, message: "" }]}
+        >
+          <MySelect
+            options={glOptions}
+            showError={isValid}
+            message="GL is required"
+          />
         </Form.Item>
       </Col>
       <Col span={4} offset={1}>
@@ -293,4 +340,3 @@ const { showToast } = useToast();
     </Row>
   );
 }
-

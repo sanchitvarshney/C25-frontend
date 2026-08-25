@@ -12,6 +12,18 @@ import dayjs from "dayjs";
 
 const currentStateCode = "9";
 
+const tab1RequiredFields = [
+  "client",
+  "location",
+  "shippingName",
+  "shippingState",
+  "shippingCity",
+  "shippingPin",
+  "shippingGst",
+  "shippingPan",
+  "shippingAddress",
+];
+
 const CreateInvoice = () => {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("1");
@@ -20,14 +32,13 @@ const CreateInvoice = () => {
   const [gstType, setGstType] = useState("");
   const [loading, setLoading] = useState(false);
   const [stateCode, setStateCode] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const navigate = useNavigate();
 
   let params = useParams();
 
   const [invoiceForm] = Form.useForm();
   const shippingState = Form.useWatch("shippingState", invoiceForm);
-  const shippingCity = Form.useWatch("shippingCity", invoiceForm);
-  const shippingPin = Form.useWatch("shippingPin", invoiceForm);
 
   const components = Form.useWatch("components", {
     form: invoiceForm,
@@ -42,12 +53,20 @@ const CreateInvoice = () => {
     if (response.success) {
       showToast(response.message, "success");
       // reset();
+      setIsValid(false);
       resetForm();
       setActiveTab("1");
     }
   };
   const sendFormData = async () => {
-    const values = await invoiceForm.validateFields();
+    let values;
+    try {
+      values = await invoiceForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     const invoiceTotal = components.reduce(
       (a, b) => a + +Number(b?.totalAmount).toFixed(3),
       0
@@ -141,6 +160,13 @@ const CreateInvoice = () => {
     submitHandler(obj);
   };
   const moveToNextFormPage = async () => {
+    try {
+      await invoiceForm.validateFields(tab1RequiredFields);
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     // setStateCode(shippingState.value);
     setActiveTab("2");
   };
@@ -148,6 +174,7 @@ const CreateInvoice = () => {
     setActiveTab("1");
   };
   const resetForm = () => {
+    setIsValid(false);
     invoiceForm.resetFields();
   };
   // will run if there is a invoice id in the params
@@ -273,6 +300,7 @@ const CreateInvoice = () => {
               form={invoiceForm}
               loading={loading}
               setLoading={setLoading}
+              isValid={isValid}
             />
           </Tabs.TabPane>
           <Tabs.TabPane tab="Product Details"style={{ height: "calc(100% - 40px)" }}key="2">
@@ -285,12 +313,12 @@ const CreateInvoice = () => {
               setGstType={setGstType}
               setStateCode={setStateCode}
               stateCode={stateCode}
+              isValid={isValid}
             />
           </Tabs.TabPane>
         </Tabs>
       </Form>
       <NavFooter
-        nextDisabled={!shippingState || !shippingCity || !shippingPin}
         nextLabel={activeTab === "1" ? "Next" : "Submit"}
         submitFunction={() => {
           activeTab === "1" ? moveToNextFormPage() : sendFormData();

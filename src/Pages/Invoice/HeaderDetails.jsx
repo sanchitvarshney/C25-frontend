@@ -4,15 +4,15 @@ import MySelect from "../../Components/MySelect";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { imsAxios } from "../../axiosInterceptor";
 import SingleDatePicker from "../../Components/SingleDatePicker";
-import { useToast } from "../../hooks/useToast.js";
+import Field from "../../Components/Field.jsx";
 
-const HeaderDetails = ({ form, setTcsOptions,setLoading }) => {
+const HeaderDetails = ({ form, setTcsOptions, setLoading, isValid }) => {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
   const [locationArr, setLocationArr] = useState([]);
   const [toggleCheck, setToggleCheck] = useState(false);
   const [stateOptions, setStateOptions] = useState([]);
-const { showToast } = useToast();
+
   const client = Form.useWatch("client", form);
   const location = Form.useWatch("location", form);
   const billingState = Form.useWatch("billingState", {
@@ -85,7 +85,7 @@ const { showToast } = useToast();
     const response = await imsAxios.get(
       `/client/getClient?code=${client.value}`
     );
-    form.setFieldValue("billingEmail", response?.data?.[0]?.email);
+    form.setFieldValue("billingEmail", response.data[0].email);
   };
   const getBranchDetails = async (locationId) => {
     try {
@@ -94,19 +94,19 @@ const { showToast } = useToast();
         `/client/getClientDetail?addressID=${locationId}`
       );
       form.setFieldValue("billingState", {
-        label: response?.data?.[0]?.state?.name,
-        value: response?.data?.[0]?.state?.code,
+        label: response?.data[0].state.name,
+        value: response?.data[0].state.code,
       });
-      form.setFieldValue("billingCity", response?.data?.[0]?.city);
-      form.setFieldValue("billingName", response?.data?.[0]?.name);
-      form.setFieldValue("billingPin", response?.data?.[0]?.pinCode);
-      form.setFieldValue("billingGst", response?.data?.[0]?.gst);
-      form.setFieldValue("billingPan", response?.data?.[0]?.panNo);
-      form.setFieldValue("billingMobile", response?.data?.[0]?.phoneNo);
-      form.setFieldValue("billingAddress", response?.data?.[0]?.address);
+      form.setFieldValue("billingCity", response?.data[0].city);
+      form.setFieldValue("billingName",  response?.data[0].name);
+      form.setFieldValue("billingPin",  response?.data[0].pinCode);
+      form.setFieldValue("billingGst", response?.data[0].gst);
+      form.setFieldValue("billingPan", response?.data[0].panNo);
+      form.setFieldValue("billingMobile", response?.data[0].phoneNo);
+      form.setFieldValue("billingAddress", response?.data[0].address);
 
-      if (response?.success) {
-        const arr = response.data;
+      if (response.success) {
+        const arr = response?.data;
         setTcsOptions(
           arr[0].tcsOption.map((row) => ({
             text: row.tcs_name,
@@ -118,7 +118,7 @@ const { showToast } = useToast();
         );
       }
     } catch (error) {
-     showToast("Error occurred while fetching branch details", "error");
+      console.log("error in getting location details", error);
     } finally {
       setLoading(false);
     }
@@ -201,6 +201,8 @@ const { showToast } = useToast();
                   onBlur={() => setAsyncOptions([])}
                   optionsState={asyncOptions}
                   labelInValue
+                  showError={isValid}
+                  message="Please select a Client"
                 />
               </Form.Item>
             </Col>
@@ -214,6 +216,8 @@ const { showToast } = useToast();
                   options={locationArr}
                   placeholder="Select Location"
                   labelInValue
+                  showError={isValid}
+                  message="Please select a Location"
                 />
               </Form.Item>
             </Col>
@@ -409,42 +413,102 @@ const { showToast } = useToast();
 
         <Row gutter={12}>
           <Col span={4}>
-            <Form.Item name="shippingName" label="Name">
-              <Input disabled={toggleCheck} />
+            <Form.Item
+              name="shippingName"
+              label="Name"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | Name is required"
+                showValidation={isValid}
+              >
+                <Input disabled={toggleCheck} />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item name="shippingState" label="State">
+            <Form.Item
+              name="shippingState"
+              label="State"
+              rules={[{ required: true, message: "" }]}
+            >
               <MySelect
                 labelInValue
                 disabled={toggleCheck}
                 options={stateOptions}
+                showError={isValid}
+                message="State is required"
               />
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item name="shippingCity" label="City">
-              <Input disabled={toggleCheck} />
+            <Form.Item
+              name="shippingCity"
+              label="City"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | City is required"
+                showValidation={isValid}
+              >
+                <Input disabled={toggleCheck} />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item name="shippingPin" label="PinCode">
-              <Input disabled={toggleCheck} />
+            <Form.Item
+              name="shippingPin"
+              label="PinCode"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | PinCode is required"
+                showValidation={isValid}
+              >
+                <Input disabled={toggleCheck} />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item name="shippingGst" label="GST">
-              <Input disabled={toggleCheck} />
+            <Form.Item
+              name="shippingGst"
+              label="GST"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | GST is required"
+                showValidation={isValid}
+              >
+                <Input disabled={toggleCheck} />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item name="shippingPan" label="Pan">
-              <Input disabled={toggleCheck} />
+            <Form.Item
+              name="shippingPan"
+              label="Pan"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | Pan is required"
+                showValidation={isValid}
+              >
+                <Input disabled={toggleCheck} />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={6}>
-            <Form.Item name="shippingAddress" label="Address">
-              <Input.TextArea disabled={toggleCheck} />
+            <Form.Item
+              name="shippingAddress"
+              label="Address"
+              rules={[{ required: true, message: "" }]}
+            >
+              <Field
+                attr="required | Address is required"
+                showValidation={isValid}
+              >
+                <Input.TextArea disabled={toggleCheck} />
+              </Field>
             </Form.Item>
           </Col>
         </Row>
@@ -457,13 +521,13 @@ const rules = {
   client: [
     {
       required: true,
-      message: "Please select a location",
+      message: "",
     },
   ],
   location: [
     {
       required: true,
-      message: "Please select a location",
+      message: "",
     },
   ],
 };

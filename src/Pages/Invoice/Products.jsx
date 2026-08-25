@@ -1,14 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Card, Col, Form, Row } from "antd";
+import { Card, Col, Form, Row,  } from "antd";
 import SingleDatePicker from "../../Components/SingleDatePicker";
 import SummaryCard from "../../Components/SummaryCard";
 import TaxDetails from "./TaxDetails";
 import SingleProduct from "./SingleProduct";
 import { imsAxios } from "../../axiosInterceptor";
 import MySelect from "../../Components/MySelect";
-import { useToast } from "../../hooks/useToast.js";
-
+import { useToast } from "../../hooks/useToast";
 
 const Products = ({
   form,
@@ -16,9 +15,10 @@ const Products = ({
   setLoading,
   gstType,
   setGstType,
+  isValid,
 }) => {
   const [taxDetails, setTaxDetails] = useState(inititalTaxDetails);
-const { showToast } = useToast();
+const {showToast} = useToast();
   const [gstGlOptions, setGstGlOptions] = useState([]);
   const [glOptions, setGlOptions] = useState([]);
   const [shippingCode, setShippingCode] = useState([]);
@@ -42,7 +42,7 @@ const { showToast } = useToast();
         setGstGlOptions(data);
       }
     } catch (error) {
-      showToast("Error occurred while fetching GST GL options", "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ const { showToast } = useToast();
       const { data } = response;
       setGlOptions(data);
     } catch (error) {
-      showToast("Error occurred while fetching GL options", "error");
+        showToast(error?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -124,20 +124,32 @@ const { showToast } = useToast();
             <Card size="small">
               <Row gutter={4}>
                 <Col span={12}>
-                  <Form.Item label="Invoice Date" name="invoiceDate">
+                  <Form.Item
+                    label="Invoice Date"
+                    name="invoiceDate"
+                    rules={[{ required: true, message: "" }]}
+                  >
                     <SingleDatePicker
                       // value={invoiceDate}
                       setDate={(value) =>
                         form.setFieldValue("invoiceDate", value)
                       }
+                      showError={isValid}
+                      message="Invoice Date is required"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="Ref Date" name="refDate">
+                  <Form.Item
+                    label="Ref Date"
+                    name="refDate"
+                    rules={[{ required: true, message: "" }]}
+                  >
                     <SingleDatePicker
                       // value={invoiceDate}
                       setDate={(value) => form.setFieldValue("refDate", value)}
+                      showError={isValid}
+                      message="Ref Date is required"
                     />
                   </Form.Item>
                 </Col>
@@ -188,8 +200,9 @@ const { showToast } = useToast();
             <>
               <Col>
                 {fields.map((field, index) => (
-                  <Form.Item noStyle key={field.key ?? index}>
+                  <Form.Item noStyle  key={field.key}>
                     <SingleProduct
+                     
                       fields={fields}
                       field={field}
                       index={index}
@@ -204,6 +217,7 @@ const { showToast } = useToast();
                       setShippingCode={setShippingCode}
                       shippingCode={shippingCode}
                       shippingAddress={shippingAddress}
+                      isValid={isValid}
                     />
                   </Form.Item>
                 ))}

@@ -17,11 +17,8 @@ import {
   Typography,
 } from "antd";
 import  { useEffect, useRef, useState } from "react";
-//@ts-ignore
 import MyButton from "@/Components/MyButton";
-//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
-//@ts-ignore
 import MySelect from "@/Components/MySelect.jsx";
 import {
   currentScanDetails,
@@ -41,9 +38,7 @@ import {
 import { SelectOptionType } from "@/types/general";
 import InsertModal from "@/Pages/Production/mes/qca/scan/InsertModal";
 import TransferModal from "@/Pages/Production/mes/qca/scan/TransferModal";
-//@ts-ignore
 import Loading from "@/Components/Loading.jsx";
-//@ts-ignore
 import MyDataTable from "@/Components/MyDataTable.jsx";
 
 type Props = {};
@@ -78,7 +73,8 @@ const QcScan = (props: Props) => {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [isInsertingWithCount, setisInsertingWithCount] = useState(false);
   const [scanReady, setScanReady] = useState(false);
-  const [deleteRow, setDeleteRow] = useState([]);
+  const [deleteRow, setDeleteRow] = useState<any>([]);
+  const [isValid, setIsValid] = useState(false);
 
   const { executeFun, loading } = useApi();
   const [form] = Form.useForm<headerType>();
@@ -130,7 +126,14 @@ const QcScan = (props: Props) => {
 
     setRows(response.data ?? []);
   };
-  const confirmRemove = () => {
+  const confirmRemove = async () => {
+    try {
+      await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     Modal.confirm({
       // title: "Remove Qr Component",
       content: (
@@ -138,6 +141,7 @@ const QcScan = (props: Props) => {
           Are you sure you want to delete the selected entries?
         </Typography.Text>
       ),
+      confirmLoading: loading === "remove",
       okText: "Delete",
       cancelText: "Back",
       onOk: () => deleteSelected(),
@@ -147,11 +151,15 @@ const QcScan = (props: Props) => {
     reason: string,
     status: "PASS" | "FAIL"
   ) => {
-    const values = await form.validateFields();
-    const scanValues = await scanForm.validateFields();
-    if (!values) {
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
       return;
     }
+    setIsValid(false);
+    const scanValues = await scanForm.validateFields();
 
     const payload:any = {
       qr: scanValues.qr,
@@ -191,9 +199,15 @@ const QcScan = (props: Props) => {
     reason: string,
     status: "PASS" | "FAIL"
   ) => {
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     const scanValues = await scanForm.validateFields();
-    if (!values) return;
     const payload = {
       ppr: values.ppr.value as string,
       process: values.process.value as string,
@@ -217,8 +231,15 @@ const QcScan = (props: Props) => {
 
   //runs when genrate code is clicked
   const handleLotTransfer = async (status: "PASS" | "FAIL") => {
-    const values = await form.validateFields();
-    if (!pprDetails || !values) return;
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    if (!pprDetails) return;
 
     const response = await executeFun(
       () => transferLot(pprDetails, values, rows, status),
@@ -253,7 +274,7 @@ const QcScan = (props: Props) => {
       result: deleteRow.map((r:any) => r?.status),
     };
 
-    const response = await executeFun(() => deleteQcaRows(payload), "select");
+     await executeFun(() => deleteQcaRows(payload), "select");
     handleFetchPPRDetails(selectedPpr.value.toString());
     handleFetchPreviousRows(selectedPpr.key, selectedProcess.key);
   };
@@ -335,13 +356,19 @@ const QcScan = (props: Props) => {
             <Form form={form} style={{ height: "100%" }} layout="vertical">
               <Row gutter={6}>
                 <Col span={12}>
-                  <Form.Item name="ppr" label="PPR No.">
+                  <Form.Item
+                    name="ppr"
+                    label="PPR No."
+                    rules={[{ required: true, message: "" }]}
+                  >
                     <MyAsyncSelect
                       labelInValue={true}
                       optionsState={asyncOptions}
                       selectLoading={loading("select")}
                       loadOptions={handleFetchPprOptions}
                       onBlur={() => setAsyncOptions([])}
+                      showError={isValid}
+                      message="Please select PPR No."
                     />
                   </Form.Item>
                 </Col>
@@ -351,8 +378,17 @@ const QcScan = (props: Props) => {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="process" label="Process">
-                    <MySelect labelInValue options={processOptions} />
+                  <Form.Item
+                    name="process"
+                    label="Process"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <MySelect
+                      labelInValue
+                      options={processOptions}
+                      showError={isValid}
+                      message="Please select Process"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -367,7 +403,6 @@ const QcScan = (props: Props) => {
                 onClick={() => confirmRemove()}
                 variant="delete"
                 danger
-                disabled={!deleteRow.length}
                 text="Delete Selected"
                 block
                 loading={loading("transfer")}
@@ -468,9 +503,7 @@ const QcScan = (props: Props) => {
             rows={rows}
             columns={columns}
             onSelectionModelChange={(selected:any) => {
-              console.log(selected);
-              console.log(rows);
-              // setSelectedPo(selected);
+          
               filterTheCheckedRows(selected, rows);
             }}
             loading={loading("select")}
@@ -499,7 +532,7 @@ export default QcScan;
 const getCurrentProcess = (
   key: string,
   proccesses: ProcessDetailsType[]
-): any => {
+): ProcessDetailsType => {
   return proccesses.find((row) => row.process.value === key);
 };
 
