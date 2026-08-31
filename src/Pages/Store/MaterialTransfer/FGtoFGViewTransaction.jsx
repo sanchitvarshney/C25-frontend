@@ -13,6 +13,7 @@ function FGToFGViewTransaction() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const options = [{ label: "Date Wise", value: "datewise" }];
+  const [validate, setValidate] = useState(false);
   const [allData, setAllData] = useState({
     selectdate: "datewise",
   });
@@ -44,15 +45,12 @@ function FGToFGViewTransaction() {
   const dateWise = async (e) => {
     e.preventDefault();
 
-    if (!allData.selectdate) {
-      showToast("Please Select Mode Then Proceed Next", "error");
+    if (!datee || !allData.selectdate) {
+      setValidate(true);
       return;
     }
 
-    if (!datee) {
-      showToast("Please Select Date", "error");
-      return;
-    }
+    setValidate(false);
 
     try {
       setLoading(true);
@@ -97,7 +95,12 @@ function FGToFGViewTransaction() {
             />
           </div>
           <div style={{ width: 250 }}>
-            <MyDatePicker size="default" setDateRange={setDatee} />
+            <MyDatePicker
+              size="default"
+              setDateRange={setDatee}
+              value={datee}
+              showError={validate}
+            />
           </div>
           <MyButton
             onClick={dateWise}

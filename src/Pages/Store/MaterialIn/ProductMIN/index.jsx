@@ -948,7 +948,7 @@ export default function ProductMIN() {
   const handleProjectChange = async (value) => {
     setPageLoading(true);
     const response = await imsAxios.post("/backend/projectDescription", {
-      project_name: value,
+      project_name: value?.value ?? value,
     });
 
     setPageLoading(false);
@@ -1324,20 +1324,18 @@ export default function ProductMIN() {
                       }
                       label="Vendor"
                       rules={
-                        form.getFieldValue("vendorType") !== "s01"
-                          ? [{ required: true, message: "" }]
-                          : []
+                       [{ required: true, message: "" }]
+                    
                       }
                     >
                       <MyAsyncSelect
                         selectLoading={loading1("select")}
-                        disabled={form.getFieldValue("vendorType") === "s01"}
                         labelInValue
                         onBlur={() => setAsyncOptions([])}
                         optionsState={asyncOptions}
                         loadOptions={getVendors}
                         showError={
-                          isValid && form.getFieldValue("vendorType") !== "s01"
+                          isValid
                         }
                         message="Please select a vendor"
                       />
@@ -1373,16 +1371,15 @@ export default function ProductMIN() {
                       }
                       label="Vendor Branch"
                       rules={
-                        form.getFieldValue("vendorType") !== "s01"
-                          ? [{ required: true, message: "" }]
-                          : []
+                      [{ required: true, message: "" }]
+                  
                       }
                     >
                       <MySelect
                         disabled={form.getFieldValue("vendorType") === "s01"}
                         options={vendorBranchOptions}
                         showError={
-                          isValid && form.getFieldValue("vendorType") !== "s01"
+                          isValid
                         }
                         message="Please select a vendor branch"
                       />
@@ -1398,9 +1395,8 @@ export default function ProductMIN() {
                       label="Cost Center"
                       name="costCenter"
                       rules={
-                        form.getFieldValue("vendorType") !== "s01"
-                          ? [{ required: true, message: "" }]
-                          : []
+                     [{ required: true, message: "" }]
+                     
                       }
                     >
                       <MyAsyncSelect
@@ -1409,7 +1405,7 @@ export default function ProductMIN() {
                         optionsState={asyncOptions}
                         loadOptions={handleFetchCostCenterOptions}
                         showError={
-                          isValid && form.getFieldValue("vendorType") !== "s01"
+                          isValid
                         }
                         message="Please select a cost center"
                         labelInValue
@@ -1428,9 +1424,8 @@ export default function ProductMIN() {
                       label="Project ID"
                       name="projectID"
                       rules={
-                        form.getFieldValue("vendorType") !== "s01"
-                          ? [{ required: true, message: "" }]
-                          : []
+                       [{ required: true, message: "" }]
+                    
                       }
                     >
                       <MyAsyncSelect
@@ -1440,7 +1435,7 @@ export default function ProductMIN() {
                         loadOptions={handleFetchProjectOptions}
                         onChange={handleProjectChange}
                         showError={
-                          isValid && form.getFieldValue("vendorType") !== "s01"
+                          isValid
                         }
                         message="Please select a project"
                         labelInValue
@@ -1489,12 +1484,11 @@ export default function ProductMIN() {
                       <Field
                         attr="required | Please enter bill from address"
                         showValidation={
-                          isValid && form.getFieldValue("vendorType") !== "s01"
+                          isValid
                         }
                       >
                         <Input.TextArea
                           rows={3}
-                          disabled={form.getFieldValue("vendorType") === "s01"}
                           style={{ resize: "none" }}
                         />
                       </Field>

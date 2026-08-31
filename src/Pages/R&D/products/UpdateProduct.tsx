@@ -3,35 +3,39 @@ import { ModalType, SelectOptionType } from "@/types/general";
 import { ProductType } from "@/types/r&d";
 import { Drawer, Upload } from "antd";
 import { Col, Flex, Form, Input, Row } from "antd";
-//@ts-ignore
 import MyButton from "@/Components/MyButton";
-//@ts-ignore
 import MyAsyncSelect from "@/Components/MyAsyncSelect.jsx";
 import useApi from "@/hooks/useApi";
 import { getCostCentresOptions, getProjectOptions } from "@/api/general";
 import { convertSelectOptions } from "@/utils/general";
 import { getProductdata, updateProduct } from "@/api/r&d/products";
-//@ts-ignore
 import Loading from "../../../Components/Loading";
-//@ts-ignore
 import { useToast } from "@/hooks/useToast";
-//@ts-ignore
 import useLoading from "../../../hooks/useLoading";
+import Field from "@/Components/Field.jsx";
 
-const ProductDocuments = (props: any) => {
+
+
+interface DrawerProps extends ModalType {
+  product: ProductType|null;
+  id: string|undefined;
+  handleFetchProductList: () => void;
+}
+const ProductDocuments = (props: DrawerProps) => {
   const { showToast } = useToast();
   const [form] = Form.useForm();
   const [asyncOptions, setAsyncOptions] = useState<SelectOptionType[]>([]);
   const { executeFun, loading } = useApi();
   const [loader, setLoader] = useLoading();
   const [loading2,setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const handleCostCenterOptions = async (search: string) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
       "select"
     );
-    let arr: any = [];
+    let arr: SelectOptionType[] = [];
     if (response.success) {
       arr = convertSelectOptions(response.data);
     }
@@ -63,8 +67,15 @@ const ProductDocuments = (props: any) => {
   };
 
   const validateHandler = async () => {
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading(true);
-    const values = await form.validateFields();
     console.log(values)
     const payload = {
       name: values.name,
@@ -83,6 +94,7 @@ const ProductDocuments = (props: any) => {
     // });
     if(response.success){
       showToast(response?.message||"Product Updated Successfully", "success");
+      setIsValid(false);
       props.hide();
       form.resetFields();
       props.handleFetchProductList();
@@ -109,7 +121,7 @@ const ProductDocuments = (props: any) => {
     <Drawer
       width={650}
       open={props.show}
-      onClose={() =>{props.hide(); form.setFieldValue("documents",[]); form.setFieldValue("images",[]);}}
+      onClose={() =>{props.hide(); setIsValid(false); form.setFieldValue("documents",[]); form.setFieldValue("images",[]);}}
       title={`Update ${props.product?.name}`}
     >
       <Col span={20} style={{ height: "100%", overflow: "auto" }}>
@@ -123,7 +135,12 @@ const ProductDocuments = (props: any) => {
                   label="Product Name"
                   rules={rules.product}
                 >
-                  <Input />
+                  <Field
+                    attr="required | Product name is required"
+                    showValidation={isValid}
+                  >
+                    <Input />
+                  </Field>
                 </Form.Item>
               </Col>
               <Col span={24}>
@@ -136,6 +153,7 @@ const ProductDocuments = (props: any) => {
                   style={{ flex: 1, minWidth: 100 }}
                   name="costCenter"
                   label="Cost Center"
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     optionsState={asyncOptions}
@@ -143,6 +161,9 @@ const ProductDocuments = (props: any) => {
                     selectLoading={loading("select")}
                     onBlur={() => setAsyncOptions([])}
                     fetchDefault={true}
+                    labelInValue
+                    showError={isValid}
+                    message="Cost Center is required"
                   />
                 </Form.Item>
               </Col>
@@ -151,6 +172,7 @@ const ProductDocuments = (props: any) => {
                   style={{ flex: 1, minWidth: 100 }}
                   name="project"
                   label="Project"
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     optionsState={asyncOptions}
@@ -158,6 +180,9 @@ const ProductDocuments = (props: any) => {
                     selectLoading={loading("select")}
                     onBlur={() => setAsyncOptions([])}
                     fetchDefault={true}
+                    labelInValue
+                    showError={isValid}
+                    message="Project is required"
                   />
                 </Form.Item>
               </Col>
@@ -261,7 +286,7 @@ const rules = {
   product: [
     {
       required: true,
-      message: "Product name is required",
+      message: "",
     },
   ],
 };

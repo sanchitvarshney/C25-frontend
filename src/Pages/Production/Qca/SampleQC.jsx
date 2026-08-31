@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Input, Row, Space, Modal } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import MySelect from "../../../Components/MySelect";
@@ -13,6 +13,7 @@ import useApi from "../../../hooks/useApi.ts";
 import { getComponentOptions, getVendorOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "../../../utils/general.ts";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 function SampleQC() {
   const { showToast } = useToast();
   const [wise, setWise] = useState("datewise");
@@ -21,6 +22,7 @@ function SampleQC() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const [samples, setsSamples] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
@@ -47,7 +49,7 @@ function SampleQC() {
     // setSelectLoading(false);
     const response = await executeFun(
       () => getComponentOptions(search),
-      "select"
+      "select",
     );
     const { data } = response;
     const arr = data.map((row) => {
@@ -59,9 +61,14 @@ function SampleQC() {
     setAsyncOptions(arr);
   };
   const getRows = async () => {
+    if (!searchInput || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setSearchLoading(true);
     const response = await imsAxios.post("/qc/fetchQCSamples", {
-      data: searchInput,
+      data: searchInput?.value ?? searchInput,
       wise: wise,
     });
     setSearchLoading(false);
@@ -203,7 +210,7 @@ function SampleQC() {
   ];
   const openConfirmModal = () => {
     let arr = rows.filter((row) => row.sampleQty != "" && row.sampleQty != 0);
-    console.log(arr.sampleQty);
+
     if (arr.length == 0) {
       return showToast("No Samples to preview", "error");
     }
@@ -246,10 +253,11 @@ function SampleQC() {
   };
   useEffect(() => {
     setSearchInput("");
+    setIsValid(false);
   }, [wise]);
 
   return (
-    <div style={{height:"100%", padding:10}}>
+    <div style={{ height: "100%", padding: 10 }}>
       <Modal
         title={`Confirm Samples : ${samples.length} Item${
           samples.length == 1 ? "" : "s"
@@ -268,9 +276,7 @@ function SampleQC() {
           <MyDataTable columns={confirmColumns} data={samples} />
         </div>
       </Modal>
-      <Row
-        justify="space-between"
-      >
+      <Row justify="space-between">
         <div>
           <Space>
             <div style={{ width: 200 }}>
@@ -280,6 +286,8 @@ function SampleQC() {
                 defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
                 onChange={setWise}
                 value={wise}
+                message="Please select a wise"
+                showError={isValid}
               />
             </div>
             <div style={{ width: 300 }}>
@@ -289,15 +297,22 @@ function SampleQC() {
                   setDateRange={setSearchInput}
                   dateRange={setSearchInput}
                   value={searchInput}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : wise === "powise" ? (
-                <Input
-                  style={{ width: "100%" }}
-                  type="text"
-                  placeholder="Enter Po Number"
+                <Field
+                  attr="required | Please enter a PO Number"
                   value={searchInput}
+                  showValidation={isValid}
                   onChange={(e) => setSearchInput(e.target.value)}
-                />
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    type="text"
+                    placeholder="Enter Po Number"
+                  />
+                </Field>
               ) : wise === "vendorwise" ? (
                 <div>
                   <MyAsyncSelect
@@ -309,15 +324,21 @@ function SampleQC() {
                     loadOptions={getVendors}
                     optionsState={asyncOptions}
                     placeholder="Select Vendor..."
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Vendor"
                   />
                 </div>
               ) : wise === "minwise" ? (
                 <div>
-                  <Input
+                  <Field
+                    attr="required | Please enter a MIN Number"
                     value={searchInput}
-                    placeholder="Enter MIN Number"
+                    showValidation={isValid}
                     onChange={(e) => setSearchInput(e.target.value)}
-                  />
+                  >
+                    <Input placeholder="Enter MIN Number" />
+                  </Field>
                 </div>
               ) : (
                 wise == "partwise" && (
@@ -331,6 +352,9 @@ function SampleQC() {
                       loadOptions={getPartOptions}
                       optionsState={asyncOptions}
                       placeholder="Part no"
+                      labelInValue
+                      showError={isValid}
+                      message="Please select a Part"
                     />
                   </div>
                 )
@@ -339,7 +363,7 @@ function SampleQC() {
             <MyButton
               variant="search"
               type="primary"
-              // loading={searchLoading}
+              loading={searchLoading}
               onClick={getRows}
               id="submit"
               // className="primary-button search-wise-btn"
@@ -365,8 +389,12 @@ function SampleQC() {
         </Space>
       </Row>
       <div style={{ height: "calc(100% - 40px)", marginTop: "10px" }}>
-        <MyDataTable loading={searchLoading} columns={columns} data={rows} />
-     
+        <MyDataTable
+          loading={searchLoading}
+          columns={columns}
+          data={rows}
+          hideFooter
+        />
       </div>
     </div>
   );

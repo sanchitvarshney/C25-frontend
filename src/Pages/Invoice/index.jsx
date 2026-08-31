@@ -12,6 +12,18 @@ import dayjs from "dayjs";
 
 const currentStateCode = "9";
 
+const tab1RequiredFields = [
+  "client",
+  "location",
+  "shippingName",
+  "shippingState",
+  "shippingCity",
+  "shippingPin",
+  "shippingGst",
+  "shippingPan",
+  "shippingAddress",
+];
+
 const CreateInvoice = () => {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("1");
@@ -20,14 +32,13 @@ const CreateInvoice = () => {
   const [gstType, setGstType] = useState("");
   const [loading, setLoading] = useState(false);
   const [stateCode, setStateCode] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const navigate = useNavigate();
 
   let params = useParams();
 
   const [invoiceForm] = Form.useForm();
   const shippingState = Form.useWatch("shippingState", invoiceForm);
-  const shippingCity = Form.useWatch("shippingCity", invoiceForm);
-  const shippingPin = Form.useWatch("shippingPin", invoiceForm);
 
   const components = Form.useWatch("components", {
     form: invoiceForm,
@@ -42,15 +53,23 @@ const CreateInvoice = () => {
     if (response.success) {
       showToast(response.message, "success");
       // reset();
+      setIsValid(false);
       resetForm();
       setActiveTab("1");
     }
   };
   const sendFormData = async () => {
-    const values = await invoiceForm.validateFields();
+    let values;
+    try {
+      values = await invoiceForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     const invoiceTotal = components.reduce(
       (a, b) => a + +Number(b?.totalAmount).toFixed(3),
-      0,
+      0
     );
 
     const obj = {
@@ -96,24 +115,24 @@ const CreateInvoice = () => {
       remark: values.components.map((component) => component.remark),
       invoiceType: "goodsAndServices",
       gstRate: values.components.map(
-        (component) => component.gstRate?.replaceAll("%", "") ?? 0,
+        (component) => component.gstRate?.replaceAll("%", "") ?? 0
       ),
       sgst:
         gstType === "local"
           ? values.components.map(
-              (component) => +Number(component.gstAmount).toFixed(3) / 2,
+              (component) => +Number(component.gstAmount).toFixed(3) / 2
             )
           : undefined,
       cgst:
         gstType === "local"
           ? values.components.map(
-              (component) => +Number(component.gstAmount).toFixed(3) / 2,
+              (component) => +Number(component.gstAmount).toFixed(3) / 2
             )
           : undefined,
       igst:
         gstType === "interstate"
           ? values.components.map(
-              (component) => +Number(component.gstAmount).toFixed(3),
+              (component) => +Number(component.gstAmount).toFixed(3)
             )
           : undefined,
       sgstGl:
@@ -132,7 +151,7 @@ const CreateInvoice = () => {
       tcsGl: values.components.map((component) => component.tcsGlCode),
       tcsCode: values.components.map((component) => component.tcs),
       customerAmount: values.components.map(
-        (component) => component.totalAmount,
+        (component) => component.totalAmount
       ),
       invoiceTotal: +Number(invoiceTotal).toFixed(3),
     };
@@ -141,6 +160,13 @@ const CreateInvoice = () => {
     submitHandler(obj);
   };
   const moveToNextFormPage = async () => {
+    try {
+      await invoiceForm.validateFields(tab1RequiredFields);
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     // setStateCode(shippingState.value);
     setActiveTab("2");
   };
@@ -148,6 +174,7 @@ const CreateInvoice = () => {
     setActiveTab("1");
   };
   const resetForm = () => {
+    setIsValid(false);
     invoiceForm.resetFields();
   };
   // will run if there is a invoice id in the params
@@ -156,11 +183,11 @@ const CreateInvoice = () => {
       setLoading("fetching");
 
       let { data: headerData } = await imsAxios.get(
-        `/invoice/getInvoice?invoiceID=${invoiceId}`,
+        `/invoice/getInvoice?invoiceID=${invoiceId}`
       );
       headerData = headerData[0];
       const { data: componentData } = await imsAxios.get(
-        `/invoice/getInvoiceProducts?invoiceID=${invoiceId}`,
+        `/invoice/getInvoiceProducts?invoiceID=${invoiceId}`
       );
 
       const finalObj = {
@@ -211,7 +238,7 @@ const CreateInvoice = () => {
       };
       invoiceForm.setFieldsValue(finalObj);
     } catch (error) {
-      showToast("Error occurred while fetching invoice details", "error");
+      showToast(error.message ?? "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -221,19 +248,16 @@ const CreateInvoice = () => {
     navigate("/draft-invoices");
   };
   useEffect(() => {
-    if (
-      shippingState && shippingState?.value
-        ? shippingState?.value?.toString()
-        : shippingState?.toString() !== currentStateCode
-    ) {
+    const stateValue = shippingState?.value
+      ? shippingState.value.toString()
+      : shippingState?.toString();
+
+    if (!stateValue) return;
+
+    if (stateValue === currentStateCode) {
       setGstType("local");
     } else {
-      const value = shippingState?.value
-        ? shippingState?.value?.toString()
-        : shippingState?.toString();
-      if (value) {
-        setGstType("interstate");
-      }
+      setGstType("interstate");
     }
   }, [shippingState]);
 
@@ -270,23 +294,16 @@ const CreateInvoice = () => {
             </Button>
           }
         >
-          <Tabs.TabPane
-            tab="Billing Details"
-            key="1"
-            style={{ height: "calc(100% - 40px)" }}
-          >
+          <Tabs.TabPane tab="Billing Details" key="1" style={{ height: "calc(100% - 40px)" }}>
             <HeaderDetails
               setTcsOptions={setTcsOptions}
               form={invoiceForm}
               loading={loading}
               setLoading={setLoading}
+              isValid={isValid}
             />
           </Tabs.TabPane>
-          <Tabs.TabPane
-            tab="Product Details"
-            style={{ height: "calc(100% - 40px)" }}
-            key="2"
-          >
+          <Tabs.TabPane tab="Product Details"style={{ height: "calc(100% - 40px)" }}key="2">
             <Products
               gstType={gstType}
               form={invoiceForm}
@@ -296,12 +313,12 @@ const CreateInvoice = () => {
               setGstType={setGstType}
               setStateCode={setStateCode}
               stateCode={stateCode}
+              isValid={isValid}
             />
           </Tabs.TabPane>
         </Tabs>
       </Form>
       <NavFooter
-        nextDisabled={!shippingState || !shippingCity || !shippingPin}
         nextLabel={activeTab === "1" ? "Next" : "Submit"}
         submitFunction={() => {
           activeTab === "1" ? moveToNextFormPage() : sendFormData();

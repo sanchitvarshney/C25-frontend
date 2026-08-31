@@ -25,10 +25,11 @@ function CompletedQC() {
   const [searchInput, setSearchInput] = useState("");
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [rows, setRows] = useState([]);
-  // const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [setShowConfirmModal] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const wiseOptions = [
     { text: "Pending Sample Date Wise", value: "datewise" },
@@ -66,11 +67,16 @@ function CompletedQC() {
   };
 
   const getRows = async () => {
+    if (!searchInput || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setSearchLoading(true);
     setTableLoading(true);
 
     const response = await imsAxios.post("/qc/qcApproval", {
-      data: searchInput,
+      data: searchInput?.value ?? searchInput,
       wise: wise,
     });
     setTableLoading(false);
@@ -325,7 +331,7 @@ function CompletedQC() {
               title={`Are you sure to pass Sample ${row.part}?`}
               onConfirm={() => submitSample(row)}
               onCancel={() => {
-                // setShowConfirmModal(null);
+                setShowConfirmModal(null);
               }}
               okText="Yes"
               loading={submitLoading === row.id}
@@ -344,7 +350,7 @@ function CompletedQC() {
               title={`Are you sure to reject Sample ${row.transaction}?`}
               onConfirm={() => rejectSample(row)}
               onCancel={() => {
-                // setShowConfirmModal(null);
+                setShowConfirmModal(null);
               }}
               loading={submitLoading === row.id}
               okText="Yes"
@@ -383,6 +389,7 @@ function CompletedQC() {
   };
   useEffect(() => {
     setSearchInput("");
+    setIsValid(false);
   }, [wise]);
 
   return (
@@ -399,6 +406,8 @@ function CompletedQC() {
                 defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
                 onChange={setWise}
                 value={wise}
+                showError={isValid}
+                message="Please select a wise"
               />
             </div>
             <div style={{ width: 300 }}>
@@ -408,6 +417,8 @@ function CompletedQC() {
                   setDateRange={setSearchInput}
                   dateRange={setSearchInput}
                   value={searchInput}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : wise === "partwise" ? (
                 <MyAsyncSelect
@@ -419,6 +430,9 @@ function CompletedQC() {
                   loadOptions={getPartOptions}
                   optionsState={asyncOptions}
                   placeholder="Select Part..."
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a Part"
                 />
               ) : (
                 wise === "vendorwise" && (
@@ -432,6 +446,9 @@ function CompletedQC() {
                       loadOptions={getVendors}
                       optionsState={asyncOptions}
                       placeholder="Select Vendor..."
+                      labelInValue
+                      showError={isValid}
+                      message="Please select a Vendor"
                     />
                   </div>
                 )
@@ -439,7 +456,6 @@ function CompletedQC() {
             </div>
             <MyButton
               variant="search"
-              disabled={!searchInput ? true : false}
               type="primary"
               loading={searchLoading}
               onClick={getRows}

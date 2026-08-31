@@ -27,6 +27,7 @@ function PendingQC() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const wiseOptions = [
     { text: "Sample Date Wise", value: "datewise" },
@@ -64,11 +65,16 @@ function PendingQC() {
   };
 
   const getRows = async () => {
+    if (!searchInput || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setSearchLoading(true);
     setTableLoading(true);
 
     const response = await imsAxios.post("/qc/pendingSample", {
-      data: searchInput,
+      data: searchInput?.value ?? searchInput,
       wise: wise,
     });
     setTableLoading(false);
@@ -338,6 +344,7 @@ function PendingQC() {
   };
   useEffect(() => {
     setSearchInput("");
+    setIsValid(false);
   }, [wise]);
   return (
     <div style={{height:"100%", padding:10}}>
@@ -351,6 +358,8 @@ function PendingQC() {
                 defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
                 onChange={setWise}
                 value={wise}
+                showError={isValid}
+                message="Please select a wise"
               />
             </div>
             <div style={{ width: 300 }}>
@@ -360,6 +369,8 @@ function PendingQC() {
                   setDateRange={setSearchInput}
                   dateRange={setSearchInput}
                   value={searchInput}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : wise === "partwise" ? (
                 <MyAsyncSelect
@@ -371,6 +382,9 @@ function PendingQC() {
                   loadOptions={getPartOptions}
                   optionsState={asyncOptions}
                   placeholder="Select Part..."
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a Part"
                 />
               ) : (
                 wise === "vendorwise" && (
@@ -384,6 +398,9 @@ function PendingQC() {
                       loadOptions={getVendors}
                       optionsState={asyncOptions}
                       placeholder="Select Vendor..."
+                      labelInValue
+                      showError={isValid}
+                      message="Please select a Vendor"
                     />
                   </div>
                 )
@@ -391,7 +408,6 @@ function PendingQC() {
             </div>
             <MyButton
               variant="search"
-              disabled={!searchInput ? true : false}
               type="primary"
               loading={searchLoading}
               onClick={getRows}

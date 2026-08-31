@@ -9,11 +9,14 @@ import { getComponentOptions } from "../../../api/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
+import Field from "../../../Components/Field.jsx";
+import Loading from "../../../Components/Loading.jsx";
 const { TextArea } = Input;
 
 function RmtoRm() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [allData, setAllData] = useState({
     locationFrom: "",
@@ -28,7 +31,7 @@ function RmtoRm() {
       locationTo: "",
       stockQty: "00",
       unit: "",
-      avrRate: "00",
+      avrRate: "",
       address: "",
       comment: "",
     },
@@ -39,6 +42,11 @@ function RmtoRm() {
   const [locDataTo, setloctionDataTo] = useState([]);
   const [branchName, setbBanchName] = useState([]);
   const { executeFun } = useApi();
+
+  const [loadingLocationFrom, setLoadingLocationFrom] = useState(false);
+  const [loadingBranchInfo, setLoadingBranchInfo] = useState(false);
+  const [loadingQtyIndex, setLoadingQtyIndex] = useState(null);
+  const [loadingComponent, setLoadingComponent] = useState(false);
 
   // Add row functionality
   const addRow = () => {
@@ -67,43 +75,47 @@ function RmtoRm() {
     }
   };
 
-  // console.log(branchName);
-  const getLocationFunction = async () => {
-    const response = await imsAxios.post("/godown/fetchLocationForRM2RM_from");
-
-    let v = [];
-    response.data.map((ad) => v.push({ label: ad.text, value: ad.id }));
-    setloctionData(v);
-  };
-  const getLocationFunctionTo = async () => {
-    const response = await imsAxios.post("/godown/fetchLocationForRM2RM_to");
-
-    let v = [];
-    response.data.map((ad) => v.push({ label: ad.text, value: ad.id }));
-    setloctionDataTo(v);
-  };
-
   const branchInfoFunction = async () => {
-    const response = await imsAxios.post("/godown/fetchLocationDetail_from", {
-      location_key: allData.locationFrom,
-    });
-    // console.log(data.data);
-    setbBanchName(response?.data);
+    try {
+      setLoadingBranchInfo(true);
+      const response = await imsAxios.post("/godown/fetchLocationDetail_from", {
+        location_key: allData.locationFrom,
+      });
+      // console.log(data.data);
+      setbBanchName(response?.data);
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch branch details",
+        "error",
+      );
+    } finally {
+      setLoadingBranchInfo(false);
+    }
   };
 
   const getComponentList = async (e) => {
     if (e?.length > 2) {
-      // const response = await imsAxios.post("/backend/getComponentByNameAndNo", {
-      //   search: e,
-      // });
-      const response = await executeFun(() => getComponentOptions(e), "select");
-      const { data } = response;
-      let arr = [];
-      arr = data?.map((d) => {
-        return { text: d.text, value: d.id };
-      });
-      // return arr;
-      setAsyncOptions(arr);
+      try {
+        setLoadingComponent(true);
+        const response = await executeFun(
+          () => getComponentOptions(e),
+          "select",
+        );
+        const { data } = response;
+        let arr = [];
+        arr = data?.map((d) => {
+          return { text: d.text, value: d.id };
+        });
+        // return arr;
+        setAsyncOptions(arr);
+      } catch (error) {
+        showToast(
+          error?.response?.data?.message || "Failed to fetch components",
+          "error",
+        );
+      } finally {
+        setLoadingComponent(false);
+      }
     }
   };
 
@@ -112,138 +124,141 @@ function RmtoRm() {
     const component = componentValue ?? row?.component;
     if (!allData.locationFrom || !component) return;
 
-    const response = await imsAxios.post("/godown/godownStocks", {
-      component: component,
-      location: allData.locationFrom,
-    });
+    try {
+      setLoadingQtyIndex(rowIndex);
+      const response = await imsAxios.post("/godown/godownStocks", {
+        component: component,
+        location: allData.locationFrom,
+      });
 
-    setRows((prev) => {
-      const updated = [...prev];
-      updated[rowIndex] = {
-        ...updated[rowIndex],
-        stockQty: response?.data?.available_qty || "0",
-        unit: response?.data?.unit || "",
-        avrRate: response?.data?.avr_rate || "",
-      };
-      return updated;
-    });
+      setRows((prev) => {
+        const updated = [...prev];
+        updated[rowIndex] = {
+          ...updated[rowIndex],
+          stockQty: response?.data?.available_qty || "0",
+          unit: response?.data?.unit || "",
+          avrRate: response?.data?.avr_rate || "",
+        };
+        return updated;
+      });
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch stock quantity",
+        "error",
+      );
+    } finally {
+      setLoadingQtyIndex(null);
+    }
   };
+
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (row) =>
+        !row.component || !row.qty1 || Number(row.qty1) <= 0 || !row.locationTo,
+    );
 
   const saveRmToRm = async () => {
     // Validations
-    if (!allData.locationFrom) {
-      return showToast("Please select a Pick Location", "error");
+    if (!allData.locationFrom || hasIncompleteRow(rows)) {
+      setIsValid(true);
+      return;
     }
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      if (!row.component) {
-        return showToast(`Row ${i + 1}: Please select Component`, "error");
-      }
-      if (!row.qty1) {
-        return showToast(`Row ${i + 1}: Please enter Qty`, "error");
-      }
-      if (!row.locationTo) {
-        return showToast(`Row ${i + 1}: Please select Drop Location`, "error");
-      }
       if (row.locationTo == allData.locationFrom) {
         return showToast(`Row ${i + 1}: Both Location Same`, "error");
       }
     }
+    setIsValid(false);
 
     setLoading(true);
 
-    // Prepare arrays for payload
-    const components = rows.map((row) => row.component);
-    const tolocations = rows.map((row) => row.locationTo);
-    const qtys = rows.map((row) => row.qty1);
-    const comments = rows.map((row) => row.comment || "");
+    try {
+      // Prepare arrays for payload
+      const components = rows.map((row) => row.component);
+      const tolocations = rows.map((row) => row.locationTo);
+      const qtys = rows.map((row) => row.qty1);
+      const comments = rows.map((row) => row.comment || "");
+      const rate = rows.map((row) => row.avrRate || 0);
 
-    const response = await imsAxios.post("/godown/transferRM2RM", {
-      comment: comments,
-      fromlocation: allData.locationFrom,
-      component: components,
-      tolocation: tolocations,
-      qty: qtys,
-      type: "RM2RM",
-    });
-
-    if (response.success) {
-      showToast(
-        response.message.toString()?.replaceAll("<br/>", ""),
-        "success",
-      );
-      // Reset form
-      setAllData({
-        locationFrom: "",
-        companyBranch: "",
+      const response = await imsAxios.post("/godown/transferRM2RM", {
+        comment: comments,
+        fromlocation: allData.locationFrom,
+        component: components,
+        tolocation: tolocations,
+        qty: qtys,
+        rate: rate,
+        type: "RM2RM",
       });
-      setRows([
-        {
-          id: v4(),
-          component: "",
-          qty1: "",
-          locationTo: "",
-          stockQty: "",
-          unit: "",
-          avrRate: "",
-          address: "",
-          comment: "",
-        },
-      ]);
-      setbBanchName("");
-      setLoading(false);
-    } else {
-      showToast(response?.message, "error");
+
+      if (response.success) {
+        showToast(
+          response.message.toString()?.replaceAll("<br/>", ""),
+          "success",
+        );
+        // Reset form
+        setIsValid(false);
+        setAllData({
+          locationFrom: "",
+          companyBranch: "",
+        });
+        setRows([
+          {
+            id: v4(),
+            component: "",
+            qty1: "",
+            locationTo: "",
+            stockQty: "",
+            unit: "",
+            avrRate: "",
+            address: "",
+            comment: "",
+          },
+        ]);
+        setbBanchName("");
+      } else {
+        showToast(response?.message, "error");
+      }
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to transfer material",
+        "error",
+      );
+    } finally {
       setLoading(false);
     }
   };
-
-  // const handleBranchSelection = async (branchCode) => {
-  //   try {
-  //     const response = await imsAxios.post("/location/fetchLocationBranch", {
-  //       branch: branchCode,
-  //     });
-  //     let arr = [];
-  //     const list = response?.data;
-  //     if (Array.isArray(list)) {
-  //       list.map((a) => arr.push({ label: a.text, value: a.id }));
-  //     }
-
-  //     // Update global location options and reset all row locations
-  //     setloctionDataTo(arr);
-  //     setRows((prev) =>
-  //       prev.map((row) => ({
-  //         ...row,
-  //         locationTo: "", // Reset location when branch changes
-  //       })),
-  //     );
-  //   } catch (error) {
-  //     showToast("Failed to fetch drop locations for selected branch", "error");
-  //   }
-  // };
 
   const getLocationName = async (rowIndex, locationValue) => {
     const row = rows[rowIndex];
     const location = locationValue ?? row?.locationTo;
     if (!location) return;
 
-    const response = await imsAxios.post("/godown/fetchLocationDetail_to", {
-      location_key: location,
-    });
+    try {
+      const response = await imsAxios.post("/godown/fetchLocationDetail_to", {
+        location_key: location,
+      });
 
-    setRows((prev) => {
-      const updated = [...prev];
-      updated[rowIndex] = {
-        ...updated[rowIndex],
-        address: response?.data,
-      };
-      return updated;
-    });
+      setRows((prev) => {
+        const updated = [...prev];
+        updated[rowIndex] = {
+          ...updated[rowIndex],
+          address: response?.data,
+        };
+        return updated;
+      });
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch location address",
+        "error",
+      );
+    }
   };
 
   const reset = async (e) => {
     e.preventDefault();
+    setIsValid(false);
     setAllData({
       locationFrom: "",
       companyBranch: "",
@@ -266,9 +281,39 @@ function RmtoRm() {
   };
 
   useEffect(() => {
-    getLocationFunction();
-    getLocationFunctionTo();
+    getLocations();
   }, []);
+
+  const getLocations = async () => {
+    try {
+      setLoadingLocationFrom(true);
+
+      const [fromResponse, toResponse] = await Promise.all([
+        imsAxios.post("/godown/fetchLocationForRM2RM_from"),
+        imsAxios.post("/godown/fetchLocationForRM2RM_to"),
+      ]);
+
+      const fromLocations = fromResponse.data.map((ad) => ({
+        label: ad.text,
+        value: ad.id,
+      }));
+
+      const toLocations = toResponse.data.map((ad) => ({
+        label: ad.text,
+        value: ad.id,
+      }));
+
+      setloctionData(fromLocations);
+      setloctionDataTo(toLocations);
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch locations",
+        "error",
+      );
+    } finally {
+      setLoadingLocationFrom(false);
+    }
+  };
 
   useEffect(() => {
     if (allData.locationFrom) {
@@ -278,32 +323,37 @@ function RmtoRm() {
 
   return (
     <div style={{ height: "calc(100vh - 200px)", padding: 10 }}>
-      {/* <InternalNav links={Main} /> */}
+      {(loadingBranchInfo || loadingQtyIndex) && <Loading />}
       <Row gutter={10}>
         <Col span={16} style={{ marginBottom: 10 }}>
-   
-            <Row gutter={10}>
-              <Col span={3} style={{ width: "100%" }}>
-                <span>Pick Location</span>
-              </Col>
-              <Col span={8}>
+          <Row gutter={10}>
+            <Col span={3} style={{ width: "100%" }}>
+              <span>Pick Location</span>
+            </Col>
+            <Col span={8}>
+              <Field
+                attr="required | Please select a Pick Location"
+                value={allData.locationFrom}
+                showValidation={isValid}
+                onChange={(e) =>
+                  setAllData((allData) => {
+                    return { ...allData, locationFrom: e };
+                  })
+                }
+              >
                 <Select
                   placeholder="Please Select Location"
                   style={{ width: "100%" }}
                   options={locData}
-                  value={allData.locationFrom}
-                  onChange={(e) =>
-                    setAllData((allData) => {
-                      return { ...allData, locationFrom: e };
-                    })
-                  }
+                  loading={loadingLocationFrom}
+                  disabled={loadingLocationFrom}
                 />
-              </Col>
-              <Col span={10} >
-                <TextArea rows={1} disabled value={branchName} />
-              </Col>
-            </Row>
-     
+              </Field>
+            </Col>
+            <Col span={10}>
+              <TextArea rows={1} disabled value={branchName} />
+            </Col>
+          </Row>
         </Col>
 
         <Col span={24}>
@@ -316,7 +366,7 @@ function RmtoRm() {
                 }}
               >
                 <table style={{ border: "1px solid #ccc" }}>
-                  <thead >
+                  <thead>
                     <tr>
                       <th className="table-col" style={{ width: "10vw" }}>
                         #
@@ -332,6 +382,9 @@ function RmtoRm() {
                       </th>
                       <th className="table-col" style={{ width: "16vw" }}>
                         DROP (+) Loc
+                      </th>
+                      <th className="table-col" style={{ width: "16vw" }}>
+                        DROP (+) Loc Details
                       </th>
                       <th className="table-col" style={{ width: "12vw" }}>
                         WAR
@@ -373,35 +426,52 @@ function RmtoRm() {
                               )}
                             </td>
                             <td style={{ width: "18vw" }}>
-                              <MyAsyncSelect
-                                style={{ width: "100%" }}
-                                loadOptions={getComponentList}
-                                onBlur={() => setAsyncOptions([])}
-                                placeholder="Part Name/Code"
+                              <Field
+                                attr="required | Please select Component"
                                 value={row.component}
-                                optionsState={asyncOptions}
-                                onChange={(e) => {
-                                  setRows((prev) => {
-                                    const updated = [...prev];
-                                    updated[index] = {
-                                      ...updated[index],
-                                      component: e,
-                                    };
-                                    return updated;
-                                  });
-                                  getQtyFuction(index, e);
-                                }}
-                              />
+                                showValidation={isValid}
+                              >
+                                <MyAsyncSelect
+                                  style={{ width: "100%" }}
+                                  loadOptions={getComponentList}
+                                  onBlur={() => setAsyncOptions([])}
+                                  placeholder="Part Name/Code"
+                                  selectLoading={loadingComponent}
+                                  optionsState={asyncOptions}
+                                  onChange={(e) => {
+                                    if (!allData?.locationFrom) {
+                                      showToast(
+                                        "Please first select a Pick Location",
+                                        "error",
+                                      );
+                                      return;
+                                    }
+                                    setRows((prev) => {
+                                      const updated = [...prev];
+                                      updated[index] = {
+                                        ...updated[index],
+                                        component: e,
+                                      };
+                                      return updated;
+                                    });
+                                    getQtyFuction(index, e);
+                                  }}
+                                />
+                              </Field>
                             </td>
                             <td style={{ width: "12vw", textAlign: "center" }}>
                               <span>
-                                {row.stockQty ?? "00"} {row.unit ?? ""}
+                                {loadingQtyIndex === index
+                                  ? "Loading..."
+                                  : `${row.stockQty ?? "00"} ${row.unit ?? ""}`}
                               </span>
                             </td>
                             <td style={{ width: "12vw" }}>
-                              <Input
-                                type="number"
+                              <Field
+                                attr="required | Please enter Qty"
                                 value={row.qty1}
+                                treatZeroAsEmpty
+                                showValidation={isValid}
                                 onChange={(e) => {
                                   setRows((prev) => {
                                     const updated = [...prev];
@@ -412,15 +482,15 @@ function RmtoRm() {
                                     return updated;
                                   });
                                 }}
-                                suffix={row.unit || ""}
-                              />
+                              >
+                                <Input type="number" suffix={row.unit || ""} />
+                              </Field>
                             </td>
                             <td style={{ width: "16vw" }}>
-                              <Select
-                                style={{ width: "100%" }}
-                                options={locDataTo}
+                              <Field
+                                attr="required | Please select Drop Location"
                                 value={row.locationTo}
-                                placeholder="Location"
+                                showValidation={isValid}
                                 onChange={(e) => {
                                   setRows((prev) => {
                                     const updated = [...prev];
@@ -432,12 +502,32 @@ function RmtoRm() {
                                   });
                                   getLocationName(index, e);
                                 }}
+                              >
+                                <Select
+                                  style={{ width: "100%" }}
+                                  options={locDataTo}
+                                  placeholder="Location"
+                                  loading={loadingLocationFrom}
+                                  disabled={loadingLocationFrom}
+                                />
+                              </Field>
+                            </td>
+                            <td  style={{ width: "20vw" }}>
+                              <Input
+                                disabled
+                                value={row.address}
+                                placeholder={`Row ${
+                                  index + 1
+                                } - Location Address`}
+                                rows={2}
+                                style={{ width: "100%" }}
                               />
                             </td>
                             <td style={{ width: "12vw", textAlign: "center" }}>
                               {/* <Input disabled value={row.avrRate} /> */}
                               <span>{row.avrRate ?? "00"}</span>
                             </td>
+
                             <td style={{ width: "16vw" }}>
                               <Input
                                 value={row.comment}
@@ -455,21 +545,6 @@ function RmtoRm() {
                               />
                             </td>
                           </tr>
-                          {row.locationTo && row.address && (
-                            <tr>
-                              <td colSpan="7" style={{ padding: "8px" }}>
-                                <TextArea
-                                  disabled
-                                  value={row.address}
-                                  placeholder={`Row ${
-                                    index + 1
-                                  } - Location Address`}
-                                  rows={2}
-                                  style={{ width: "100%" }}
-                                />
-                              </td>
-                            </tr>
-                          )}
                         </React.Fragment>
                       );
                     })}

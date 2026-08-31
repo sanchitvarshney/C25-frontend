@@ -1,4 +1,4 @@
-import  { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux/es/exports";
 import { Button, Col, Row, Space } from "antd";
 import MyDataTable from "../../Components/MyDataTable.jsx";
@@ -20,9 +20,8 @@ const JWRMConsumptionReport = () => {
   const [loading, setLoading] = useState(false);
   const [datee, setDatee] = useState("");
   const [dateData, setDateData] = useState([]);
-  // const [fetchData, setFetchData] = useState([]);
-  // const [search, setSearch] = useState("");
-  const { user } = useSelector((state) => state.login);
+  const user = useSelector((state) => state.login?.user);
+  const [isValid, setIsValid] = useState(false);
 
   const columns = [
     { field: "date", headerName: "Date", width: 120 },
@@ -69,14 +68,15 @@ const JWRMConsumptionReport = () => {
     e.preventDefault();
 
     if (!datee) {
-      showToast("Please select date range", "error");
+      setIsValid(true);
       return;
     } else {
       setLoading(true);
       setDateData([]);
+      setIsValid(false);
       try {
         const response = await imsAxios.get(
-          `/jobwork/jw-rm-consumption-report?date=${encodeURIComponent(datee)}`
+          `/jobwork/jw-rm-consumption-report?date=${encodeURIComponent(datee)}`,
         );
         // console.log("Response", response);
         if (response.success) {
@@ -84,12 +84,12 @@ const JWRMConsumptionReport = () => {
           const dataArray = Array.isArray(response.data)
             ? response.data
             : response.data?.data
-            ? Array.isArray(response.data.data)
-              ? response.data.data
-              : [response.data.data]
-            : response.data
-            ? [response.data]
-            : [];
+              ? Array.isArray(response.data.data)
+                ? response.data.data
+                : [response.data.data]
+              : response.data
+                ? [response.data]
+                : [];
 
           let arr = dataArray.map((row) => {
             return {
@@ -124,25 +124,18 @@ const JWRMConsumptionReport = () => {
     }
   };
 
-  // useEffect(() => {
-  
-  //     const ress = dateData.filter((a) => {
-  //       const partNo = (a.partNo || "").toLowerCase();
-  //       const component = (a.component || "").toLowerCase();
-    
-  //       return partNo.match(component.match());
-  //     });
-  //     // setFetchData(ress);
-   
-  // }, [ dateData]);
-
   // console.log(dateData);
   return (
     <div style={{ height: "95%" }}>
       <Row gutter={10} style={{ margin: "5px" }} justify="space-between">
         <Col>
           <Space>
-            <MyDatePicker setDateRange={setDatee} size="default" />
+            <MyDatePicker
+              setDateRange={setDatee}
+              size="default"
+              showError={isValid}
+              value={datee}
+            />
 
             <MyButton
               variant="search"
@@ -168,12 +161,8 @@ const JWRMConsumptionReport = () => {
         </Col>
         {/* // )} */}
       </Row>
-      <div style={{ height: "87%", margin: "10px" }}>
-        <MyDataTable
-          loading={loading}
-          data={ dateData}
-          columns={columns}
-        />
+      <div style={{ height: "calc(100% - 30px)", margin: "10px" }}>
+        <MyDataTable loading={loading} data={dateData} columns={columns} />
       </div>
     </div>
   );

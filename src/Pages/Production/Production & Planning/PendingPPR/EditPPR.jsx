@@ -25,10 +25,12 @@ import {
   getProductsOptions,
   getProjectOptions,
 } from "../../../../api/general.ts";
+import Field from "../../../../Components/Field.jsx";
 
 const EditPPR = ({ editPPR, setEditPPR }) => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [reqdKeys, setReqdKeys] = useState(null);
   const [sqdComponents, setSqdComponents] = useState([]);
@@ -64,9 +66,11 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
   const getLocation = async () => {
     const response = await imsAxios.get("ppr/ppr_section_location");
     const locArr = [];
-    response.data.map((a) =>
+    if(response.success){
+      response.data.map((a) =>
       locArr.push({ text: `(${a.name}) ${a.address}`, value: a.location_key }),
     );
+    }
     setLocationOptions(locArr);
   };
   const getDetails = async (pprDetails) => {
@@ -74,39 +78,41 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
       setLoading("fetch");
       setSqdComponents([]);
       const response = await imsAxios.post("/ppr/fetchData4Update", pprDetails);
-
-      if (response.success) {
-        const { data } = response;
-        const { product } = data;
-        let obj = {
-          type: data.type,
-          project: {
-            label: data.project.text,
-            value: data.project.id,
-          },
-          remark: data.remark,
-          product: {
-            label: product.sku.text,
-            value: product.sku.id,
-          },
-          bom: {
-            label: product.bom.text,
-            value: product.bom.id,
-          },
-          qty: product.qty,
-          dueDate: product.duedate,
-          section: {
-            label: product.section.text,
-            value: product.section.id,
-          },
-          customer: product.customer,
-        };
-        setRqdDetails(product.rqd[0]);
-        pprDetailsForm.setFieldsValue(obj);
-      } else {
-        setEditPPR(null);
-        showToast(response.message?.msg || response.message, "error");
-      }
+  
+   
+        if (response.success) {
+          const { data } = response;
+          const { product } = data;
+          let obj = {
+            type: data.type,
+            project: {
+              label: data.project.text,
+              value: data.project.id,
+            },
+            remark: data.remark,
+            product: {
+              label: product.sku.text,
+              value: product.sku.id,
+            },
+            bom: {
+              label: product.bom.text,
+              value: product.bom.id,
+            },
+            qty: product.qty,
+            dueDate: product.duedate,
+            section: {
+              label: product.section.text,
+              value: product.section.id,
+            },
+            customer: product.customer,
+          };
+          setRqdDetails(product.rqd[0]);
+          pprDetailsForm.setFieldsValue(obj);
+        } else {
+          setEditPPR(null);
+          showToast(response.message?.msg || response.message, "error");
+        }
+   
     } catch (error) {
       showToast(error.message || "Something went wrong", "error");
     } finally {
@@ -169,24 +175,31 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
       project_name: search,
     });
     setLoading(false);
+  
 
     if (response?.success) {
-      const { data } = response;
+        const { data } = response;
       pprDetailsForm.setFieldValue("projectDescription", data?.description);
     } else {
-      showToast(response.message, "error");
+      showToast( response.message, "error");
     }
   };
 
   const getRqdDetails = async () => {
-    console.log(editPPR);
     // { bom, qty, component, rqd, projectId }
-    const values = await pprDetailsForm.validateFields([
-      "project",
-      "product",
-      "bom",
-      "qty",
-    ]);
+    let values;
+    try {
+      values = await pprDetailsForm.validateFields([
+        "project",
+        "product",
+        "bom",
+        "qty",
+      ]);
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     if (!reqdKeys) {
       let obj = {
         bom: values.bom.value,
@@ -204,8 +217,14 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
     }
   };
   const validateHandler = async () => {
-    const values = await pprDetailsForm.validateFields();
-    console.log(values);
+    let values;
+    try {
+      values = await pprDetailsForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
 
     let obj = {
       header: {
@@ -232,7 +251,8 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
         "/ppr/updatePPR",
         showSubmitConfirmModal,
       );
-    
+
+ 
         if (response.success) {
           showToast(response.message, "success");
           setShowSubmitConfirmModal(false);
@@ -240,7 +260,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
         } else {
           showToast(response.message?.msg || response.message, "error");
         }
-   
+ 
     } catch (error) {
       showToast(error.message || "Something went wrong", "error");
     } finally {
@@ -306,12 +326,24 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
             <Col span={20}>
               <Row gutter={16}>
                 <Col span={6}>
-                  <Form.Item rules={rules.type} name="type" label="PPR Type">
-                    <MySelect options={pprTypeOptions} />
+                  <Form.Item
+                    rules={[{ required: true, message: "" }]}
+                    name="type"
+                    label="PPR Type"
+                  >
+                    <MySelect
+                      options={pprTypeOptions}
+                      showError={isValid}
+                      message="Please select PPR Type"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <Form.Item rules={rules.type} name="project" label="Project">
+                  <Form.Item
+                    rules={[{ required: true, message: "" }]}
+                    name="project"
+                    label="Project"
+                  >
                     <MyAsyncSelect
                       labelInValue
                       disabled={rqdDetails === "E"}
@@ -319,6 +351,8 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
                       optionsState={asyncOptions}
                       loading={loading1("select")}
                       onBlur={() => setAsyncOptions([])}
+                      showError={isValid}
+                      message="Please select Project"
                     />
                   </Form.Item>
                 </Col>
@@ -331,8 +365,17 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
                   </Form.Item>
                 </Col>
                 <Col span={18}>
-                  <Form.Item rules={rules.remark} name="remark" label="Remark">
-                    <TextArea rows={2} />
+                  <Form.Item
+                    rules={[{ required: true, message: "" }]}
+                    name="remark"
+                    label="Remark"
+                  >
+                    <Field
+                      attr="required | Please enter remark"
+                      showValidation={isValid}
+                    >
+                      <TextArea rows={2} />
+                    </Field>
                   </Form.Item>
                 </Col>
               </Row>
@@ -353,7 +396,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
               <Row gutter={16}>
                 <Col span={6}>
                   <Form.Item
-                    rules={rules.product}
+                    rules={[{ required: true, message: "" }]}
                     name="product"
                     label="Product"
                   >
@@ -363,17 +406,36 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
                       labelInValue
                       optionsState={asyncOptions}
                       onBlur={() => setAsyncOptions(null)}
+                      showError={isValid}
+                      message="Please select Product"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <Form.Item rules={rules.bom} name="bom" label="BOM">
-                    <MySelect options={bomList} />
+                  <Form.Item
+                    rules={[{ required: true, message: "" }]}
+                    name="bom"
+                    label="BOM"
+                  >
+                    <MySelect
+                      options={bomList}
+                      showError={isValid}
+                      message="Please select bom"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <Form.Item rules={rules.qty} name="qty" label="Planning Qty">
-                    <Input suffix={uom} />
+                  <Form.Item
+                    rules={[{ required: true, message: "" }]}
+                    name="qty"
+                    label="Planning Qty"
+                  >
+                    <Field
+                      attr="required | Qty should be greater than zero"
+                      showValidation={isValid}
+                    >
+                      <Input suffix={uom} />
+                    </Field>
                   </Form.Item>
                 </Col>
                 <Col span={6}>
@@ -396,34 +458,48 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
                 </Col>
                 <Col span={6}>
                   <Form.Item
-                    rules={rules.dueDate}
+                    rules={[{ required: true, message: "" }]}
                     name="dueDate"
                     label="Due Date"
                   >
-                    <InputMask
-                      className="input-date"
-                      mask="99-99-9999"
-                      placeholder="__-__-____"
-                      style={{ textAlign: "center" }}
+                    <Field
+                      attr="required | Please enter due date"
+                      showValidation={isValid}
+                    >
+                      <InputMask
+                        className="input-date"
+                        mask="99-99-9999"
+                        placeholder="__-__-____"
+                        style={{ textAlign: "center" }}
+                      />
+                    </Field>
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item
+                    rules={[{ required: true, message: "" }]}
+                    name="section"
+                    label="Section / Location"
+                  >
+                    <MySelect
+                      options={locationOptions}
+                      showError={isValid}
+                      message="Please select section"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={6}>
                   <Form.Item
-                    rules={rules.section}
-                    name="section"
-                    label="Section / Location"
-                  >
-                    <MySelect options={locationOptions} />
-                  </Form.Item>
-                </Col>
-                <Col span={6}>
-                  <Form.Item
-                    rules={rules.customer}
+                    rules={[{ required: true, message: "" }]}
                     name="customer"
                     label="Customer Name"
                   >
-                    <Input />
+                    <Field
+                      attr="required | Please enter customer name"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
                   </Form.Item>
                 </Col>
               </Row>
@@ -471,6 +547,7 @@ const EditPPR = ({ editPPR, setEditPPR }) => {
 
 export default EditPPR;
 
+
 // if the rqd is set then you cant change the product / SKU
 const initialValues = {
   type: "new",
@@ -486,63 +563,6 @@ const initialValues = {
   section: undefined,
   customer: undefined,
 };
-const rules = {
-  type: [
-    {
-      required: true,
-      message: "Please select PPR Type",
-    },
-  ],
-  project: [
-    {
-      required: true,
-      message: "Please select Project",
-    },
-  ],
-  remark: [
-    {
-      required: true,
-      message: "Please enter remark",
-    },
-  ],
-  product: [
-    {
-      required: true,
-      message: "Please select Product",
-    },
-  ],
-  bom: [
-    {
-      required: true,
-      message: "Please select bom",
-    },
-  ],
-  qty: [
-    {
-      required: true,
-      message: "Please enter qty",
-    },
-  ],
-  dueDate: [
-    {
-      required: true,
-      message: "Please enter due date",
-    },
-  ],
-  section: [
-    {
-      required: true,
-      message: "Please select section",
-    },
-  ],
-  customer: [
-    {
-      required: true,
-      message: "Please enter customer name",
-    },
-  ],
-};
-
 const pprTypeOptions = [
   { text: "New", value: "new" },
   { text: "Repair", value: "repair" },

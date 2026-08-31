@@ -17,6 +17,7 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import ExecutePPR from "./ExecutePPR";
 import ViewComponents from "./ViewComponents";
 import MyButton from "../../../../Components/MyButton";
+import Field from "../../../../Components/Field.jsx";
 
 const PendingPPR = () => {
   const { showToast } = useToast();
@@ -29,6 +30,7 @@ const PendingPPR = () => {
   const [searchInput, setSearchInput] = useState("");
   const [rows, setRows] = useState([]);
   const [wise, setWise] = useState("pprno");
+  const [isValid, setIsValid] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const pprWiseOptions = [
     { text: "New", value: "new" },
@@ -52,12 +54,11 @@ const PendingPPR = () => {
       });
 
       if (response?.success) {
-      
         let arr = [];
         arr = response.data.map((d) => {
           return { text: d.text, value: d.id };
         });
-          setSelectLoading(true);
+        setSelectLoading(true);
         setAsyncOptions(arr);
       } else {
         setAsyncOptions([]);
@@ -68,27 +69,30 @@ const PendingPPR = () => {
   };
 
   const getRows = async () => {
+    if (!searchInput) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setSearchLoading(true);
-    if (searchInput != "") {
-      const response = await imsAxios.post("/ppr/fetchPendingPpr", {
-        searchBy: wise,
-        searchValue: searchInput.value ?? searchInput,
-      });
+    const response = await imsAxios.post("/ppr/fetchPendingPpr", {
+      searchBy: wise,
+      searchValue: searchInput.value ?? searchInput,
+    });
 
-      setSearchLoading(false);
-      if (response.success) {
-        const arr = response.data.map((row, index) => {
-          return {
-            ...row,
-            id: v4(),
-            serial_no: index + 1,
-          };
-        });
-        setRows(arr);
-      } else if (!response.success) {
-        showToast(response.message?.msg || response.message, "error");
-        setRows([]);
-      }
+    setSearchLoading(false);
+    if (response.success) {
+      const arr = response.data.map((row, index) => {
+        return {
+          ...row,
+          id: v4(),
+          serial_no: index + 1,
+        };
+      });
+      setRows(arr);
+    } else if (!response.success) {
+      showToast(response.message?.msg || response.message, "error");
+      setRows([]);
     }
   };
 
@@ -101,7 +105,7 @@ const PendingPPR = () => {
       getActions: ({ row }) => [
         // execute ppr
         <TableActions
-        key={row.id || "execute"}
+          key={row.id || "execute"}
           showInMenu={true}
           action="check"
           onClick={() => {
@@ -111,7 +115,7 @@ const PendingPPR = () => {
         />,
         // close ppr
         <TableActions
-        key={row.id || "close"}
+          key={row.id || "close"}
           showInMenu={true}
           action="cancel"
           onClick={() => {
@@ -168,7 +172,7 @@ const PendingPPR = () => {
     { headerName: "Type", width: 100, field: "prod_type" },
     {
       headerName: "Project",
-      width: 150,
+      width: 180,
       field: "prod_project",
       renderCell: ({ row }) => <ToolTipEllipses text={row.prod_project} />,
     },
@@ -186,7 +190,7 @@ const PendingPPR = () => {
     },
     {
       headerName: "Req Data/Time",
-      width: 150,
+      width: 180,
       field: "prod_insert_dt",
       renderCell: ({ row }) => <ToolTipEllipses text={row.prod_insert_dt} />,
     },
@@ -197,7 +201,7 @@ const PendingPPR = () => {
     },
     {
       headerName: "Product Name",
-      minWidth: 150,
+      minWidth: 300,
       flex: 1,
       field: "prod_name",
       renderCell: ({ row }) => <ToolTipEllipses text={row.prod_name} />,
@@ -268,6 +272,7 @@ const PendingPPR = () => {
     { headerName: "Qty Remaining", width: 120, field: "consumptionRemaining" },
   ];
   useEffect(() => {
+    setIsValid(false);
     if (wise == "pprtype") {
       setSearchInput("new");
     } else {
@@ -303,6 +308,7 @@ const PendingPPR = () => {
                   size="default"
                   setDateRange={setSearchInput}
                   value={searchInput}
+                  showError={isValid}
                 />
               ) : wise == "skuwise" ? (
                 <MyAsyncSelect
@@ -313,6 +319,9 @@ const PendingPPR = () => {
                   loadOptions={getProducts}
                   optionsState={asyncOptions}
                   placeholder="Select Product..."
+                  labelInValue
+                  showError={isValid}
+                  message="Product is required"
                 />
               ) : wise == "pprtype" ? (
                 <MySelect
@@ -320,19 +329,23 @@ const PendingPPR = () => {
                   value={searchInput}
                   labelInValue
                   onChange={(value) => setSearchInput(value)}
+                  showError={isValid}
                 />
               ) : (
                 wise == "pprno" && (
-                  <Input
+                  <Field
+                    attr="required | Please enter PPR No."
                     value={searchInput}
+                    showValidation={isValid}
                     onChange={(e) => setSearchInput(e.target.value)}
-                  />
+                  >
+                    <Input />
+                  </Field>
                 )
               )}
             </div>
             <MyButton
               variant="search"
-              disabled={!searchInput ? true : false}
               type="primary"
               loading={searchLoading}
               onClick={getRows}

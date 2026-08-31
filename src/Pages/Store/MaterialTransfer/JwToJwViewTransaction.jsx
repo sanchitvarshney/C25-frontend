@@ -18,24 +18,26 @@ function JwToJwViewTransaction() {
     selectdate: "datewise",
   });
   const [datee, setDatee] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [dataComesFromDateWise, setDataComesFromDateWise] = useState([]);
 
   const columns = [
-    { field: "date", headerName: "Date", width: 150 },
+
+    { field: "txnDate", headerName: "Date", width: 150 },
     { field: "jw_po", headerName: "JW PO", width: 150 },
-    { field: "part", headerName: "Part Code", width: 150 },
+    { field: "partName", headerName: "Part Name", width: 150 },
     { field: "cat_part", headerName: "Cat Part Code", width: 150 },
     { field: "name", headerName: "Component", width: 350 },
-    { field: "out_location", headerName: "Out Location", width: 150 },
-    { field: "in_location", headerName: "In Location", width: 150 },
+    { field: "outLocation", headerName: "Out Location", width: 150 },
+    { field: "inLocation", headerName: "In Location", width: 150 },
     {
       field: "qty",
       headerName: "Qty",
       width: 120,
       renderCell: ({ row }) => <span>{`${row?.qty} ${row?.uom}`}</span>,
     },
-    { field: "transaction", headerName: "Transaction In", width: 150 },
-    { field: "completed_by", headerName: "Transferred By", width: 150 },
+    { field: "transactionID", headerName: "Transaction In", width: 150 },
+    { field: "by", headerName: "Transferred By", width: 150 },
   ];
 
   const handleDownloadingCSV = () => {
@@ -72,39 +74,39 @@ function JwToJwViewTransaction() {
 
   const dateWise = async (e) => {
     e.preventDefault();
-    if (!allData.selectdate) {
-      showToast("Please Select Mode Then Proceed Next", "error");
-    } else if (!datee[0]) {
-      showToast("Please Select Date", "error");
+    if (!allData.selectdate || !datee || !datee[0]) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
+    setDataComesFromDateWise([]);
+    setLoading(true);
+
+    // Format dates to YYYY-MM-DD
+    const formattedDates = formatDateForAPI(datee);
+    if (!formattedDates) {
+      showToast("Invalid date format", "error");
+      setLoading(false);
+      return;
+    }
+
+    const response = await imsAxios.get(
+      `/godown/transfer/jw-jw/tranfer/view?from=${formattedDates.fromDate}&to=${formattedDates.toDate}`
+    );
+
+    if (response?.success) {
+      let arr = response?.data.map((row) => {
+        return {
+          ...row,
+          id: v4(),
+        };
+      });
+      setDataComesFromDateWise(arr);
+      setLoading(false);
     } else {
-      setDataComesFromDateWise([]);
-      setLoading(true);
-
-      // Format dates to YYYY-MM-DD
-      const formattedDates = formatDateForAPI(datee);
-      if (!formattedDates) {
-        showToast("Invalid date format", "error");
-        setLoading(false);
-        return;
-      }
-
-      const response = await imsAxios.post(
-        `/godown/transfer/jw-jw/tranfer/view?from=${formattedDates.fromDate}&to=${formattedDates.toDate}`
-      );
-
-      if (response?.success) {
-        let arr = response?.data.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setDataComesFromDateWise(arr);
-        setLoading(false);
-      } else {
-        showToast(response?.message, "error");
-        setLoading(false);
-      }
+      showToast(response?.message, "error");
+      setLoading(false);
     }
   };
 
@@ -126,7 +128,12 @@ function JwToJwViewTransaction() {
             />
           </div>
           <div style={{ width: 250 }}>
-            <MyDatePicker size="default" setDateRange={setDatee} />
+            <MyDatePicker
+              size="default"
+              setDateRange={setDatee}
+              value={datee}
+              showError={isValid}
+            />
           </div>
           <MyButton
             onClick={dateWise}

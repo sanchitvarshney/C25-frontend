@@ -27,12 +27,18 @@ function ReportQC() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const statusOptions = [
     { text: "Pass", value: "A" },
     { text: "Fail", value: "R" },
   ];
   const getRows = async () => {
+    if (!searchInput || !searchStatus) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setRows([]);
     setSearchLoading(true);
     const response = await imsAxios.post("/qc/final_qc_report", {
@@ -88,7 +94,7 @@ function ReportQC() {
       getActions: ({ row }) => [
         // VIEW Icon
         <GridActionsCellItem
-        key={"view"}
+          key={"view"}
           showInMenu
           // disabled={disabled}
           label="View Comments"
@@ -166,6 +172,8 @@ function ReportQC() {
                 }
                 onChange={setSearchStatus}
                 value={searchStatus}
+                showError={isValid}
+                message="Please select Status"
               />
             </div>
             <div style={{ width: 300 }}>
@@ -174,11 +182,12 @@ function ReportQC() {
                 setDateRange={setSearchInput}
                 dateRange={setSearchInput}
                 value={searchInput}
+                showError={isValid}
+                message="Please select a date range"
               />
             </div>
             <MyButton
               variant="search"
-              disabled={!searchInput ? true : false}
               type="primary"
               loading={searchLoading}
               onClick={getRows}

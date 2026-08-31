@@ -56,8 +56,8 @@ export const createProduct = async (values: ProductType) => {
   formData.append("name", values.name);
   // formData.append("unit", values.unit);/
   formData.append("description", values.description);
-  formData.append("projectCode", values.project);
-  formData.append("costCenter", values.costCenter);
+  formData.append("projectCode", values.project?.value ?? values.project);
+  formData.append("costCenter", values.costCenter?.value ?? values.costCenter);
   values.images?.map((row: any) => {
     formData.append("images", row.originFileObj);
   });

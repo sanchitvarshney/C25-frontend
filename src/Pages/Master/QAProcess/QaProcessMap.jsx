@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { useToast } from "@/hooks/useToast.js";
 import MySelect from "@/Components/MySelect";
-import {  Col, Form, Input, Row, } from "antd";
+import { Col, Form, Input, Row} from "antd";
 import FormTable from "@/Components/FormTable";
 import MyAsyncSelect from "@/Components/MyAsyncSelect";
 import NavFooter from "@/Components/NavFooter";
@@ -11,6 +11,7 @@ import { CommonIcons } from "@/Components/TableActions.jsx/TableActions";
 
 import useApi from "@/hooks/useApi.ts";
 import { getProductsOptions } from "@/api/general.ts";
+import Field from "@/Components/Field.jsx";
 
 const QaProcessMap = () => {
   const { showToast } = useToast();
@@ -53,17 +54,16 @@ const QaProcessMap = () => {
 
   const [skuoptions, setskuoptions] = useState([]);
   const [bomoptions, SetBomOptions] = useState([]);
-  // const [formfield, setformfield] = useState(false);
   const [processListOptions, setProcessListOptions] = useState([]);
   const [locationlist, setLocationList] = useState([]);
   const [skuList, setskulist] = useState([]);
   const [loading1, setLoading1] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const { executeFun } = useApi();
   //get sku data
   const sku = async (e) => {
     setskuoptions("");
-    // setformfield(false);
     setQaProcessInput([
       {
         id: v4(),
@@ -91,7 +91,7 @@ const QaProcessMap = () => {
   //get BOM for Single Product If bom Rquired
   const bom = async () => {
     const response = await imsAxios.post("/backend/fetchBomForProduct", {
-      search: qaProcessData.sku,
+      search: qaProcessData.sku?.value ?? qaProcessData.sku,
     });
     if (response.success) {
       let bomarr = response.data.map((d) => {
@@ -108,15 +108,18 @@ const QaProcessMap = () => {
 
   const getskulist = async () => {
     const response = await imsAxios.post("backend/fetchallsfgForProduct", {
-      search: qaProcessData.sku,
+      search: qaProcessData.sku?.value ?? qaProcessData.sku,
     });
-    if (response.success) {
-      let skuarr = response.data?.map((d) => {
+    console.log(response);
+   
+      let skuarr = response?.data?.data?.map((d) => {
         return { text: d.sfgid, value: d.sfgsku };
       });
       setskulist(skuarr);
-    }
+
   };
+
+  console.log(skuList);
 
   // for view the list of processes
   const processList = async () => {
@@ -154,7 +157,29 @@ const QaProcessMap = () => {
   //   setQaProcessInput(newQaprocessInput);
   // };
 
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((r) => {
+      const bomRequired = r.bomRequired?.value ?? r.bomRequired;
+      return (
+        !bomRequired ||
+        !(r.bom?.value ?? r.bom) ||
+        !(r.process?.value ?? r.process) ||
+        !r.processLevel ||
+        !(r.sku?.value ?? r.sku) ||
+        !(r.ProcessLocation?.value ?? r.ProcessLocation) ||
+        !(r.passLocation?.value ?? r.passLocation) ||
+        !(r.failLocation?.value ?? r.failLocation) ||
+        !r.lot_size
+      );
+    });
+
   const createQaProcess = async () => {
+    if (!qaProcessData.sku || hasIncompleteRow(qaProcessInputs)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    qaProcessData.sku = qaProcessData.sku?.value ?? qaProcessData.sku;
     let processLevelarr = [];
     let processRemarkarr = [];
     let lotSizearr = [];
@@ -211,6 +236,7 @@ const QaProcessMap = () => {
 
     if (response?.success) {
       showToast(response.message, "success");
+      setIsValid(false);
       setQaProcessInput([
         {
           id: v4(),
@@ -352,8 +378,7 @@ const QaProcessMap = () => {
   const filterskuoptions = (value) => {
     qaProcessData.sku = value;
     bom(value);
-    //  fetchingSkuProcess()
-    // setformfield(true);
+   
   };
 
   const qaProcessDataHandler = (field, e, value) => {
@@ -464,7 +489,7 @@ const QaProcessMap = () => {
   const handleFetchPreviousEntries = async () => {
     setLoading1("prev");
     const response = await imsAxios.post("/qaProcessmaster/fetchQAProcess", {
-      sku: qaProcessData.sku,
+      sku: qaProcessData.sku?.value ?? qaProcessData.sku,
     });
     setLoading1(false);
     let arr = [];
@@ -478,8 +503,8 @@ const QaProcessMap = () => {
           value: row.bom.id,
         },
         sku: {
-          text: qaProcessData.sku,
-          value: qaProcessData.sku,
+          text: qaProcessData.sku?.label ?? qaProcessData.sku,
+          value: qaProcessData.sku?.value ?? qaProcessData.sku,
         },
         process: {
           text: row.process.name,
@@ -547,6 +572,8 @@ const QaProcessMap = () => {
             qaProcessDataHandler("bomRequired", e, row.id, selectedValue)
           }
           placeholder="Select BOM Requirement"
+          showError={isValid}
+          message="BOM Required is mandatory"
         />
       ),
     },
@@ -566,6 +593,8 @@ const QaProcessMap = () => {
             qaProcessDataHandler("bom", e, row.id, selectedValue)
           }
           disabled={row.bom === "disabled"} // Check the BOM field status for this row
+          showError={isValid}
+          message="BOM is mandatory"
         />
       ),
     },
@@ -584,6 +613,8 @@ const QaProcessMap = () => {
             qaProcessDataHandler("sku", e, row.id, selectedValue)
           }
           placeholder="Select SKU"
+          showError={isValid}
+          message="SKU is mandatory"
         />
       ),
     },
@@ -602,6 +633,8 @@ const QaProcessMap = () => {
           onChange={(e, selectedValue) =>
             qaProcessDataHandler("process", e, row.id, selectedValue)
           }
+          showError={isValid}
+          message="Process is mandatory"
         />
       ),
     },
@@ -611,13 +644,16 @@ const QaProcessMap = () => {
       width: 125,
       sortable: false,
       renderCell: ({ row }) => (
-        <Input
-          placeholder="Enter Process Level"
+        <Field
+          attr="required | Process Level is mandatory"
           value={row.processLevel}
+          showValidation={isValid}
           onChange={(e) =>
             qaInputHandler("processLevel", row.id, e.target.value)
           }
-        />
+        >
+          <Input placeholder="Enter Process Level" />
+        </Field>
       ),
     },
     {
@@ -635,6 +671,8 @@ const QaProcessMap = () => {
           onChange={(e, selectedValue) =>
             qaProcessDataHandler("ProcessLocation", e, row.id, selectedValue)
           }
+          showError={isValid}
+          message="Process Location is mandatory"
         />
       ),
     },
@@ -653,6 +691,8 @@ const QaProcessMap = () => {
           onChange={(e, selectedValue) =>
             qaProcessDataHandler("passLocation", e, row.id, selectedValue)
           }
+          showError={isValid}
+          message="Pass Location is mandatory"
         />
       ),
     },
@@ -671,6 +711,8 @@ const QaProcessMap = () => {
           onChange={(e, selectedValue) =>
             qaProcessDataHandler("failLocation", e, row.id, selectedValue)
           }
+          showError={isValid}
+          message="Fail Location is mandatory"
         />
       ),
     },
@@ -695,11 +737,15 @@ const QaProcessMap = () => {
       width: 120,
       sortable: false,
       renderCell: ({ row }) => (
-        <Input
-          placeholder="Enter Lot Size"
+        <Field
+          attr="required | Lot Size is mandatory"
           value={row.lot_size}
+          treatZeroAsEmpty
+          showValidation={isValid}
           onChange={(e) => qaInputHandler("lot_size", row.id, e.target.value)}
-        />
+        >
+          <Input placeholder="Enter Lot Size" />
+        </Field>
       ),
     },
   ];
@@ -729,7 +775,10 @@ const QaProcessMap = () => {
                       loadOptions={(e) => sku(e)}
                       optionsState={skuoptions}
                       value={qaProcessData.sku}
+                      labelInValue
                       onChange={(e) => filterskuoptions(e)}
+                      showError={isValid}
+                      message="SKU Number is mandatory"
                     />
                   </Form.Item>
                 </Col>
@@ -755,6 +804,7 @@ const QaProcessMap = () => {
       </Row>
       <NavFooter
         resetFunction={() => {
+          setIsValid(false);
           setQaProcessInput([
             {
               id: v4(),
