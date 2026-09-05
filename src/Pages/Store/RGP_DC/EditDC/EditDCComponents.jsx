@@ -13,10 +13,8 @@ import { imsAxios } from "../../../../axiosInterceptor";
 import { getComponentOptions } from "../../../../api/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import FormTable from "../../../../Components/FormTable.jsx";
-import Field from "../../../../Components/Field.jsx";
 export default function EditDCComponents({
   newGatePass,
-  setNewGatePass,
   setActiveTab,
   setUpdateDCId,
   resetData,
@@ -431,26 +429,6 @@ export default function EditDCComponents({
         </p>
       </Modal>
 
-      {isReturnDC && (
-        <div style={{ width: 280, marginBottom: 12 }}>
-          <Field
-            attr="required | Please enter a Challan Number"
-            value={newGatePass.challanNumber}
-            showValidation={isValid}
-          >
-            <Input
-              placeholder="Challan Number"
-              value={newGatePass.challanNumber}
-              onChange={(e) =>
-                setNewGatePass?.((prev) => ({
-                  ...prev,
-                  challanNumber: e.target.value,
-                }))
-              }
-            />
-          </Field>
-        </div>
-      )}
       <FormTable
         columns={
           isReturnDC

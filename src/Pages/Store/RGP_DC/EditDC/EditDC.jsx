@@ -186,7 +186,8 @@ export default function EditDC({
       !newGatePass.vendorAddress?.trim() ||
       !newGatePass.billingId ||
       !newGatePass.billinAddress?.trim() ||
-      !newGatePass.vehicleNumber?.trim();
+      !newGatePass.vehicleNumber?.trim() ||
+      (isReturnDC && !newGatePass.challanNumber?.trim());
 
     if (hasEmptyField) {
       setIsValid(true);
@@ -779,6 +780,41 @@ export default function EditDC({
                             </Form.Item>
                           </Form>
                         </Col>
+                        {isReturnDC && (
+                          <Col span={6}>
+                            <Form size="small" layout="vertical">
+                              <Form.Item
+                                label={
+                                  <span
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                    }}
+                                  >
+                                    Challan Number
+                                  </span>
+                                }
+                              >
+                                <Field
+                                  attr="required | Please enter a Challan Number"
+                                  value={newGatePass.challanNumber}
+                                  showValidation={isValid}
+                                >
+                                  <Input
+                                    size="default"
+                                    onChange={(e) =>
+                                      inputHandler(
+                                        "challanNumber",
+                                        e.target.value,
+                                      )
+                                    }
+                                    value={newGatePass.challanNumber}
+                                  />
+                                </Field>
+                              </Form.Item>
+                            </Form>
+                          </Col>
+                        )}
                       </Row>
                       <Row>
                         <Col span={18}>
