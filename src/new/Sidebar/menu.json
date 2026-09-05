@@ -962,6 +962,13 @@
                     "icon": "DescriptionIcon",
                     "path": "/warehouse/dc/manage",
                     "isShown": true
+                  },
+                  {
+                    "key": "B342",
+                    "label": "Return DC",
+                    "icon": "DescriptionIcon",
+                    "path": "/warehouse/dc/return-report",
+                    "isShown": true
                   }
                 ]
               },

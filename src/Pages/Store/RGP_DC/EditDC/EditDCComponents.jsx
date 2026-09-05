@@ -7,23 +7,26 @@ import {
 import { v4 } from "uuid";
 import NavFooter from "../../../../Components/NavFooter";
 import { useToast } from "../../../../hooks/useToast.js";
-import { Button, Modal } from "antd";
+import { Button, Input, Modal } from "antd";
 import validateResponse from "../../../../Components/validateResponse";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { getComponentOptions } from "../../../../api/general.ts";
 import useApi from "../../../../hooks/useApi.ts";
 import FormTable from "../../../../Components/FormTable.jsx";
+import Field from "../../../../Components/Field.jsx";
 export default function EditDCComponents({
   newGatePass,
+  setNewGatePass,
   setActiveTab,
   setUpdateDCId,
   resetData,
   setPageLoading,
   updatedDCId,
+  isReturnDC,
+  setIsReturnDC,
 }) {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
-  console.log(rows);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -141,6 +144,11 @@ export default function EditDCComponents({
       );
     }
 
+    if (isReturnDC && !newGatePass.challanNumber?.trim()) {
+      setIsValid(true);
+      return showToast("Please enter a Challan Number", "error");
+    }
+
     const componentValues = rows.map((row) => row.component);
     const duplicateFound = componentValues.some(
       (comp, index) =>
@@ -185,8 +193,13 @@ export default function EditDCComponents({
         vehicle_no: newGatePass.vehicleNumber,
         narration: newGatePass.narration,
       },
+      ...(isReturnDC && {
+        rgp_challan_no: newGatePass.challanNumber,
+      }),
       material: {
-        serial: rows.map((row) => row.serial),
+        ...(isReturnDC
+          ? { row_id: rows.map((row) => row.serial) }
+          : { serial: rows.map((row) => row.serial) }),
         component: rows.map((row) => row.component.value),
         qty: rows.map((row) => row.qty),
         rate: rows.map((row) => row.rate),
@@ -200,18 +213,14 @@ export default function EditDCComponents({
   const submitHandler = async () => {
     if (showSubmitConfirm) {
       setSubmitLoading(true);
-      const response = await imsAxios.post(
-        "/gatepass/updateDc",
-        showSubmitConfirm,
-      );
+      const endpoint = isReturnDC
+        ? "/gatepass/createReturn"
+        : "/gatepass/updateDc";
+      const response = await imsAxios.post(endpoint, showSubmitConfirm);
       setSubmitLoading(false);
       if (response.success) {
         setUpdateDCId(false);
-        // let successInfo = {
-        //   id: data.data.transactionID,
-        //   components: rows,
-        //   vendorName: newGatePass.vendorName.label,
-        // };
+        setIsReturnDC?.(false);
         setShowSubmitConfirm(false);
         setActiveTab("1");
         showToast(response.message, "success");
@@ -231,6 +240,7 @@ export default function EditDCComponents({
           value: row.selectedComponent[0].id,
         },
         qty: row.qty,
+        returnedQty: row.returned_qty ?? 0,
         rate: row.rate,
         hsn: row.hsn_code,
         uom: row.unit,
@@ -249,7 +259,7 @@ export default function EditDCComponents({
       field: "add",
       sortable: false,
       renderCell: ({ row }) =>
-        row.type != "new" && (
+        (isReturnDC || row.type != "new") && (
           <CommonIcons action="removeRow" onClick={() => removeRows(row?.id)} />
         ),
       // sortable: false,
@@ -285,6 +295,19 @@ export default function EditDCComponents({
           treatZeroAsEmpty: true,
           message: "Qty is required",
         }),
+    },
+    {
+      headerName: "Returned Qty",
+      field: "returnedQty",
+      width: 130,
+      renderCell: ({ row }) => (
+        <Input
+          value={row.returnedQty ?? 0}
+          disabled
+          suffix={row.uom}
+          style={{ background: "#f5f5f5", fontWeight: 600, color: "#000" }}
+        />
+      ),
     },
     {
       headerName: "Rate",
@@ -346,6 +369,7 @@ export default function EditDCComponents({
           value: row.selectedComponent[0].id,
         },
         qty: row.qty,
+        returnedQty: row.returned_qty ?? 0,
         rate: row.rate,
         hsn: row.hsn_code,
         uom: row.unit,
@@ -360,7 +384,11 @@ export default function EditDCComponents({
     <div style={{ height: "97%", overflowY: "auto" }}>
       {/* submit confirm modal */}
       <Modal
-        title="Confirm Create Delivery Challan!"
+        title={
+          isReturnDC
+            ? "Confirm Return Delivery Challan!"
+            : "Confirm Update Delivery Challan!"
+        }
         open={showSubmitConfirm}
         onCancel={() => setShowSubmitConfirm(false)}
         footer={[
@@ -377,7 +405,11 @@ export default function EditDCComponents({
           </Button>,
         ]}
       >
-        <p>Are you sure you want to update this Delivery Challan?</p>
+        <p>
+          {isReturnDC
+            ? "Are you sure you want to return this Delivery Challan?"
+            : "Are you sure you want to update this Delivery Challan?"}
+        </p>
       </Modal>
       {/* reset confirm modal */}
       <Modal
@@ -399,9 +431,36 @@ export default function EditDCComponents({
         </p>
       </Modal>
 
-      <FormTable columns={columns} data={rows} />
+      {isReturnDC && (
+        <div style={{ width: 280, marginBottom: 12 }}>
+          <Field
+            attr="required | Please enter a Challan Number"
+            value={newGatePass.challanNumber}
+            showValidation={isValid}
+          >
+            <Input
+              placeholder="Challan Number"
+              value={newGatePass.challanNumber}
+              onChange={(e) =>
+                setNewGatePass?.((prev) => ({
+                  ...prev,
+                  challanNumber: e.target.value,
+                }))
+              }
+            />
+          </Field>
+        </div>
+      )}
+      <FormTable
+        columns={
+          isReturnDC
+            ? columns
+            : columns.filter((col) => col.field !== "returnedQty")
+        }
+        data={rows}
+      />
       <NavFooter
-        nextLabel="Update"
+        nextLabel={isReturnDC ? "Return" : "Update"}
         resetFunction={() => setShowResetConfirm(true)}
         backFunction={() => setActiveTab("1")}
         submitFunction={validateData}
