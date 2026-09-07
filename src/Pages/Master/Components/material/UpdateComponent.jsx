@@ -302,6 +302,7 @@ export default function UpdateComponent() {
       category: "--",
       mrn: values.mrp,
       group: values.group,
+      subgroup: values.subgroup,
       new_partno: values.newPartCode,
       enable_status: values.isEnabled,
       jobwork_rate: values.jobWork,
