@@ -23,7 +23,8 @@ function arePropsEqual(prev, next) {
     prev.glCodes === next.glCodes &&
     prev.freightGlOptions === next.freightGlOptions &&
     prev.glstate === next.glstate &&
-    prev.lastRateArr === next.lastRateArr
+    prev.lastRateArr === next.lastRateArr &&
+    prev.isValid === next.isValid
   );
 }
 
@@ -41,6 +42,7 @@ function SingleComponent({
   loading,
   glstate,
   lastRateArr,
+  isValid,
 }) {
   const [showLastRateWarning, setShowLastRateWarning] = useState({
     rate: "",
@@ -364,14 +366,14 @@ function SingleComponent({
                 <Form.Item
                   label="CGST G/L"
                   name={[field.name, "cgst"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: "CGST GL is required",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect labelInValue options={glstate} />
+                  <MySelect
+                    labelInValue
+                    options={glstate}
+                    showError={isValid}
+                    message="CGST GL is required"
+                  />
                 </Form.Item>
               </Col>
               <Col span={2}>
@@ -383,14 +385,14 @@ function SingleComponent({
                 <Form.Item
                   label="SGST G/L"
                   name={[field.name, "sgst"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: "SGST GL is required",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect labelInValue options={glstate} />
+                  <MySelect
+                    labelInValue
+                    options={glstate}
+                    showError={isValid}
+                    message="SGST GL is required"
+                  />
                 </Form.Item>
               </Col>
             </>
@@ -407,14 +409,14 @@ function SingleComponent({
                 <Form.Item
                   label="IGST G/L"
                   name={[field.name, "igst"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: "IGST GL is required",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect labelInValue options={glstate} />
+                  <MySelect
+                    labelInValue
+                    options={glstate}
+                    showError={isValid}
+                    message="IGST GL is required"
+                  />
                 </Form.Item>
               </Col>
             </>

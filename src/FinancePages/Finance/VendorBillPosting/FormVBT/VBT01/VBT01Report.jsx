@@ -8,13 +8,13 @@ import validateResponse from "../../../../../Components/validateResponse";
 import Loading from "../../../../../Components/Loading";
 import SingleComponent from "./SingleProduct";
 
-
 function applyRoundOffToLast(amounts, roundOffSign, roundOffValue) {
   if (amounts.length === 0) return amounts;
   const last = +Number(amounts[amounts.length - 1]);
   const adjustment = +Number(roundOffValue.toString());
   const sign = roundOffSign.toString();
-  const adjusted = sign === "+" ? last + adjustment : sign === "-" ? last - adjustment : last;
+  const adjusted =
+    sign === "+" ? last + adjustment : sign === "-" ? last - adjustment : last;
   return [...amounts.slice(0, -1), adjusted];
 }
 
@@ -42,6 +42,7 @@ function VBT01Report({
   const [glstate, setglState] = useState([]);
   const [billam, setBillam] = useState([]);
   const [lastRateArr, setLastRateArr] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const components = Form.useWatch("components", {
     form: Vbt01,
@@ -57,6 +58,7 @@ function VBT01Report({
     resetForm();
     setRoundOffSign("+");
     setRoundOffValue(0);
+    setIsValid(false);
   };
   const checkInvoice = async (checkInvoiceId, vendorCode) => {
     const res = await imsAxios.get(
@@ -283,7 +285,15 @@ function VBT01Report({
     }
   }, [editVbtDrawer, apiUrl]);
 
-  const showCofirmModal = () => {
+  const showCofirmModal = async () => {
+    try {
+      await Vbt01.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     Modal.confirm({
       okText: "Save",
       title: isCreate
@@ -299,7 +309,14 @@ function VBT01Report({
   };
   // sumbit for both the edot and create fn
   const submitFunction = async () => {
-    const values = await Vbt01.validateFields();
+    let values;
+    try {
+      values = await Vbt01.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     if (isCreate) {
       const roundarr = values.components.map(
         (component) => component.venAmmount,
@@ -400,7 +417,6 @@ function VBT01Report({
 
       addVbt(finalData, typeParam);
     } else {
-
       const roundarr = values.components.map(
         (component) => component.venAmmount,
       );
@@ -490,6 +506,7 @@ function VBT01Report({
     const { success } = response;
     if (success) {
       showToast(response.message, "success");
+      setIsValid(false);
       setEditVbtDrawer(null);
       setLoading(false);
     } else {
@@ -562,7 +579,6 @@ function VBT01Report({
   }, [editVbtDrawer]);
 
   useEffect(() => {
-
     const totals = components?.reduce(
       (acc, item) => {
         acc.billValue += +Number(item.totalBilAmm).toFixed(2);
@@ -680,6 +696,7 @@ function VBT01Report({
               apiUrl={apiUrl}
               components={components}
               billam={billam}
+              isValid={isValid}
             />
           </Col>
 
@@ -721,6 +738,7 @@ function VBT01Report({
                           glstate={glstate}
                           getGstGlOptions={getGstGlOptions}
                           lastRateArr={lastRateArr}
+                          isValid={isValid}
                         />
                       </Form.Item>
                     ))}
