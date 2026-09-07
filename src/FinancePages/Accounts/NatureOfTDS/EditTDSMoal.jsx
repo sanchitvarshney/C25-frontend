@@ -1,17 +1,20 @@
 import { Button, Col, Drawer, Form, Input, Row } from "antd";
 import TextArea from "antd/lib/input/TextArea";
-import  { useState } from "react";
+import { useState } from "react";
 import { useEffect } from "react";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field.jsx";
 
 export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
- const { showToast } = useToast();
+  const { showToast } = useToast();
+  // const [ledgerOption, setLedgerOption] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [tdsData, setTdsData] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const inputHandler = (name, value) => {
     setTdsData((editingTDS) => {
       return {
@@ -21,15 +24,12 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
     });
   };
   const updateTDS = async () => {
-    const {
-  
-      tds_code,
-      desc,
-      tds_key,
-      gl_key,
-      name,
-      percentage,
-    } = tdsData;
+    const { tds_code, desc, tds_key, gl_key, name, percentage } = tdsData;
+    if (!tds_code || !desc || !gl_key || !name || !percentage) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     // setLoading(true);
     const response = await imsAxios.post(
       "/tally/tds/update_new_nature_of_tds",
@@ -38,18 +38,18 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
         name: name,
         description: desc,
         percentage: +percentage,
-        ledger: gl_key,
+        ledger: gl_key?.value ?? gl_key,
         tds_key: tds_key,
-      }
+      },
     );
     setLoading(false);
     if (response.success) {
       showToast(response.message || response.message?.msg);
+      setIsValid(false);
       setEditingTDS(null);
       getTDSList();
     } else {
       showToast(response.message?.msg || response.message, "error");
-   
     }
   };
   const getGLCodes = async (search) => {
@@ -86,7 +86,10 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
         </Button>
       }
       placement="right"
-      onClose={() => setEditingTDS(null)}
+      onClose={() => {
+        setIsValid(false);
+        setEditingTDS(null);
+      }}
       open={editingTDS}
     >
       <Row gutter={16}>
@@ -102,19 +105,15 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
                   TDS Name
                 </span>
               }
-              rules={[
-                {
-                  required: true,
-                  message: "Please Enter TDS Name!",
-                },
-              ]}
             >
-              <Input
-                size="default"
+              <Field
+                attr="required | Please Enter TDS Name!"
                 value={tdsData?.name}
+                showValidation={isValid}
                 onChange={(e) => inputHandler("name", e.target.value)}
-                placeholder="Enter New TDS Name.."
-              />
+              >
+                <Input size="default" placeholder="Enter New TDS Name.." />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -133,19 +132,15 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
                   TDS Code
                 </span>
               }
-              rules={[
-                {
-                  required: true,
-                  message: "Please Enter a TDS Code!",
-                },
-              ]}
             >
-              <Input
-                size="default"
+              <Field
+                attr="required | Please Enter a TDS Code!"
                 value={tdsData?.tds_code}
+                showValidation={isValid}
                 onChange={(e) => inputHandler("tds_code", e.target.value)}
-                placeholder="Enter New TDS Code.."
-              />
+              >
+                <Input size="default" placeholder="Enter New TDS Code.." />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -164,21 +159,20 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
                   TDS Description
                 </span>
               }
-              rules={[
-                {
-                  required: true,
-                  message: "Please Enter a TDS Description!",
-                },
-              ]}
             >
-              <TextArea
-                rows={4}
-                style={{ resize: "none" }}
-                size="default"
+              <Field
+                attr="required | Please Enter a TDS Description!"
                 value={tdsData?.desc}
+                showValidation={isValid}
                 onChange={(e) => inputHandler("desc", e.target.value)}
-                placeholder="Enter a TDS Desctiption.."
-              />
+              >
+                <TextArea
+                  rows={4}
+                  style={{ resize: "none" }}
+                  size="default"
+                  placeholder="Enter a TDS Desctiption.."
+                />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -197,22 +191,22 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
                   TDS Percentage
                 </span>
               }
-              rules={[
-                {
-                  required: true,
-                  message: "Please EnterT DS Percentage!",
-                },
-              ]}
             >
-              <Input
-                size="default"
+              <Field
+                attr="required | Please Enter TDS Percentage!"
                 value={tdsData?.percentage}
+                showValidation={isValid}
+                treatZeroAsEmpty
                 onChange={(e) => {
                   inputHandler("percentage", e.target.value);
                 }}
-                placeholder="Enter Percentage..."
-                type="number"
-              />
+              >
+                <Input
+                  size="default"
+                  placeholder="Enter Percentage..."
+                  type="number"
+                />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -231,23 +225,22 @@ export default function EditTDSMoal({ editingTDS, setEditingTDS, getTDSList }) {
                   G/L
                 </span>
               }
-              rules={[
-                {
-                  required: true,
-                  message: "Please select G/L!",
-                },
-              ]}
             >
               <MyAsyncSelect
                 size="default"
                 onBlur={() => setAsyncOptions([])}
                 optionsState={asyncOptions}
-                value={tdsData?.gl_code}
-              
+                value={tdsData?.gl_key}
+                onChange={(value) => {
+                  inputHandler("gl_key", value);
+                }}
                 selectLoading={selectLoading}
                 loadOptions={getGLCodes}
                 placeholder="Select ax G/L"
                 defaultOptions
+                labelInValue
+                showError={isValid}
+                message="Please select G/L!"
               />
             </Form.Item>
           </Form>

@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  Input,
-  Row,
-  Space,
-} from "antd";
+import { Button, Card, Col, Form, Input, Row, Space } from "antd";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -15,9 +7,10 @@ import useApi from "../../../hooks/useApi.ts";
 import { getVendorOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "../../../utils/general.ts";
 import { useToast } from "../../../hooks/useToast.js";
+import Field from "../../../Components/Field.jsx";
 
 function MapVendor({ options, statusOptions, getLedgerList }) {
- const { showToast } = useToast();
+  const { showToast } = useToast();
   const [newVendor, setNewVendor] = useState({
     name: "",
     code: "",
@@ -30,6 +23,7 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
 
   const getSubGroupSelect = async (search) => {
@@ -50,8 +44,8 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
     if (name == "code") {
       obj = {
         ...obj,
-        [name]: value.value,
-        name: value.label,
+        code: value,
+        name: value?.label,
       };
     } else {
       obj = {
@@ -76,21 +70,16 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
 
   const addVendor = async () => {
     const { gst, tds, status, sub_group, code, name } = newVendor;
-    if (!name || name == "") {
-      return showToast("Please Select a vendor");
-    } else if (!code || code == "") {
-      return showToast("Please Select a vendor"); 
-    } else if (!sub_group || sub_group == "") {
-      return showToast("Please Select a Sub Group"); 
-    } else if (!gst || gst == "") {
-      return showToast("Please Select GST Apply"); 
-    } else if (!tds || tds == "") {
-      return showToast("Please Select TDS Apply"); 
+    if (!name || !code || !sub_group || !gst || !tds) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     setLoading(true);
     const response = await imsAxios.post("/tally/ledger/addVendorLedger", {
       ...newVendor,
-      sub_group: sub_group,
+      code: code?.value ?? code,
+      sub_group: sub_group?.value ?? sub_group,
       gst: gst,
       tds: tds,
       status: status,
@@ -107,6 +96,7 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
     }
   };
   const vendorReset = () => {
+    setIsValid(false);
     setNewVendor({
       name: "",
       code: "",
@@ -144,6 +134,8 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
                 loadOptions={getVendors}
                 optionsState={asyncOptions}
                 placeholder="Select Vendor..."
+                showError={isValid}
+                message="Please select a Vendor"
               />
               {/* <Input
             size="default"
@@ -169,12 +161,14 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
                 </span>
               }
             >
-              <Input
-                size="default"
+              <Field
+                attr="required | Vendor Name is required"
                 value={newVendor.name}
+                showValidation={isValid}
                 onChange={(e) => vendorInputHander("name", e.target.value)}
-                placeholder="Enter New Vendor Name.."
-              />
+              >
+                <Input size="default" placeholder="Enter New Vendor Name.." />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -229,6 +223,9 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
                 loadOptions={getSubGroupSelect}
                 optionsState={asyncOptions}
                 placeholder="Select Sub Group..."
+                labelInValue
+                showError={isValid}
+                message="Please select a Sub Group"
               />
             </Form.Item>
           </Form>
@@ -255,6 +252,8 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
                 onChange={(value) => {
                   vendorInputHander("gst", value);
                 }}
+                showError={isValid}
+                message="Please select GST Apply"
               />
             </Form.Item>
           </Form>
@@ -278,6 +277,8 @@ function MapVendor({ options, statusOptions, getLedgerList }) {
                   vendorInputHander("tds", value);
                 }}
                 options={options}
+                showError={isValid}
+                message="Please select TDS Apply"
               />
             </Form.Item>
           </Form>
