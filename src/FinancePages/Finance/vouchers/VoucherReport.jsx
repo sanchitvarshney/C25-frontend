@@ -16,6 +16,7 @@ import {
   DownloadOutlined,
   PrinterFilled,
   EyeFilled,
+  // DeleteFilled,
   EditFilled,
 } from "@ant-design/icons";
 import EditBankVoucher from "./EditBankVoucher";
@@ -24,6 +25,7 @@ import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 export default function VoucherReport() {
   const { showToast } = useToast();
@@ -38,9 +40,8 @@ export default function VoucherReport() {
   const [voucherType, setVoucherType] = useState("");
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
-  // console.log(voucherType);
-  // const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [editVoucher, setEditVoucher] = useState(null);
 
   const wiseOptions = [
@@ -50,6 +51,13 @@ export default function VoucherReport() {
     { value: "ledger_wise", text: "Ledger" },
   ];
   const getRows = async () => {
+    const isDateMode = wise === "date_wise" || wise === "eff_wise";
+    if (isDateMode ? !searchDateRange : !searchInput) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     let link = "";
     if (voucherType === "bank-payment") {
       link = "/tally/voucher/bp_list";
@@ -60,10 +68,7 @@ export default function VoucherReport() {
     setSearchLoading(true);
     const response = await imsAxios.post(link, {
       wise: wise,
-      data:
-        wise === "date_wise" || wise === "eff_wise"
-          ? searchDateRange
-          : searchInput,
+      data: isDateMode ? searchDateRange : (searchInput?.value ?? searchInput),
     });
     setLoading(false);
     setSearchLoading(false);
@@ -90,13 +95,13 @@ export default function VoucherReport() {
       width: 150,
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={"delete"}
+          key={"view"}
           icon={<EyeFilled className="view-icon" />}
           onClick={() => setDetailVoucherId(row.module_used)}
           label="Delete"
         />,
         <GridActionsCellItem
-        key={"print"}
+          key={"print"}
           icon={<PrinterFilled className="view-icon" />}
           onClick={() => {
             printFun(row.module_used);
@@ -104,7 +109,7 @@ export default function VoucherReport() {
           label="Delete"
         />,
         <GridActionsCellItem
-        key={"download"}
+          key={"del"}
           icon={<CloudDownloadOutlined className="view-icon" />}
           onClick={() => {
             handleDownload(row.module_used);
@@ -112,7 +117,7 @@ export default function VoucherReport() {
           label="Delete"
         />,
         <GridActionsCellItem
-        key={"edit"}
+          key={"edit"}
           disabled={row.status == "Deleted"}
           icon={
             <EditFilled
@@ -249,22 +254,7 @@ export default function VoucherReport() {
       width: 100,
     },
   ];
-  // const deleteFun = async () => {
-  //   setLoading(true);
-  //   if (deleteConfirm) {
-  //     const response = await imsAxios.post("/tally/voucher/bank_delete", {
-  //       b_code: deleteConfirm,
-  //     });
-  //     setLoading(false);
-  //     if (response.success) {
-  //       setDeleteConfirm(null);
-  //       showToast(response.message, "success");
-  //       getRows();
-  //     } else {
-  //       showToast(response.message?.msg || response.message, "error");
-  //     }
-  //   }
-  // };
+
   const printFun = async (id) => {
     setLoading(true);
     let link = "";
@@ -298,7 +288,7 @@ export default function VoucherReport() {
       v_code: id,
     });
 
-    downloadFunction(response?.data.buffer.data, filename);
+    downloadFunction(response.data.buffer.data, filename);
 
     setLoading(false);
   };
@@ -317,6 +307,11 @@ export default function VoucherReport() {
       setAsyncOptions([]);
     }
   };
+  useEffect(() => {
+    setSearchInput("");
+    setSearchDateRange("");
+    setIsValid(false);
+  }, [wise]);
   useEffect(() => {
     if (pathname.includes("payment")) {
       setVoucherType("bank-payment");
@@ -337,9 +332,7 @@ export default function VoucherReport() {
         detailVoucherId={detailVoucherId}
         setDetailVoucherId={setDetailVoucherId}
       />
-      <Row
-        justify="space-between"
-      >
+      <Row justify="space-between">
         <div className="left">
           <Space>
             <div style={{ width: 250 }}>
@@ -358,21 +351,30 @@ export default function VoucherReport() {
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : wise === "key_wise" ? (
-                <Input
-                  size="default"
-                  type="text"
-                  placeholder="Enter Voucher Number"
+                <Field
+                  attr="required | Please enter a Voucher Number"
                   value={searchInput}
+                  showValidation={isValid}
                   onChange={(e) => setSearchInput(e.target.value)}
-                />
+                >
+                  <Input
+                    size="default"
+                    type="text"
+                    placeholder="Enter Voucher Number"
+                  />
+                </Field>
               ) : wise === "eff_wise" ? (
                 <MyDatePicker
                   size="default"
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : (
                 wise === "ledger_wise" && (
@@ -384,21 +386,15 @@ export default function VoucherReport() {
                     value={searchInput}
                     placeholder="Select Account.."
                     onChange={setSearchInput}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select an Account"
                   />
                 )
               )}
             </div>
 
             <MyButton
-              disabled={
-                wise === "date_wise" || wise === "eff_wise"
-                  ? searchDateRange === ""
-                    ? true
-                    : false
-                  : !searchInput
-                  ? true
-                  : false
-              }
               loading={searchLoading}
               type="primary"
               onClick={getRows}
@@ -421,7 +417,7 @@ export default function VoucherReport() {
         </Space>
       </Row>
 
-      <div style={{ height:"calc(100% - 50px)",marginTop: 10 }}>
+      <div style={{ height: "calc(100% - 50px)", marginTop: 10 }}>
         <MyDataTable
           // export={true}
           loading={loading}

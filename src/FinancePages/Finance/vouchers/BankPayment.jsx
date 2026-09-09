@@ -4,16 +4,17 @@ import NavFooter from "../../../Components/NavFooter";
 import { useToast } from "../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Card, Col, DatePicker, Form, Input, Modal, Row } from "antd";
+import { Card, Col, Form, Input, Modal, Row } from "antd";
 import MySelect from "../../../Components/MySelect";
 import SummaryCard from "../../../Components/SummaryCard";
 import { imsAxios } from "../../../axiosInterceptor";
 import Loading from "../../../Components/Loading";
-import dayjs from "dayjs";
 import useApi from "../../../hooks/useApi.ts";
 import { getProjectOptions } from "../../../api/general.ts";
 import FormTable from "../../../Components/FormTable.jsx";
 import { Add, Delete } from "@mui/icons-material";
+import Field from "../../../Components/Field.jsx";
+import SingleDatePicker from "../../../Components/SingleDatePicker";
 
 export default function BankPayment() {
   const { showToast } = useToast();
@@ -38,6 +39,8 @@ export default function BankPayment() {
     totalINR: 0,
     totalForeign: 0,
   });
+  const [isValid, setIsValid] = useState(false);
+  const [effectiveDate, setEffectiveDate] = useState("");
 
   const { executeFun, loading: loading1 } = useApi();
   const [bankPaymentForm] = Form.useForm();
@@ -114,6 +117,9 @@ export default function BankPayment() {
             loadOptions={getLedger}
             optionsState={asyncOptions}
             placeholder="Select Ledger.."
+            labelInValue
+            showError={isValid}
+            message="Ledger is required"
           />
         </div>
       ),
@@ -122,15 +128,22 @@ export default function BankPayment() {
       headerName: "Debit",
       width: 150,
       renderCell: ({ row }) => (
-        <Input
+        <Field
+          attr="required | Debit is required"
           value={row.debit}
-          disabled={row.currency !== "364907247"}
-          onChange={(e) => {
-            inputHandler("debit", e.target.value, row.id);
-          }}
-          placeholder="0"
-          type="number"
-        />
+          showValidation={isValid}
+          treatZeroAsEmpty
+        >
+          <Input
+            value={row.debit}
+            disabled={row.currency !== "364907247"}
+            onChange={(e) => {
+              inputHandler("debit", e.target.value, row.id);
+            }}
+            placeholder="0"
+            type="number"
+          />
+        </Field>
       ),
     },
     {
@@ -209,7 +222,7 @@ export default function BankPayment() {
       search: search,
     });
     setSelectLoading(false);
-    const arr = response?.data.map((row) => {
+    const arr = response.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);
@@ -274,78 +287,70 @@ export default function BankPayment() {
     });
     setBankPaymentRows(arr);
   };
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((r) => !r.glCode || !r.debit);
+
   const validateHandler = async () => {
-    let values = await bankPaymentForm.validateFields();
-    values.effectveDate = dayjs(values.effectveDate).format("DD-MM-YYYY");
+    let values;
+    try {
+      values = await bankPaymentForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    if (!effectiveDate || hasIncompleteRow(bankPaymentRows)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    values.account = values.account?.value ?? values.account;
+    values.effectveDate = effectiveDate;
     setShowSubmitConfirmModal(values);
   };
   const submitHandler = async () => {
-    let validating = { status: true, message: "" };
-    let gls = [];
-    let debit = [];
-    let comment = [];
-    let currency = [];
-    let exchangeRate = [];
+    const gls = bankPaymentRows.map(
+      (row) => row.glCode?.value ?? row.glCode ?? "",
+    );
+    const debit = bankPaymentRows.map((row) => row.debit);
+    const comment = bankPaymentRows.map((row) => row.comment);
+    const currency = bankPaymentRows.map((row) => row.currency);
+    const exchangeRate = bankPaymentRows.map((row) => row.exchangeRate);
 
-    bankPaymentRows.map((row) => {
-      if (row.gls == "") {
-        validating = {
-          status: false,
-          message: "GLS is required in all the fields",
-        };
-      } else if (row.debit == "") {
-        validating = {
-          status: false,
-          message: "Debit is required in all the fields",
-        };
-      }
-
-      if (validating) {
-        gls.push(row.glCode ? row.glCode : "");
-        debit.push(row.debit);
-        comment.push(row.comment);
-        currency.push(row.currency);
-        exchangeRate.push(row.exchangeRate);
-      }
+    setLoading("submit");
+    const response = await imsAxios.post("/tally/voucher/insert_bp", {
+      gls: gls,
+      debit: debit,
+      comment: comment,
+      currency_type: currency,
+      exchange_rate: exchangeRate,
+      account: showSubmitConfirmModal.account,
+      effective_date: showSubmitConfirmModal.effectveDate,
+      project_code: showSubmitConfirmModal.project ?? "--",
     });
-    if (validating.status == false) {
-      showToast(validating.message, "error");
-    } else if (validating.status == true) {
-      setLoading("submit");
-      const response = await imsAxios.post("/tally/voucher/insert_bp", {
-        gls: gls,
-        debit: debit,
-        comment: comment,
-        currency_type: currency,
-        exchange_rate: exchangeRate,
-        account: showSubmitConfirmModal.account,
-        effective_date: showSubmitConfirmModal.effectveDate,
-        project_code: showSubmitConfirmModal.project ?? "--",
-      });
-      setShowSubmitConfirmModal(false);
-      setLoading(false);
-      const { data } = response;
-      if (data) {
-        if (response.success) {
-          resetFunction();
-          showToast(response.message, "success");
-        } else {
-          showToast(response.message?.msg || response.message, "error");
-        }
+    setShowSubmitConfirmModal(false);
+    setLoading(false);
+    const { data } = response;
+    if (data) {
+      if (response.success) {
+        resetFunction();
+        showToast(response.message, "success");
+      } else {
+        showToast(response.message?.msg || response.message, "error");
       }
     }
   };
   const resetFunction = () => {
+    setIsValid(false);
+    setEffectiveDate("");
     let obj = {
       account: "",
-      effectveDate: "",
       project: "",
     };
     setBankPaymentRows([
       {
         id: v4(),
         glCode: "",
-        credit: "",
+        debit: "",
         comment: "",
         currency: "364907247",
         exchangeRate: 1,
@@ -425,7 +430,7 @@ export default function BankPayment() {
                         rules={[
                           {
                             required: true,
-                            message: "Select Account",
+                            message: "",
                           },
                         ]}
                       >
@@ -434,23 +439,19 @@ export default function BankPayment() {
                           optionsState={asyncOptions}
                           onBlur={() => setAsyncOptions([])}
                           loadOptions={getHeaderAccount}
+                          labelInValue
+                          showError={isValid}
+                          message="Select Account"
                         />
                       </Form.Item>
                     </Col>
                     <Col span={24}>
-                      <Form.Item
-                        label="Effective Date"
-                        name="effectveDate"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Select Effective Date",
-                          },
-                        ]}
-                      >
-                        <DatePicker
-                          format="DD-MM-YYYY"
-                          style={{ width: "100%" }}
+                      <Form.Item label="Effective Date">
+                        <SingleDatePicker
+                          setDate={setEffectiveDate}
+                          value={effectiveDate}
+                          showError={isValid}
+                          message="Select Effective Date"
                         />
                       </Form.Item>
                     </Col>
