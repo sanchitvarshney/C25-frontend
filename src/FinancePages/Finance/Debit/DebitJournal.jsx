@@ -1,13 +1,14 @@
-import  { useState } from "react";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import {  Col, Input, Row } from "antd";
+import { Col, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
+import Field from "../../../Components/Field.jsx";
 
 export default function JournalPosting() {
   const { showToast } = useToast();
@@ -35,6 +36,7 @@ export default function JournalPosting() {
 
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const addRows = () => {
     let dummy = [];
@@ -209,6 +211,8 @@ export default function JournalPosting() {
               optionsState={asyncOptions}
               loadOptions={getLedger}
               placeholder="Select G/L..."
+              showError={isValid}
+              message="G/L is required"
             />
           </div>
         ),
@@ -230,14 +234,23 @@ export default function JournalPosting() {
               type="number"
             />
           ) : (
-            <Input
-              value={row.debit}
-              fun={inputHandler}
-              onChange={(e) => inputHandler("debit", e.target.value, row.id)}
-              disabled={row.credit?.length > 0}
-              inputType="number"
-              type="number"
-            />
+            <Field
+              attr="required | Debit or Credit is required"
+              value={row.debit || row.credit}
+              showValidation={isValid}
+              treatZeroAsEmpty
+            >
+              <Input
+                value={row.debit}
+                fun={inputHandler}
+                onChange={(e) =>
+                  inputHandler("debit", e.target.value, row.id)
+                }
+                disabled={row.credit?.length > 0}
+                inputType="number"
+                type="number"
+              />
+            </Field>
           )}
         </>
       ),
@@ -250,16 +263,32 @@ export default function JournalPosting() {
       flex: 1,
       sortable: false,
       // width: "10vw",
-      renderCell: ({ row }) => (
-        <Input
-          // size="small"
-          value={row.total ? creditTotal.toFixed(2) : row.credit}
-          onChange={(e) => inputHandler("credit", e.target.value, row.id)}
-          disabled={row.total || row.debit?.length > 0}
-          inputType="number"
-          type="number"
-        />
-      ),
+      renderCell: ({ row }) =>
+        row.total ? (
+          <Input
+            value={creditTotal.toFixed(2)}
+            disabled
+            inputType="number"
+            type="number"
+          />
+        ) : (
+          <Field
+            attr="required | Debit or Credit is required"
+            value={row.debit || row.credit}
+            showValidation={isValid}
+            treatZeroAsEmpty
+          >
+            <Input
+              value={row.credit}
+              onChange={(e) =>
+                inputHandler("credit", e.target.value, row.id)
+              }
+              disabled={row.debit?.length > 0}
+              inputType="number"
+              type="number"
+            />
+          </Field>
+        ),
     },
     {
       headerName: "Comment",
@@ -279,10 +308,21 @@ export default function JournalPosting() {
         ),
     },
   ];
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (r) => !r.total && (!r.glCode || (!r.debit && !r.credit)),
+    );
+
   const submitHandler = async () => {
-    if (!journalDate) {
-      return showToast("Please select Effective date", "error");
+    if (!journalDate || hasIncompleteRow(journalRows)) {
+      setIsValid(true);
+      return;
     }
+    if (Number(creditTotal) !== Number(debitTotal)) {
+      return showToast("Debit total and Credit total does not match", "error");
+    }
+    setIsValid(false);
+
     let finalObj = {
       effective_date: journalDate,
       gl_code: [],
@@ -290,41 +330,33 @@ export default function JournalPosting() {
       debit: [],
       comment: [],
     };
-    let problem = null;
-    journalRows.map((row, index) => {
-      if (row.glCode == "") {
-        problem = "gl_code";
-      } else {
-        if (index < journalRows.length - 1) {
-          finalObj = {
-            ...finalObj,
-            gl_code: [...finalObj.gl_code, row.glCode.value],
-            credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
-            debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
-            comment: [...finalObj.comment, row.comment],
-          };
-        }
+    journalRows.forEach((row, index) => {
+      if (index < journalRows.length - 1) {
+        finalObj = {
+          ...finalObj,
+          gl_code: [...finalObj.gl_code, row.glCode?.value ?? row.glCode],
+          credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
+          debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
+          comment: [...finalObj.comment, row.comment],
+        };
       }
     });
-    if (!problem) {
-      setLoading(true);
-      const response = await imsAxios.post("/tally/dv/createDebitVoucher", {
-        ...finalObj,
-      });
-      setLoading(false);
-      if (response.success) {
-        resetHandler();
-        showToast(response.message, "success");
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
+
+    setLoading(true);
+    const response = await imsAxios.post("/tally/dv/createDebitVoucher", {
+      ...finalObj,
+    });
+    setLoading(false);
+    if (response.success) {
+      resetHandler();
+      showToast(response.message, "success");
     } else {
-      if (problem == "gl_code") {
-        return showToast("All entries should have a gl_code", "error");
-      }
+      showToast(response.message?.msg || response.message, "error");
     }
   };
   const resetHandler = () => {
+    setIsValid(false);
+    setJournalDate("");
     setJounralRows([
       {
         id: v4(),
@@ -344,7 +376,6 @@ export default function JournalPosting() {
     ]);
     setDebitTotal(0);
     setCreditTotal(0);
-    // setJournalDate("");
   };
   return (
     <div style={{ height: "92%", padding: 10 }}>
@@ -361,7 +392,9 @@ export default function JournalPosting() {
                 <SingleDatePicker
                   setDate={setJournalDate}
                   placeholder="Select Effective Date.."
-                  selectedDate={journalDate}
+                  value={journalDate}
+                  showError={isValid}
+                  message="Please select Effective date"
                 />
               </Col>
             </Row>
