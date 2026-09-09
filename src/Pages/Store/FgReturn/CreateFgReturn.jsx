@@ -8,6 +8,8 @@ import { imsAxios } from "../../../axiosInterceptor";
 import MySelect from "../../../Components/MySelect";
 import { useToast } from "../../../hooks/useToast.js";
 import Field from "../../../Components/Field.jsx";
+import FgReturnRedirectNotice from "./FgReturnRedirectNotice.jsx";
+
 function CreateFgReturn() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -116,6 +118,7 @@ function CreateFgReturn() {
 
   return (
     <div style={{ height: "90%", margin:20}}>
+       <FgReturnRedirectNotice />
       <Row gutter={10} >
         <Form form={fgReturn} layout="vertical">
           <Row>
