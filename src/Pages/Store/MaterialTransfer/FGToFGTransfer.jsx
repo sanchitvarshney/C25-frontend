@@ -13,7 +13,7 @@ import Field from "../../../Components/Field.jsx";
 import MySelect from "../../../Components/MySelect.jsx";
 const { TextArea } = Input;
 
-const DROP_LOCATION_REQUIRES_BOM = "1788772282956";
+const DROP_LOCATION_REQUIRES_BOM = "1788943506425";
 
 function FGToFGTransfer() {
   const [loading, setLoading] = useState(false);
