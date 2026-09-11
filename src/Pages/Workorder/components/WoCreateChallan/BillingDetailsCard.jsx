@@ -1,13 +1,12 @@
-import { Card, Form, Input, Col } from "antd"
+import { Card, Form, Input, Col } from "antd";
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field.jsx";
 
-const BillingDetailsCard = ({ form, setaddid, addoptions }) => {
-
+const BillingDetailsCard = ({ form, setaddid, addoptions, isValid }) => {
   const handleaddress = (e) => {
     setaddid(true);
     addoptions.map((item) => {
       if (item.value === e) {
-        // console.log("");
         form.setFieldValue("billingaddress", item.address);
       }
     });
@@ -23,23 +22,31 @@ const BillingDetailsCard = ({ form, setaddid, addoptions }) => {
         <Form.Item
           name="billingid"
           label="Select billing Address"
-          rules={[
-            { required: true, message: "Please select billing Address!" },
-          ]}
+          rules={[{ required: true, message: "" }]}
         >
-          <MySelect
-            options={addoptions}
-            onChange={(e) => {
-              handleaddress(e);
-            }}
-          />
+          <Field
+            attr="required | Please select billing Address!"
+            showValidation={isValid}
+          >
+            <MySelect
+              options={addoptions}
+              onChange={(e) => {
+                handleaddress(e);
+              }}
+            />
+          </Field>
         </Form.Item>
         <Form.Item
           name="billingaddress"
           label="Complete Address"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "" }]}
         >
-          <Input.TextArea rows={3} />
+          <Field
+            attr="required | Please enter Complete Address"
+            showValidation={isValid}
+          >
+            <Input.TextArea rows={3} />
+          </Field>
         </Form.Item>
       </Card>
     </Col>

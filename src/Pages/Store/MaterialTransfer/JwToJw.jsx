@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import {
   Col,
@@ -26,11 +26,13 @@ import { v4 } from "uuid";
 import Spreadsheet from "react-spreadsheet";
 import { customColor } from "../../../utils/customColor.js";
 import { Add, Delete } from "@mui/icons-material";
+import Field from "../../../Components/Field.jsx";
 const { TextArea } = Input;
 
 function JwToJw() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [allData, setAllData] = useState({
     jwVendor: "",
     jwPo: "",
@@ -54,12 +56,14 @@ function JwToJw() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [vendorAsyncOptions, setVendorAsyncOptions] = useState([]);
   const [locDataTo, setloctionDataTo] = useState([]);
-  // const [seacrh, setSearch] = useState(null);
   const [csvUploading, setCsvUploading] = useState(false);
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [showExcelWarning, setShowExcelWarning] = useState(false);
   const [addRowCount, setAddRowCount] = useState("");
   const [hoveredRow, setHoveredRow] = useState(null);
+  const [loadingVendor, setLoadingVendor] = useState(false);
+  const [loadingVendorDependent, setLoadingVendorDependent] = useState(false);
+  const [loadingComponent, setLoadingComponent] = useState(false);
 
   // react-spreadsheet data format: array of rows, each row is array of cell objects with { value: "" }
   const createEmptySpreadsheetData = (rowCount = 10) => {
@@ -104,6 +108,7 @@ function JwToJw() {
   const getJwVendorOptions = async (search) => {
     if (search?.length > 2) {
       try {
+        setLoadingVendor(true);
         const response = await imsAxios.post("/backend/vendorList", {
           search: search,
         });
@@ -113,7 +118,12 @@ function JwToJw() {
         }
         setVendorAsyncOptions(v);
       } catch (error) {
-        console.error("Error fetching JW Vendor list:", error);
+        showToast(
+          error?.response?.data?.message || "Failed to fetch vendors",
+          "error",
+        );
+      } finally {
+        setLoadingVendor(false);
       }
     }
   };
@@ -143,7 +153,10 @@ function JwToJw() {
       }
       setJwPoOptions(v);
     } catch (error) {
-      console.error("Error fetching JW PO list:", error);
+      showToast(
+        error?.response?.data?.message || "Failed to fetch JW PO list",
+        "error",
+      );
     }
   };
 
@@ -153,21 +166,47 @@ function JwToJw() {
   };
 
   const getLocationFunctionTo = async (vendorId) => {
-    const response = await imsAxios.get(
-      `/backend/fetchVendorJWLocation?vendor=${vendorId}`,
-    );
-    let v = [];
-    if (response?.data && Array.isArray(response.data)) {
-      response.data.map((ad) => v.push({ label: ad.text, value: ad.id }));
+    try {
+      const response = await imsAxios.get(
+        `/backend/fetchVendorJWLocation?vendor=${vendorId}`,
+      );
+      let v = [];
+      if (response?.data && Array.isArray(response.data)) {
+        response.data.map((ad) => v.push({ label: ad.text, value: ad.id }));
+      }
+      setloctionDataTo(v);
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to fetch drop locations",
+        "error",
+      );
     }
-    setloctionDataTo(v);
+  };
+
+  const handleVendorChange = async (selected) => {
+    setAllData((allData) => {
+      return { ...allData, jwVendor: selected, jwPo: "" };
+    });
+    const vendorId = selected?.key;
+    if (!vendorId) return;
+
+    setLoadingVendorDependent(true);
+    try {
+      await Promise.all([
+        getJwPoOptions(vendorId),
+        getLocationFunctionTo(vendorId),
+      ]);
+    } finally {
+      setLoadingVendorDependent(false);
+    }
   };
 
   const getComponentList = async (e) => {
     if (e?.length > 2 && allData.jwPo) {
       try {
+        setLoadingComponent(true);
         const response = await imsAxios.get(
-          `/godown/transfer/jw-jw/stock?part=${e}&jw=${allData.jwPo}&vendor=${allData.jwVendor}`,
+          `/godown/transfer/jw-jw/stock?part=${e}&jw=${allData.jwPo}&vendor=${allData.jwVendor?.key || allData.jwVendor}`,
         );
 
         if (response?.success && response?.data) {
@@ -182,91 +221,110 @@ function JwToJw() {
           }));
           setAsyncOptions(arr);
         }
-      } catch (err) {
-        console.error("Error fetching components:", err);
+      } catch (error) {
+        showToast(
+          error?.response?.data?.message || "Failed to fetch components",
+          "error",
+        );
+      } finally {
+        setLoadingComponent(false);
       }
     }
   };
 
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((row) => {
+      const componentValue = row.component?.value || row.component;
+      return !componentValue || !row.qty1 || Number(row.qty1) <= 0;
+    });
+
   const saveJwToJw = async () => {
     // Validations
-    if (!allData.jwVendor) {
-      return showToast("Please select JW Vendor", "error");
+    if (
+      !allData.jwVendor ||
+      !allData.jwPo ||
+      !allData.locationFrom ||
+      !allData.locationTo ||
+      hasIncompleteRow(rows)
+    ) {
+      setIsValid(true);
+      return;
     }
 
-    if (!allData.jwPo) {
-      return showToast("Please select JW PO", "error");
+    if (allData.locationTo == allData.locationFrom) {
+      return showToast("Both Location Same", "error");
     }
-
-    if (!allData.locationFrom) {
-      return showToast("Please select Pick Location", "error");
-    }
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const componentValue = row.component?.value || row.component;
-      if (!componentValue) {
-        return showToast(`Row ${i + 1}: Please select Component`, "error");
-      }
-      if (!row.qty1) {
-        return showToast(`Row ${i + 1}: Please enter Qty`, "error");
-      }
-      if (!allData.locationTo) {
-        return showToast("Please select Drop Location", "error");
-      }
-      if (allData.locationTo == allData.locationFrom) {
-        return showToast("Both Location Same", "error");
-      }
-    }
-
-    setLoading(true);
 
     // Prepare arrays for payload - extract value from object if needed
     const components = rows.map((row) => row.component?.value || row.component);
     const qtys = rows.map((row) => row.qty1);
 
-    const response = await imsAxios.post("/godown/transfer/jw-jw/transfer", {
-      vendor: allData.jwVendor,
-      jw: allData.jwPo,
-      from: allData.locationFrom,
-      component: components,
-      to: allData.locationTo,
-      qty: qtys,
-      remark: allData.remark,
-    });
+    const seen = new Set();
+    for (let i = 0; i < components.length; i++) {
+      if (seen.has(components[i])) {
+        return showToast(`Row ${i + 1}: Duplicate component`, "error");
+      }
+      seen.add(components[i]);
+    }
 
-    if (response.success) {
-      showToast(
-        response.message.toString()?.replaceAll("<br/>", ""),
-        "success",
-      );
-      // Reset form
-      setAllData({
-        jwVendor: "",
-        jwPo: "",
-        locationFrom: "202102201753",
-        locationTo: "",
-        remark: "",
+    if (allData.remark && allData.remark.trim().length > 100) {
+      return showToast("Remarks should not exceed 100 characters", "error");
+    }
+
+    setIsValid(false);
+    setLoading(true);
+
+    try {
+      const response = await imsAxios.post("/godown/transfer/jw-jw/transfer", {
+        vendor: allData.jwVendor?.key || allData.jwVendor,
+        jw: allData.jwPo,
+        from: allData.locationFrom,
+        component: components,
+        to: allData.locationTo,
+        qty: qtys,
+        remark: allData.remark,
       });
-      setJwPoOptions([]);
-      setRows([
-        {
-          id: v4(),
-          component: null,
-          qty1: "",
-          stockQty: "",
-          unit: "",
-        },
-      ]);
-      setLoading(false);
-    } else {
-      showToast(response?.message, "error");
+
+      if (response.success) {
+        showToast(
+          response.message.toString()?.replaceAll("<br/>", ""),
+          "success",
+        );
+        // Reset form
+        setIsValid(false);
+        setAllData({
+          jwVendor: "",
+          jwPo: "",
+          locationFrom: "202102201753",
+          locationTo: "",
+          remark: "",
+        });
+        setJwPoOptions([]);
+        setRows([
+          {
+            id: v4(),
+            component: null,
+            qty1: "",
+            stockQty: "",
+            unit: "",
+          },
+        ]);
+      } else {
+        showToast(response?.message, "error");
+      }
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to transfer material",
+        "error",
+      );
+    } finally {
       setLoading(false);
     }
   };
 
   const reset = async (e) => {
     e.preventDefault();
+    setIsValid(false);
     setAllData({
       jwVendor: "",
       jwPo: "",
@@ -427,51 +485,55 @@ function JwToJw() {
           <Card>
             <Row gutter={0}>
               <Col span={24} style={{ marginBottom: "10px" }}>
-                <span>SELECT JW VENDOR</span>
+                <span>JW Vendor</span>
               </Col>
               <Col span={24}>
                 <MyAsyncSelect
                   placeholder="Type to search vendor..."
                   style={{ width: "100%" }}
                   optionsState={vendorAsyncOptions}
-                  loadOptions={getJwVendorOptions}
-                  onBlur={() => setVendorAsyncOptions([])}
+                  labelInValue
+                  showError={isValid}
                   value={allData.jwVendor || undefined}
-                  onChange={(e) => {
-                    setAllData((allData) => {
-                      return { ...allData, jwVendor: e, jwPo: "" };
-                    });
-                    getJwPoOptions(e);
-                    getLocationFunctionTo(e);
-                  }}
+                  message="Please select a vendor"
+                  loadOptions={getJwVendorOptions}
+                  selectLoading={loadingVendor}
+                  onBlur={() => setVendorAsyncOptions([])}
+                  onChange={handleVendorChange}
                 />
               </Col>
               <Col
                 span={24}
                 style={{ marginTop: "15px", marginBottom: "10px" }}
               >
-                <span>SELECT JW PO</span>
+                <span>JW PO</span>
               </Col>
               <Col span={24}>
-                <Select
-                  placeholder="Please Select JW PO"
-                  style={{ width: "100%" }}
-                  options={jwPoOptions}
-                  showSearch
-                  optionLabelProp="title"
-                  filterOption={(input, option) =>
-                    (option?.searchText ?? option?.value ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
+                <Field
+                  attr="required | Please select JW PO"
                   value={allData.jwPo || undefined}
-                  disabled={!allData.jwVendor}
-                  onChange={(e) =>
-                    setAllData((allData) => {
-                      return { ...allData, jwPo: e };
-                    })
-                  }
-                />
+                  showValidation={isValid}
+                >
+                  <Select
+                    placeholder="Please Select JW PO"
+                    style={{ width: "100%" }}
+                    options={jwPoOptions}
+                    showSearch
+                    optionLabelProp="title"
+                    filterOption={(input, option) =>
+                      (option?.searchText ?? option?.value ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    disabled={!allData.jwVendor || loadingVendorDependent}
+                    loading={loadingVendorDependent}
+                    onChange={(e) =>
+                      setAllData((allData) => {
+                        return { ...allData, jwPo: e };
+                      })
+                    }
+                  />
+                </Field>
               </Col>
               <Col
                 span={24}
@@ -480,29 +542,34 @@ function JwToJw() {
                 <span>Pick Location</span>
               </Col>
               <Col span={24}>
-                <Select
-                  placeholder="Please Select Location"
-                  style={{ width: "100%" }}
-                  options={locData}
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
+                <Field
+                  attr="required | Please select Pick Location"
                   value={allData.locationFrom || undefined}
-                  onChange={(e) =>
-                    setAllData((allData) => {
-                      return { ...allData, locationFrom: e };
-                    })
-                  }
-                />
+                  showValidation={isValid}
+                >
+                  <Select
+                    placeholder="Please Select Location"
+                    style={{ width: "100%" }}
+                    options={locData}
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    onChange={(e) =>
+                      setAllData((allData) => {
+                        return { ...allData, locationFrom: e };
+                      })
+                    }
+                  />
+                </Field>
               </Col>
               <Col
                 span={24}
                 style={{ marginTop: "15px", marginBottom: "10px" }}
               >
-                <span>REMARK</span>
+                <span>Remark</span>
               </Col>
               <Col span={24}>
                 <TextArea
@@ -520,26 +587,33 @@ function JwToJw() {
                 span={24}
                 style={{ marginTop: "15px", marginBottom: "10px" }}
               >
-                <span>SELECT DROP LOCATION</span>
+                <span>Drop Location</span>
               </Col>
               <Col span={24}>
-                <Select
-                  style={{ width: "100%" }}
-                  options={locDataTo}
+                <Field
+                  attr="required | Please select Drop Location"
                   value={allData.locationTo || undefined}
-                  placeholder="Select Location"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  onChange={(e) => {
-                    setAllData((allData) => {
-                      return { ...allData, locationTo: e };
-                    });
-                  }}
-                />
+                  showValidation={isValid}
+                >
+                  <Select
+                    style={{ width: "100%" }}
+                    options={locDataTo}
+                    placeholder="Select Location"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    disabled={loadingVendorDependent}
+                    loading={loadingVendorDependent}
+                    onChange={(e) => {
+                      setAllData((allData) => {
+                        return { ...allData, locationTo: e };
+                      });
+                    }}
+                  />
+                </Field>
               </Col>
             </Row>
           </Card>
@@ -629,12 +703,14 @@ function JwToJw() {
                             <MyAsyncSelect
                               style={{ width: "100%" }}
                               loadOptions={getComponentList}
+                              selectLoading={loadingComponent}
                               onBlur={() => setAsyncOptions([])}
-                              // onInputChange={(e) => setSearch(e)}
                               placeholder="Part Name/Code"
                               value={row.component}
                               optionsState={asyncOptions}
                               labelInValue={true}
+                              showError={isValid}
+                              message="Please select Component"
                               disabled={!allData.jwPo}
                               onChange={(selected) => {
                                 // Find selected option to get unit and stock
@@ -665,29 +741,35 @@ function JwToJw() {
                             </span>
                           </td>
                           <td style={{ width: "15vw" }}>
-                            <Input
-                              type="number"
+                            <Field
+                              attr="required | Qty should be greater than zero!"
                               value={row.qty1}
-                              onChange={(e) => {
-                                setRows((prev) => {
-                                  const updated = [...prev];
-                                  updated[index] = {
-                                    ...updated[index],
-                                    qty1: e.target.value,
-                                  };
-                                  return updated;
-                                });
-                              }}
-                              suffix={row.unit || ""}
-                              style={{
-                                backgroundColor:
-                                  row.qty1 &&
-                                  row.stockQty &&
-                                  Number(row.qty1) > Number(row.stockQty)
-                                    ? "#ffcccc"
-                                    : undefined,
-                              }}
-                            />
+                              treatZeroAsEmpty
+                              showValidation={isValid}
+                            >
+                              <Input
+                                type="number"
+                                suffix={row.unit || ""}
+                                style={{
+                                  backgroundColor:
+                                    row.qty1 &&
+                                    row.stockQty &&
+                                    Number(row.qty1) > Number(row.stockQty)
+                                      ? "#ffcccc"
+                                      : undefined,
+                                }}
+                                onChange={(e) => {
+                                  setRows((prev) => {
+                                    const updated = [...prev];
+                                    updated[index] = {
+                                      ...updated[index],
+                                      qty1: e.target.value,
+                                    };
+                                    return updated;
+                                  });
+                                }}
+                              />
+                            </Field>
                           </td>
                         </tr>
                       );

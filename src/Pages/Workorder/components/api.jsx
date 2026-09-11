@@ -8,7 +8,7 @@ import { v4 } from "uuid";
 ////////
 const getValueInArray = (arr, name) => {
   const updatedArr = arr.map((row) =>
-    row[name]?.value ?? row[name] === "" ? 0 : row[name] ?? "--"
+    (row[name]?.value ?? row[name] === "") ? 0 : (row[name] ?? "--"),
   );
   return updatedArr;
 };
@@ -78,33 +78,32 @@ const getWorkOrderAnalysis = async (wise, searchInput) => {
     wise,
     data: searchInput,
   });
- 
-    if (response?.success) {
-      const arr = response.data.map((row, index) => ({
-        id: index + 1,
-        date: row.date,
-        status: row.bom_recipe,
-        client: row.client,
-        clientCode: row.clientcode,
-        requiredQty: row.requiredqty,
-        productId: row.sku,
-        sku: row.skucode,
-        product: row.skuname,
-        transactionId: row.wo_sku_transaction,
-        bomid: row.bom_id,
-        shipaddress: row.shippingaddress,
-        billaddress: row.billingaddress,
-        clientaddress: row.clientaddress,
-        clientAddressId: row.clientAddressId,
-        // hsn: row.hsn_code,
-      }));
-      return arr;
-    } else {
-      const showToast = getGlobalToast();
-      if (showToast) showToast(response?.message, "error");
-      return [];
-    }
 
+  if (response?.success) {
+    const arr = response.data.map((row, index) => ({
+      id: index + 1,
+      date: row.date,
+      status: row.bom_recipe,
+      client: row.client,
+      clientCode: row.clientcode,
+      requiredQty: row.requiredqty,
+      productId: row.sku,
+      sku: row.skucode,
+      product: row.skuname,
+      transactionId: row.wo_sku_transaction,
+      bomid: row.bom_id,
+      shipaddress: row.shippingaddress,
+      billaddress: row.billingaddress,
+      clientaddress: row.clientaddress,
+      clientAddressId: row.clientAddressId,
+      // hsn: row.hsn_code,
+    }));
+    return arr;
+  } else {
+    const showToast = getGlobalToast();
+    if (showToast) showToast(response?.message, "error");
+    return [];
+  }
 };
 const postUpdatedWo = async (datas) => {
   const response = await imsAxios.post("/wo_challan/updateWO_Shipment", datas);
@@ -121,36 +120,36 @@ const getWorkOrderShipment = async (wise, searchInput) => {
     data: searchInput,
   });
 
-    if (response?.success) {
-      const arr = response.data.map((row, index) => ({
-        id: index + 1,
-        shipmentDt: row.shipment_dt,
-        woTransaction_Id: row.wo_transaction_id,
-        woshipmentId: row.shipment_id,
-        shipmentId: row.shipment_id,
-        sku: row.sku,
-        skuCode: row.sku_code,
-        client: row.client,
-        clientCode: row.client_code,
-        clientaddress: row.clientaddress,
-        client_add_id: row.client_add_id,
-        billingaddress: row.billingaddress,
-        billing_id: row.billing_id,
-        dispatchaddress: row.dispatchaddress,
-        dispatchId: row.dispatch_id,
-        wo_sku_name: row.wo_sku_name,
-        wo_order_qty: row.wo_order_qty,
-        wo_order_rate: row.wo_order_rate,
-        del_challan_status: row.del_challan_status,
-        shipment_status: row.shipment_status,
-      }));
-      return arr;
-    } else {
-      const showToast = getGlobalToast();
-      if (showToast) showToast(response.message?.msg || response.message, "error");
-      return [];
-    }
-
+  if (response?.success) {
+    const arr = response.data.map((row, index) => ({
+      id: index + 1,
+      shipmentDt: row.shipment_dt,
+      woTransaction_Id: row.wo_transaction_id,
+      woshipmentId: row.shipment_id,
+      shipmentId: row.shipment_id,
+      sku: row.sku,
+      skuCode: row.sku_code,
+      client: row.client,
+      clientCode: row.client_code,
+      clientaddress: row.clientaddress,
+      client_add_id: row.client_add_id,
+      billingaddress: row.billingaddress,
+      billing_id: row.billing_id,
+      dispatchaddress: row.dispatchaddress,
+      dispatchId: row.dispatch_id,
+      wo_sku_name: row.wo_sku_name,
+      wo_order_qty: row.wo_order_qty,
+      wo_order_rate: row.wo_order_rate,
+      del_challan_status: row.del_challan_status,
+      shipment_status: row.shipment_status,
+    }));
+    return arr;
+  } else {
+    const showToast = getGlobalToast();
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
+    return [];
+  }
 };
 
 ///
@@ -160,42 +159,42 @@ const getWorkOrderRC = async (wise, searchInput) => {
     {
       wise,
       data: searchInput,
-    }
+    },
   );
 
-    if (response.success) {
-      const arr = response.data.map((row, index) => ({
-        id: index + 1,
-        billingId: row.billing_id,
-        dispatchId: row.dispatch_id,
-        clientAddId: row.client_address_id,
-        shipmentDt: row.shipment_dt,
-        woTransaction_Id: row.wo_transaction_id,
-        shipmentId: row.shipment_id,
-        partCode: row.part_code,
-        skuCode: row.sku_code,
-        wo_sku_name: row.wo_sku_name,
-        client: row.client,
-        clientCode: row.client_code,
-        clientaddress: row.clientaddress,
-        shipment_status: row.shipment_status,
-        del_challan_status: row.del_challan_status,
-        wo_order_qty: row.wo_order_qty,
-        wo_order_rate: row.wo_order_rate,
-        billingaddress: row.billingaddress,
-        woComponentName: row.wo_component_name,
-        // client_add_id: row.client_add_id,
-        // billing_id: row.billing_id,
-        // dispatchaddress: row.dispatchaddress,
-        // dispatchId: row.dispatch_id,
-      }));
-      return arr;
-    } else {
-      const showToast = getGlobalToast();
-      if (showToast) showToast(response.message?.msg || response.message, "error");
-      return [];
-    }
-
+  if (response?.success) {
+    const arr = response.data.map((row, index) => ({
+      id: index + 1,
+      billingId: row.billing_id,
+      dispatchId: row.dispatch_id,
+      clientAddId: row.client_address_id,
+      shipmentDt: row.shipment_dt,
+      woTransaction_Id: row.wo_transaction_id,
+      shipmentId: row.shipment_id,
+      partCode: row.part_code,
+      skuCode: row.sku_code,
+      wo_sku_name: row.wo_sku_name,
+      client: row.client,
+      clientCode: row.client_code,
+      clientaddress: row.clientaddress,
+      shipment_status: row.shipment_status,
+      del_challan_status: row.del_challan_status,
+      wo_order_qty: row.wo_order_qty,
+      wo_order_rate: row.wo_order_rate,
+      billingaddress: row.billingaddress,
+      woComponentName: row.wo_component_name,
+      // client_add_id: row.client_add_id,
+      // billing_id: row.billing_id,
+      // dispatchaddress: row.dispatchaddress,
+      // dispatchId: row.dispatch_id,
+    }));
+    return arr;
+  } else {
+    const showToast = getGlobalToast();
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
+    return [];
+  }
 };
 const getdetailsOfReturnChallan = async (shipWoid) => {
   const response = await imsAxios.post("/wo_challan/fetchWOShipmentDetails", {
@@ -209,7 +208,8 @@ const getdetailsOfReturnChallan = async (shipWoid) => {
     return arr;
   } else {
     const showToast = getGlobalToast();
-    if (showToast) showToast(response.message?.msg || response.message, "error");
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
     return [];
   }
 };
@@ -218,7 +218,7 @@ const fetchReturnChallanDetails = async (challanID) => {
     "/wo_challan/fetchReturnDeliveryChallanDetails",
     {
       challan_id: challanID,
-    }
+    },
   );
   if (response.success) {
     const arr = response.data.map((row, index) => ({
@@ -228,7 +228,8 @@ const fetchReturnChallanDetails = async (challanID) => {
     return arr;
   } else {
     const showToast = getGlobalToast();
-    if (showToast) showToast(response.message?.msg || response.message, "error");
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
     return [];
   }
 };
@@ -239,7 +240,7 @@ const getReturnRowsInViewChallan = async (wise, searchInput) => {
     {
       wise,
       data: searchInput,
-    }
+    },
   );
   if (response.success) {
     const arr = response.data.map((row, index) => ({
@@ -249,7 +250,8 @@ const getReturnRowsInViewChallan = async (wise, searchInput) => {
     return arr;
   } else {
     const showToast = getGlobalToast();
-    if (showToast) showToast(response.message?.msg || response.message, "error");
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
     return [];
   }
 };
@@ -266,13 +268,13 @@ const getScrapeInViewChallan = async (wise, searchInput) => {
     return arr;
   } else {
     const showToast = getGlobalToast();
-    if (showToast) showToast(response.message?.msg || response.message, "error");
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
     return [];
   }
 };
 ////generic api for all the challantype in view challan
 const getViewChallan = async (challantype, wise, searchInput) => {
- 
   let term;
   if (challantype == "Delivery Challan") {
     term = "delivery";
@@ -286,7 +288,7 @@ const getViewChallan = async (challantype, wise, searchInput) => {
   console.log("term", term);
   // return;
   const response = await imsAxios.get(
-    `/wo_challan/woViewChallan/${term}?data=${searchInput}&wise=${wise}&download=no`
+    `/wo_challan/woViewChallan/${term}?data=${searchInput}&wise=${wise}&download=no`,
   );
   // wo_challan/woViewChallan/all?data=01-03-2024-01-04-2024&wise=datewise&download=no
   // console.log("data", data);
@@ -318,7 +320,7 @@ const downloadAllViewChallan = async (challantype, wise, searchInput) => {
   console.log("term", term);
   // return;
   const response = await imsAxios.get(
-    `/wo_challan/woViewChallan/${term}?data=${searchInput}&wise=${wise}&download=yes`
+    `/wo_challan/woViewChallan/${term}?data=${searchInput}&wise=${wise}&download=yes`,
   );
   // wo_challan/woViewChallan/all?data=01-03-2024-01-04-2024&wise=datewise&download=no
   // console.log("data", data);
@@ -328,36 +330,38 @@ const downloadAllViewChallan = async (challantype, wise, searchInput) => {
 const createWorkOrderShipmentChallan = async (payload) => {
   const response = await imsAxios.post(
     "/wo_challan/createDeliveryChallan",
-    payload
+    payload,
   );
   const showToast = getGlobalToast();
- 
-    if (response.success) {
-      if (showToast) showToast(response.message, "success");
-    } else {
-      if (showToast) showToast(response.message?.msg || response.message, "error");
-    }
 
+  if (response.success) {
+    if (showToast) showToast(response.message, "success");
+  } else {
+    if (showToast)
+      showToast(response.message?.msg || response.message, "error");
+  }
 };
 
 const printreturnChallan = async (payload) => {
   const response = await imsAxios.post(
     "/wo_challan/printWorkorderReturnChallan",
-    payload
+    payload,
   );
+
   return response;
 };
 const createWorkOrderReturnChallan = async (payload) => {
   const response = await imsAxios.post(
     "/wo_challan/createDeliveryReturnChallan",
-    payload
+    payload,
   );
   const showToast = getGlobalToast();
   if (response) {
     if (response.success) {
       if (showToast) showToast(response.message, "success");
     } else {
-      if (showToast) showToast(response.message?.msg || response.message, "error");
+      if (showToast)
+        showToast(response.message?.msg || response.message, "error");
     }
   }
 };
@@ -368,7 +372,7 @@ const getWorkOrderForMIN = async (id, woId, getComponents) => {
     getComponents: getComponents,
   });
   if (response?.success) {
-    const { components, details } = response;
+    const { components, details } = response?.data || {};
     const arr = components.map((row, index) => ({
       index: index + 1,
       componentKey: row.component_key,
@@ -405,16 +409,15 @@ const getWorkOrderForMIN = async (id, woId, getComponents) => {
 const getLocationOptions = async () => {
   const response = await imsAxios.post("/backend/fetchLocation");
 
-    if (response?.success) {
-      const arr = response?.data.map((row) => ({
-        value: row.id,
-        text: row.text,
-      }));
-      return arr;
-    } else {
-      return [];
-    }
-
+  if (response?.success) {
+    const arr = response?.data.map((row) => ({
+      value: row.id,
+      text: row.text,
+    }));
+    return arr;
+  } else {
+    return [];
+  }
 };
 
 const createMIN = async (values, showView) => {
@@ -479,7 +482,10 @@ const closeWorkOrder = async (woId, sku, remarks) => {
         message: response.message,
       };
     } else {
-      return { status: "fail", message: response.message?.msg ?? response.message };
+      return {
+        status: "fail",
+        message: response.message?.msg ?? response.message,
+      };
     }
   } catch (error) {
     console.log("some error occured while closing work order", error);
@@ -489,14 +495,11 @@ const closeWorkOrder = async (woId, sku, remarks) => {
 const getWorkOrderDetails = async (id, woId, sku) => {
   try {
     const { details } = await getWorkOrderForMIN(id, woId, false);
-    const response = await imsAxios.post(
-      "/createwo/fetchComponentListforWO",
-      {
-        wo_transaction: woId,
-        skucode: sku,
-      }
-    );
-    
+    const response = await imsAxios.post("/createwo/fetchComponentListforWO", {
+      wo_transaction: woId,
+      skucode: sku,
+    });
+
     if (response?.success) {
       const { items } = response.data;
       const arr = items.map((row, index) => ({
@@ -537,7 +540,7 @@ const finalizeOrder = async (values, woId) => {
 
   const response = await imsAxios.post(
     "/createwo/save_wo_material_received",
-    finalObj
+    finalObj,
   );
 
   const showToast = getGlobalToast();
@@ -548,7 +551,8 @@ const finalizeOrder = async (values, woId) => {
         error: false,
       };
     } else {
-      if (showToast) showToast(response.message?.msg || response.message, "error");
+      if (showToast)
+        showToast(response.message?.msg || response.message, "error");
       return {
         error: true,
       };
@@ -563,7 +567,7 @@ const finalizeOrder = async (values, woId) => {
 const submitScrapreChallan = async (payload) => {
   const response = await imsAxios.post(
     "/wo_challan/saveCreateScrapChallan",
-    payload
+    payload,
   );
   // console.log("data", response);
   return response;
