@@ -171,11 +171,14 @@ function DebitRegister() {
     {
       headerName: "DN Status",
       field: "dnStatus",
-      renderCell: ({ row }) => (
-        <Tag color={row.dnStatus === "ACTIVE" ? "green" : "red"}>
-          {row.dnStatus}
-        </Tag>
-      ),
+      renderCell: ({ row }) =>
+        row.dnStatus ? (
+          <Tag color={row.dnStatus === "ACTIVE" ? "green" : "red"}>
+            {row.dnStatus}
+          </Tag>
+        ) : (
+          "--"
+        ),
       width: 120,
     },
 
