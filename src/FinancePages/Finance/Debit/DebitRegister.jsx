@@ -1,5 +1,5 @@
-import  { useState, useEffect } from "react";
-import {  Col, Input, Row, Space } from "antd";
+import { useState, useEffect } from "react";
+import {  Col, Input, Modal, Row, Space, Tag } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
@@ -13,6 +13,7 @@ import {
   PrinterFilled,
   EyeFilled,
   EditFilled,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import MySelect from "../../../Components/MySelect";
@@ -74,6 +75,51 @@ function DebitRegister() {
     }
   };
 
+  const deleteFun = async (dv_code, remark) => {
+    setLoading(true);
+    const response = await imsAxios.post("/tally/dv/cancel-debit-note", {
+      debitNo: dv_code,
+      cancelReason: remark,
+    });
+    setLoading(false);
+    if (response.success) {
+      showToast(response.message?.msg || response.message, "success");
+      getRows();
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+    }
+  };
+
+  const confirmDelete = (jv_code) => {
+    let remark = "";
+    Modal.confirm({
+      title: "Cancel Voucher",
+      okText: "Yes",
+      cancelText: "No",
+      centered: true,
+      content: (
+        <div>
+          <p style={{ marginBottom: 2 }}>
+            Debit Code: <b>{jv_code}</b>
+          </p>
+          <Input.TextArea
+            rows={3}
+            placeholder="Enter remark for cancellation"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      onOk() {
+        if (!remark.trim()) {
+          showToast("Please enter a remark for cancellation", "error");
+          return Promise.reject();
+        }
+        return deleteFun(jv_code, remark);
+      },
+    });
+  };
 
   const columns = [
     {
@@ -123,16 +169,12 @@ function DebitRegister() {
     },
 
     {
-      headerName: "Status",
-      field: "status",
+      headerName: "DN Status",
+      field: "dnStatus",
       renderCell: ({ row }) => (
-        <span
-          style={{
-            color: row.status == "Deleted" && "brown",
-          }}
-        >
-          {row.status}
-        </span>
+        <Tag color={row.dnStatus === "ACTIVE" ? "green" : "red"}>
+          {row.dnStatus}
+        </Tag>
       ),
       width: 120,
     },
@@ -174,43 +216,35 @@ function DebitRegister() {
           }}
           label="download"
         />,
-        <GridActionsCellItem
-          key={"edit"}
-          // edit voucher
-          disabled={loading}
-          icon={<EditFilled className="view-icon" />}
-          onClick={() => {
-            // console.log(row);
-            setEditDebit(row.module_used);
-          }}
-          label="download"
-        />,
-        // <GridActionsCellItem
-        //   // delete voucher
-        //   style={{ marginTop: -5 }}
-        //   disabled={row.status == "Deleted"}
-        //   icon={
-        //     <Popconfirm
-        //       title="Are you sure to delete this Voucher?"
-        //       onConfirm={deleteFun}
-        //       onCancel={() => {
-        //         setDeleteConfirm(null);
-        //       }}
-        //       okText="Yes"
-        //       cancelText="No"
-        //     >
-        //       <DeleteFilled
-        //         className={`view-icon ${
-        //           row.status == "Deleted" && "disable"
-        //         }`}
-        //       />{" "}
-        //     </Popconfirm>
-        //   }
-        //   onClick={() => {
-        //     setDeleteConfirm(row.module_used);
-        //   }}
-        //   label="Delete"
-        // />,
+        ...(row?.dnStatus !== "CANCELLED"
+          ? [
+              <GridActionsCellItem
+                key={row?.id ?? "edit"}
+                // edit voucher
+                disabled={loading}
+                icon={<EditFilled className="view-icon" />}
+                onClick={() => {
+                  // console.log(row);
+                  setEditDebit(row.module_used);
+                }}
+                label="edit"
+              />,
+              <GridActionsCellItem
+                key={row?.id ?? "delete"}
+                // cancel voucher
+                disabled={loading || row.status == "Deleted"}
+                icon={
+                  <CloseOutlined
+                    className={`view-icon ${
+                      row.status == "Deleted" && "disable"
+                    }`}
+                  />
+                }
+                onClick={() => confirmDelete(row.module_used)}
+                label="Delete"
+              />,
+            ]
+          : []),
       ],
     },
   ];
