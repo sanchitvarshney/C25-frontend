@@ -893,6 +893,10 @@ export default function AddComponents({
     );
     if (hasIncompleteRow) {
       setIsValid(true);
+      showToast(
+        "Please fill component, qty, rate, currency, GST rate and due date for all rows",
+        "error",
+      );
       return;
     }
     setIsValid(false);
