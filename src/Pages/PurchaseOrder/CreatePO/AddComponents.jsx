@@ -888,8 +888,7 @@ export default function AddComponents({
         !row.rate ||
         !row.currency ||
         row.gstrate === "" ||
-        row.gstrate === undefined ||
-        !row.duedate,
+        row.gstrate === undefined 
     );
     if (hasIncompleteRow) {
       setIsValid(true);
