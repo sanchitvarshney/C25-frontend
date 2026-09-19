@@ -141,7 +141,6 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
         <Field
           attr="required | Rate is required"
           value={row?.rate}
-          treatZeroAsEmpty
           showValidation={isValid}
         >
           <Input
@@ -197,7 +196,7 @@ function UpdateModal({ updateModalInfo, setUpdateModalInfo, getRows }) {
     (rows || []).some(
       (a) =>
         !a?.rate ||
-        Number(a?.rate) <= 0 ||
+        Number(a?.rate) < 0 ||
         !a?.bom_req ||
         Number(a?.bom_req) <= 0,
     );
