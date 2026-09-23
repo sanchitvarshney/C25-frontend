@@ -513,14 +513,11 @@ const RequestApproveModal = ({ show, hide, getRows }) => {
                   <Form.Item
                     name="remarks"
                     label="Remarks"
-                    rules={[{ required: true, message: "" }]}
+                    rules={[{ required: false, message: "" }]}
                   >
-                    <Field
-                      attr="required | Remark is required"
-                      showValidation={isValid}
-                    >
+                   
                       <Input.TextArea />
-                    </Field>
+                   
                   </Form.Item>
                 </Col>
               </Row>
