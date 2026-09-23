@@ -881,21 +881,21 @@ export default function AddComponents({
     setIsValid(false);
   };
   const validateRowsAndSubmit = () => {
-    const hasIncompleteRow = rowCount.some(
-      (row) =>
-        !row.component ||
-        !row.qty ||
-        !row.rate ||
-        !row.currency ||
-        row.gstrate === "" ||
-        row.gstrate === undefined 
-    );
-    if (hasIncompleteRow) {
+    const rowIssues = rowCount
+      .map((row, index) => {
+        const missing = [];
+        if (!row.component) missing.push("Component");
+        if (!row.qty) missing.push("Qty");
+        if (!row.rate) missing.push("Rate");
+        if (!row.currency) missing.push("Currency");
+        if (row.gstrate === "" || row.gstrate === undefined)
+          missing.push("GST Rate");
+        return missing.length ? `Row ${index + 1}: ${missing.join(", ")}` : null;
+      })
+      .filter(Boolean);
+    if (rowIssues.length) {
       setIsValid(true);
-      showToast(
-        "Please fill component, qty, rate, currency, GST rate and due date for all rows",
-        "error",
-      );
+      showToast(`Please fill required fields - ${rowIssues.join(" | ")}`, "error");
       return;
     }
     setIsValid(false);

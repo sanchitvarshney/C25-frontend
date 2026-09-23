@@ -736,7 +736,7 @@ export default function CreatePo() {
             }),
           });
         } else {
-          showToast(response.message, "error");
+          showToast(response.message||response.data?.message?.msg, "error");
         }
       }
     } catch (error) {
