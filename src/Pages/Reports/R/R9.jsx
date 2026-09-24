@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import "./r.css";
 import { Button, Col, Input, Row, Skeleton } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
@@ -20,7 +20,6 @@ function R9() {
   const { showToast } = useToast();
   const [locDataTo, setloctionDataTo] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
-
 const [validation, setValidation] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -83,17 +82,31 @@ const getDataByLocation = async (e) => {
 };
 
   const getBom = async () => {
-    const response = await imsAxios.post("/backend/fetchBomForProduct", {
-      search: allData?.selectProduct,
+   try {
+     const response = await imsAxios.post("/backend/fetchBomForProduct", {
+      search: allData?.selectProduct?.key,
     });
-    const arr = response.data.map((d) => {
+   if(response.success){
+  const arr = response.data.map((d) => {
       return { value: d.bomid, text: d.bomname };
     });
     setBomName(arr);
+   } else {
+    showToast(response.message, "error");
+   }
+    
+   } catch (error) {
+    showToast(
+      error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch location data",
+      "error"
+    );
+   }
   };
 
   const fetchBySearch = async () => {
-      if (!allData.selectProduct || !allData.selectBom || !allData.selectLocation || !selectDate) {
+    if (!allData.selectProduct || !allData.selectBom || !allData.selectLocation || !selectDate) {
       return setValidation(true);
     } else {
       setLoading(true);
@@ -105,7 +118,7 @@ const getDataByLocation = async (e) => {
         action: "search_r9",
       });
       if (response.success) {
-        let arr = response.data.map((row) => {
+        let arr = response.response.map((row) => {
           return {
             ...row,
             id: v4(),
@@ -231,10 +244,15 @@ const getDataByLocation = async (e) => {
               <MySelect
                 placeholder="Select Bom"
                 options={bomName}
-                 value={allData?.selectBom}
+                value={allData?.selectBom}
 
                 message="Please select Bom"
                 showError={validation}
+                onChange={(e) =>
+                  setAllData((allData) => {
+                    return { ...allData, selectBom: e };
+                  })
+                }
               />
             </Col>
             <Col span={24} style={{ marginTop: "5px" }}>
@@ -244,14 +262,14 @@ const getDataByLocation = async (e) => {
                 optionsState={locDataTo}
                 placeholder="Select Location"
                 loadOptions={getDataByLocation}
-                labelInValue
-                value={allData.selectLocation.value}
+                  labelInValue
+                value={allData.selectLocation}
                 onChange={(e) =>
                   setAllData((allData) => {
                     return { ...allData, selectLocation: e };
                   })
                 }
-                 message="Please select Location"
+                message="Please select Location"
                 showError={validation}
               />
             </Col>
@@ -259,11 +277,11 @@ const getDataByLocation = async (e) => {
               <SingleDatePicker setDate={setSelectDate} value={selectDate} showError={validation} />
             </Col>
             <Col span={24} style={{ marginTop: "5px" }}>
-              {locationDetail.length > 1 && (
+              {locationDetail?.length > 1 && (
                 <TextArea rows={3} disabled value={locationDetail} />
               )}
             </Col>
-          
+           
               <Col span={24} style={{ marginTop: "5px" }}>
                 <div style={{ display: "flex", justifyContent: "end" }}>
                   {/* <Button
@@ -281,7 +299,7 @@ const getDataByLocation = async (e) => {
                   </MyButton>
                 </div>
               </Col>
-       
+          
           </Row>
         </Col>
         <Col span={19}>
