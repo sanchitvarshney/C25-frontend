@@ -215,7 +215,7 @@ const getDataByLocation = async (e) => {
   }, []);
 
   return (
-    <div style={{ height: "calc(100vh - 200px)",  }}>
+    <div style={{ height: "calc(100vh - 220px)",  }}>
       <Row gutter={16} style={{ margin: "5px" }}>
         <Col span={5}>
           <Row gutter={16}>
