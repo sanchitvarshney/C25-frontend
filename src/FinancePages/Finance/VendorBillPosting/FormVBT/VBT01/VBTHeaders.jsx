@@ -11,6 +11,10 @@ const COMMENT_TEMPLATES = {
     `Being -- purchase on inv ${invoiceId} date:____ of amt: ___ TDS:___ `,
   vbt01: (invoiceId) =>
     `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
+  vbt08: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
+  vbt09: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
   vbt02: (invoiceId) =>
     `Being Service charges due to INV no. ${invoiceId} date of amount TDS:___ `,
 };

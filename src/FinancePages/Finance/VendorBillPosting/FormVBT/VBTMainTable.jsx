@@ -28,6 +28,9 @@ const VBT_ROUTE_TO_API_URL = {
   "vb-5": "vbt05",
   "vb-6": "vbt06",
   "vb-7": "vbt07",
+  "vb-8": "vbt08",
+  "vb-9": "vbt09",
+
 };
 
 const wiseOptions = [
@@ -36,7 +39,8 @@ const wiseOptions = [
   { value: "vendor_wise", text: "Vendor Wise" },
 ];
 
-const hasDisableWorkflow = (apiUrl) => apiUrl === "vbt01" || apiUrl === "vbt06";
+const hasDisableWorkflow = (apiUrl) =>
+  ["vbt01", "vbt06", "vbt08", "vbt09"].includes(apiUrl);
 
 const VBTMainTable = ({ editVbtDrawer }) => {
   const { showToast } = useToast();
@@ -149,7 +153,11 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     }
     setIsValidDisable(false);
     setDisableModalLoading(true);
-    const response = await imsAxios.put("/tally/vbt/disable_vbtprocess", {
+    const disableEndpoint =
+      apiUrl === "vbt08" || apiUrl === "vbt09"
+        ? `/tally/${apiUrl}/disable_${apiUrl}process`
+        : "/tally/vbt/disable_vbtprocess";
+    const response = await imsAxios.put(disableEndpoint, {
       min_transaction: values.min_transaction,
       part_code: values.part_code,
       remark: values.remark,
@@ -162,7 +170,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     } else {
       showToast(response.data.message, "error");
     }
-  }, [ModalForm, showToast, getRows]);
+  }, [ModalForm, showToast, getRows, apiUrl]);
 
   const vbtTableColumns = useMemo(
     () => [
