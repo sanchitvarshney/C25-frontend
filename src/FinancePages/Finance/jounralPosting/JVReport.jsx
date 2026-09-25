@@ -1,5 +1,5 @@
-import  { useState, useEffect } from "react";
-import {  Col, Input, Row ,Space } from "antd";
+import { useState, useEffect } from "react";
+import {Col, Input, Row, Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
@@ -23,6 +23,7 @@ import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 function JVReport() {
   const { showToast } = useToast();
@@ -37,17 +38,22 @@ function JVReport() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewJVDetail, setViewJVDetail] = useState(null);
-  // const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [editVoucher, setEditVoucher] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const getRows = async () => {
+    if (!searchTerm) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setRows([]);
     setLoading("fetch");
     const response = await imsAxios.post("/tally/jv/jv_list", {
       wise: wise,
-      data: searchTerm,
+      data: searchTerm?.value ?? searchTerm,
     });
     setLoading(false);
     if (response.success) {
@@ -65,22 +71,7 @@ function JVReport() {
       showToast(response.message?.msg || response.message, "error");
     }
   };
-  // const deleteFun = async () => {
-  //   setLoading(true);
-  //   if (deleteConfirm) {
-  //     const response = await imsAxios.post("/tally/jv/jv_delete", {
-  //       jv_code: deleteConfirm,
-  //     });
-  //     setLoading(false);
-  //     if (response.success) {
-  //       setDeleteConfirm(null);
-  //       showToast(response.message, "success");
-  //       getRows();
-  //     } else {
-  //       showToast(response.message?.msg || response.message, "error");
-  //     }
-  //   }
-  // };
+
   const getLedgerOptions = async (searchTerm) => {
     setSelectLoading(true);
     const response = await imsAxios.post("/tally/ledger/ledger_options", {
@@ -164,7 +155,7 @@ function JVReport() {
       getActions: ({ row }) => [
         // view voucher
         <GridActionsCellItem
-        key={row.module_used ?? "view"}
+          key={"view"}
           disabled={loading}
           icon={<EyeFilled className="view-icon" />}
           onClick={() => {
@@ -173,7 +164,7 @@ function JVReport() {
           label="view"
         />,
         <GridActionsCellItem
-          key={row.module_used ?? "print"}
+          key={"print"}
           // print voucher
           disabled={loading}
           icon={<PrinterFilled className="view-icon" />}
@@ -183,7 +174,7 @@ function JVReport() {
           label="print"
         />,
         <GridActionsCellItem
-          key={row.module_used ?? "download"}
+          key={"download"}
           // download voucher
           disabled={loading}
           icon={<CloudDownloadOutlined className="view-icon" />}
@@ -193,7 +184,7 @@ function JVReport() {
           label="download"
         />,
         <GridActionsCellItem
-          key={row.module_used ?? "edit"}
+          key={"edit"}
           // edit voucher
           disabled={loading}
           icon={<EditFilled className="view-icon" />}
@@ -251,9 +242,8 @@ function JVReport() {
   };
   useEffect(() => {
     setSearchTerm("");
+    setIsValid(false);
   }, [wise]);
-
-  console.log("rows", searchTerm);
   return (
     <div style={{ height: "100%", padding: 10 }}>
       <Row justify="space-between" >
@@ -268,10 +258,22 @@ function JVReport() {
             </div>
             <div style={{ width: 300 }}>
               {wise === "date_wise" && (
-                <MyDatePicker size="default" setDateRange={setSearchTerm} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setSearchTerm}
+                  value={searchTerm}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               )}
               {wise === "eff_wise" && (
-                <MyDatePicker size="default" setDateRange={setSearchTerm} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setSearchTerm}
+                  value={searchTerm}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               )}
               {wise === "vendor_wise" && (
                 <MyAsyncSelect
@@ -281,14 +283,20 @@ function JVReport() {
                   value={searchTerm}
                   selectLoading={selectLoading}
                   onChange={setSearchTerm}
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a Particular"
                 />
               )}
               {wise === "code_wise" && (
-                <Input
-                  placeholder="JV ID"
+                <Field
+                  attr="required | Please enter a JV ID"
                   value={searchTerm}
+                  showValidation={isValid}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                >
+                  <Input placeholder="JV ID" />
+                </Field>
               )}
             </div>
             <MyButton

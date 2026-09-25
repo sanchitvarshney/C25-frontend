@@ -18,6 +18,7 @@ import MyButton from "../../../../Components/MyButton";
 import { FaInfoCircle } from "react-icons/fa";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { RiProhibitedLine } from "react-icons/ri";
+import Field from "../../../../Components/Field.jsx";
 
 const VBT_ROUTE_TO_API_URL = {
   "vb-1": "vbt01",
@@ -27,6 +28,9 @@ const VBT_ROUTE_TO_API_URL = {
   "vb-5": "vbt05",
   "vb-6": "vbt06",
   "vb-7": "vbt07",
+  "vb-8": "vbt08",
+  "vb-9": "vbt09",
+
 };
 
 const wiseOptions = [
@@ -35,7 +39,8 @@ const wiseOptions = [
   { value: "vendor_wise", text: "Vendor Wise" },
 ];
 
-const hasDisableWorkflow = (apiUrl) => apiUrl === "vbt01" || apiUrl === "vbt06";
+const hasDisableWorkflow = (apiUrl) =>
+  ["vbt01", "vbt06", "vbt08", "vbt09"].includes(apiUrl);
 
 const VBTMainTable = ({ editVbtDrawer }) => {
   const { showToast } = useToast();
@@ -54,6 +59,10 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   const [ModalForm] = Form.useForm();
   const [extracted, setExtracted] = useState([]);
   const [combinedData, setCombinedDate] = useState([]);
+  const [isValid, setIsValid] = useState(false);
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  const [isValidDisable, setIsValidDisable] = useState(false);
+  const [disableModalLoading, setDisableModalLoading] = useState(false);
 
   useEffect(() => {
     if (editVbtDrawer) {
@@ -72,26 +81,21 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   );
 
   const getRows = useCallback(async () => {
+    const isEmpty =
+      wise === "date_wise" ? !searchDateRange : !searchInput;
+    if (isEmpty) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setPreviewdisData(false);
     let d;
     if (wise === "date_wise") {
-      if (searchDateRange) {
-        d = searchDateRange;
-      } else {
-        showToast("Please select a time period", "error");
-      }
+      d = searchDateRange;
     } else if (wise === "vendor_wise") {
-      if (searchInput) {
-        d = searchInput;
-      } else {
-        showToast("Please select a Vendor", "error");
-      }
+      d = searchInput?.value ?? searchInput;
     } else if (wise === "min_wise") {
-      if (searchInput) {
-        d = searchInput?.trim();
-      } else {
-        showToast("Please Enter a MIN Number", "error");
-      }
+      d = searchInput?.trim();
     }
     setSearchLoading(true);
     const fetchPath =
@@ -128,71 +132,45 @@ const VBTMainTable = ({ editVbtDrawer }) => {
           singleRow.itemCode ?? singleRow.part_code,
         );
       }
-
-      Modal.confirm({
-        title: "Are you sure you want to disbale this VBT?",
-        icon: <ExclamationCircleOutlined />,
-        content: (
-          <Form form={ModalForm} layout="vertical">
-            <Form.Item
-              name="min_transaction"
-              label="Transaction"
-              rules={[
-                {
-                  required: true,
-                  message: "Please Enter Transaction Number!",
-                },
-              ]}
-            >
-              <Input disabled />
-            </Form.Item>
-            <Form.Item
-              name="part_code"
-              label="Part / SKU"
-              rules={[
-                {
-                  required: true,
-                  message: "Please Enter Part Code!",
-                },
-              ]}
-            >
-              <Input disabled />
-            </Form.Item>
-
-            <Form.Item
-              name="remark"
-              label="Remark"
-              rules={[
-                {
-                  required: true,
-                  message: "Please Enter Remark!",
-                },
-              ]}
-            >
-              <Input.TextArea rows={3} placeholder="Please input the remark" />
-            </Form.Item>
-          </Form>
-        ),
-        okText: "Yes",
-        cancelText: "No",
-        onOk: async () => {
-          const values = await ModalForm.validateFields();
-          const response = await imsAxios.put("/tally/vbt/disable_vbtprocess", {
-            min_transaction: values.min_transaction,
-            part_code: values.part_code,
-            remark: values.remark,
-          });
-          if (response.success) {
-            showToast(response.data.status, "success");
-            getRows();
-          } else {
-            showToast(response.data.message, "error");
-          }
-        },
-      });
+      setIsValidDisable(false);
+      setShowDisableModal(true);
     },
-    [ModalForm, showToast, getRows],
+    [ModalForm],
   );
+
+  const handleDisableCancel = useCallback(() => {
+    setShowDisableModal(false);
+    setIsValidDisable(false);
+  }, []);
+
+  const handleDisableConfirm = useCallback(async () => {
+    let values;
+    try {
+      values = await ModalForm.validateFields();
+    } catch (error) {
+      setIsValidDisable(true);
+      return;
+    }
+    setIsValidDisable(false);
+    setDisableModalLoading(true);
+    const disableEndpoint =
+      apiUrl === "vbt08" || apiUrl === "vbt09"
+        ? `/tally/${apiUrl}/disable_${apiUrl}process`
+        : "/tally/vbt/disable_vbtprocess";
+    const response = await imsAxios.put(disableEndpoint, {
+      min_transaction: values.min_transaction,
+      part_code: values.part_code,
+      remark: values.remark,
+    });
+    setDisableModalLoading(false);
+    if (response.success) {
+      showToast(response.data.status, "success");
+      setShowDisableModal(false);
+      getRows();
+    } else {
+      showToast(response.data.message, "error");
+    }
+  }, [ModalForm, showToast, getRows, apiUrl]);
 
   const vbtTableColumns = useMemo(
     () => [
@@ -331,17 +309,70 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     setSearchInput(wise === "min_wise" ? "" : null);
     setVBTData([]);
     setPreviewdisData(false);
+    setIsValid(false);
   }, [wise]);
 
   useEffect(() => {
     setVBTData(previewdisData ? combinedData : extracted);
   }, [previewdisData]);
 
-  const searchDisabled = wise === "date_wise" ? !searchDateRange : !searchInput;
-
   return (
     <div style={{ height: "100%", padding: 10 }}>
       <MapVBTModal mapVBT={mapVBT} setMapVBT={setMapVBT} />
+      <Modal
+        title={
+          <span>
+            <ExclamationCircleOutlined style={{ marginRight: 8 }} />
+            Are you sure you want to disable this VBT?
+          </span>
+        }
+        open={showDisableModal}
+        onOk={handleDisableConfirm}
+        onCancel={handleDisableCancel}
+        okText="Yes"
+        cancelText="No"
+        confirmLoading={disableModalLoading}
+      >
+        <Form form={ModalForm} layout="vertical">
+          <Form.Item
+            name="min_transaction"
+            label="Transaction"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Field
+              attr="required | Please Enter Transaction Number!"
+              showValidation={isValidDisable}
+            >
+              <Input disabled />
+            </Field>
+          </Form.Item>
+          <Form.Item
+            name="part_code"
+            label="Part / SKU"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Field
+              attr="required | Please Enter Part Code!"
+              showValidation={isValidDisable}
+            >
+              <Input disabled />
+            </Field>
+          </Form.Item>
+
+          <Form.Item
+            name="remark"
+            label="Remark"
+            rules={[{ required: true, message: "" }]}
+          >
+            <Field
+              attr="required | Please Enter Remark!"
+              showValidation={isValidDisable}
+            >
+              <Input.TextArea rows={3} placeholder="Please input the remark" />
+            </Field>
+          </Form.Item>
+        </Form>
+      </Modal>
       <div
         style={{
           position: "relative",
@@ -373,15 +404,18 @@ const VBTMainTable = ({ editVbtDrawer }) => {
                     setDateRange={setSearchDateRange}
                     dateRange={searchDateRange}
                     value={searchDateRange}
+                    showError={isValid}
+                    message="Please select a time period"
                   />
                 ) : wise === "min_wise" ? (
-                  <Input
-                    type="text"
-                    size="default"
-                    placeholder="Enter MIN Number"
+                  <Field
+                    attr="required | Please Enter a MIN Number"
                     value={searchInput}
+                    showValidation={isValid}
                     onChange={(e) => setSearchInput(e.target.value)}
-                  />
+                  >
+                    <Input type="text" size="default" placeholder="Enter MIN Number" />
+                  </Field>
                 ) : (
                   wise === "vendor_wise" && (
                     <MyAsyncSelect
@@ -394,13 +428,15 @@ const VBTMainTable = ({ editVbtDrawer }) => {
                       optionsState={asyncOptions}
                       defaultOptions
                       placeholder="Select Vendor..."
+                      labelInValue
+                      showError={isValid}
+                      message="Please select a Vendor"
                     />
                   )
                 )}
               </div>
               <MyButton
                 size="default"
-                disabled={searchDisabled}
                 loading={searchLoading}
                 type="primary"
                 onClick={getRows}

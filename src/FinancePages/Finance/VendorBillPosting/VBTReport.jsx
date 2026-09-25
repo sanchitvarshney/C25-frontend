@@ -1,11 +1,11 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
 import ViewVBTReport from "./ViewVBTReport";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Button, Col, Input,  Row, Space } from "antd";
+import { Button, Col, Input, Row, Space } from "antd";
 import { v4 } from "uuid";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import printFunction, {
@@ -26,6 +26,7 @@ import { getVendorOptions } from "../../../api/general.ts";
 import { convertSelectOptions } from "../../../utils/general.ts";
 import MyButton from "../../../Components/MyButton";
 import { getCurrentIndianFinancialYearSession } from "../../../utils/indianFinancialYear";
+import Field from "../../../Components/Field.jsx";
 
 export default function VBTReport() {
   const { showToast } = useToast();
@@ -46,6 +47,7 @@ export default function VBTReport() {
   const [openModal, setOpenModal] = useState(null);
   const [debitNoteDrawer, setDebitNoteDrawer] = useState(null);
   const [editvbturl, setEditVbtUrl] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
 
   // const navigate = useNavigate();
@@ -77,48 +79,40 @@ export default function VBTReport() {
     { text: "VBT5", value: "VBT05" },
     { text: "VBT6", value: "VBT06" },
     { text: "VBT7", value: "VBT07" },
+   { text: "VBT8", value: "VBT08" },
+    { text: "VBT9", value: "VBT09" },
   ];
 
   const printFun = async (vbtId) => {
-   try {
-     setLoading(true);
-    const response = await imsAxios.post("/tally/vbt_report/print_vbt_report", {
-      vbt_key: vbtId,
-    });
-
-    if (response?.data?.buffer) {
-         printFunction(response?.data.buffer?.data);
-    setLoading(false);
-    }
- 
-    
-   } catch (error) {
-    console.log(error);
-    setLoading(false);
-   }
-  };
-  const handleDownload = async (id) => {
     try {
       setLoading(true);
       const response = await imsAxios.post(
-        "/tally/vbt_report/download_vbt_report",
+        "/tally/vbt_report/print_vbt_report",
         {
-          vbt_key: id,
+          vbt_key: vbtId,
         },
       );
-      if (response?.success) {
-        downloadFunction(response?.data.buffer?.data);
-        setLoading(false);
-      } else {
-        showToast(response.message || "Something wrong happened", "error");
+
+      if (response?.data?.buffer) {
+        printFunction(response?.data.buffer?.data);
         setLoading(false);
       }
     } catch (error) {
-      showToast(error.message || "Something wrong happened", "error");
-      setLoading(false);
-    }finally {
+      console.log(error);
       setLoading(false);
     }
+  };
+  const handleDownload = async (id) => {
+    setLoading(true);
+    let link = "/tally/vbt_report/print_vbt_report";
+    let filename = id;
+
+    const response = await imsAxios.post(link, {
+      vbt_key: id,
+    });
+
+    downloadFunction(response.data?.buffer.data, filename);
+    setLoading(false);
   };
 
   // const getEditVBTDetails = async (code) => {
@@ -144,11 +138,6 @@ export default function VBTReport() {
     });
     setDebitNoteDrawer(arr);
   };
-  // const callModal = (vbtCode) => {
-  //   setOpenModal(true);
-  // };
-  // const confirmDelete = () => {};
-
 
   // const submitVerifyHandler = async (row) => {
   //   let vbtKey = row.vbt_code;
@@ -162,7 +151,6 @@ export default function VBTReport() {
   //     getSearchResults();
   //   }
   // };
- 
 
   const columns = [
     {
@@ -172,7 +160,7 @@ export default function VBTReport() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={"view"}
+          key="view"
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -181,7 +169,7 @@ export default function VBTReport() {
           label="View"
         />,
         <GridActionsCellItem
-          key={"edit"}
+          key="edit"
           showInMenu
           disabled={row.vbt_code.split("/")[0] == "VBT03"}
           onClick={() => {
@@ -190,7 +178,7 @@ export default function VBTReport() {
           label="Edit"
         />,
         <GridActionsCellItem
-          key={"delete"}
+          key="delete"
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -199,14 +187,14 @@ export default function VBTReport() {
           label="Delete"
         />,
         <GridActionsCellItem
-          key={"print"}
+          key="print"
           showInMenu
           disabled={loading}
           onClick={() => printFun(row.vbt_code)}
           label="Print"
         />,
         <GridActionsCellItem
-          key={"download"}
+          key="download"
           showInMenu
           disabled={loading}
           onClick={() => {
@@ -215,16 +203,14 @@ export default function VBTReport() {
           label="Download"
         />,
 
-   
         <GridActionsCellItem
-          key={"debitNote"}
+          key="debitNote"
           showInMenu
           disabled={loading}
           onClick={() => {
             setDebitNoteDrawer(row);
           }}
           label="Create Debit Note"
-
         />,
       ],
     },
@@ -464,7 +450,6 @@ export default function VBTReport() {
     },
   ];
   const downloadcolumns = [
-   
     {
       headerName: "VBT Code",
       field: "vbt_code",
@@ -710,54 +695,43 @@ export default function VBTReport() {
   };
   //getting rows from database from all 3 filter po wise, data wise, vendor wise
   const getSearchResults = async () => {
+    const isDateMode = wise === "datewise" || wise === "effectivewise";
+    if (isDateMode ? !searchDateRange : !searchInput || !vbtOption) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setRows([]);
     setLoading(true);
-    let search;
-    if (wise === "datewise" || wise === "effectivewise") {
-      search = searchDateRange;
-    } else {
-      search = null;
-    }
-    if (searchInput || search) {
-      setLoading(true);
-      const response = await imsAxios.post("/tally/vbt_report/vbt_report", {
-        data:
-          wise == "vendorwise"
-            ? searchInput
-            : wise == "minwise"
+    const response = await imsAxios.post("/tally/vbt_report/vbt_report", {
+      data:
+        wise == "vendorwise"
+          ? (searchInput?.value ?? searchInput)
+          : wise == "minwise"
             ? searchInput.trim()
             : wise == "vbtwise"
-            ? searchInput.trim()
-            : wise == "datewise"
-            ? searchDateRange
-            : wise == "effectivewise" && searchDateRange,
-        wise: wise,
-        vbt_type: vbtOption,
+              ? searchInput.trim()
+              : wise == "datewise"
+                ? searchDateRange
+                : wise == "effectivewise" && searchDateRange,
+      wise: wise,
+      vbt_type: vbtOption,
+    });
+    setLoading(false);
+    if (response.success) {
+      const arr = response.data.map((row) => {
+        return {
+          ...row,
+          id: v4(),
+          index: response.data.indexOf(row) + 1,
+          status: row.status == "D" ? "Deleted" : "--",
+          taxableValue: row.vbp_inqty * row.vbp_inrate,
+        };
       });
-      setLoading(false);
-      if (response.success) {
-        const arr = response.data.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-            index: response.data.indexOf(row) + 1,
-            status: row.status == "D" ? "Deleted" : "--",
-            taxableValue: row.vbp_inqty * row.vbp_inrate,
-          };
-        });
 
-        setRows(arr);
-      } else {
-        showToast(response.message, "error");
-      }
+      setRows(arr);
     } else {
-      if (wise == "datewise" && searchDateRange == null) {
-        showToast("Please select start and end dates for the results", "error");
-      } else if (wise == "powise") {
-        showToast("Please enter a PO id", "error");
-      } else if (wise == "vendorwise") {
-        showToast("Please select a vendor", "error");
-      }
+      showToast(response.message, "error");
     }
   };
 
@@ -777,13 +751,12 @@ export default function VBTReport() {
       });
       setViewReportData(arr);
     } else {
-    
-        showToast(response.message||"Something wrong", "error");
-    
+      showToast(response.message?.msg || response.message, "error");
     }
   };
   useEffect(() => {
     setRows([]);
+    setIsValid(false);
     if (wise == "minwise") {
       setSearchInput(`MIN08/${getCurrentIndianFinancialYearSession()}/`);
     } else {
@@ -791,7 +764,6 @@ export default function VBTReport() {
     }
     setSearchDateRange("");
   }, [wise]);
-
 
   return (
     <div style={{ height: "100%", padding: 10 }}>
@@ -811,17 +783,13 @@ export default function VBTReport() {
         ""
       )}
 
- 
       <ViewVBTReport
         viewReportData={viewReportData}
         setViewReportData={setViewReportData}
         getSearchResults={getSearchResults}
       />
-    
-      <Row
-        justify="space-between"
-       
-      >
+
+      <Row justify="space-between">
         <Col>
           <Space>
             <div style={{ width: 150 }}>
@@ -830,6 +798,8 @@ export default function VBTReport() {
                 defaultValue={wiseOptions.filter((o) => o.value === wise)[0]}
                 onChange={setWise}
                 value={wise}
+                showError={isValid}
+                message="Please select a wise"
               />
             </div>
             <div style={{ width: 300 }}>
@@ -839,49 +809,63 @@ export default function VBTReport() {
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                  showError={isValid}
+                  message="Please select a date range"
                 />
               ) : wise === "minwise" ? (
-                <Input
-                  type="text"
-                  size="default"
-                  placeholder="Enter MIN Number"
+                <Field
+                  attr="required | Please enter a MIN Number"
                   value={searchInput}
+                  showValidation={isValid}
                   onChange={(e) => setSearchInput(e.target.value)}
-                />
+                >
+                  <Input
+                    type="text"
+                    size="default"
+                    placeholder="Enter MIN Number"
+                  />
+                </Field>
               ) : wise === "powise" ? (
-                <>
+                <Field
+                  attr="required | Please enter a PO Number"
+                  value={searchInput}
+                  showValidation={isValid}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                >
                   <Input
                     size="default"
                     type="text"
                     placeholder="Enter Po Number"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
                   />
-                </>
+                </Field>
               ) : wise === "vbtwise" ? (
-                <div>
+                <Field
+                  attr="required | Please enter a VBT Code"
+                  value={searchInput}
+                  showValidation={isValid}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                >
                   <Input
                     size="default"
                     type="text"
                     placeholder="Enter VBT Code..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
                   />
-                </div>
+                </Field>
               ) : wise === "vendorwise" ? (
-                <>
-                  <MyAsyncSelect
-                    size="default"
-                    selectLoading={loading1("select")}
-                    onBlur={() => setAsyncOptions([])}
-                    value={searchInput}
-                    onChange={(value) => setSearchInput(value)}
-                    loadOptions={getVendors}
-                    optionsState={asyncOptions}
-                    defaultOptions
-                    placeholder="Select Vendor..."
-                  />
-                </>
+                <MyAsyncSelect
+                  size="default"
+                  selectLoading={loading1("select")}
+                  onBlur={() => setAsyncOptions([])}
+                  value={searchInput}
+                  onChange={(value) => setSearchInput(value)}
+                  loadOptions={getVendors}
+                  optionsState={asyncOptions}
+                  defaultOptions
+                  placeholder="Select Vendor..."
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a Vendor"
+                />
               ) : (
                 wise == "effectivewise" && (
                   <MyDatePicker
@@ -889,6 +873,8 @@ export default function VBTReport() {
                     setDateRange={setSearchDateRange}
                     dateRange={searchDateRange}
                     value={searchDateRange}
+                    showError={isValid}
+                    message="Please select a date range"
                   />
                 )
               )}
@@ -898,18 +884,11 @@ export default function VBTReport() {
                 options={vbtTypeOptions}
                 onChange={setVbtOption}
                 value={vbtOption}
+                showError={isValid}
+                message="Please select a VBT Type"
               />
             </div>
             <MyButton
-              disabled={
-                wise === "datewise" || wise === "effectivewise"
-                  ? searchDateRange === ""
-                    ? true
-                    : false
-                  : !searchInput
-                  ? true
-                  : false
-              }
               type="primary"
               onClick={getSearchResults}
               variant="search"
@@ -942,7 +921,6 @@ export default function VBTReport() {
 
       <div style={{ height: "calc(100vh - 180px)", marginTop: 10 }}>
         <MyDataTable
-      
           checkboxSelection={wise == "vendorwise"}
           loading={loading}
           columns={columns}

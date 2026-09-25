@@ -5,6 +5,7 @@ import { Button, Card, Col, Form, Input, Row, Space } from "antd";
 import { v4 } from "uuid";
 import { imsAxios } from "../../axiosInterceptor";
 import { useToast } from "../../hooks/useToast";
+import Field from "../../Components/Field.jsx";
 
 export default function CreateMaster() {
   const { showToast } = useToast();
@@ -15,6 +16,7 @@ export default function CreateMaster() {
   const [masterGroups, setMasterGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const masterTablColumn = [
     { headerName: "Master Group", field: "group_name", flex: 1 },
     { headerName: "Group Code", field: "code", flex: 1 },
@@ -39,9 +41,11 @@ export default function CreateMaster() {
     });
   };
   const addNewMaster = async () => {
-    if (newMasterGroup.group_name == "" || newMasterGroup.code == "") {
-      return showToast("Please input both fields", "error");
+    if (!newMasterGroup.group_name || !newMasterGroup.code) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     setFormLoading(true);
     const response = await imsAxios.post("/tally/create_master_group", {
       ...newMasterGroup,
@@ -49,12 +53,15 @@ export default function CreateMaster() {
     setFormLoading(false);
     if (response.success) {
       showToast(response.message?.msg || response.message);
+      setIsValid(false);
+      reset();
       getMasterGroups();
     } else {
       showToast(response.message?.msg || response.message, "error");
     }
   };
   const reset = () => {
+    setIsValid(false);
     setNewMasterGroup({
       group_name: "",
       code: "",
@@ -107,12 +114,17 @@ export default function CreateMaster() {
                       </span>
                     }
                   >
-                    <Input
-                      size="default"
+                    <Field
+                      attr="required | Code is required"
                       value={newMasterGroup.code}
+                      showValidation={isValid}
                       onChange={(e) => inputHandler("code", e.target.value)}
-                      placeholder="Enter New Master Group Code.."
-                    />
+                    >
+                      <Input
+                        size="default"
+                        placeholder="Enter New Master Group Code.."
+                      />
+                    </Field>
                   </Form.Item>
 
                   <Form.Item
@@ -126,14 +138,19 @@ export default function CreateMaster() {
                       </span>
                     }
                   >
-                    <Input
-                      size="default"
+                    <Field
+                      attr="required | Master Group Name is required"
                       value={newMasterGroup.group_name}
+                      showValidation={isValid}
                       onChange={(e) =>
                         inputHandler("group_name", e.target.value)
                       }
-                      placeholder="Enter New Master Group Code.."
-                    />
+                    >
+                      <Input
+                        size="default"
+                        placeholder="Enter New Master Group Code.."
+                      />
+                    </Field>
                   </Form.Item>
                 </Form>
               </Col>

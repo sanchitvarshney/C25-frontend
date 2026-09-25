@@ -20,13 +20,14 @@ import { useEffect } from "react";
 import { setCurrentLinks } from "../../../Features/loginSlice/loginSlice.js";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
+import {  useParams } from "react-router-dom";
 import useApi from "../../../hooks/useApi.ts";
 import { getLedgerReport } from "../../../api/ledger";
 import MyButton from "../../../Components/MyButton/index.jsx";
 import { getRecoReport } from "../../../api/finance/vendor-reco.js";
+import Loading from "../../../Components/Loading.jsx";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
-import { useParams } from "react-router-dom";
 
 export default function LedgerReport() {
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -34,7 +35,9 @@ export default function LedgerReport() {
   const [selectLoading, setSelectLoading] = useState(false);
   const [rows, setRows] = useState({ rows: [] });
   const [summary, setSummary] = useState({});
+  // const [searchLedger, setSearchLedger] = useState(null);
   const [recoRows, setRecoRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const [filterForm] = Form.useForm();
   const dispatch = useDispatch();
@@ -47,7 +50,7 @@ export default function LedgerReport() {
     const response = await imsAxios.post("/tally/ledger/ledger_options", {
       search: searchInput,
     });
-
+    setSelectLoading(false);
     if (response.success) {
       let arr = [];
       arr = response.data.map((d) => {
@@ -57,17 +60,23 @@ export default function LedgerReport() {
         };
       });
       setAsyncOptions(arr);
-          setSelectLoading(false);
     }
   };
   const handleFetchLedgerReport = async () => {
-    const values = await filterForm.validateFields();
+    let values;
+    try {
+      values = await filterForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     let payload = {
       ledger: values?.vendor.value,
       date: values?.date,
     };
     const response = await executeFun(() => getLedgerReport(payload), "fetch");
-    handleFetchRecoReport();
+    handleFetchRecoReport(values);
     let { data } = response;
     if (response.success) {
       if (response.success) {
@@ -116,8 +125,16 @@ export default function LedgerReport() {
     // }
   };
 
-  const handleFetchRecoReport = async () => {
-    const values = await filterForm.validateFields();
+  const handleFetchRecoReport = async (values) => {
+    if (!values) {
+      try {
+        values = await filterForm.validateFields();
+      } catch (error) {
+        setIsValid(true);
+        return;
+      }
+      setIsValid(false);
+    }
     const response = await executeFun(
       () => getRecoReport(values.vendor.value),
       "fetch"
@@ -191,9 +208,14 @@ export default function LedgerReport() {
     },
   ];
   const downloadFun = async () => {
-
-
-    const values = await filterForm.validateFields();
+    let values;
+    try {
+      values = await filterForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     let csvData = rows.map((row) => {
       return {
         "Ref Date": row.referenceDate,
@@ -253,6 +275,7 @@ export default function LedgerReport() {
   }, [params]);
   return (
     <Row gutter={6} style={{ height: "calc(100vh - 120px)", padding: 10, overflow: "hidden" }}>
+      {selectLoading && <Loading />}
       <Col span={6} style={{ height: "100%", overflow: "auto" }}>
         <Flex vertical gap={6}>
           <Card size="small">
@@ -260,7 +283,7 @@ export default function LedgerReport() {
               <Form.Item name="vendor" label="Ledger" rules={rules.vendor}>
                 <MyAsyncSelect
                   onBlur={() => setAsyncOptions([])}
-                  selectLoading={loading1("select") ?? selectLoading}
+                  selectLoading={loading1("select")}
                   placeholder="Select Ledger"
                   labelInValue
                   loadOptions={handleFetchLedgerOptions}
@@ -268,6 +291,8 @@ export default function LedgerReport() {
                   onChange={(value) =>
                     filterForm.setFieldValue("vendor", value)
                   }
+                  showError={isValid}
+                  message="Please select a ledger"
                 />
               </Form.Item>
               <Form.Item name="date" label="Time Period" rules={rules.date}>
@@ -275,6 +300,8 @@ export default function LedgerReport() {
                   setDateRange={(value) =>
                     filterForm.setFieldValue("date", value)
                   }
+                  showError={isValid}
+                  message="Please select a time period"
                 />
               </Form.Item>
               <Row justify="end">
@@ -424,8 +451,8 @@ export default function LedgerReport() {
                   <Typography.Text strong>Status</Typography.Text>
                 </Flex>
                 <Divider />
-                {recoRows.map((row, index) => (
-                  <Flex justify="space-between" key={row.month ?? index}>
+                {recoRows.map((row, idx) => (
+                  <Flex justify="space-between" key={row.id|| idx}>
                     <Typography.Text>{row.month}</Typography.Text>
                     <Typography.Text>{row.status}</Typography.Text>
                   </Flex>
@@ -453,13 +480,13 @@ const rules = {
   vendor: [
     {
       required: true,
-      message: "Please select a ledger",
+      message: "",
     },
   ],
   date: [
     {
       required: true,
-      message: "Please select a time period",
+      message: "",
     },
   ],
 };

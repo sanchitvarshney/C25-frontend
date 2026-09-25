@@ -1,4 +1,4 @@
-import { useState } from "react";
+import  { useState } from "react";
 import { imsAxios } from "../../axiosInterceptor";
 import MyDatePicker from "../../Components/MyDatePicker";
 import {
@@ -18,33 +18,32 @@ import MyButton from "../../Components/MyButton";
 import { useToast } from "../../hooks/useToast";
 
 function TrialBalReport() {
-  const { showToast } = useToast();
+  const {showToast} = useToast();
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [allData, setAllData] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   let arr = [];
 
   const fetchTrialBalanceFun = async () => {
-    try {
-      setLoading(true);
-      const response = await imsAxios.post(
-        "/tally/reports/trailBalanaceReport",
-        {
-          date: date,
-        },
-      );
-      if (response?.success) {
-        setLoading(false);
-        setAllData(flatArray(response.data));
-      } else {
-        setLoading(false);
-        showToast(response.message, "error");
-      }
-    } catch (error) {
-      setLoading(false);
-      showToast(error.message || "Failed to get Trial Balance Report", "error");
+    if (!date) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
+    setLoading(true);
+    const response = await imsAxios.post("/tally/reports/trailBalanaceReport", {
+      date: date,
+    });
+    if (response?.success) {
+          setLoading(false);
+    setAllData(flatArray(response.data));
+    } else {
+      setLoading(false);
+      showToast(response.message, "error");
+    }
+
   };
 
   const handleDownloadCSV = () => {
@@ -65,8 +64,8 @@ function TrialBalReport() {
             ? "Master"
             : "Sub Group"
           : !row.type
-            ? "Ledger"
-            : row.type,
+          ? "Ledger"
+          : row.type,
         Debit: row.debit && convertToNumber(row.debit),
         "Credit.": row.credit && convertToNumber(row.credit),
       };
@@ -116,8 +115,8 @@ function TrialBalReport() {
             ? "Master"
             : "Sub Group"
           : !row.type
-            ? "Ledger"
-            : row.type,
+          ? "Ledger"
+          : row.type,
         lable:
           row.label &&
           row.label
@@ -131,15 +130,23 @@ function TrialBalReport() {
 
   //   allData.map((a) => console.log(a.label));
   return (
-    <div style={{ margin: "10px" }}>
-      <Row gutter={0}>
+    <div
+    style={{ margin: "10px" }}
+    >
+      <Row gutter={10} >
         <Col span={5}>
-          <MyDatePicker setDateRange={setDate} size="default" />
+          <MyDatePicker
+            setDateRange={setDate}
+            size="default"
+            value={date}
+            showError={isValid}
+            message="Please select a date range"
+          />
         </Col>
         <Col span={1}>
           <MyButton
             loading={loading}
-            type={date ? "primary" : "default"}
+            type={"primary"}
             onClick={fetchTrialBalanceFun}
             variant="search"
           >
@@ -213,8 +220,8 @@ function TrialBalReport() {
                           ? "Master"
                           : "Sub Group"
                         : !row.type
-                          ? "Ledger"
-                          : row.type}
+                        ? "Ledger"
+                        : row.type}
                     </TableCell>
 
                     {/* debit */}

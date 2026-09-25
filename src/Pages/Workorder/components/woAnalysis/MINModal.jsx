@@ -9,12 +9,7 @@ import {
   Space,
   Typography,
 } from "antd";
-import {
-  createMIN,
-  // getLocationOptions,
-  getWorkOrderDetails,
-  getWorkOrderForMIN,
-} from "../api";
+import { createMIN, getWorkOrderDetails, getWorkOrderForMIN } from "../api";
 import { useEffect, useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import Loading from "../../../../Components/Loading";
@@ -28,11 +23,10 @@ import NavFooter from "../../../../Components/NavFooter";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
+import Field from "../../../../Components/Field.jsx";
 
 const MINModal = ({ showView, setShowView, getRows }) => {
-  // ////////////////
   const { showToast } = useToast();
-  // const [locationOptions, setLocationOptions] = useState([]);
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [minForm] = Form.useForm();
@@ -40,6 +34,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   const components = Form.useWatch("components", minForm);
   const [files, setFiles] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   //
   //
   const getDetails = async (id, woId, sku) => {
@@ -56,19 +51,23 @@ const MINModal = ({ showView, setShowView, getRows }) => {
       showToast(error.message || "Something went wrong", "error");
     }
   };
-  // const handleGetLocations = async (search) => {
-  //   try {
-  //     const arr = await getLocationOptions(search);
-  //     // console.log("sr", arr);
-  //     setLocationOptions(arr);
-  //   } catch (error) {
-  //     console.log("some error occured while fetching locations", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((r) => !r.qty || !r.rate || !r.hsn || !r.location);
+
   const validateHandler = async () => {
-    const values = await minForm.validateFields();
+    let values;
+    try {
+      values = await minForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    if (hasIncompleteRow(components)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     Modal.confirm({
       title: "Submit MIN",
       content: "Are you sure you want to submit this MIN",
@@ -99,7 +98,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     if (formData && files[0]) {
       const uploadwodoc = await imsAxios.post(
         "/createwo/uploadAttachment",
-        formData
+        formData,
       );
       setFiles([]);
       if (uploadwodoc.success) {
@@ -110,6 +109,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
           setShowView(false);
           getRows();
           minForm.resetFields();
+          setIsValid(false);
         }
       } else {
         showToast(uploadwodoc.message, "error");
@@ -120,6 +120,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     setShowView(false);
     getRows();
     minForm.resetFields();
+    setIsValid(false);
   };
   const getLocatonOptions = async (search) => {
     setLoading("select");
@@ -143,7 +144,6 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   useEffect(() => {
     if (showView) {
       getDetails(showView.subjectId, showView.woId, showView.sku);
-      // handleGetLocations();
     }
   }, [showView]);
   const locationColumn = {
@@ -152,12 +152,17 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     width: 150,
     field: () => (
       //  <MySelect options={locationOptions} />,
-      <MyAsyncSelect
-        onBlur={() => setAsyncOptions([])}
-        loadOptions={getLocatonOptions}
-        optionsState={asyncOptions}
-        selectLoading={loading === "select"}
-      />
+      <Field
+        attr="required | Please select a Location!"
+        showValidation={isValid}
+      >
+        <MyAsyncSelect
+          onBlur={() => setAsyncOptions([])}
+          loadOptions={getLocatonOptions}
+          optionsState={asyncOptions}
+          selectLoading={loading === "select"}
+        />
+      </Field>
     ),
   };
 
@@ -180,19 +185,19 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     }
     minForm.setFieldValue(
       ["components", fieldName, "value"],
-      +Number(value).toFixed(3)
+      +Number(value).toFixed(3),
     );
     minForm.setFieldValue(
       ["components", fieldName, "cgst"],
-      +Number(cgst).toFixed(3)
+      +Number(cgst).toFixed(3),
     );
     minForm.setFieldValue(
       ["components", fieldName, "sgst"],
-      +Number(sgst).toFixed(3)
+      +Number(sgst).toFixed(3),
     );
     minForm.setFieldValue(
       ["components", fieldName, "igst"],
-      +Number(igst).toFixed(3)
+      +Number(igst).toFixed(3),
     );
   };
   const cgstTotal = isNaN(getArrSum(components, "cgst"))
@@ -238,7 +243,10 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     <Drawer
       title={`MIN | ${details?.woId ?? ""}`}
       placement="right"
-      onClose={() => setShowView(false)}
+      onClose={() => {
+        setIsValid(false);
+        setShowView(false);
+      }}
       styles={{
         body: {
           padding: 5,
@@ -263,11 +271,16 @@ const MINModal = ({ showView, setShowView, getRows }) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please select doc id!",
+                        message: "",
                       },
                     ]}
                   >
-                    <Input />
+                    <Field
+                      attr="required | Please select doc id!"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
                   </Form.Item>
                   <Form.Item
                     name="docDate"
@@ -275,7 +288,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please select doc Date!",
+                        message: "",
                       },
                     ]}
                   >
@@ -283,6 +296,8 @@ const MINModal = ({ showView, setShowView, getRows }) => {
                       setDate={(value) =>
                         minForm.setFieldValue("docDate", value)
                       }
+                      showError={isValid}
+                      message="Please select doc Date!"
                     />
                   </Form.Item>
                   <Form.Item
@@ -314,7 +329,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
             <FormTable2
               removableRows={true}
               nonRemovableColumns={1}
-              columns={[...componentsItems(gstType), locationColumn]}
+              columns={[...componentsItems(gstType, isValid), locationColumn]}
               listName="components"
               watchKeys={["rate", "qty", "gstRate"]}
               nonListWatchKeys={["gstType"]}
@@ -322,6 +337,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
               form={minForm}
               calculation={calculation}
               rules={listRules}
+              height="100%"
             />
             {/* </Card> */}
           </Col>
@@ -333,6 +349,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
         type="primary"
         resetFunction={() => {
           minForm.resetFields();
+          setIsValid(false);
           setShowView(false);
         }}
         submitFunction={validateHandler}
@@ -344,7 +361,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
 
 export default MINModal;
 
-const componentsItems = (gstType) => [
+const componentsItems = (gstType, isValid) => [
   {
     headerName: "#",
     name: "",
@@ -379,13 +396,29 @@ const componentsItems = (gstType) => [
     headerName: "Qty",
     name: "qty",
     width: 100,
-    field: () => <Input />,
+    field: () => (
+      <Field
+        attr="required | Please enter MIN Qty!"
+        showValidation={isValid}
+        treatZeroAsEmpty
+      >
+        <Input />
+      </Field>
+    ),
   },
   {
     headerName: "Rate",
     name: "rate",
     width: 100,
-    field: () => <Input />,
+    field: () => (
+      <Field
+        attr="required | Please enter component rate!"
+        showValidation={isValid}
+        treatZeroAsEmpty
+      >
+        <Input />
+      </Field>
+    ),
   },
   {
     headerName: "Value",
@@ -428,7 +461,14 @@ const componentsItems = (gstType) => [
     headerName: "HSN Code",
     name: "hsn",
     width: 150,
-    field: () => <Input />,
+    field: () => (
+      <Field
+        attr="required | Please enter a HSN code!"
+        showValidation={isValid}
+      >
+        <Input />
+      </Field>
+    ),
   },
   {
     headerName: "Remark",
@@ -470,7 +510,7 @@ const gstRateOptions = [
 const getArrSum = (list, key) => {
   const arr = list?.map((row) => row[key]);
   // console.log(arr);
-  return arr?.reduce((a, b) => a + (+Number(b || 0).toFixed(2)), 0);
+  return arr?.reduce((a, b) => a + +Number(b || 0).toFixed(2), 0);
 };
 
 const listRules = {

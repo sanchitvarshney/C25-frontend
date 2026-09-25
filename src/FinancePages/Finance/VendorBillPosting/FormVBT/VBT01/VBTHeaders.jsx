@@ -2,6 +2,7 @@ import { Card, Col, Form, Input, Row, Typography } from "antd";
 import { useEffect } from "react";
 import InputMask from "react-input-mask";
 import TaxDetails from "./TaxDetails";
+import Field from "../../../../../Components/Field.jsx";
 
 const COMMENT_TEMPLATES = {
   vbt06: (invoiceId) =>
@@ -9,6 +10,10 @@ const COMMENT_TEMPLATES = {
   vbt07: (invoiceId) =>
     `Being -- purchase on inv ${invoiceId} date:____ of amt: ___ TDS:___ `,
   vbt01: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
+  vbt08: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
+  vbt09: (invoiceId) =>
     `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
   vbt02: (invoiceId) =>
     `Being Service charges due to INV no. ${invoiceId} date of amount TDS:___ `,
@@ -25,8 +30,8 @@ function VBTHeaders({
   setRoundOffValue,
   apiUrl,
   editVBTCode,
+  isValid,
 }) {
-
   useEffect(() => {
     if (editingVBT && vbtComponent?.length > 0) {
       const header = vbtComponent[0];
@@ -78,42 +83,51 @@ function VBTHeaders({
               <Form.Item
                 label="Invoice Date"
                 name="invoiceDate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please Enter Invoice Date!",
-                  },
-                ]}
+                rules={[{ required: true, message: "" }]}
               >
-                <InputMask
-                  className="input-date"
-                  mask="99-99-9999"
-                  placeholder="__-__-____"
-                />
+                <Field
+                  attr="required | Please Enter Invoice Date!"
+                  showValidation={isValid}
+                >
+                  <InputMask
+                    className="input-date"
+                    mask="99-99-9999"
+                    placeholder="__-__-____"
+                  />
+                </Field>
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="effectiveDate"
                 label="Effective Date"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please Enter Effective Date!",
-                  },
-                ]}
+                rules={[{ required: true, message: "" }]}
               >
-                <InputMask
-                  className="date-text-input"
-                  mask="99-99-9999"
-                  placeholder="__-__-____"
-                />
+                <Field
+                  attr="required | Please Enter Effective Date!"
+                  showValidation={isValid}
+                >
+                  <InputMask
+                    className="date-text-input"
+                    mask="99-99-9999"
+                    placeholder="__-__-____"
+                  />
+                </Field>
               </Form.Item>
             </Col>
 
             <Col span={12}>
-              <Form.Item label="Invoice Number" name="invoiceNo">
-                <Input />
+              <Form.Item
+                label="Invoice Number"
+                name="invoiceNo"
+                rules={[{ required: true, message: "" }]}
+              >
+                <Field
+                  attr="required | Please Enter Invoice Number!"
+                  showValidation={isValid}
+                >
+                  <Input />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -121,20 +135,30 @@ function VBTHeaders({
               <Form.Item
                 label="Invoice Amount"
                 name="billAmmount"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please Enter Bill Amount!",
-                  },
-                ]}
+                rules={[{ required: true, message: "" }]}
               >
-                <Input />
+                <Field
+                  attr="required | Please Enter Bill Amount!"
+                  showValidation={isValid}
+                  treatZeroAsEmpty
+                >
+                  <Input />
+                </Field>
               </Form.Item>
             </Col>
 
             <Col span={12}>
-              <Form.Item label="GSTIN Number" name="gst">
-                <Input />
+              <Form.Item
+                label="GSTIN Number"
+                name="gst"
+                rules={[{ required: true, message: "" }]}
+              >
+                <Field
+                  attr="required | Please Enter GSTIN Number!"
+                  showValidation={isValid}
+                >
+                  <Input />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -164,13 +188,31 @@ function VBTHeaders({
             </Col>
 
             <Col span={24}>
-              <Form.Item label="Comments" name="comment">
-                <Input.TextArea placeholder="Comments" />
+              <Form.Item
+                label="Comments"
+                name="comment"
+                rules={[{ required: true, message: "" }]}
+              >
+                <Field
+                  attr="required | Please Enter Comments!"
+                  showValidation={isValid}
+                >
+                  <Input.TextArea placeholder="Comments" />
+                </Field>
               </Form.Item>
             </Col>
             <Col span={24}>
-              <Form.Item label="Vendor Address" name="venAddress">
-                <Input.TextArea />
+              <Form.Item
+                label="Vendor Address"
+                name="venAddress"
+                rules={[{ required: true, message: "" }]}
+              >
+                <Field
+                  attr="required | Please Enter Vendor Address!"
+                  showValidation={isValid}
+                >
+                  <Input.TextArea />
+                </Field>
               </Form.Item>
             </Col>
           </Row>

@@ -17,6 +17,7 @@ import {
   Typography,
 } from "antd";
 import { useState } from "react";
+import { useToast } from "../../hooks/useToast";
 
 import { imsAxios } from "../../axiosInterceptor";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
@@ -29,7 +30,6 @@ import {
 } from "../../Components/exportToCSV";
 import { useEffect } from "react";
 import { CommonIcons } from "../../Components/TableActions.jsx/TableActions";
-import { useToast } from "../../hooks/useToast";
 
 const initColumns = [
   { headerName: "Name", field: "name", width: 100 },
@@ -49,7 +49,13 @@ const {showToast} = useToast();
   const [months, setMonths] = useState([]);
   const [colm, setColm] = useState(initColumns);
   const [expanded, setExpanded] = useState({ panel1: false, panel2: false });
+  const [isValid, setIsValid] = useState(false);
   const fetchMisReport = async () => {
+    if (!dateRange) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading(true);
     const response = await imsAxios.get(`/mis/generate?date=${dateRange}`);
 
@@ -78,9 +84,6 @@ const {showToast} = useToast();
   };
 
   const handleDownloadCSV = () => {
-    console.log("this is the income data", incomeData);
-    console.log("this is the columns data", allData);
-  
     downloadCSV([...incomeData, ...allData], colm, "MIS Report");
     // downloadCSV([...incomeData, ...allData], colm, "MIS Report");
   };
@@ -104,7 +107,7 @@ const {showToast} = useToast();
     return arr;
   };
   // const customFlatArrayforExpense = (row) => {
-  //   console.log("row->", row);
+   
 
   //   row &&
   //     row.children?.map((row) => {
@@ -179,6 +182,12 @@ const {showToast} = useToast();
   let arr = [];
   // let arrs = [];
 
+  const renderQuarterValue = (row, quarter) => {
+    if (row?.type !== "ledger") return "";
+    const value = row?.quarters?.[quarter];
+    return typeof value === "number" ? value.toFixed(2) : "-";
+  };
+
   const Accordion = styled((props) => (
     <MuiAccordion disableGutters elevation={0} square {...props} />
   ))(({ theme }) => ({
@@ -236,7 +245,12 @@ const {showToast} = useToast();
     <div style={{ height: "80%", padding: 10, }}>
       <Row gutter={16} >
         <Col span={5}>
-          <MyDatePicker setDateRange={setDateRange} />
+          <MyDatePicker
+            setDateRange={setDateRange}
+            value={dateRange}
+            showError={isValid}
+            message="Please select a date range"
+          />
         </Col>
         <Space span={1}>
           <div>
@@ -380,11 +394,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q1
-                                  ? (row.quarters?.Q1 )?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q1")}
                             </TableCell>
                             <TableCell
                               style={{
@@ -392,11 +402,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q2
-                                  ? (row.quarters?.Q2)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q2")}
                             </TableCell>
                             <TableCell
                               style={{
@@ -404,11 +410,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q3
-                                  ? (row.quarters?.Q3)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q3")}
                             </TableCell>
                             <TableCell
                               style={{
@@ -416,11 +418,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q4
-                                  ? (row.quarters?.Q4)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q4")}
                             </TableCell>
                             {/* //month */}
                             {/* <TableCell> */}
@@ -583,11 +581,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q1
-                                  ? (row.quarters?.Q1)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q1")}
                             </TableCell>
                             <TableCell
                               style={{
@@ -595,11 +589,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q2
-                                  ? (row.quarters?.Q2)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q2")}
                             </TableCell>
                             <TableCell
                               style={{
@@ -607,11 +597,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q3
-                                  ? (row.quarters?.Q3)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q3")}
                             </TableCell>
                             <TableCell
                               style={{
@@ -619,11 +605,7 @@ const {showToast} = useToast();
                                 color: row.type === "End Total" && "#26c426",
                               }}
                             >
-                              {row.type === "ledger"
-                                ? row && row.quarters && row.quarters?.Q4
-                                  ? (row.quarters?.Q4)?.toFixed(2)
-                                  : "-"
-                                : ""}
+                              {renderQuarterValue(row, "Q4")}
                             </TableCell>
                             {/* //month */}
                             {/* <TableCell> */}

@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { Button, Col, Input, Row, Select } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -7,16 +7,24 @@ import { v4 } from "uuid";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MyDataTable from "../../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { EyeFilled } from "@ant-design/icons";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import CashEditModal from "./model/cashEditModal";
 import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import MyButton from "../../../Components/MyButton";
-// import CashEditModal from "./model/CashEditModal";
+import Field from "../../../Components/Field.jsx";
+
+const FILTER_OPTIONS = [
+  { label: "Date Wise", value: "date_wise" },
+  { label: "Effective Wise", value: "eff_wise" },
+  { label: "Code Wise", value: "key_wise" },
+  { label: "Ledger Wise", value: "ledger_wise" },
+];
+
+const LIST_URL = "/tally/cash/cashpayment_list";
+const DATE_TYPES = ["date_wise", "eff_wise"];
 
 function CashPaymentResister() {
   const { showToast } = useToast();
-  // const [open, setOpen] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [datee, setDatee] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,118 +35,58 @@ function CashPaymentResister() {
     pick: "",
   });
   const [cashEdit, setCashEdit] = useState(false);
+  const [isValid, setIsValid] = useState(false);
+  const [rows, setRows] = useState([]);
 
-  const getSelectOption = [
-    { label: "Date Wise", value: "date_wise" },
-    { label: "Effective Wise", value: "eff_wise" },
-    { label: "Code Wise", value: "key_wise" },
-    { label: "Ledger Wise", value: "ledger_wise" },
-  ];
-  const [dateData, setDateData] = useState([]);
-  const [effectiveData, setEffectiveData] = useState([]);
-  const [codeData, setCodeData] = useState([]);
-  const [ledgerData, setLedgerData] = useState([]);
+  const { selType, code, pick } = selectedValue;
 
-  const getLedgerFunction = async (e) => {
-    if (e?.length > 1) {
-      setSelectLoading(true);
-      const response = await imsAxios.post("/tally/ledger/ledger_options", {
-        seacrh: e,
+  const patchSelected = (patch) =>
+    setSelectedValue((prev) => ({ ...prev, ...patch }));
+
+  const getLedgerFunction = async (search) => {
+    if (!search || search.length <= 1) return;
+    setSelectLoading(true);
+    try {
+      const { data } = await imsAxios.post("/tally/ledger/ledger_options", {
+        search,
       });
+      setAsyncOptions(
+        (data || []).map((d) => ({ text: d.text, value: d.id }))
+      );
+    } finally {
       setSelectLoading(false);
-      let arr = [];
-      arr = response.data.map((d) => {
-        return { text: d.text, value: d.id };
-      });
-      setAsyncOptions(arr);
     }
   };
 
-  const fetchData = async (e) => {
-    if (e == "date_wise") {
-      setDateData([]);
-      setLoading(true);
-      const response = await imsAxios.post("/tally/cash/cashpayment_list", {
-        wise: selectedValue.selType,
-        data: datee,
+  // Resolve the `data` value to send for the active filter, or "" when invalid.
+  const getQueryValue = () => {
+    if (DATE_TYPES.includes(selType)) return datee || "";
+    if (selType === "key_wise") return code?.trim() || "";
+    if (selType === "ledger_wise") return pick?.value ?? pick ?? "";
+    return "";
+  };
+
+  const fetchData = async () => {
+    const value = getQueryValue();
+    if (!selType || !value) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setRows([]);
+    setLoading(true);
+    try {
+      const response = await imsAxios.post(LIST_URL, {
+        wise: selType,
+        data: value,
       });
       if (response.success) {
-        let arr = response?.data?.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setDateData(arr);
-        setLoading(false);
-      } else if (!response.success) {
+        setRows((response.data || []).map((row) => ({ ...row, id: v4() })));
+      } else {
         showToast(response.message?.msg || response.message, "error");
-        setLoading(false);
       }
-    } else if (e == "eff_wise") {
-      setEffectiveData([]);
-      setLoading(true);
-      const response = await imsAxios.post("/tally/cash/cashpayment_list", {
-        wise: selectedValue.selType,
-        data: datee,
-      });
-      if (response.success) {
-        let arr = response?.data?.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setEffectiveData(arr);
-        setLoading(false);
-      } else if (!response.success) {
-        showToast(response.message?.msg || response.message, "error");
-        setLoading(false);
-      }
-    } else if (e == "key_wise") {
-      setCodeData([]);
-      setLoading(true);
-      const response = await imsAxios.post("/tally/cash/cashpayment_list", {
-        wise: selectedValue.selType,
-        data: selectedValue?.code,
-      });
-      if (response.success) {
-        let arr = response?.data?.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setCodeData(arr);
-        setLoading(false);
-      } else if (!response.success) {
-        showToast(response.message?.msg || response.message, "error");
-        setLoading(false);
-      }
-    } else if (e == "ledger_wise") {
-      setLedgerData([]);
-      setLoading(true);
-      const response = await imsAxios.post(
-        "/tally/cash/cashpayment_list",
-        // "/tally/cash/cashreceipt_list",
-        {
-          wise: selectedValue?.selType,
-          data: selectedValue?.pick,
-        }
-      );
-      if (response.success) {
-        let arr = response?.data?.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setLedgerData(arr);
-        setLoading(false);
-      } else if (!response.success) {
-        showToast(response.message?.msg || response.message, "error");
-        setLoading(false);
-      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -149,44 +97,20 @@ function CashPaymentResister() {
       width: 100,
       type: "actions",
       getActions: ({ row }) => [
-        <GridActionsCellItem
-        key={row?.module_used ?? "view"}
-          label="View"
-          icon={<EyeFilled  />}
-        />,
+        <GridActionsCellItem key={"view"} label="View" />,
         <TableActions
-          key={row?.module_used ?? "edit"}
+          key={"edit"}
           action="edit"
           onClick={() => setCashEdit(row.module_used)}
         />,
       ],
     },
     { field: "ref_date", headerName: "DATE", width: 120 },
-    {
-      field: "bank_name",
-      headerName: "BANK NAME",
-      width: 400,
-    },
-    {
-      field: "bank_name_code",
-      headerName: "BANK CODE",
-      width: 150,
-    },
-    {
-      field: "perticular",
-      headerName: "PARTICULAR",
-      width: 250,
-    },
-    {
-      field: "perticular_code",
-      headerName: "PARTICULAR CODE",
-      width: 180,
-    },
-    {
-      field: "which_module",
-      headerName: "VOUCHER TYPE",
-      width: 180,
-    },
+    { field: "bank_name", headerName: "BANK NAME", width: 400 },
+    { field: "bank_name_code", headerName: "BANK CODE", width: 150 },
+    { field: "perticular", headerName: "PARTICULAR", width: 250 },
+    { field: "perticular_code", headerName: "PARTICULAR CODE", width: 180 },
+    { field: "which_module", headerName: "VOUCHER TYPE", width: 180 },
     {
       field: "module_used",
       headerName: "VOUCHER ID",
@@ -209,213 +133,84 @@ function CashPaymentResister() {
     { field: "status", headerName: "STATUS", width: 140 },
   ];
 
+  const renderFilterField = () => {
+    if (selType === "key_wise") {
+      return (
+        <Field
+          attr="required | Code is required"
+          value={code}
+          showValidation={isValid}
+          onChange={(e) => patchSelected({ code: e.target.value })}
+        >
+          <Input placeholder="Code" />
+        </Field>
+      );
+    }
+    if (selType === "ledger_wise") {
+      return (
+        <MyAsyncSelect
+          selectLoading={selectLoading}
+          style={{ width: "100%" }}
+          onBlur={() => setAsyncOptions([])}
+          loadOptions={getLedgerFunction}
+          value={pick}
+          optionsState={asyncOptions}
+          onChange={(e) => patchSelected({ pick: e })}
+          labelInValue
+          showError={isValid}
+          message="Please select a Ledger"
+        />
+      );
+    }
+    return (
+      <MyDatePicker
+        setDateRange={setDatee}
+        size="default"
+        value={datee}
+        showError={isValid}
+        message="Please select a date range"
+      />
+    );
+  };
+
   return (
     <>
-      <div style={{ height: "100%", padding: 10   }}>
+      <div style={{ height: "100%", padding: 10 }}>
         <CashEditModal cashEdit={cashEdit} setCashEdit={setCashEdit} />
         <Row gutter={10}>
-          {selectedValue?.selType === "" ? (
-            <>
-              <Col span={4}>
-                <Select
-                  options={getSelectOption}
-                  style={{ width: "100%" }}
-                  placeholder="Select option"
-                  value={selectedValue?.selType?.value}
-                  onChange={(e) =>
-                    setSelectedValue((selectedValue) => {
-                      return {
-                        ...selectedValue,
-                        selType: e,
-                      };
-                    })
-                  }
-                />
-              </Col>
-              <Col span={4}>
-                <MyDatePicker setDateRange={setDatee} size="default" />
-              </Col>
-              <Col span={1}>
-                <Button
-                  loading={loading}
-                  type="primary"
-                  onClick={() => fetchData("date_wise")}
-                >
-                  Search
-                </Button>
-              </Col>
-            </>
-          ) : selectedValue?.selType === "date_wise" ? (
-            <>
-              <Col span={4}>
-                <Select
-                  options={getSelectOption}
-                  style={{ width: "100%" }}
-                  placeholder="Select option"
-                  value={selectedValue?.selType?.value}
-                  onChange={(e) =>
-                    setSelectedValue((selectedValue) => {
-                      return {
-                        ...selectedValue,
-                        selType: e,
-                      };
-                    })
-                  }
-                />
-              </Col>
-              <Col span={4}>
-                <MyDatePicker setDateRange={setDatee} size="default" />
-              </Col>
-              <Col span={1}>
-                <Button
-                  loading={loading}
-                  type="primary"
-                  onClick={() => fetchData("date_wise")}
-                >
-                  Search
-                </Button>
-              </Col>
-            </>
-          ) : selectedValue?.selType === "eff_wise" ? (
-            <>
-              <Col span={4}>
-                <Select
-                  options={getSelectOption}
-                  style={{ width: "100%" }}
-                  placeholder="Select option"
-                  value={selectedValue?.selType?.value}
-                  onChange={(e) =>
-                    setSelectedValue((selectedValue) => {
-                      return {
-                        ...selectedValue,
-                        selType: e,
-                      };
-                    })
-                  }
-                />
-              </Col>
-              <Col span={4}>
-                <MyDatePicker setDateRange={setDatee} size="default" />
-              </Col>
-              <Col span={1}>
-                <Button
-                  loading={loading}
-                  type="primary"
-                  onClick={() => fetchData("eff_wise")}
-                >
-                  Search
-                </Button>
-              </Col>
-            </>
-          ) : selectedValue?.selType === "key_wise" ? (
-            <>
-              <Col span={4}>
-                <Select
-                  options={getSelectOption}
-                  style={{ width: "100%" }}
-                  placeholder="Select option"
-                  value={selectedValue?.selType?.value}
-                  onChange={(e) =>
-                    setSelectedValue((selectedValue) => {
-                      return {
-                        ...selectedValue,
-                        selType: e,
-                      };
-                    })
-                  }
-                />
-              </Col>
-              <Col span={4}>
-                <Input
-                  placeholder="Code"
-                  value={selectedValue?.code}
-                  onChange={(e) =>
-                    setSelectedValue((selectedValue) => {
-                      return {
-                        ...selectedValue,
-                        code: e.target.value,
-                      };
-                    })
-                  }
-                />
-              </Col>
-              <Col span={1}>
-                <Button
-                  loading={loading}
-                  type="primary"
-                  onClick={() => fetchData("key_wise")}
-                >
-                  Search
-                </Button>
-              </Col>
-            </>
-          ) : (
-            selectedValue?.selType === "ledger_wise" && (
-              <>
-                <Col span={4}>
-                  <Select
-                    options={getSelectOption}
-                    style={{ width: "100%" }}
-                    placeholder="Select option"
-                    value={selectedValue?.selType?.value}
-                    onChange={(e) =>
-                      setSelectedValue((selectedValue) => {
-                        return {
-                          ...selectedValue,
-                          selType: e,
-                        };
-                      })
-                    }
-                  />
-                </Col>
-                <Col span={4}>
-                  <MyAsyncSelect
-                    selectLoading={selectLoading}
-                    style={{ width: "100%" }}
-                    onBlur={() => setAsyncOptions([])}
-                    loadOptions={getLedgerFunction}
-                    value={selectedValue.pick}
-                    optionsState={asyncOptions}
-                    onChange={(e) =>
-                      setSelectedValue((selectedValue) => {
-                        return {
-                          ...selectedValue,
-                          pick: e,
-                        };
-                      })
-                    }
-                  />
-                </Col>
-                <Col span={1}>
-                  <MyButton
-                    loading={loading}
-                    type="primary"
-                    onClick={() => fetchData("ledger_wise")}
-                    variant="search"
-                  ></MyButton>
-                </Col>
-              </>
-            )
-          )}
+          <Col span={4}>
+            <Select
+              options={FILTER_OPTIONS}
+              style={{ width: "100%" }}
+              placeholder="Select option"
+              value={selType || undefined}
+              onChange={(e) => {
+                setIsValid(false);
+                setRows([]);
+                patchSelected({ selType: e });
+              }}
+              showError={isValid && !selType}
+              message="Please select an option"
+            />
+          </Col>
+          <Col span={4}>{renderFilterField()}</Col>
+          <Col span={1}>
+            {selType === "ledger_wise" ? (
+              <MyButton
+                loading={loading}
+                type="primary"
+                onClick={fetchData}
+                variant="search"
+              />
+            ) : (
+              <Button loading={loading} type="primary" onClick={fetchData}>
+                Search
+              </Button>
+            )}
+          </Col>
         </Row>
         <div style={{ height: "calc(100vh - 190px)", marginTop: "10px" }}>
-          {selectedValue?.selType == "date_wise" ? (
-            <MyDataTable loading={loading} data={dateData} columns={columns} />
-          ) : selectedValue?.selType == "eff_wise" ? (
-            <MyDataTable
-              loading={loading}
-              data={effectiveData}
-              columns={columns}
-            />
-          ) : selectedValue?.selType == "key_wise" ? (
-            <MyDataTable loading={loading} data={codeData} columns={columns} />
-          ) : (
-            <MyDataTable
-              loading={loading}
-              data={ledgerData}
-              columns={columns}
-            />
-          )}
+          <MyDataTable loading={loading} data={rows} columns={columns} />
         </div>
       </div>
       <CashEditModal cashEdit={cashEdit} setCashEdit={setCashEdit} />
