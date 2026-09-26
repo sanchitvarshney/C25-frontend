@@ -382,11 +382,10 @@ const QaProcessMap = () => {
       if (input.id === value) {
         if (field === "bomRequired") {
           getskulist();
-          // Handle "BOM Required" change here
           const updatedInput = {
             ...input,
             bomRequired: e,
-            bom: e === "NO" ? "disabled" : "", // Update 'bom' based on 'e' value
+            bom: e === "NO" ? "disabled" : "",
           };
           bom();
           getskulist();
@@ -400,7 +399,7 @@ const QaProcessMap = () => {
           field === "ProcessLocation" ||
           field === "sku"
         ) {
-          // Handle other field changes here
+          
           return { ...input, [field]: e };
         }
       }
