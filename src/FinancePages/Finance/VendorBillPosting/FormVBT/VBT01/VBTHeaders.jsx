@@ -1,4 +1,4 @@
-import { Card, Col, Form, Input, Row, Typography } from "antd";
+import { Card, Checkbox, Col, Form, Input, Row, Typography } from "antd";
 import { useEffect } from "react";
 import InputMask from "react-input-mask";
 import TaxDetails from "./TaxDetails";
@@ -54,6 +54,20 @@ function VBTHeaders({
     }
   }, [vbtComponent, editingVBT, editVBTCode, apiUrl, form]);
 
+  const freightCharge = Form.useWatch("freightCharge", form);
+  const freightCharge20Percent = Form.useWatch("freightCharge20Percent", form);
+  const insuranceCharge = Form.useWatch("insuranceCharge", form);
+  const insuranceCharge1125Percent = Form.useWatch(
+    "insuranceCharge1125Percent",
+    form,
+  );
+  const freightCharge20PercentAmount = +Number(
+    +Number(freightCharge || 0) * 0.2,
+  ).toFixed(2);
+  const insuranceCharge1125PercentAmount = +Number(
+    +Number(insuranceCharge || 0) * 0.01125,
+  ).toFixed(2);
+
   useEffect(() => {
     if (editVBTCode.length > 0) {
       const roundoffv = editVBTCode.map(
@@ -75,6 +89,116 @@ function VBTHeaders({
       <Col span={24} style={{ height: "50%" }}>
         <Card size="small">
           <Row gutter={6}>
+            {apiUrl === "vbt03" && (
+              <>
+                <Col span={12}>
+                  <Form.Item
+                    label="Rate of exchange"
+                    name="rateOfExchange"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Field
+                      attr="required | Please Enter Rate of Exchange!"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Miscellaneous Expense"
+                    name="miscellaneousExpense"
+                    rules={[{ required: true, message: "" }]}
+                  >
+                    <Field
+                      attr="required | Please Enter Miscellaneous Expense!"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Typography.Text style={{ fontSize: "0.8rem" }}>
+                    Freight Charge
+                  </Typography.Text>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Form.Item
+                      name="freightCharge"
+                      rules={[{ required: true, message: "" }]}
+                      style={{ flex: 1, marginBottom: 0 }}
+                    >
+                      <Field
+                        attr="required | Please Enter Freight Charge!"
+                        showValidation={isValid}
+                      >
+                        <Input />
+                      </Field>
+                    </Form.Item>
+                    <Form.Item
+                      name="freightCharge20Percent"
+                      valuePropName="checked"
+                      style={{ marginBottom: 0, whiteSpace: "nowrap" }}
+                    >
+                      <Checkbox>20%</Checkbox>
+                    </Form.Item>
+                    {freightCharge20Percent && (
+                      <Input
+                        style={{ flex: 1 }}
+                        value={freightCharge20PercentAmount}
+                        disabled
+                      />
+                    )}
+                  </div>
+                </Col>
+                <Col span={24}>
+                  <Typography.Text style={{ fontSize: "0.8rem" }}>
+                    Insurance Charge
+                  </Typography.Text>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Form.Item
+                      name="insuranceCharge"
+                      rules={[{ required: true, message: "" }]}
+                      style={{ flex: 1, marginBottom: 0 }}
+                    >
+                      <Field
+                        attr="required | Please Enter Insurance Charge!"
+                        showValidation={isValid}
+                      >
+                        <Input />
+                      </Field>
+                    </Form.Item>
+                    <Form.Item
+                      name="insuranceCharge1125Percent"
+                      valuePropName="checked"
+                      style={{ marginBottom: 0, whiteSpace: "nowrap" }}
+                    >
+                      <Checkbox>1.125%</Checkbox>
+                    </Form.Item>
+                    {insuranceCharge1125Percent && (
+                      <Input
+                        style={{ flex: 1 }}
+                        value={insuranceCharge1125PercentAmount}
+                        disabled
+                      />
+                    )}
+                  </div>
+                </Col>
+              </>
+            )}
             <Col span={12}>
               <Form.Item
                 label="Invoice Date"

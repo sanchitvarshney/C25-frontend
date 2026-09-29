@@ -91,6 +91,83 @@ function SingleComponent({
       "%",
       "",
     ) ?? 0;
+  const freightChargeAllocated =
+    Form.useWatch(["components", field.name, "freightChargeAllocated"], form) ??
+    0;
+  const miscExpenseAllocated =
+    Form.useWatch(["components", field.name, "miscExpenseAllocated"], form) ??
+    0;
+  const insuranceChargeAllocated =
+    Form.useWatch(
+      ["components", field.name, "insuranceChargeAllocated"],
+      form,
+    ) ?? 0;
+  const customDutyRate =
+    Form.useWatch(["components", field.name, "customDutyRate"], form) ?? 0;
+  const swsRate =
+    Form.useWatch(["components", field.name, "swsRate"], form) ?? 0;
+  const addRate =
+    Form.useWatch(["components", field.name, "addRate"], form) ?? 0;
+  const customsGstRate =
+    Form.useWatch(["components", field.name, "customsGstRate"], form) ?? 0;
+
+  // BOE Assess Value & duty calculations (vbt03 only)
+  useEffect(() => {
+    if (apiUrl !== "vbt03" && editApiUrl !== "vbt03") return;
+    const boeAssessValue =
+      +Number(vbtInRate) +
+      +Number(freightChargeAllocated) +
+      +Number(miscExpenseAllocated) +
+      +Number(insuranceChargeAllocated);
+    const customDutyValue = +Number(
+      (+Number(customDutyRate) / 100) * boeAssessValue,
+    ).toFixed(2);
+    const swsValue = +Number(
+      (+Number(swsRate) / 100) * customDutyValue,
+    ).toFixed(2);
+    const addValue = +Number(
+      (+Number(addRate) / 100) * boeAssessValue,
+    ).toFixed(2);
+
+    const gstAssessibleValue = +Number(
+      customDutyValue + swsValue + addValue,
+    ).toFixed(2);
+    const customsGstValue = +Number(
+      (+Number(customsGstRate) / 100) * gstAssessibleValue,
+    ).toFixed(2);
+
+    form.setFieldValue(
+      ["components", field.name, "boeAssessValue"],
+      +Number(boeAssessValue).toFixed(2),
+    );
+    form.setFieldValue(
+      ["components", field.name, "customDutyValue"],
+      customDutyValue,
+    );
+    form.setFieldValue(["components", field.name, "swsValue"], swsValue);
+    form.setFieldValue(["components", field.name, "addValue"], addValue);
+    form.setFieldValue(
+      ["components", field.name, "gstAssessibleValue"],
+      gstAssessibleValue,
+    );
+    form.setFieldValue(
+      ["components", field.name, "customsGstValue"],
+      customsGstValue,
+    );
+  }, [
+    apiUrl,
+    editApiUrl,
+    vbtInRate,
+    freightChargeAllocated,
+    miscExpenseAllocated,
+    insuranceChargeAllocated,
+    customDutyRate,
+    swsRate,
+    addRate,
+    customsGstRate,
+    form,
+    field.name,
+  ]);
 
   useEffect(() => {
     let updatedTdsPercentage = 0;
@@ -553,6 +630,105 @@ function SingleComponent({
               <Input />
             </Form.Item>
           </Col>
+          {apiUrl === "vbt03" && (
+            <>
+              <Col span={3}>
+                <Form.Item
+                  label="Misc. Expense"
+                  name={[field.name, "miscExpenseAllocated"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Freight Charge"
+                  name={[field.name, "freightChargeAllocated"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Insurance Charge"
+                  name={[field.name, "insuranceChargeAllocated"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="BOE Assess Value"
+                  name={[field.name, "boeAssessValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item
+                  label="Custom Duty Rate %"
+                  name={[field.name, "customDutyRate"]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Custom Duty Value"
+                  name={[field.name, "customDutyValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item label="SWS Rate %" name={[field.name, "swsRate"]}>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="SWS Value" name={[field.name, "swsValue"]}>
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item
+                  label="Anti Dumping Duty Rate %"
+                  name={[field.name, "addRate"]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Anti Dumping Duty Value"
+                  name={[field.name, "addValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="GST Assessible Value"
+                  name={[field.name, "gstAssessibleValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item label="GST %" name={[field.name, "customsGstRate"]}>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="GST Value"
+                  name={[field.name, "customsGstValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+            </>
+          )}
           <Col span={3}>
             <Form.Item label="INR Price" name={[field.name, "inrPrice"]}>
               <Input />
@@ -814,6 +990,105 @@ function SingleComponent({
               <Input disabled />
             </Form.Item>
           </Col>
+          {editApiUrl === "vbt03" && (
+            <>
+              <Col span={3}>
+                <Form.Item
+                  label="Misc. Expense"
+                  name={[field.name, "miscExpenseAllocated"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Freight Charge"
+                  name={[field.name, "freightChargeAllocated"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Insurance Charge"
+                  name={[field.name, "insuranceChargeAllocated"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="BOE Assess Value"
+                  name={[field.name, "boeAssessValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item
+                  label="Custom Duty Rate %"
+                  name={[field.name, "customDutyRate"]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Custom Duty Value"
+                  name={[field.name, "customDutyValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item label="SWS Rate %" name={[field.name, "swsRate"]}>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="SWS Value" name={[field.name, "swsValue"]}>
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item
+                  label="Anti Dumping Duty Rate %"
+                  name={[field.name, "addRate"]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="Anti Dumping Duty Value"
+                  name={[field.name, "addValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="GST Assessible Value"
+                  name={[field.name, "gstAssessibleValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item label="GST %" name={[field.name, "customsGstRate"]}>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item
+                  label="GST Value"
+                  name={[field.name, "customsGstValue"]}
+                >
+                  <Input disabled />
+                </Form.Item>
+              </Col>
+            </>
+          )}
           <Col span={3}>
             <Form.Item label="INR Price" name={[field.name, "inrPrice"]}>
               <Input />
