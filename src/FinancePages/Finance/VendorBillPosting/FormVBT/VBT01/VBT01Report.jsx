@@ -79,6 +79,26 @@ function VBT01Report({
     form: Vbt01,
     preserve: true,
   });
+  const miscellaneousExpense = Form.useWatch("miscellaneousExpense", {
+    form: Vbt01,
+    preserve: true,
+  });
+  const freightCharge = Form.useWatch("freightCharge", {
+    form: Vbt01,
+    preserve: true,
+  });
+  const freightCharge20Percent = Form.useWatch("freightCharge20Percent", {
+    form: Vbt01,
+    preserve: true,
+  });
+  const insuranceCharge = Form.useWatch("insuranceCharge", {
+    form: Vbt01,
+    preserve: true,
+  });
+  const insuranceCharge1125Percent = Form.useWatch(
+    "insuranceCharge1125Percent",
+    { form: Vbt01, preserve: true },
+  );
   const backFunction = () => {
     if (editingVBT) {
       setEditingVBT(null);
@@ -146,6 +166,10 @@ function VBT01Report({
         roundOffValue: row.roundOffValue,
         purchase_gl: row?.purchase_gl,
         billAmm: row?.taxableValue,
+        customDutyRate: row?.customDutyRate ?? 0,
+        swsRate: row?.swsRate ?? 0,
+        addRate: row?.addRate ?? 0,
+        customsGstRate: row?.customsGstRate ?? 0,
       }));
       setEditVBTCode(arr);
       setVbtComponent(arr);
@@ -224,6 +248,10 @@ function VBT01Report({
         glCode: glCodes,
         freight: "(Freight Inward)800105",
         freightAmount: 0,
+        customDutyRate: 0,
+        swsRate: 0,
+        addRate: 0,
+        customsGstRate: 0,
       }));
       getGl(getPurchaseGlOptions(data));
       const venTds = data[0]?.tds ? [...data[0].tds] : [];
@@ -328,6 +356,15 @@ function VBT01Report({
     }
     setIsValid(false);
 
+  const showCofirmModal = async () => {
+    try {
+      await Vbt01.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+  }
     Modal.confirm({
       okText: "Save",
       title: isCreate
@@ -436,6 +473,51 @@ function VBT01Report({
         cifValue: values.components.map((component) => component.cifValue),
         cifPrice: values.components.map((component) => component.cifPrice),
         inrPrice: values.components.map((component) => component.inrPrice),
+        rateOfExchange: values.rateOfExchange ?? "--",
+        miscellaneousExpense: values.miscellaneousExpense ?? "--",
+        miscExpenseAllocated: values.components.map(
+          (component) => component.miscExpenseAllocated ?? "--",
+        ),
+        freightCharge: values.freightCharge ?? "--",
+        freightCharge20Percent: values.freightCharge20Percent ?? false,
+        freightChargeAllocated: values.components.map(
+          (component) => component.freightChargeAllocated ?? "--",
+        ),
+        insuranceCharge: values.insuranceCharge ?? "--",
+        insuranceCharge1125Percent: values.insuranceCharge1125Percent ?? false,
+        insuranceChargeAllocated: values.components.map(
+          (component) => component.insuranceChargeAllocated ?? "--",
+        ),
+        boeAssessValue: values.components.map(
+          (component) => component.boeAssessValue ?? "--",
+        ),
+        customDutyRate: values.components.map(
+          (component) => component.customDutyRate ?? "--",
+        ),
+        customDutyValue: values.components.map(
+          (component) => component.customDutyValue ?? "--",
+        ),
+        swsRate: values.components.map(
+          (component) => component.swsRate ?? "--",
+        ),
+        swsValue: values.components.map(
+          (component) => component.swsValue ?? "--",
+        ),
+        addRate: values.components.map(
+          (component) => component.addRate ?? "--",
+        ),
+        addValue: values.components.map(
+          (component) => component.addValue ?? "--",
+        ),
+        gstAssessibleValue: values.components.map(
+          (component) => component.gstAssessibleValue ?? "--",
+        ),
+        customsGstRate: values.components.map(
+          (component) => component.customsGstRate ?? "--",
+        ),
+        customsGstValue: values.components.map(
+          (component) => component.customsGstValue ?? "--",
+        ),
       };
       const finalData = {
         ...finalObj,
@@ -527,6 +609,51 @@ function VBT01Report({
         cifValue: values.components.map((component) => component.cifValue),
         cifPrice: values.components.map((component) => component.cifPrice),
         inrPrice: values.components.map((component) => component.inrPrice),
+        rateOfExchange: values.rateOfExchange ?? "--",
+        miscellaneousExpense: values.miscellaneousExpense ?? "--",
+        miscExpenseAllocated: values.components.map(
+          (component) => component.miscExpenseAllocated ?? "--",
+        ),
+        freightCharge: values.freightCharge ?? "--",
+        freightCharge20Percent: values.freightCharge20Percent ?? false,
+        freightChargeAllocated: values.components.map(
+          (component) => component.freightChargeAllocated ?? "--",
+        ),
+        insuranceCharge: values.insuranceCharge ?? "--",
+        insuranceCharge1125Percent: values.insuranceCharge1125Percent ?? false,
+        insuranceChargeAllocated: values.components.map(
+          (component) => component.insuranceChargeAllocated ?? "--",
+        ),
+        boeAssessValue: values.components.map(
+          (component) => component.boeAssessValue ?? "--",
+        ),
+        customDutyRate: values.components.map(
+          (component) => component.customDutyRate ?? "--",
+        ),
+        customDutyValue: values.components.map(
+          (component) => component.customDutyValue ?? "--",
+        ),
+        swsRate: values.components.map(
+          (component) => component.swsRate ?? "--",
+        ),
+        swsValue: values.components.map(
+          (component) => component.swsValue ?? "--",
+        ),
+        addRate: values.components.map(
+          (component) => component.addRate ?? "--",
+        ),
+        addValue: values.components.map(
+          (component) => component.addValue ?? "--",
+        ),
+        gstAssessibleValue: values.components.map(
+          (component) => component.gstAssessibleValue ?? "--",
+        ),
+        customsGstRate: values.components.map(
+          (component) => component.customsGstRate ?? "--",
+        ),
+        customsGstValue: values.components.map(
+          (component) => component.customsGstValue ?? "--",
+        ),
         acknowledgeIRN: values.ackNum,
       };
       updateVbt(finalObj);
@@ -691,7 +818,78 @@ function VBT01Report({
       },
     ];
     setTaxDetails(arr);
-  }, [components, roundOffSign, roundOffValue]);
+
+    if (apiUrl === "vbt03" || editApiUrl === "vbt03") {
+      const vendorAmountNum = +Number(vendorAmount) || 0;
+      const miscExpenseNum = +Number(miscellaneousExpense) || 0;
+      const freightChargeNum = freightCharge20Percent
+        ? (+Number(freightCharge) || 0) * 0.2
+        : +Number(freightCharge) || 0;
+      const insuranceChargeNum = insuranceCharge1125Percent
+        ? (+Number(insuranceCharge) || 0) * 0.01125
+        : +Number(insuranceCharge) || 0;
+      components?.forEach((component, index) => {
+        const price = +Number(component.vbtInRate) || 0;
+        const miscExpenseAllocated = vendorAmountNum
+          ? +Number((miscExpenseNum / vendorAmountNum) * price).toFixed(2)
+          : 0;
+        const freightChargeAllocated = vendorAmountNum
+          ? +Number((freightChargeNum / vendorAmountNum) * price).toFixed(2)
+          : 0;
+        const insuranceChargeAllocated = vendorAmountNum
+          ? +Number((insuranceChargeNum / vendorAmountNum) * price).toFixed(2)
+          : 0;
+
+        const currentMiscValue = Vbt01.getFieldValue([
+          "components",
+          index,
+          "miscExpenseAllocated",
+        ]);
+        if (+Number(currentMiscValue ?? 0) !== miscExpenseAllocated) {
+          Vbt01.setFieldValue(
+            ["components", index, "miscExpenseAllocated"],
+            miscExpenseAllocated,
+          );
+        }
+
+        const currentFreightValue = Vbt01.getFieldValue([
+          "components",
+          index,
+          "freightChargeAllocated",
+        ]);
+        if (+Number(currentFreightValue ?? 0) !== freightChargeAllocated) {
+          Vbt01.setFieldValue(
+            ["components", index, "freightChargeAllocated"],
+            freightChargeAllocated,
+          );
+        }
+
+        const currentInsuranceValue = Vbt01.getFieldValue([
+          "components",
+          index,
+          "insuranceChargeAllocated",
+        ]);
+        if (+Number(currentInsuranceValue ?? 0) !== insuranceChargeAllocated) {
+          Vbt01.setFieldValue(
+            ["components", index, "insuranceChargeAllocated"],
+            insuranceChargeAllocated,
+          );
+        }
+      });
+    }
+  }, [
+    components,
+    roundOffSign,
+    roundOffValue,
+    miscellaneousExpense,
+    freightCharge,
+    freightCharge20Percent,
+    insuranceCharge,
+    insuranceCharge1125Percent,
+    apiUrl,
+    editApiUrl,
+    Vbt01,
+  ]);
   return (
     <Drawer
       bodyStyle={{ padding: 5 }}

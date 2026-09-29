@@ -153,11 +153,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     }
     setIsValidDisable(false);
     setDisableModalLoading(true);
-    const disableEndpoint =
-      apiUrl === "vbt08" || apiUrl === "vbt09"
-        ? `/tally/${apiUrl}/disable_${apiUrl}process`
-        : "/tally/vbt/disable_vbtprocess";
-    const response = await imsAxios.put(disableEndpoint, {
+    const response = await imsAxios.put("/tally/vbt/disable_vbtprocess", {
       min_transaction: values.min_transaction,
       part_code: values.part_code,
       remark: values.remark,
@@ -170,7 +166,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     } else {
       showToast(response.data.message, "error");
     }
-  }, [ModalForm, showToast, getRows, apiUrl]);
+  }, [ModalForm, showToast, getRows]);
 
   const vbtTableColumns = useMemo(
     () => [

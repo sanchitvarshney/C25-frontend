@@ -102,7 +102,7 @@ const AddVendor = () => {
     try {
       const { data } = await imsAxios.get("/backend/fetchAllCurrecy");
       const arr =
-        data?.data?.map((d) => ({
+        data?.map((d) => ({
           text: d.currency_symbol,
           value: d.currency_id,
           notes: d.currency_notes,
