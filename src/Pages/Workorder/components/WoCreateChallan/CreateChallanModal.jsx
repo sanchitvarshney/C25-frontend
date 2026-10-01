@@ -461,9 +461,10 @@ const CreateChallanModal = ({
       shipment_no: h.shipmentId,
     });
     // console.log("response ->", response);
-    const { data } = response;
+  
     // let arr = data.data;
     if (response.success) {
+        const { data } = response;
       let arrHead = data.header;
       challanForm.setFieldValue("clientbranch", arrHead.client_branch);
       challanForm.setFieldValue("nature", arrHead.eway_no);

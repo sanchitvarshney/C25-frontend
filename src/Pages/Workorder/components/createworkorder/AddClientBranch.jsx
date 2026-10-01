@@ -32,7 +32,7 @@ const AddClientBranch = ({ openBranch, setOpenBranch }) => {
 // 
 const addBranch = async() => {
     const values = await addBranchForm.validateFields()
-    console.log(values)
+   
     const obj = {
         "clientCode" : openBranch?.vendor_code,
         "state": values.state,
