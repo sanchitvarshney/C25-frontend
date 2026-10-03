@@ -541,8 +541,10 @@ const CreateChallanModal = ({
 
         setMinQty(sumOfMinAvailableQty);
         let a = challanForm.getFieldValue("components");
-        a[0].qty = sumOfMinAvailableQty;
-        challanForm.setFieldValue("components", a);
+        if (a?.[0]) {
+          a[0].qty = sumOfMinAvailableQty;
+          challanForm.setFieldValue("components", a);
+        }
       } else {
         setLoading("fetch");
         let totalMinAvailableQty = 0;
@@ -635,7 +637,7 @@ const CreateChallanModal = ({
         id: v4(),
       };
     });
-    setMinRows(arr);
+    setMinRows(arr || []);
   };
 
   const inputHandler = (name, value, id) => {
@@ -1587,12 +1589,18 @@ const Product = ({
 }) => {
   return (
     <>
-      <Col span={29} style={{ height: "100%", overflow: "hidden" }}>
+      <Col
+        span={24}
+        style={{
+          height: "100%",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {editShipment ? (
           <>
-            {" "}
-            <Card>
-              {" "}
+            <Card style={{ flexShrink: 0 }}>
               <FormTable2
                 height="auto"
                 nonRemovableColumns={1}
@@ -1621,9 +1629,9 @@ const Product = ({
             </Card>
             <Card
               style={{
-                height: "80%",
-                overflowY: "scroll",
-                maxHeight: "73%",
+                flex: 1,
+                minHeight: 0,
+                overflowY: "auto",
                 marginTop: "20px",
               }}
             >
@@ -1644,7 +1652,7 @@ const Product = ({
           </>
         ) : (
           <>
-            <Card>
+            <Card style={{ flexShrink: 0 }}>
               <FormTable2
                 height="auto"
                 nonRemovableColumns={1}
@@ -1673,9 +1681,9 @@ const Product = ({
             </Card>
             <Card
               style={{
-                height: "80%",
-                overflowY: "scroll",
-                maxHeight: "73%",
+                flex: 1,
+                minHeight: 0,
+                overflowY: "auto",
                 marginTop: "20px",
               }}
             >
