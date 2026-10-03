@@ -20,18 +20,50 @@ export const convertSelectOptions = (
   }
 };
 
-export const removeHtml = (value: string) => {
+export const normalizePprForApiPayload = (
+  ppr: unknown,
+  pprId: unknown,
+): { ppr: string | null; pprId: string | null } => {
+  const isNoPpr = (v: unknown) =>
+    v === undefined ||
+    v === null ||
+    v === "" ||
+    v === "0" ||
+    v === 0 ||
+    (typeof v === "string" && v.trim().toLowerCase() === "none");
+
+  const rawFrom = (v: unknown): string | number | null => {
+    if (v === undefined || v === null || v === "") return null;
+    if (typeof v === "object" && v !== null) {
+      const o = v as { value?: unknown; key?: unknown };
+      const inner = o.value ?? o.key;
+      if (isNoPpr(inner)) return null;
+      return inner as string | number;
+    }
+    if (isNoPpr(v)) return null;
+    return v as string | number;
+  };
+
+  const raw = rawFrom(pprId) ?? rawFrom(ppr);
+  if (raw === null || isNoPpr(raw)) {
+    return { ppr: null, pprId: null };
+  }
+  const s = String(raw);
+  return { ppr: s, pprId: s };
+};
+
+export const removeHtml = (value) => {
   return value.replace(/<[^>]*>/g, " ");
 };
-export const getInt = (value: number | string, decimal: number) => {
+export const getInt = (value, decimal) => {
   return +Number(value ?? "0").toFixed(decimal ?? 4);
 };
 
-export const convertDate = (date: any, format = "DD-MM-YYYY") => {
+export const convertDate = (date, format = "DD-MM-YYYY") => {
   return dayjs(date).format(format);
 };
 
-export const downloadFromLink = (uri:any) => {
+export const downloadFromLink = (uri) => {
   const splitArr = uri.split("/");
   const name = splitArr[splitArr.length - 1];
   var link = document.createElement("a");
@@ -58,8 +90,6 @@ export function validatePAN(pan: string): {
   const valid = panRegex.test(formattedPAN);
   return { valid, formattedPAN };
 }
-
-
 
 export const isShowIconsPath = [
   "/reports/transaction-in",

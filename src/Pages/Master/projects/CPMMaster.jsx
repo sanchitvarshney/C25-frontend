@@ -29,10 +29,14 @@ function CPMMaster() {
 
     if (response.success) {
       let arr = response.data.map((row, index) => {
+        const { fg, sfg } = getFgSfgBom(row);
         return {
           ...row,
           id: v4(),
           index: index + 1,
+          costCenterName: getCostCenterName(row.costcenter),
+          fgBomName: getBomName(fg),
+          sfgBomName: getBomName(sfg),
         };
       });
       setRows(arr);
@@ -61,7 +65,7 @@ function CPMMaster() {
     downloadCSVnested2(rows, columns, "All Projects");
   };
 
-  const disableValidateHandler = async (row,status) => {
+  const disableValidateHandler = async (row, status) => {
     const payload = {
       project: row.project,
       status: status ? "1" : "0",
@@ -79,27 +83,77 @@ function CPMMaster() {
   const disableSubmitHandler = async (values) => {
     const response = await imsAxios.put(
       `/backend/project/status/${values.project}`,
-      values
+      values,
     );
-    if (response.success) {
-      if (response.success) {
-        getAllDetailFun();
-        // getDataTree();
-        showToast(response.message, "success");
-      } else {
-        showToast(response.message, "error");
-      }
+    if (response?.success) {
+      getAllDetailFun();
+      // getDataTree();
+      showToast(response.message, "success");
+    } else {
+      showToast(response?.message, "error");
     }
+  };
+
+  const getCostCenterName = (costcenter) =>
+    typeof costcenter === "object" && costcenter !== null
+      ? (costcenter.cost_center_name ?? "")
+      : (costcenter ?? "");
+
+  const getBomList = (row) => {
+    const raw = row?.bomSubject ?? row?.bom;
+    if (Array.isArray(raw)) return raw;
+    return raw ? [raw] : [];
+  };
+
+  const getBomName = (item) => {
+    if (!item) return "";
+    if (typeof item !== "object") return String(item);
+    return (
+      item.display_text ?? item.subject_name ?? item.name ?? item.text ?? ""
+    );
+  };
+
+  const getRecipeType = (item) => {
+    const label = String(item?.bom_type_label ?? "")
+      .trim()
+      .toLowerCase();
+    if (label === "sfg") return "semi";
+    if (label === "fg") return "default";
+    return String(
+      item?.bom_recipe_type ??
+        item?.recipe_type ??
+        item?.type ??
+        item?.bom_recipe ??
+        "",
+    )
+      .trim()
+      .toLowerCase();
+  };
+  const isFgType = (type) => ["default", "fg", "finished"].includes(type);
+  const isSfgType = (type) =>
+    ["semi", "sfg", "semi-fg", "semifg"].includes(type);
+  const getFgSfgBom = (row) => {
+    const list = getBomList(row);
+    const fgByType = list.find((item) => isFgType(getRecipeType(item)));
+    const sfgByType = list.find((item) => isSfgType(getRecipeType(item)));
+    if (fgByType || sfgByType) {
+      return { fg: fgByType ?? null, sfg: sfgByType ?? null };
+    }
+    if (list.length >= 2) {
+      return { fg: list[1], sfg: list[0] };
+    }
+    return { fg: list[0] ?? null, sfg: null };
   };
 
   const columns = [
     { field: "index", headerName: "Sr. No", width: 80 },
     { field: "project", headerName: "Project Id", width: 180 },
-    { field: "description", headerName: "Project Name", flex: 1 },
-    {field:"qty",headerName:"Quantity",width:180,flex:1},
-    { field: "costcenter", headerName: "Cost Center", width: 180, flex: 1 },
-    {field:"bomSubject",headerName:"BOM",width:180,flex:1},
-    { field: "insert_dt", headerName: "Insert Date", flex: 1 },
+    { field: "description", headerName: "Project Name", minWidth: 200, flex: 1 },
+    { field: "qty", headerName: "Quantity", width: 120 },
+    { field: "costCenterName", headerName: "Cost Center", minWidth: 160, flex: 1 },
+    { field: "fgBomName", headerName: "FG BOM", minWidth: 200, flex: 1 },
+    { field: "sfgBomName", headerName: "SFG BOM", minWidth: 200, flex: 1 },
+    { field: "insert_dt", headerName: "Insert Date", width: 180 },
     {
       headerName: "Status",
       field: "projectStatus",
@@ -130,7 +184,7 @@ function CPMMaster() {
       getActions: ({ row }) => [
         // Edit icon
         <TableActions
-        key={"edit"}
+          key="edit"
           action="edit"
           onClick={() => {
             setIsModalVisible(true);
@@ -138,7 +192,7 @@ function CPMMaster() {
           }}
         />,
         <TableActions
-        key={"view"}
+          key="view"
           action="view"
           onClick={() => {
             setIsViewModalVisible(true);

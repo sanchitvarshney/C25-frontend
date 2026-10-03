@@ -1,8 +1,8 @@
 import { Input, Tooltip } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import MySelect from "../../../Components/MySelect";
-import SingleDatePicker from "../../../Components/SingleDatePicker";
 import Field from "../../../Components/Field";
+import SingleDatePicker from "../../../Components/SingleDatePicker";
 const gstTypeOptions = [
   { value: "I", text: "INTER STATE" },
   { value: "L", text: "LOCAL" },
@@ -16,7 +16,7 @@ export const componentSelect = (
   asyncOptions,
   selectLoading,
   gstState,
-  isValid,
+  isValid
 ) => (
   <MyAsyncSelect
     selectLoading={selectLoading}
@@ -72,14 +72,7 @@ export const rateCell = ({ row }, inputHandler, currencies, isValid) => (
         onChange={(e) => inputHandler("rate", e.target.value, row.id)}
       />
     </Field>
-    <div
-      style={{
-        width: "35%",
-        marginLeft: "1px",
-        display: "inline-block",
-        verticalAlign: "top",
-      }}
-    >
+    <div style={{ width: "35%" , marginLeft: "1px", display: "inline-block", verticalAlign: "top" }}>
       <MySelect
         options={currencies}
         value={row.currency}
@@ -110,7 +103,7 @@ export const foreignCell = ({ row }) => {
     />
   );
 };
-export const invoiceDateCell = ({ row }, inputHandler, isValid = false) => {
+export const invoiceDateCell = ({ row }, inputHandler) => {
   return (
     <SingleDatePicker
       row={row}
@@ -120,8 +113,7 @@ export const invoiceDateCell = ({ row }, inputHandler, isValid = false) => {
       inputHandler={inputHandler}
       format="DD-MM-YYYY"
       placeholder="Select Date"
-      showError={isValid}
-      message="Due date is required"
+   
     />
   );
 };
@@ -157,6 +149,22 @@ export const itemDescriptionCell = ({ row }, inputHandler) => (
     value={row.remark}
     onChange={(e) => inputHandler("remark", e.target.value, row.id)}
     placeholder="Enter Remark"
+  />
+);
+export const bomQtyCell = ({ row }, inputHandler) => (
+  <Input
+    value={row.po_bom_qty ?? ""}
+    onKeyDown={(e) => {
+      if (e.key === " ") e.preventDefault();
+    }}
+    onChange={(e) =>
+      inputHandler(
+        "po_bom_qty",
+        String(e.target.value ?? "").replaceAll(/\s/g, ""),
+        row.id,
+      )
+    }
+    placeholder="BOM qty"
   />
 );
 

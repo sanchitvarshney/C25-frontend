@@ -1,10 +1,4 @@
-import {
-  Col,
-  Divider,
-  Form,
-  Input,
-  Row,
-} from "antd";
+import { Col, Divider, Form, Input, Row } from "antd";
 import { useState } from "react";
 import CreateSubmitConfirmModal from "./CreateSubmitConfirmModal";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -21,35 +15,66 @@ export default function NewProjectForm() {
   const [submitConfirm, setSubmitConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newProjectForm] = Form.useForm();
-  const [asyncOptions, setAsyncOptions] = useState([]);
+  const [costCenterOptions, setCostCenterOptions] = useState([]);
+  const [fgBomOptions, setFgBomOptions] = useState([]);
+  const [sfgBomOptions, setSfgBomOptions] = useState([]);
   const [isValid, setIsValid] = useState(false);
   const projectIdValue = Form.useWatch("project_id", newProjectForm);
   const projectNameValue = Form.useWatch("project_name", newProjectForm);
 
-  const { executeFun } = useApi();
+  const { executeFun, loading: apiLoading } = useApi();
+  const toSelectOptions = (rows) =>
+    (rows ?? []).map((row) => ({
+      text: row?.text ?? "",
+      value: row?.id,
+    }));
 
   const getCostCenteres = async (search) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response.success) arr = convertSelectOptions(response.data);
-    setAsyncOptions(arr);
+    setCostCenterOptions(arr);
   };
-  const getBom = async (search) => {
+  const getFgBom = async (search) => {
     const response = await executeFun(
-      () => getBomOptions(search),
-      "select"
+      () => getBomOptions(search, "default"),
+      "fgBom",
     );
     let arr = [];
-    if (response.success) arr = convertSelectOptions(response.data);
-    setAsyncOptions(arr);
+    if (response.success) arr = toSelectOptions(response.data);
+    setFgBomOptions(arr);
+  };
+  const getSfgBom = async (search) => {
+    const response = await executeFun(
+      () => getBomOptions(search, "semi"),
+      "sfgBom",
+    );
+    let arr = [];
+    if (response.success) arr = toSelectOptions(response.data);
+    setSfgBomOptions(arr);
   };
 
   const validateData = (values) => {
     setIsValid(false);
-    setSubmitConfirm(values);
+    const fgBomId = values?.fgBom?.value ?? values?.fgBom ?? null;
+    const sfgBomId = values?.sfgBom?.value ?? values?.sfgBom ?? null;
+
+    if (fgBomId && sfgBomId && String(fgBomId) === String(sfgBomId)) {
+      showToast("FG and SFG BOM must be different", "error");
+      return;
+    }
+
+    const payload = {
+      project_name: values.project_name?.trim(),
+      project_id: values.project_id?.trim(),
+      costcenter: values.costcenter?.value ?? values.costcenter ?? null,
+      qty: values.qty ? Number(values.qty) : 0,
+      bom: [fgBomId ?? null, sfgBomId ?? null],
+    };
+    setSubmitConfirm(payload);
   };
   const submitHandler = async () => {
     setLoading("submit");
@@ -57,13 +82,12 @@ export default function NewProjectForm() {
     setLoading(false);
     setSubmitConfirm(false);
 
-      if (response?.success) {
-        showToast(response.message, "success");
-        resetHandler();
-      } else {
-        showToast(response.message, "error");
-      }
-
+    if (response?.success) {
+      showToast(response.message, "success");
+      resetHandler();
+    } else {
+      showToast(response.message, "error");
+    }
   };
   const resetHandler = () => {
     let obj = {
@@ -72,10 +96,13 @@ export default function NewProjectForm() {
       project_description: "",
       costcenter: "",
       qty: "",
-      bom: "",
+      fgBom: undefined,
+      sfgBom: undefined,
     };
     newProjectForm.setFieldsValue(obj);
-    setAsyncOptions([]);
+    setCostCenterOptions([]);
+    setFgBomOptions([]);
+    setSfgBomOptions([]);
     setIsValid(false);
   };
   return (
@@ -150,36 +177,39 @@ export default function NewProjectForm() {
               </Field>
             </Col>
             <Col span={24}>
-              <Form.Item
-                name="costcenter"
-                label="Cost Center"
-             
-              >
+              <Form.Item name="costcenter" label="Cost Center">
                 <MyAsyncSelect
-                  onBlur={() => setAsyncOptions([])}
-                  optionsState={asyncOptions}
+                  onBlur={() => setCostCenterOptions([])}
+                  optionsState={costCenterOptions}
                   loadOptions={getCostCenteres}
-               
+                  labelInValue={true}
                 />
               </Form.Item>
             </Col>
             <Col span={24}>
-              <Form.Item
-                name="bom"
-                label="BOM"
-              >
+              <Form.Item name="fgBom" label="FG BOM">
                 <MyAsyncSelect
-                  onBlur={() => setAsyncOptions([])}
-                  optionsState={asyncOptions}
-                  loadOptions={getBom}
+                  selectLoading={apiLoading("fgBom")}
+                  onBlur={() => setFgBomOptions([])}
+                  optionsState={fgBomOptions}
+                  loadOptions={getFgBom}
+                  labelInValue={true}
                 />
               </Form.Item>
             </Col>
             <Col span={24}>
-              <Form.Item
-                name="qty"
-                label="Quantity"
-              >
+              <Form.Item name="sfgBom" label="SFG BOM">
+                <MyAsyncSelect
+                  selectLoading={apiLoading("sfgBom")}
+                  onBlur={() => setSfgBomOptions([])}
+                  optionsState={sfgBomOptions}
+                  loadOptions={getSfgBom}
+                  labelInValue={true}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="qty" label="Quantity">
                 <Input type="number" />
               </Form.Item>
             </Col>

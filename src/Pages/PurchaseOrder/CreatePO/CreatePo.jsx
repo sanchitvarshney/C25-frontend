@@ -34,7 +34,10 @@ import {
   getProjectOptions,
   getVendorOptions,
 } from "../../../api/general.ts";
-import { convertSelectOptions } from "../../../utils/general.ts";
+import {
+  convertSelectOptions,
+  normalizePprForApiPayload,
+} from "../../../utils/general.ts";
 import MyButton from "../../../Components/MyButton/index.jsx";
 
 const deliveryTermOptions = [
@@ -102,6 +105,8 @@ export default function CreatePo() {
   const [showQtyWarning, setShowQtyWarning] = useState(false);
   const [qtyWarningData, setQtyWarningData] = useState(null);
   const [pendingPOData, setPendingPOData] = useState(null);
+  const [pprOptions, setPprOptions] = useState([]);
+  const [isPPRLoading, setIsPPRLoading] = useState(false);
   const [poCurrencies, setPoCurrencies] = useState([]);
   const [rowCount, setRowCount] = useState([
     {
@@ -127,7 +132,10 @@ export default function CreatePo() {
       tol_price: 0,
       project_req_qty: 0,
       po_exec_qty: 0,
+      ppr_executed_qty: 0,
+      ppr_plan_qty: 0,
       diffPercentage: "--",
+      po_bom_qty: "",
     },
   ]);
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -149,6 +157,11 @@ export default function CreatePo() {
   const shipaddressValue = Form.useWatch("shipaddress", form);
   const advancePercentageValue = Form.useWatch("advancePercentage", form);
   const partyNameValue = Form.useWatch("partyName", form);
+  const projectNameValue = Form.useWatch("project_name", form);
+  const isProjectSelected =
+    typeof projectNameValue === "object"
+      ? !!projectNameValue?.value
+      : !!projectNameValue;
   const showPoExchangeField =
     String(poCurrencyWatched ?? "364907247") !== "364907247";
 
@@ -186,6 +199,11 @@ export default function CreatePo() {
               formValues.project_name !== null
             ? formValues.project_name?.value
             : newPurchaseOrder.project_name?.value,
+      pprId:
+        formValues.pprId ??
+        formValues.ppr ??
+        newPurchaseOrder.pprId ??
+        newPurchaseOrder.ppr,
       pocostcenter:
         formValues.pocostcenter !== undefined &&
         formValues.pocostcenter !== null
@@ -298,6 +316,7 @@ export default function CreatePo() {
       tol_price: [],
       project_qty: [],
       exq_po_qty: [],
+      po_bom_qty: [],
     };
 
     rowCount.map((row) => {
@@ -318,6 +337,7 @@ export default function CreatePo() {
       componentData.rate_cap.push(row.rate_cap);
       componentData.project_qty.push(row.project_req_qty);
       componentData.exq_po_qty.push(row.po_exec_qty);
+      componentData.po_bom_qty.push(row.po_bom_qty ?? "");
     });
 
     newPo = {
@@ -360,6 +380,10 @@ export default function CreatePo() {
         }
         return project;
       })(),
+      ...normalizePprForApiPayload(
+        currentPurchaseOrder.ppr,
+        currentPurchaseOrder.pprId,
+      ),
       paymenttermsday: currentPurchaseOrder.paymenttermsday
         ? currentPurchaseOrder.paymenttermsday === ""
           ? 30
@@ -536,6 +560,11 @@ export default function CreatePo() {
               formValues.project_name !== null
             ? formValues.project_name
             : newPurchaseOrder.project_name,
+      pprId:
+        formValues.pprId ??
+        formValues.ppr ??
+        newPurchaseOrder.pprId ??
+        newPurchaseOrder.ppr,
       pocostcenter:
         formValues.pocostcenter !== undefined &&
         formValues.pocostcenter !== null
@@ -670,6 +699,10 @@ export default function CreatePo() {
         }
         return project;
       })(),
+      ...normalizePprForApiPayload(
+        currentPurchaseOrder.ppr,
+        currentPurchaseOrder.pprId,
+      ),
       paymenttermsday: currentPurchaseOrder.paymenttermsday
         ? currentPurchaseOrder.paymenttermsday === ""
           ? 30
@@ -736,7 +769,7 @@ export default function CreatePo() {
             }),
           });
         } else {
-          showToast(response.message||response.data?.message?.msg, "error");
+          showToast(response.message, "error");
         }
       }
     } catch (error) {
@@ -1211,6 +1244,7 @@ export default function CreatePo() {
       paymentterms: "",
       advancePayment: 0,
       advancePercentage: null,
+      ppr: undefined,
     };
 
     // form.reset
@@ -1218,6 +1252,9 @@ export default function CreatePo() {
     form.setFieldsValue(obj);
     setnewPurchaseOrder(obj);
     form.setFieldValue("advancePayment", "");
+    form.setFieldValue("ppr", undefined);
+    setPprOptions([]);
+    setIsPPRLoading(false);
     setSameAsBilling(false);
     setShowDetailsConfirm(false);
     setPendingPOData(null);
@@ -1246,6 +1283,9 @@ export default function CreatePo() {
         igst: 0,
         remark: "--",
         unit: "--",
+        ppr_executed_qty: 0,
+        ppr_plan_qty: 0,
+        po_bom_qty: "",
       },
     ]);
   };
@@ -1287,12 +1327,40 @@ export default function CreatePo() {
             typeof value === "object" ? value.value : value,
             { showPageLoading: false },
           );
+          await fetchPPROptions(
+            typeof value === "object" ? value.value : value,
+          );
         } else {
           showToast(data.message, "error");
         }
       }
     } finally {
       setPageLoading(false);
+    }
+  };
+
+  const fetchPPROptions = async (projectName) => {
+    form.setFieldValue("ppr", undefined);
+    setnewPurchaseOrder((prev) => ({
+      ...prev,
+      ppr: undefined,
+      pprId: undefined,
+    }));
+    setIsPPRLoading(true);
+    try {
+      const response = await imsAxios.post("/purchaseOrder/pprList", {
+        project_name: projectName,
+      });
+      if (response?.success) {
+        setPprOptions(convertSelectOptions(response?.data) ?? []);
+      } else {
+        setPprOptions([]);
+      }
+    } catch (error) {
+      setPprOptions([]);
+      showToast("Error fetching PPR options", "error");
+    } finally {
+      setIsPPRLoading(false);
     }
   };
 
@@ -1591,9 +1659,10 @@ export default function CreatePo() {
                       initialValues={newPurchaseOrder}
                       onFinish={finish}
                       onFinishFailed={() => setIsValid(true)}
-                      onFieldsChange={(value) => {
-                        if (value.length == 1) {
-                          selectInputHandler(value[0].name[0], value[0].value);
+                      onValuesChange={(changedValues) => {
+                        const keys = Object.keys(changedValues);
+                        if (keys.length === 1) {
+                          selectInputHandler(keys[0], changedValues[keys[0]]);
                         }
                       }}
                     >
@@ -2120,6 +2189,35 @@ export default function CreatePo() {
                               </Form.Item>
                             </Col>
 
+                            <Col span={5}>
+                              <Form.Item
+                                name="ppr"
+                                label={
+                                  <div
+                                    style={{
+                                      fontSize:
+                                        window.innerWidth < 1600 && "0.7rem",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      width: 350,
+                                    }}
+                                  >
+                                    PPR
+                                  </div>
+                                }
+                              >
+                                <MySelect
+                                  options={pprOptions}
+                                  selectLoading={isPPRLoading}
+                                  disabled={!isProjectSelected}
+                                  placeholder={
+                                    isProjectSelected
+                                      ? undefined
+                                      : "Select project first"
+                                  }
+                                />
+                              </Form.Item>
+                            </Col>
                             {/* project name */}
                             <Col span={5}>
                               <Form.Item label="Project Description">
