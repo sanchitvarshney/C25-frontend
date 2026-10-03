@@ -286,10 +286,7 @@ const CreateChallanModal = ({
         challanForm.setFieldsValue(fields);
       }
     } catch (error) {
-      showToast(
-        error?.message || "Some error occured while fetching data",
-        "error",
-      );
+      showToast(error?.message || "Some error occured while fetching data", "error");
     } finally {
       setLoading(false);
     }
@@ -358,10 +355,7 @@ const CreateChallanModal = ({
         setLoading(false);
       }
     } catch (error) {
-      showToast(
-        error?.message || "Some error occured while fetching data",
-        "error",
-      );
+      showToast(error?.message || "Some error occured while fetching data", "error");
     } finally {
       setLoading(false);
     }
@@ -441,10 +435,7 @@ const CreateChallanModal = ({
         setLoading(false);
       }
     } catch (error) {
-      showToast(
-        error?.message || "Some error occured while fetching data",
-        "error",
-      );
+      showToast(error?.message || "Some error occured while fetching data", "error");
     } finally {
       setLoading(false);
     }
@@ -476,7 +467,6 @@ const CreateChallanModal = ({
       challanForm.setFieldValue("dispatchid", arrHead.dispatch_info.value);
       challanForm.setFieldValue("shippingaddress", arrHead.dispatch_address);
       if (editShipment == "Shipment") {
-        console.log("data");
         challanForm.setFieldValue("components", [
           {
             productname: data.material.product_name,
@@ -572,7 +562,7 @@ const CreateChallanModal = ({
         });
         challanForm.setFieldValue(
           ["components", qtyelement.id - 1, "qty"],
-          totalMinAvailableQty,
+          totalMinAvailableQty
         );
         setLoading(false);
       }
@@ -630,8 +620,8 @@ const CreateChallanModal = ({
     const response = await imsAxios.post("/createwo/fetch_wo_mins", {
       wo_id: d.transactionId,
     });
-    const { data } = response;
-    let arr = data?.map((r) => {
+    const list = Array.isArray(response?.data) ? response.data : [];
+    let arr = list.map((r) => {
       return {
         min_date: r.min_date,
         min_id: r.min_id,
@@ -641,6 +631,7 @@ const CreateChallanModal = ({
         component_name: r.component_name,
         part_code: r.part_code,
         component_key: r.component_key,
+        transaction: r.transaction,
         id: v4(),
       };
     });
@@ -771,10 +762,11 @@ const CreateChallanModal = ({
       const response = await imsAxios.post("/backend/fetchClientDetail", {
         code: code,
       });
-      const { data } = response;
+   
       // console.log("data------", caddress);
-      if (cid === undefined) {
-        data.branchList.map((row) => {
+      if (cid === undefined ) {
+        const { data } = response;
+       data.branchList.map((row) => {
           if (row.address === badd) {
             challanForm.setFieldValue("billingid", row.id);
             challanForm.setFieldValue("billingaddress", badd);
@@ -790,7 +782,7 @@ const CreateChallanModal = ({
         });
         challanForm.setFieldValue("clientname", data.client.name);
         challanForm.setFieldValue("address", caddress);
-        data.branchList.map((item) => {
+       data.branchList.map((item) => {
           if (item.id === caid) {
             challanForm.setFieldValue("clientbranch", item.text);
             setBranchId(item.id);
@@ -803,14 +795,14 @@ const CreateChallanModal = ({
         //     setBranchId(item.id);
         //   }
         // });
-        data.branchList.map((item) => {
+       data.branchList.map((item) => {
           if (item.id === caid) {
             challanForm.setFieldValue("clientbranch", item.text);
             setBranchId(item.id);
             // console.log("item.text", item.text);
           }
         });
-        data.branchList.map((row) => {
+       data.branchList.map((row) => {
           if (row.address === badd) {
             challanForm.setFieldValue("billingid", row.text);
             challanForm.setFieldValue("billingaddress", badd);
@@ -839,10 +831,7 @@ const CreateChallanModal = ({
         showToast(response.message, "error");
       }
     } catch (error) {
-      showToast(
-        error?.message || "Some error occured while fetching data",
-        "error",
-      );
+      showToast(error?.message || "Some error occured while fetching data", "error");
     } finally {
       setLoading(false);
     }
@@ -947,7 +936,7 @@ const CreateChallanModal = ({
       } else {
         try {
           let a = rows.filter((b) => b.out_qty > 0);
-
+       
           let values;
           try {
             values = await challanForm.validateFields();
@@ -1247,7 +1236,7 @@ const CreateChallanModal = ({
       >
         {loading === "fetch" && <Loading />}
         <Form
-          style={{ height: "100%" }}
+          style={{ height: "calc(100vh - 90px)" }}
           layout="vertical"
           form={challanForm}
           initialValues={defaultValues}
@@ -1326,7 +1315,7 @@ const CreateChallanModal = ({
             </Col>
             {uplaodType === "table" && (
               <>
-                <Col span={18} style={{ height: "90%", overflow: "auto" }}>
+                <Col span={18} style={{ height: "100%", overflow: "auto" }}>
                   {challantitle ? (
                     test === "Create shipment" ||
                     editShipment === "Shipment" ? (
@@ -1483,6 +1472,7 @@ const Component = ({
               }}
             >
               <FormTable2
+                height="100%"
                 removableRows={true}
                 nonRemovableColumns={1}
                 columns={[...componentsItems(location, gsttype, isValid)]}
@@ -1532,6 +1522,7 @@ const Component = ({
               }}
             >
               <FormTable2
+                height="100%"
                 removableRows={true}
                 nonRemovableColumns={1}
                 columns={[...componentsItems(location, gsttype, isValid)]}
@@ -1603,6 +1594,7 @@ const Product = ({
             <Card>
               {" "}
               <FormTable2
+                height="auto"
                 nonRemovableColumns={1}
                 columns={[
                   ...shipmentproductItemsEdit(
@@ -1654,6 +1646,7 @@ const Product = ({
           <>
             <Card>
               <FormTable2
+                height="auto"
                 nonRemovableColumns={1}
                 columns={[
                   ...shipmentproductItems(
