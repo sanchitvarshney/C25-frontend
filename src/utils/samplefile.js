@@ -1,3 +1,17 @@
+export const godownTransferSampleFile = [
+  {
+    PART_CODE: "P0001",
+    PROJECT: "PROJECT-ID",
+    TRANSFER_QTY: 10,
+    REMARK: "sample remark",
+  },
+  {
+    PART_CODE: "P0002",
+    PROJECT: "PROJECT-ID",
+    TRANSFER_QTY: 5,
+    REMARK: "sample remark",
+  },
+];
 export const prsampleFile  = [
   {
       PART_CODE: "P0001",

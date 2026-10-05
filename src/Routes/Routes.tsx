@@ -231,6 +231,8 @@ import Pending from "../Pages/SFTransfer/Pending.jsx";
 import Addparty from "../Pages/Legal/master/Addparty.jsx";
 //@ts-ignore
 import R38 from "@/Pages/Reports/R/R38.jsx";
+//@ts-ignore
+import R39 from "@/Pages/Reports/R/R39.jsx";
 import WoReport from "../Pages/Workorder/WoReport.jsx";
 import RnC from "../Pages/Legal/Registration&Certificates/RnC.jsx";
 import ViewRnC from "../Pages/Legal/Registration&Certificates/ViewRnC.jsx";
@@ -815,6 +817,10 @@ const Routes = [
     path: "/fg-register-report",
 
     main: () => <R38 />,
+  },
+   {
+    path: "/r39",
+    main: () => <R39 />,
   },
   {
     path: "/material-requisition/with-bom",

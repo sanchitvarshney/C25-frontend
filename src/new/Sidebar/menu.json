@@ -1480,7 +1480,7 @@
               },
               {
                 "key": "B413",
-                "label": "Reports R1 - R38",
+                "label": "Reports R1 - R39",
                 "icon": "DescriptionIcon",
                 "isHeading": true,
                 "children": [
@@ -1734,6 +1734,13 @@
                     "label": "R38",
                     "icon": "DescriptionIcon",
                     "path": "/fg-register-report",
+                    "isShown": true
+                  },
+                     {
+                    "key": "B413-r39",
+                    "label": "R39",
+                    "icon": "DescriptionIcon",
+                    "path": "/r39",
                     "isShown": true
                   }
                 ]
