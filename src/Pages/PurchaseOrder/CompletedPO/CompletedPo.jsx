@@ -5,8 +5,8 @@ import MyDatePicker from "../../../Components/MyDatePicker";
 import MyDataTable from "../../../Components/MyDataTable";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Col, Input, Row, Space } from "antd";
 import Field from "../../../Components/Field";
+import { Col, Input, Row, Space } from "antd";
 import printFunction, {
   downloadFunction,
 } from "../../../Components/printFunction";
@@ -27,14 +27,14 @@ const CompletedPo = () => {
   const [showComponentSideBar, setShowComponentSideBar] = useState(false);
   const [searchDateRange, setSearchDateRange] = useState("");
   const [searchInput, setSearchInput] = useState(null);
-  // const [vendorSearchInput, setVendorSearchInput] = useState("");
   const [wise, setWise] = useState("po_wise");
   const [rows, setRows] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [viewLoading, seViewLoading] = useState(false);
-  const [isValid, setIsValid] = useState(false);
+
   const [componentData, setComponentData] = useState(null);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const wiseOptions = [
     { value: "single_date_wise", text: "Date Wise" },
@@ -198,6 +198,15 @@ const CompletedPo = () => {
       flex: 1,
     },
     {
+      headerName: "PPR No",
+      field: "ppr_no",
+      renderCell: ({ row }) => (
+        <ToolTipEllipses text={row.ppr_no} copy={true} />
+      ),
+      minWidth: 130,
+      flex: 1,
+    },
+    {
       headerName: "PO REG. DATE",
       field: "po_reg_date",
       flex: 1,
@@ -301,11 +310,11 @@ const CompletedPo = () => {
                       onChange={(value) => setSearchInput(value)}
                       loadOptions={getVendors}
                       optionsState={asyncOptions}
+                      labelInValue
                       defaultOptions
                       placeholder="Select Vendor..."
                       showError={isValid}
                       message="Please select a vendor"
-                      labelInValue
                     />
                   </div>
                 )

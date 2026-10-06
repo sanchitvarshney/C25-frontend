@@ -22,7 +22,8 @@ const R2 = () => {
   const [wise, setWise] = useState("A");
   const [type, setType] = useState("PO");
   const [searchTerm, setSearchTerm] = useState("");
- const [showValidation, setShowValidation] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
+
   const { executeFun, loading: loading1 } = useApi();
   const options = [
     { text: "All", value: "A" },
@@ -65,6 +66,11 @@ const R2 = () => {
     {
       field: "po_order_id",
       headerName: "Po Order Id",
+      width: 120,
+    },
+    {
+      field: "po_bom_qty",
+      headerName: "BOM Qty",
       width: 120,
     },
     { field: "part_no", headerName: "Part", width: 100 },
@@ -114,6 +120,11 @@ const R2 = () => {
     {
       field: "po_project",
       headerName: "Project Name",
+      width: 120,
+    },
+    {
+      field: "ppr_no",
+      headerName: "PPR No",
       width: 120,
     },
     {
@@ -223,8 +234,8 @@ const R2 = () => {
   };
 
   const fetch = async () => {
-      if (!type || !searchTerm || !wise) {
-        setShowValidation(true);
+    if (!type || !searchTerm || !wise) {
+      setShowValidation(true);
       return;
     }
     setRows([]);
@@ -287,14 +298,17 @@ const R2 = () => {
       const response = await imsAxios.post("/backend/fetchAllUser", {
         search: search,
       });
-     if (response.success) {
-       setLoading(false);
-      let arr = response?.data?.map((row) => ({ text: row.text, value: row.id }));
-      setAsyncOptions(arr);
-     } else {
-       showToast(response.message, "error");
-       setLoading(false);
-     }
+      if (response.success) {
+        setLoading(false);
+        let arr = response?.data?.map((row) => ({
+          text: row.text,
+          value: row.id,
+        }));
+        setAsyncOptions(arr);
+      } else {
+        showToast(response.message, "error");
+        setLoading(false);
+      }
     } catch (e) {
       showToast(e?.message || "Error fetching users", "error");
       setLoading(false);
@@ -311,21 +325,31 @@ const R2 = () => {
       <Row justify="space-between" style={{ padding: "0 5px" }}>
         <Space>
           <div style={{ width: 200 }}>
-            <MySelect options={typeoptions} value={type} onChange={setType}       message="Please select type"
-              showError={showValidation} />
+            <MySelect
+              options={typeoptions}
+              value={type}
+              onChange={setType}
+              message="Please select type"
+              showError={showValidation}
+            />
           </div>
           <div style={{ width: 200 }}>
             <MySelect
               options={type == "JW" ? optionsJW : options}
               value={wise}
               onChange={setWise}
-                  message="Please select option"
+              message="Please select option"
               showError={showValidation}
             />
           </div>
           <div style={{ width: 300 }}>
             {wise === "A" || wise === "P" ? (
-              <MyDatePicker size="default" setDateRange={setSearchTerm}   value={searchTerm}   showError={showValidation} />
+              <MyDatePicker
+                size="default"
+                setDateRange={setSearchTerm}
+                value={searchTerm}
+                showError={showValidation}
+              />
             ) : wise === "PROJECT" ? (
               wise == "PROJECT" && (
                 <MyAsyncSelect
