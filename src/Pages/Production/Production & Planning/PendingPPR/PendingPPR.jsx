@@ -18,6 +18,8 @@ import ExecutePPR from "./ExecutePPR";
 import ViewComponents from "./ViewComponents";
 import MyButton from "../../../../Components/MyButton";
 import Field from "../../../../Components/Field.jsx";
+import RaisePprQtyRequestModal from "../RaisePprQtyRequestModal.jsx";
+
 
 const PendingPPR = () => {
   const { showToast } = useToast();
@@ -30,6 +32,7 @@ const PendingPPR = () => {
   const [searchInput, setSearchInput] = useState("");
   const [rows, setRows] = useState([]);
   const [wise, setWise] = useState("pprno");
+  const [showRaiseQty, setShowRaiseQty] = useState(null);
   const [isValid, setIsValid] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const pprWiseOptions = [
@@ -157,6 +160,13 @@ const PendingPPR = () => {
               remainingQty: row.consumptionRemaining,
             });
           }}
+        />,
+                   <TableActions
+           key={row.id || "raiseQty"}
+          showInMenu={true}
+          action="add"
+          label="Raise Qty Request"
+          onClick={() => setShowRaiseQty(row.prod_transaction)}
         />,
       ],
     },
@@ -368,6 +378,11 @@ const PendingPPR = () => {
       <div style={{ height: "calc(100% - 40px)", marginTop: 10 }}>
         <MyDataTable columns={columns} data={rows} loading={searchLoading} />
       </div>
+              <RaisePprQtyRequestModal
+        open={!!showRaiseQty}
+        pprNo={showRaiseQty}
+        onClose={() => setShowRaiseQty(null)}
+      />
     </div>
   );
 };
