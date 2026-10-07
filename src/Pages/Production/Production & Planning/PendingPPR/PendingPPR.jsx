@@ -19,6 +19,7 @@ import ViewComponents from "./ViewComponents";
 import MyButton from "../../../../Components/MyButton";
 import Field from "../../../../Components/Field.jsx";
 import RaisePprQtyRequestModal from "../RaisePprQtyRequestModal.jsx";
+import PprQtyLogsModal from "../PprQtyLogsModal";
 
 
 const PendingPPR = () => {
@@ -34,6 +35,7 @@ const PendingPPR = () => {
   const [wise, setWise] = useState("pprno");
   const [showRaiseQty, setShowRaiseQty] = useState(null);
   const [isValid, setIsValid] = useState(false);
+   const [showQtyLogs, setShowQtyLogs] = useState(null); 
   const [asyncOptions, setAsyncOptions] = useState([]);
   const pprWiseOptions = [
     { text: "New", value: "new" },
@@ -167,6 +169,18 @@ const PendingPPR = () => {
           action="add"
           label="Raise Qty Request"
           onClick={() => setShowRaiseQty(row.prod_transaction)}
+        />,
+        <TableActions
+          key={row.id || "viewQtyLogs"}
+          showInMenu={true}
+          action="view"
+          label="View Qty Logs"
+          onClick={() => {
+            setShowQtyLogs({
+              ppr_no: row.prod_transaction,
+              project_id: row.prod_project,
+            });
+          }}
         />,
       ],
     },
@@ -382,6 +396,11 @@ const PendingPPR = () => {
         open={!!showRaiseQty}
         pprNo={showRaiseQty}
         onClose={() => setShowRaiseQty(null)}
+      />
+           <PprQtyLogsModal
+        open={!!showQtyLogs}
+        onClose={() => setShowQtyLogs(null)}
+        initialFilters={showQtyLogs}
       />
     </div>
   );
