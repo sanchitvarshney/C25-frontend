@@ -36,9 +36,7 @@ import { godownTransferSampleFile } from "../../../utils/samplefile.js";
 const emptyRow = () => ({
   componentName: "",
   qty: "",
-  rejLoc: "",
   restDetail: {},
-  address: "",
   comment: "",
   project: "",
 });
@@ -66,7 +64,9 @@ const SectionTitle = ({ icon, title }) => (
         <span style={{ marginRight: 6 }}>{icon}</span>
         {title}
       </Typography.Text>
+    
     </div>
+  
   </div>
 );
 
@@ -85,6 +85,7 @@ function MaterialTransfer({ type }) {
 
   const [allData, setAllData] = useState({
     locationSel: "",
+    dropLoc: "",
     pprId: "",
   });
   const { executeFun, loading: loading1 } = useApi();
@@ -92,6 +93,7 @@ function MaterialTransfer({ type }) {
   const [locationData, setLocationData] = useState([]);
 
   const [locDetail, setLocDetail] = useState("");
+  const [locDetailTo, setLocDetailTo] = useState("");
   const [locRejDetail, setLocRejDetail] = useState("");
 
   const [project, setProject] = useState(null);
@@ -219,18 +221,11 @@ function MaterialTransfer({ type }) {
     }
   };
 
-  const getRowDropLocationDetail = async (rowIndex, rejLocValue) => {
-    const row = rows[rowIndex];
-    const rejLoc = rejLocValue ?? row?.rejLoc;
-    if (!rejLoc) return;
+  const getLocationDetailTo = async () => {
     const response = await imsAxios.post("/godown/fetchLocationDetail_to", {
-      location_key: rejLoc,
+      location_key: allData.dropLoc,
     });
-    setRows((prev) => {
-      const updated = [...prev];
-      updated[rowIndex] = { ...updated[rowIndex], address: response.data };
-      return updated;
-    });
+    setLocDetailTo(response.data);
   };
 
   const hasIncompleteRow = (rows) =>
@@ -239,30 +234,28 @@ function MaterialTransfer({ type }) {
         !r.componentName ||
         !r.qty ||
         Number(r.qty) <= 0 ||
-        !r.rejLoc ||
         !r.comment ||
         !r.restDetail?.avr_rate,
     );
 
   const submitHandler = async () => {
     // validations
-    if (!allData?.locationSel || hasIncompleteRow(rows)) {
+    if (!allData?.locationSel || !allData?.dropLoc || hasIncompleteRow(rows)) {
       setIsValid(true);
 
       return;
     }
 
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      if (r.rejLoc == allData.locationSel)
-        return showToast(`Row ${i + 1}: Both Location Same`, "error");
+    if (allData.dropLoc == allData.locationSel) {
+      return showToast("Pick and Drop location cannot be the same", "error");
     }
     setIsValid(false);
 
     const components = rows.map(
       (r) => r.componentName?.value ?? r.componentName,
     );
-    const tolocations = rows.map((r) => r.rejLoc);
+    // one drop location for the whole transfer; backend still expects it per row
+    const tolocations = rows.map(() => allData.dropLoc);
     const qtys = rows.map((r) => r.qty);
     const comments = rows.map((r) => r.comment || "");
     const rates = rows.map((r) => r.restDetail?.avr_rate || "");
@@ -290,7 +283,6 @@ function MaterialTransfer({ type }) {
 
     if (response.success) {
       reset();
-      setLocDetail("");
       setLoading(false);
       showToast(response.message?.[0]?.msg || response.message, "success");
     } else if (!response.success) {
@@ -303,8 +295,11 @@ function MaterialTransfer({ type }) {
     setIsValid(false);
     setAllData({
       locationSel: "",
+      dropLoc: "",
       pprId: "",
     });
+    setLocDetail("");
+    setLocDetailTo("");
     setProject(null);
     setPprOptions([]);
     setRows([emptyRow()]);
@@ -377,10 +372,7 @@ function MaterialTransfer({ type }) {
       );
       setIsValid(false);
       setUploadInfo({ name: file.name, count: list.length });
-      showToast(
-        response?.message || "File uploaded, select DROP location for each row",
-        "success",
-      );
+      showToast(response?.message || "File uploaded", "success");
     } catch (error) {
       showToast(error?.message || "Failed to upload file", "error");
     } finally {
@@ -404,6 +396,12 @@ function MaterialTransfer({ type }) {
     }
   }, [allData.locationSel]);
 
+  useEffect(() => {
+    if (allData.dropLoc) {
+      getLocationDetailTo();
+    }
+  }, [allData.dropLoc]);
+
   // when pick location changes, refresh each row's stock detail (if component selected)
   useEffect(() => {
     if (allData?.locationSel) {
@@ -422,7 +420,7 @@ function MaterialTransfer({ type }) {
               body: { display: "flex", flexDirection: "column", gap: 4 },
             }}
           >
-            {/* pick location */}
+        
             <SectionTitle
               icon={<EnvironmentOutlined />}
               title="Pick Location"
@@ -451,12 +449,39 @@ function MaterialTransfer({ type }) {
               )}
             </div>
 
+            <Divider style={{ margin: "12px 0 8px" }} />
+            <SectionTitle icon={<EnvironmentOutlined />} title="Drop Location" />
+            <FieldLabel required>Location</FieldLabel>
+            <MySelect
+              options={locRejDetail}
+              placeholder="Select drop location"
+              value={allData.dropLoc || undefined}
+              onChange={(e) => {
+                setAllData((prev) => ({ ...prev, dropLoc: e ?? "" }));
+                setLocDetailTo("");
+              }}
+              showError={isValid}
+              message="Please select a Drop Location"
+            />
+            <div style={infoBoxStyle}>
+              {locDetailTo ? (
+                <Typography.Text style={{ fontSize: 13 }}>
+                  {locDetailTo}
+                </Typography.Text>
+              ) : (
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Location address will appear here
+                </Typography.Text>
+              )}
+            </div>
+
             {isSfToRej && (
               <>
                 <Divider style={{ margin: "12px 0 8px" }} />
                 <SectionTitle
                   icon={<ProjectOutlined />}
                   title="Project & PPR"
+                
                 />
                 <FieldLabel>Project</FieldLabel>
                 <MyAsyncSelect
@@ -537,7 +562,6 @@ function MaterialTransfer({ type }) {
                       <Typography.Text strong style={{ fontSize: 12 }}>
                         {uploadInfo.name}
                       </Typography.Text>
-                      . Select a DROP location for each row.
                     </Typography.Text>
                   </div>
                 )}
@@ -573,7 +597,7 @@ function MaterialTransfer({ type }) {
                 height: "calc(100vh - 205px)",
               }}
             >
-              <table style={{ minWidth: 1500 }}>
+              <table style={{ minWidth: 1000, width: "100%" }}>
                 <thead style={{ backgroundColor: "grey", color: "white" }}>
                   <tr>
                     <th className="table-col" style={{ width: "10vw" }}>
@@ -588,14 +612,8 @@ function MaterialTransfer({ type }) {
                     <th className="table-col" style={{ width: "14vw" }}>
                       Transfer Qty
                     </th>
-                    <th className="table-col" style={{ width: "18vw" }}>
-                      DROP (+) Loc
-                    </th>
                     <th className="table-col" style={{ width: "20vw" }}>
                       Weighted Average Rate
-                    </th>
-                    <th className="table-col" style={{ width: "24vw" }}>
-                      Address
                     </th>
                     <th className="table-col" style={{ width: "24vw" }}>
                       Comment
@@ -674,23 +692,6 @@ function MaterialTransfer({ type }) {
                             <Input type="number" />
                           </Field>
                         </td>
-                        <td style={{ width: "18vw" }}>
-                          <MySelect
-                            options={locRejDetail}
-                            placeholder="Check Location"
-                            message="Please select a location"
-                            showError={isValid}
-                            value={r.rejLoc}
-                            onChange={async (e) => {
-                              setRows((prev) => {
-                                const updated = [...prev];
-                                updated[idx] = { ...updated[idx], rejLoc: e };
-                                return updated;
-                              });
-                              await getRowDropLocationDetail(idx, e);
-                            }}
-                          />
-                        </td>
                         <td style={{ width: "14vw" }}>
                           <Field
                             attr="required | Rate not available"
@@ -700,13 +701,6 @@ function MaterialTransfer({ type }) {
                           >
                             <Input disabled value={r?.restDetail?.avr_rate} />
                           </Field>
-                        </td>
-                        <td style={{ width: "24vw" }}>
-                          <Input
-                            disabled
-                            value={r.address}
-                            style={{ resize: "none" }}
-                          />
                         </td>
                         <td style={{ width: "24vw" }}>
                           <Field
