@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Col,
   Row,
@@ -10,8 +10,6 @@ import {
   Typography,
 } from "antd";
 import {
-  CheckCircleOutlined,
-  DownloadOutlined,
   EnvironmentOutlined,
   FileExcelOutlined,
   ProjectOutlined,
@@ -30,8 +28,7 @@ import { convertSelectOptions } from "../../../utils/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { Add, Delete } from "@mui/icons-material";
 import Field from "../../../Components/Field.jsx";
-import { downloadCSVCustomColumns } from "../../../Components/exportToCSV.jsx";
-import { godownTransferSampleFile } from "../../../utils/samplefile.js";
+import BulkSfToRejTransferDrawer from "./BulkSfToRejTransferDrawer";
 
 const emptyRow = () => ({
   componentName: "",
@@ -104,10 +101,8 @@ function MaterialTransfer({ type }) {
   const [rows, setRows] = useState([emptyRow()]);
 
   const [loading, setLoading] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
-  const [uploadInfo, setUploadInfo] = useState(null);
+  const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false);
   const [isValid, setIsValid] = useState(false);
-  const fileInputRef = useRef(null);
 
   const isSfToRej = type == "sftorej";
 
@@ -303,82 +298,22 @@ function MaterialTransfer({ type }) {
     setProject(null);
     setPprOptions([]);
     setRows([emptyRow()]);
-    setUploadInfo(null);
   };
 
   const addRow = () => {
     setRows((prev) => [emptyRow(), ...prev]);
   };
 
-  const handleUploadClick = () => {
+  const openBulkDrawer = () => {
     if (!allData.locationSel) {
       showToast("Please select a Pick Location first", "error");
       return;
     }
-    fileInputRef.current?.click();
-  };
-
-  const handleFileUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setUploadLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await imsAxios.post(
-        `/godown/validate/csv?type=sf-sf&pickLocation=${allData.locationSel}`,
-        formData,
-      );
-
-      if (!(response?.success || response?.status === "success")) {
-        showToast(response?.message || "Upload failed", "error");
-        return;
-      }
-      const list = Array.isArray(response?.data) ? response.data : [];
-      if (!list.length) {
-        showToast("No rows returned from upload. Check file format.", "error");
-        return;
-      }
-
-      const toOption = (item) => ({
-        label:
-          item.name && item.partCode
-            ? `[${item.partCode}] ${item.name}`
-            : item.name || item.partCode || item.key || "",
-        value: item.key || "",
-      });
-      setAsyncOptions(
-        list.map((item) => {
-          const opt = toOption(item);
-          return { text: opt.label, value: opt.value };
-        }),
-      );
-      // stock detail comes back with the upload, so no per-row godownStocks call
-      setRows(
-        list.map((item) => ({
-          ...emptyRow(),
-          componentName: toOption(item),
-          qty: item.transferQty ?? "",
-          comment: item.remark ?? "",
-          project: item.project ?? "",
-          restDetail: {
-            available_qty: item.available_qty ?? 0,
-            avr_rate: item.avr_rate ?? "",
-            unit: item.unit ?? "",
-            project: item.project ?? "",
-          },
-        })),
-      );
-      setIsValid(false);
-      setUploadInfo({ name: file.name, count: list.length });
-      showToast(response?.message || "File uploaded", "success");
-    } catch (error) {
-      showToast(error?.message || "Failed to upload file", "error");
-    } finally {
-      setUploadLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    if (!allData.dropLoc) {
+      showToast("Please select a Drop Location first", "error");
+      return;
     }
+    setBulkDrawerOpen(true);
   };
 
   const removeRow = (index) => {
@@ -531,58 +466,26 @@ function MaterialTransfer({ type }) {
                 />
                 <Tooltip
                   title={
-                    allData.locationSel ? "" : "Select a pick location first"
+                    !allData.locationSel
+                      ? "Select a pick location first"
+                      : !allData.dropLoc
+                        ? "Select a drop location first"
+                        : ""
                   }
                 >
                   <Button
                     block
                     icon={<UploadOutlined />}
-                    onClick={handleUploadClick}
-                    loading={uploadLoading}
-                    disabled={!allData.locationSel}
+                    onClick={openBulkDrawer}
+                    disabled={!allData.locationSel || !allData.dropLoc}
                   >
-                    Upload Excel / CSV
+                    Bulk Upload
                   </Button>
                 </Tooltip>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".csv,.xlsx,.xls"
-                  style={{ display: "none" }}
-                />
-                {uploadInfo && (
-                  <div style={{ ...infoBoxStyle, borderStyle: "solid" }}>
-                    <Typography.Text style={{ fontSize: 12 }}>
-                      <CheckCircleOutlined
-                        style={{ color: "#52c41a", marginRight: 6 }}
-                      />
-                      {uploadInfo.count} row{uploadInfo.count === 1 ? "" : "s"}{" "}
-                      loaded from{" "}
-                      <Typography.Text strong style={{ fontSize: 12 }}>
-                        {uploadInfo.name}
-                      </Typography.Text>
-                    </Typography.Text>
-                  </div>
-                )}
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  Columns: PART_CODE, PROJECT, TRANSFER_QTY, REMARK. Uploading
-                  replaces the rows in the table.
+                  Upload a CSV / Excel file, review the rows and transfer them
+                  in one go.
                 </Typography.Text>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<DownloadOutlined />}
-                  style={{ paddingInline: 0, alignSelf: "flex-start" }}
-                  onClick={() =>
-                    downloadCSVCustomColumns(
-                      godownTransferSampleFile,
-                      "Sample-GodownTransfer",
-                    )
-                  }
-                >
-                  Download sample file
-                </Button>
               </>
             )}
           </Card>
@@ -736,6 +639,17 @@ function MaterialTransfer({ type }) {
         loading={loading}
         resetFunction={reset}
       />
+      {isSfToRej && (
+        <BulkSfToRejTransferDrawer
+          open={bulkDrawerOpen}
+          onClose={() => setBulkDrawerOpen(false)}
+          pickLocation={allData.locationSel}
+          dropLocation={allData.dropLoc}
+          projectId={resolveProjectId() || null}
+          pprId={allData.pprId || null}
+          onTransferSuccess={reset}
+        />
+      )}
     </div>
   );
 }
