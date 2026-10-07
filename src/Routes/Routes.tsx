@@ -213,6 +213,7 @@ import R27 from "../Pages/Reports/R/R27.jsx";
 import R28 from "../Pages/Reports/R/R28.jsx";
 import R29 from "../Pages/Reports/R/R29.jsx";
 import CompletedPPR from "../Pages/Production/Production & Planning/CompletedPPR.jsx";
+import PprQtyRequests from "../Pages/Production/Production & Planning/PprQtyRequests.jsx";
 import AccountsPayableReport from "../FinancePages/Finance/vouchers/AppReference/AccountsPayableReport.jsx";
 import VBTRecords from "../FinancePages/Finance/VBTRecords/VBTRecords.jsx";
 import DebitCentralizedRegister from "../FinancePages/Finance/Debit/DebitCentralizedRegister.jsx";
@@ -841,6 +842,10 @@ const Routes = [
   {
     path: "/production-and-plan/completed",
     main: () => <CompletedPPR />,
+  },
+      {
+    path: "/production-and-plan/request-qty",
+    main: () => <PprQtyRequests />,
   },
   // Purchase Order
   {

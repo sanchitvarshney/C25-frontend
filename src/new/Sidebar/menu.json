@@ -1858,6 +1858,14 @@
                     "icon": "ScheduleIcon",
                     "path": "/production-and-plan/completed",
                     "isShown": true
+                  },
+                 
+                  {
+                    "key": "C123",
+                    "label": "Request QTY",
+                    "icon": "ScheduleIcon",
+                    "path": "/production-and-plan/request-qty",
+                    "isShown": true
                   }
                 ]
               },

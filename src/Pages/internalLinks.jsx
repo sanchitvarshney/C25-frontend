@@ -985,6 +985,11 @@ const links = [
       routeName: "Completed",
       routePath: "/production-and-plan/completed",
     },
+           {
+      routeName: "PPR Qty Requests",
+      routePath: "/production-and-plan/request-qty",
+      placeholder: "Approve / Reject PPR qty requests",
+    },
   ],
   // Material Requisition links
   [
