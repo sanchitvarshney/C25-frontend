@@ -44,6 +44,7 @@ export default function VBTReport() {
   const [editingVBT, setEditingVBT] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [editVbtDrawer, setEditVbtDrawer] = useState(false);
+  const [editVbtType, setEditVbtType] = useState("");
   const [openModal, setOpenModal] = useState(null);
   const [debitNoteDrawer, setDebitNoteDrawer] = useState(null);
   const [editvbturl, setEditVbtUrl] = useState("");
@@ -173,6 +174,7 @@ export default function VBTReport() {
           showInMenu
           disabled={row.vbt_code.split("/")[0] == "VBT03"}
           onClick={() => {
+            setEditVbtType(row.type);
             setEditVbtDrawer(row.vbt_code);
           }}
           label="Edit"
@@ -772,11 +774,13 @@ export default function VBTReport() {
           <VBT01Report
             setEditVbtDrawer={setEditVbtDrawer}
             editVbtDrawer={editVbtDrawer}
+            editVbtType={editVbtType}
           />
         ) : (
           <VBT01Report
             setEditVbtDrawer={setEditVbtDrawer}
             editVbtDrawer={editVbtDrawer}
+            editVbtType={editVbtType}
           />
         )
       ) : (
