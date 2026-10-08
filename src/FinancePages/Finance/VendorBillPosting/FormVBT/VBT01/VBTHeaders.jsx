@@ -17,6 +17,10 @@ const COMMENT_TEMPLATES = {
     `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
   vbt02: (invoiceId) =>
     `Being Service charges due to INV no. ${invoiceId} date of amount TDS:___ `,
+    vbt04: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
+      vbt05: (invoiceId) =>
+    `Being purchased for on INV no. ${invoiceId} date: ___ amount: ___ TDS:___ `,
 };
 
 function VBTHeaders({
