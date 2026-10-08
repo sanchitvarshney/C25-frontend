@@ -55,6 +55,7 @@ function VBT01Report({
   apiUrl,
   editVbtDrawer,
   setEditVbtDrawer,
+  editVbtType,
 }) {
   const { showToast } = useToast();
   const [Vbt01] = Form.useForm();
@@ -322,7 +323,7 @@ function VBT01Report({
       if (editVbtDrawer) {
         let apiLink = getApiUrl(editVbtDrawer);
         setEditApiUrl(apiLink);
-        link = `/tally/${apiLink}/${apiLink}_gl_options`;
+        link = `/tally/vbt/vbtGlOptions?type=${encodeURIComponent(editVbtType ?? "")}`;
       } else {
         link = `/tally/${apiUrl}/${apiUrl}_gl_options`;
       }
@@ -344,7 +345,7 @@ function VBT01Report({
         setGlCodes(arr);
       }
     },
-    [editVbtDrawer, apiUrl],
+    [editVbtDrawer, apiUrl, editVbtType],
   );
 
   const showCofirmModal = async () => {
@@ -356,15 +357,8 @@ function VBT01Report({
     }
     setIsValid(false);
 
-  const showCofirmModal = async () => {
-    try {
-      await Vbt01.validateFields();
-    } catch (error) {
-      setIsValid(true);
-      return;
-    }
-    setIsValid(false);
-  }
+
+
     Modal.confirm({
       okText: "Save",
       title: isCreate
