@@ -9,7 +9,11 @@ import {
   Space,
   Typography,
 } from "antd";
-import { createMIN, getWorkOrderDetails, getWorkOrderForMIN } from "../api";
+import {
+  createMIN,
+  getWorkOrderDetails,
+  getWorkOrderForMIN,
+} from "../api";
 import { useEffect, useState } from "react";
 import MySelect from "../../../../Components/MySelect";
 import Loading from "../../../../Components/Loading";
@@ -53,7 +57,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   };
 
   const hasIncompleteRow = (rows) =>
-    (rows || []).some((r) => !r.qty || !r.rate || !r.hsn || !r.location);
+    (rows || []).some((r) => !r.qty || !r.hsn || !r.location);
 
   const validateHandler = async () => {
     let values;
@@ -78,7 +82,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   const validForSubmit = () => {
     const arr =
       components?.map((comp) => {
-        if (comp.rate && comp.qty) {
+        if (comp.qty) {
           return true;
         }
       }) ?? [];
@@ -98,7 +102,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     if (formData && files[0]) {
       const uploadwodoc = await imsAxios.post(
         "/createwo/uploadAttachment",
-        formData,
+        formData
       );
       setFiles([]);
       if (uploadwodoc.success) {
@@ -144,6 +148,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   useEffect(() => {
     if (showView) {
       getDetails(showView.subjectId, showView.woId, showView.sku);
+  
     }
   }, [showView]);
   const locationColumn = {
@@ -185,19 +190,19 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     }
     minForm.setFieldValue(
       ["components", fieldName, "value"],
-      +Number(value).toFixed(3),
+      +Number(value).toFixed(3)
     );
     minForm.setFieldValue(
       ["components", fieldName, "cgst"],
-      +Number(cgst).toFixed(3),
+      +Number(cgst).toFixed(3)
     );
     minForm.setFieldValue(
       ["components", fieldName, "sgst"],
-      +Number(sgst).toFixed(3),
+      +Number(sgst).toFixed(3)
     );
     minForm.setFieldValue(
       ["components", fieldName, "igst"],
-      +Number(igst).toFixed(3),
+      +Number(igst).toFixed(3)
     );
   };
   const cgstTotal = isNaN(getArrSum(components, "cgst"))
@@ -328,12 +333,13 @@ const MINModal = ({ showView, setShowView, getRows }) => {
           <Col span={20} style={{ height: "100%", overflow: "hidden" }}>
             <FormTable2
               removableRows={true}
+              allowFirstRowRemove={true}
               nonRemovableColumns={1}
               columns={[...componentsItems(gstType, isValid), locationColumn]}
               listName="components"
               watchKeys={["rate", "qty", "gstRate"]}
               nonListWatchKeys={["gstType"]}
-              componentRequiredRef={["rate", "qty"]}
+              componentRequiredRef={["qty"]}
               form={minForm}
               calculation={calculation}
               rules={listRules}
@@ -397,11 +403,7 @@ const componentsItems = (gstType, isValid) => [
     name: "qty",
     width: 100,
     field: () => (
-      <Field
-        attr="required | Please enter MIN Qty!"
-        showValidation={isValid}
-        treatZeroAsEmpty
-      >
+      <Field attr="required | Please enter MIN Qty!" showValidation={isValid} treatZeroAsEmpty>
         <Input />
       </Field>
     ),
@@ -410,15 +412,7 @@ const componentsItems = (gstType, isValid) => [
     headerName: "Rate",
     name: "rate",
     width: 100,
-    field: () => (
-      <Field
-        attr="required | Please enter component rate!"
-        showValidation={isValid}
-        treatZeroAsEmpty
-      >
-        <Input />
-      </Field>
-    ),
+    field: () => <Input />,
   },
   {
     headerName: "Value",
@@ -462,10 +456,7 @@ const componentsItems = (gstType, isValid) => [
     name: "hsn",
     width: 150,
     field: () => (
-      <Field
-        attr="required | Please enter a HSN code!"
-        showValidation={isValid}
-      >
+      <Field attr="required | Please enter a HSN code!" showValidation={isValid}>
         <Input />
       </Field>
     ),
@@ -510,8 +501,9 @@ const gstRateOptions = [
 const getArrSum = (list, key) => {
   const arr = list?.map((row) => row[key]);
   // console.log(arr);
-  return arr?.reduce((a, b) => a + +Number(b || 0).toFixed(2), 0);
+  return arr?.reduce((a, b) => a + (+Number(b || 0).toFixed(2)), 0);
 };
+
 
 const listRules = {
   hsn: [
@@ -536,12 +528,6 @@ const listRules = {
     {
       required: true,
       message: "Please select document!",
-    },
-  ],
-  rate: [
-    {
-      required: true,
-      message: "Please component rate!",
     },
   ],
   docDate: [
