@@ -448,23 +448,21 @@ const CreateChallanModal = ({
     } else {
       link = "/wo_challan/fetchReturn_edit";
     }
+    try {
     const response = await imsAxios.post(link, {
       shipment_no: h.shipmentId,
     });
-    // console.log("response ->", response);
-  
-    // let arr = data.data;
     if (response.success) {
-        const { data } = response;
+      const data = response.data ?? response;
       let arrHead = data.header;
       challanForm.setFieldValue("clientbranch", arrHead.client_branch);
       challanForm.setFieldValue("nature", arrHead.eway_no);
       challanForm.setFieldValue("pd", arrHead.ship_doc_no);
       challanForm.setFieldValue("vn", arrHead.vehicle);
       challanForm.setFieldValue("or", arrHead.other_ref);
-      challanForm.setFieldValue("billingid", arrHead.billing_info.value);
+      challanForm.setFieldValue("billingid", arrHead.billing_info?.value);
       challanForm.setFieldValue("billingaddress", arrHead.billing_address);
-      challanForm.setFieldValue("dispatchid", arrHead.dispatch_info.value);
+      challanForm.setFieldValue("dispatchid", arrHead.dispatch_info?.value);
       challanForm.setFieldValue("shippingaddress", arrHead.dispatch_address);
       if (editShipment == "Shipment") {
         challanForm.setFieldValue("components", [
@@ -478,7 +476,7 @@ const CreateChallanModal = ({
             // description: data.material.remarks,
             woId: h.woTransaction_Id,
             shipment_id: arrHead.shipment_id,
-            clientbranchid: arrHead.clientaddress.value,
+            clientbranchid: arrHead.clientaddress?.value,
             challan_remark: arrHead.challan_remark,
           },
         ]);
@@ -496,7 +494,7 @@ const CreateChallanModal = ({
             description: a.remarks,
             woId: h.woTransaction_Id,
             shipment_id: arrHead.shipment_id,
-            clientbranchid: arrHead.clientaddress.value,
+            clientbranchid: arrHead.clientaddress?.value,
           };
         });
         console.log("materialA", materialArr);
@@ -521,7 +519,13 @@ const CreateChallanModal = ({
         };
       });
       setMinRows(arr);
-      challanForm.setFieldValue("address", arrHead.clientaddress.label);
+      challanForm.setFieldValue("address", arrHead.clientaddress?.label);
+    } else {
+      showToast(response.message || "Unable to fetch shipment details", "error");
+    }
+    } catch (error) {
+      console.error("getEditShipmentData failed", error);
+      showToast(error?.message || "Some error occured while fetching shipment data", "error");
     }
   };
   const closeDrawer = () => {
