@@ -79,6 +79,8 @@ export default function VBTReport() {
     { text: "VBT5", value: "VBT05" },
     { text: "VBT6", value: "VBT06" },
     { text: "VBT7", value: "VBT07" },
+   { text: "VBT8", value: "VBT08" },
+    { text: "VBT9", value: "VBT09" },
   ];
 
   const printFun = async (vbtId) => {

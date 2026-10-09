@@ -14,6 +14,8 @@ const VBT_OPTIONS = [
   { value: "vbt05", text: "VBT 5" },
   { value: "vbt06", text: "VBT 6" },
   { value: "vbt07", text: "VBT 7" },
+  { value: "vbt08", text: "VBT 8" },
+  { value: "vbt09", text: "VBT 9" },
 ];
 
 const decodeGroupLabel = (label) =>

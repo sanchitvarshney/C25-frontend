@@ -18,6 +18,37 @@ function applyRoundOffToLast(amounts, roundOffSign, roundOffValue) {
   return [...amounts.slice(0, -1), adjusted];
 }
 
+// vbt08 / vbt09 are the FG screens.
+const isFgModule = (moduleApiUrl) =>
+  moduleApiUrl === "vbt08" || moduleApiUrl === "vbt09";
+
+const isVbt01StyleModule = (moduleApiUrl) =>
+  moduleApiUrl === "vbt01" || isFgModule(moduleApiUrl);
+
+const getPurchaseGlCodeValue = (purchaseGLCode, apiUrl) => {
+  const glEntry = Array.isArray(purchaseGLCode)
+    ? purchaseGLCode[0]
+    : purchaseGLCode;
+  if (glEntry?.key != null && String(glEntry.key).trim() !== "") {
+    return glEntry.key;
+  }
+  if (isVbt01StyleModule(apiUrl)) return "TP821753548513";
+  if (apiUrl === "vbt06") return "TP672531876660";
+  return "";
+};
+
+const getPurchaseGlOptions = (rows = []) =>
+  Array.from(
+    new Map(
+      rows
+        .flatMap((row) =>
+          Array.isArray(row.purchaseGLCode) ? row.purchaseGLCode : [],
+        )
+        .filter((gl) => gl?.key != null && String(gl.key).trim() !== "")
+        .map((gl) => [gl.key, { text: gl.name ?? gl.key, value: gl.key }]),
+    ).values(),
+  );
+
 function VBT01Report({
   editingVBT,
   setEditingVBT,
@@ -131,29 +162,29 @@ function VBT01Report({
       type != null && String(type).trim() !== ""
         ? `?type=${encodeURIComponent(type)}`
         : "";
-    if (editVbtDrawer) {
-      let apiLink = getApiUrl(editVbtDrawer);
+    const moduleApiUrl = editVbtDrawer ? getApiUrl(editVbtDrawer) : apiUrl;
+   
+    const fetchEndpoint =
+      isFgModule(moduleApiUrl)
+        ? "fetch_multi_fg_min_data"
+        : "fetch_multi_min_data";
+    link = `/tally/${moduleApiUrl}/${fetchEndpoint}${typeQuery}`;
 
-      link = `/tally/${apiLink}/fetch_multi_min_data${typeQuery}`;
-    } else {
-      link = `/tally/${apiUrl}/fetch_multi_min_data${typeQuery}`;
-    }
-
-    const payload =
-      apiUrl === "vbt01"
-        ? {
-            data: minIdArr.map((row) => {
-              return {
-                minTxn: row?.transaction ?? row.min_transaction,
-                type: row.type,
-              };
-            }),
-          }
-        : {
-            mins: minIdArr.map(
-              (row) => row?.transaction ?? row.min_transaction,
-            ),
-          };
+    const payload = isVbt01StyleModule(moduleApiUrl)
+      ? {
+          ...(isFgModule(moduleApiUrl) && {
+            vbt_type: moduleApiUrl.toUpperCase(),
+          }),
+          data: minIdArr.map((row) => {
+            return {
+              minTxn: row?.transaction ?? row.min_transaction,
+              type: row.type,
+            };
+          }),
+        }
+      : {
+          mins: minIdArr.map((row) => row?.transaction ?? row.min_transaction),
+        };
     const response = await imsAxios.post(link, payload);
 
     if (response.success) {
@@ -161,7 +192,7 @@ function VBT01Report({
       setVbtComponent(response.data);
       const arr = response.data.map((row) => ({
         ...row,
-        minId: row.transaction,
+        minId: row.transaction ?? row.min_transaction,
         poNumber: row.poNumber,
         projectID: row.projectID,
         partCode: row.itemCode,
@@ -189,17 +220,12 @@ function VBT01Report({
         cgst: "TP274965899340",
         sgst: "TP385675494002",
         igst: "TP486973272469",
-        glCodeValue:
-          apiUrl === "vbt01"
-            ? "TP821753548513"
-            : apiUrl === "vbt06"
-              ? "TP672531876660"
-              : "",
+        glCodeValue: getPurchaseGlCodeValue(row.purchaseGLCode, apiUrl),
         glCode: glCodes,
         freight: "(Freight Inward)800105",
         freightAmount: 0,
       }));
-      getGl();
+      getGl(getPurchaseGlOptions(data));
       const venTds = data[0]?.tds ? [...data[0].tds] : [];
       venTds.push({
         ladger_name: "--",
@@ -262,28 +288,36 @@ function VBT01Report({
     }
   };
 
-  const getGl = useCallback(async () => {
-    let link;
-    if (editVbtDrawer) {
-      let apiLink = getApiUrl(editVbtDrawer);
-      setEditApiUrl(apiLink);
-      link = `/tally/${apiLink}/${apiLink}_gl_options`;
-    } else {
-      link = `/tally/${apiUrl}/${apiUrl}_gl_options`;
-    }
-    const response = await imsAxios.get(link);
+  const getGl = useCallback(
+    async (extraOptions = []) => {
+      let link;
+      if (editVbtDrawer) {
+        let apiLink = getApiUrl(editVbtDrawer);
+        setEditApiUrl(apiLink);
+        link = `/tally/${apiLink}/${apiLink}_gl_options`;
+      } else {
+        link = `/tally/${apiUrl}/${apiUrl}_gl_options`;
+      }
+      const options = Array.isArray(extraOptions) ? extraOptions : [];
+      const response = await imsAxios.get(link);
 
-    let arr = [];
-    if (response.data.length > 0) {
-      arr = response?.data?.map((d) => {
-        return {
-          text: d.text,
-          value: d.id,
-        };
+      const rows = Array.isArray(response?.data) ? response.data : [];
+      const arr = rows.map((d) => ({
+        text: d.text,
+        value: d.id,
+      }));
+      // Keep GLs that came with the MIN rows (purchaseGLCode) selectable.
+      options.forEach((option) => {
+        if (!arr.some((item) => item.value === option.value)) {
+          arr.push(option);
+        }
       });
-      setGlCodes(arr);
-    }
-  }, [editVbtDrawer, apiUrl]);
+      if (arr.length > 0) {
+        setGlCodes(arr);
+      }
+    },
+    [editVbtDrawer, apiUrl],
+  );
 
   const showCofirmModal = async () => {
     try {
@@ -405,6 +439,7 @@ function VBT01Report({
       };
       const finalData = {
         ...finalObj,
+        ...(isFgModule(apiUrl) && { vbt_type: apiUrl.toUpperCase() }),
         round_type: roundOffSign.toString(),
         round_value: roundOffValue.toString(),
       };

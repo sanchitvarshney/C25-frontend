@@ -25,6 +25,8 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     { value: "vbt05", text: "VBT 5" },
     { value: "vbt06", text: "VBT 6" },
     { value: "vbt07", text: "VBT 7" },
+    { value: "vbt08", text: "VBT 8" },
+    { value: "vbt09", text: "VBT 9" },
   ];
 
   const getGroups = async () => {
@@ -94,9 +96,8 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setGstSubmitLoading(false);
     if (response.success) {
-    
-        showToast(response.message, "error");
-      
+      showToast(response.message, "error");
+
       // setSelectedGroup(null);
       setMapVBT(null);
     } else {
@@ -114,9 +115,8 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
     });
     setLoading(false);
     if (response.success) {
-    
-        showToast(response.message, "error");
-   
+      showToast(response.message, "error");
+
       // setSelectedGroup(null);
       setMapVBT(null);
     } else {

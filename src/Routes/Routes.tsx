@@ -1114,6 +1114,14 @@ const Routes = [
     path: "/tally/vendor-bill-posting/vb-7",
     main: () => <VBTMainTable />,
   },
+   {
+    path: "/tally/vendor-bill-posting/vb-8",
+    main: () => <VBTMainTable />,
+  },
+  {
+    path: "/tally/vendor-bill-posting/vb-9",
+    main: () => <VBTMainTable />,
+  },
   {
     path: "/tally/vendor-bill-posting/vendor-bill-records",
     main: () => <VBTRecords />,
