@@ -11,6 +11,7 @@ const FormTable2 = ({
   listName,
   removableRows,
   nonRemovableColumns = 2,
+  allowFirstRowRemove = false,
   watchKeys,
   calculation,
   nonListWatchKeys,
@@ -122,6 +123,7 @@ const FormTable2 = ({
                   fieldsLength={fields.length}
                   nonRemovableColumns={nonRemovableColumns}
                   removableRows={removableRows}
+                  allowFirstRowRemove={allowFirstRowRemove}
                   addableRow={addableRow}
                   remove={remove}
                   index={index}
@@ -153,6 +155,7 @@ const SingleRow = memo(
     // fieldsLength,
     // nonRemovableColumns = 1,
     removableRows,
+    allowFirstRowRemove,
     addableRow,
     remove,
     index,
@@ -228,7 +231,7 @@ const SingleRow = memo(
             
               }}
             >
-              {index > 0 && (
+              {(allowFirstRowRemove || index > 0) && (
                 <span
                   onClick={() => remove(field.name)}
                   className="delete-icon"
