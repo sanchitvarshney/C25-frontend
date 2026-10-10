@@ -152,7 +152,7 @@ function FGToFGTransfer() {
         search: sku,
       });
       const { data } = response;
-      const rawBom = data?.data;
+      const rawBom = data;
       const bomArr = Array.isArray(rawBom)
         ? rawBom.map((r) => ({ text: r.text, value: r.id }))
         : [];
