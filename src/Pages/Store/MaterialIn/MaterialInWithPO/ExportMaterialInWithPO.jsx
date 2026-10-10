@@ -41,6 +41,43 @@ import { v4 } from "uuid";
 import FileUpload from "../../../../Components/FileUpload/FileUpload.tsx";
 import FormTable from "../../../../Components/FormTable.jsx";
 import Field from "../../../../Components/Field.jsx";
+import { downloadCSVCustomColumns } from "../../../../Components/exportToCSV.jsx";
+
+const sampleData = [
+  {
+    Part: "GC00000003",
+    HSN: "1",
+    UoM: 12,
+    "Order Qty": 200,
+    "Import Rate": "--",
+    "Exchange Rate": "--",
+    "Taxable Value": "--",
+    "Foreign Value": "--",
+    "Mis. Amount": "--",
+    "Insurance Amt": "--",
+    "Freight Value": "--",
+    "Custom Duty": "--",
+  },
+];
+
+
+const calculateRowValues = (row) => {
+  const qty = Number(row.orderQty) || 0;
+  const rate = Number(row.rate) || 0;
+  const exchangeRate = Number(row.exchangeRate) || 0;
+  const customDuty = Number(row.customDuty) || 0;
+  const freightValue = Number(row.freightValue) || 0;
+  const misAmount = Number(row.misAmount) || 0;
+  const insuranceAmt = Number(row.insuranceAmt) || 0;
+
+  const taxableValue = qty * rate;
+  const foreignValue = taxableValue * exchangeRate;
+  const total =
+    taxableValue + customDuty + freightValue + misAmount + insuranceAmt;
+  const finalRate = qty > 0 ? total / qty : rate;
+
+  return { taxableValue, foreignValue, total, finalRate };
+};
 
 export default function ExportMaterialInWithPO() {
   const { showToast } = useToast();
@@ -138,6 +175,8 @@ export default function ExportMaterialInWithPO() {
       finalRate: [],
       customDuty: [],
       freight: [],
+      misAmount: [],
+      insuranceAmt: [],
     };
 
       let a = uploadedComponents;
@@ -152,6 +191,11 @@ export default function ExportMaterialInWithPO() {
             component: [...componentData.component, row.componentKey],
             customDuty: [...componentData.customDuty, row.customDuty],
             freight: [...componentData.freight, row.freightValue],
+            misAmount: [...componentData.misAmount, row.misAmount ?? 0],
+            insuranceAmt: [
+              ...componentData.insuranceAmt,
+              row.insuranceAmt ?? 0,
+            ],
             qty: [...componentData.qty, row.orderQty],
             rate: [...componentData.rate, row.rate],
             exchange: [...componentData.exchange, row.exchangeRate],
@@ -351,6 +395,18 @@ export default function ExportMaterialInWithPO() {
       minWidth: 100,
     },
     {
+      headerName: "Mis Amount",
+      field: "misAmount",
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      headerName: "Insurance Amt",
+      field: "insuranceAmt",
+      flex: 1,
+      minWidth: 120,
+    },
+    {
       headerName: "Total",
       field: "total",
       flex: 1,
@@ -490,110 +546,21 @@ export default function ExportMaterialInWithPO() {
     arr = arr.map((row) => {
       let obj = row;
       if (id == row.id) {
-        if (name == "orderQty" || name == "orderqty") {
-          const qty = Number(value) || 0;
-          const rate = Number(row.rate) || 0;
-          const exchangeRate = Number(row.exchangeRate) || 0;
-          const customDuty = Number(row.customDuty) || 0;
-          const freightValue = Number(row.freightValue) || 0;
-
-          const taxableValue = qty * rate;
-          const foreignValue = taxableValue * exchangeRate;
-          const total = taxableValue + customDuty + freightValue;
-          const finalRate =
-            qty > 0 ? rate + customDuty / qty + freightValue / qty : rate;
-
-          obj = {
-            ...obj,
-            orderQty: qty,
-            taxableValue: taxableValue,
-            foreignValue: foreignValue,
-            total: total,
-            finalRate: finalRate,
-          };
-          return obj;
-        } else if (name == "rate") {
-          const qty = Number(row.orderQty) || 0;
-          const rate = Number(value) || 0;
-          const exchangeRate = Number(row.exchangeRate) || 0;
-          const customDuty = Number(row.customDuty) || 0;
-          const freightValue = Number(row.freightValue) || 0;
-
-          const taxableValue = qty * rate;
-          const foreignValue = taxableValue * exchangeRate;
-          const total = taxableValue + customDuty + freightValue;
-          const finalRate =
-            qty > 0 ? rate + customDuty / qty + freightValue / qty : rate;
-
-          obj = {
-            ...obj,
-            rate: rate,
-            taxableValue: taxableValue,
-            foreignValue: foreignValue,
-            total: total,
-            finalRate: finalRate,
-          };
-          return obj;
-        } else if (name == "exchangeRate") {
-          const qty = Number(row.orderQty) || 0;
-          const rate = Number(row.rate) || 0;
-          const exchangeRate = Number(value) || 0;
-          const customDuty = Number(row.customDuty) || 0;
-          const freightValue = Number(row.freightValue) || 0;
-
-          const taxableValue = qty * rate;
-          const foreignValue = taxableValue * exchangeRate;
-          const total = taxableValue + customDuty + freightValue;
-          const finalRate =
-            qty > 0 ? rate + customDuty / qty + freightValue / qty : rate;
-
-          obj = {
-            ...obj,
-            exchangeRate: exchangeRate,
-            foreignValue: foreignValue,
-            total: total,
-            finalRate: finalRate,
-          };
-          return obj;
-        } else if (name == "customDuty") {
-          const qty = Number(row.orderQty) || 0;
-          const rate = Number(row.rate) || 0;
-          // const exchangeRate = Number(row.exchangeRate) || 0;
-          const customDuty = Number(value) || 0;
-          const freightValue = Number(row.freightValue) || 0;
-
-          const taxableValue = qty * rate;
-          // const foreignValue = taxableValue * exchangeRate;
-          const total = taxableValue + customDuty + freightValue;
-          const finalRate =
-            qty > 0 ? rate + customDuty / qty + freightValue / qty : rate;
-
-          obj = {
-            ...obj,
-            customDuty: customDuty,
-            total: total,
-            finalRate: finalRate,
-          };
-          return obj;
-        } else if (name == "freightValue") {
-          const qty = Number(row.orderQty) || 0;
-          const rate = Number(row.rate) || 0;
-          // const exchangeRate = Number(row.exchangeRate) || 0;
-          const customDuty = Number(row.customDuty) || 0;
-          const freightValue = Number(value) || 0;
-
-          const taxableValue = qty * rate;
-          // const foreignValue = taxableValue * exchangeRate;
-          const total = taxableValue + customDuty + freightValue;
-          const finalRate =
-            qty > 0 ? rate + customDuty / qty + freightValue / qty : rate;
-
-          obj = {
-            ...obj,
-            freightValue: freightValue,
-            total: total,
-            finalRate: finalRate,
-          };
+        if (
+          [
+            "orderQty",
+            "orderqty",
+            "rate",
+            "exchangeRate",
+            "customDuty",
+            "freightValue",
+            "misAmount",
+            "insuranceAmt",
+          ].includes(name)
+        ) {
+          const field = name == "orderqty" ? "orderQty" : name;
+          obj = { ...obj, [field]: Number(value) || 0 };
+          obj = { ...obj, ...calculateRowValues(obj) };
           return obj;
         } else if (name == "mfgCode") {
           obj = {
@@ -667,19 +634,21 @@ export default function ExportMaterialInWithPO() {
         poId: searchData.poNumber,
         materials: obj.materials.map((mat) => {
           // Calculate values
-          const orderQty = mat.orderqty || 0;
-          const orderRate = mat.orderrate || 0;
-          const exchangeRate = mat.exchange_rate || 0;
-          const taxableValue = mat.totalValue || orderQty * orderRate;
-          const foreignValue = mat.usdValue || taxableValue * exchangeRate;
-          const customDuty = mat.custom_duty || 0;
-          const freightValue = mat.freight_value || 0;
-          const total = taxableValue + customDuty + freightValue;
+          const orderQty = Number(mat.orderqty) || 0;
+          const orderRate = Number(mat.orderrate) || 0;
+          const exchangeRate = Number(mat.exchange_rate) || 0;
+          const taxableValue = Number(mat.totalValue) || orderQty * orderRate;
+          const foreignValue =
+            Number(mat.usdValue) || taxableValue * exchangeRate;
+          const customDuty = Number(mat.custom_duty) || 0;
+          const freightValue = Number(mat.freight_value) || 0;
+          const misAmount = Number(mat.mis_amount ?? mat.misAmount) || 0;
+          const insuranceAmt =
+            Number(mat.insurance_amt ?? mat.insuranceAmt) || 0;
+          const total =
+            taxableValue + customDuty + freightValue + misAmount + insuranceAmt;
           // Calculate finalRate, handle division by zero
-          const finalRate =
-            orderQty > 0
-              ? orderRate + customDuty / orderQty + freightValue / orderQty
-              : orderRate;
+          const finalRate = orderQty > 0 ? total / orderQty : orderRate;
 
           return {
             ...mat,
@@ -706,6 +675,8 @@ export default function ExportMaterialInWithPO() {
             foreignValue: foreignValue,
             customDuty: customDuty,
             freightValue: freightValue,
+            misAmount: misAmount,
+            insuranceAmt: insuranceAmt,
             finalRate: finalRate,
             total: total,
             // Keep original fields for reference
@@ -826,6 +797,34 @@ export default function ExportMaterialInWithPO() {
         </Field>
       ),
       width: 100,
+    },
+    {
+      headerName: "Mis Amount",
+      field: "misAmount",
+      sortable: false,
+      renderCell: (params) => (
+        <Input
+          value={params.row.misAmount}
+          onChange={(e) =>
+            inputHandler("misAmount", e.target.value, params.row.id)
+          }
+        />
+      ),
+      width: 100,
+    },
+    {
+      headerName: "Insurance Amt",
+      field: "insuranceAmt",
+      sortable: false,
+      renderCell: (params) => (
+        <Input
+          value={params.row.insuranceAmt}
+          onChange={(e) =>
+            inputHandler("insuranceAmt", e.target.value, params.row.id)
+          }
+        />
+      ),
+      width: 120,
     },
     {
       headerName: "Custom Duty",
@@ -963,11 +962,16 @@ export default function ExportMaterialInWithPO() {
     let freightTotal = poData?.materials.map((row) =>
       Number(row?.freightValue),
     );
-    // let inrValue = poData?.materials.map((row) => Number(row?.inrValue));
+    let misTotal = poData?.materials.map((row) => Number(row?.misAmount));
+    let insuranceTotal = poData?.materials.map((row) =>
+      Number(row?.insuranceAmt),
+    );
     let obj = [
       { label: "Total Taxable Value", sign: "+", values: totalTaxableValue },
       { label: "Total Custom Duty", sign: "+", values: customTotal },
       { label: "Total Freight Charges", sign: "+", values: freightTotal },
+      { label: "Total MIS Amount", sign: "+", values: misTotal },
+      { label: "Total Insurance", sign: "+", values: insuranceTotal },
       { label: "Total Sum", sign: "", values: grandTotal },
     ];
     setTotalValues(obj);
@@ -991,28 +995,39 @@ export default function ExportMaterialInWithPO() {
     if (response?.success) {
       let { data } = response;
 
-      // Flatten the new data structure to extract part details and other fields
       const formattedRows = data?.map((item) => {
         const part = item.part;
+        const taxableValue = Number(item.taxable_value) || 0;
+        const customDuty = Number(item.custom_duty) || 0;
+        const freightValue = Number(item.freight_value) || 0;
+        const misAmount = Number(item.mis_amount ?? item.misAmount) || 0;
+        const insuranceAmt =
+          Number(item.insurance_amt ?? item.insuranceAmt) || 0;
+        const orderQty = Number(item.order_qty) || 0;
+        const total =
+          taxableValue + customDuty + freightValue + misAmount + insuranceAmt;
+        const finalRate = orderQty > 0 ? total / orderQty : 0;
         return {
-          partCode: part.part_code,
-          partName: part.part_name,
-          componentKey: part.component_key,
-          manualMfgCode: part.manual_mfg_code,
+          partCode: part?.part_code,
+          partName: part?.part_name,
+          componentKey: part?.component_key,
+          manualMfgCode: part?.manual_mfg_code,
           hsn: item.hsn,
           uom: item.uom,
-          orderQty: item.order_qty,
-          importRate: item.import_rate,
-          exchangeRate: item.exchange_rate,
-          taxableValue: item.taxable_value,
-          foreignValue: item.foreign_value,
-          freightValue: item.freight_value,
-          customDuty: item.custom_duty,
-          total: item.total,
-          finalRate: item.final_rate,
+          orderQty,
+          importRate: Number(item.import_rate || 0),
+          exchangeRate: Number(item.exchange_rate || 0).toFixed(2),
+          taxableValue: taxableValue.toFixed(2),
+          foreignValue: Number(item.foreign_value || 0).toFixed(2),
+          freightValue: freightValue.toFixed(2),
+          customDuty: customDuty.toFixed(2),
+          misAmount: misAmount.toFixed(2),
+          insuranceAmt: insuranceAmt.toFixed(2),
+          total: total.toFixed(2),
+          finalRate: finalRate.toFixed(2),
           pendingQty: item.pending_qty,
           poOrderQty: item.po_order_qty,
-          value: (item.order_qty * item.import_rate).toFixed(3),
+          value: (orderQty * (Number(item.import_rate) || 0)).toFixed(2),
         };
       });
       // Optional: map formatted rows to final structure
@@ -1722,13 +1737,15 @@ export default function ExportMaterialInWithPO() {
                     </Form.Item>
 
                     <Row justify="end" style={{ marginTop: 5 }}>
-                      <a
-                        href="https://alwar.prod.mscorpres.com/files/samples/Import%20PO.xlsx"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MyButton variant="downloadSample" />
-                      </a>
+                      <MyButton
+                        variant="downloadSample"
+                        onClick={() =>
+                          downloadCSVCustomColumns(
+                            sampleData,
+                            "Import Material",
+                          )
+                        }
+                      />
                     </Row>
                   </Form>
                 </Card>

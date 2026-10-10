@@ -10,17 +10,16 @@ function EditSheet({ editingSheet, setEditingSheet }) {
   const [editingData, setEditingData] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const getEditingData = async () => {
     setLoading("fetch");
     const response = await imsAxios.get("/tally/reports/editBalancesheet");
     setLoading(false);
     let { data } = response;
-    if (data) {
+   
       if (response.success) {
-        setEditingData(data.data);
+        setEditingData(data);
       }
-    }
+
   };
   const getSubGroup = async (search) => {
     setLoading("select");
@@ -103,8 +102,8 @@ function EditSheet({ editingSheet, setEditingSheet }) {
         editingData.map((row) => (
           <Row key={row.code}>
             <Typography.Title level={4}>{row.name}</Typography.Title>
-            {row.children.map((group, idx) => (
-              <Col span={24} style={{ margin: "0 20px" }} key={group.key || idx}>
+            {row.children.map((group,idx) => (
+              <Col span={24} style={{ margin: "0 20px" }} key={group?.id || idx}>
                 <Row gutter={8} style={{ margin: 10 }}>
                   <Col span={4}>
                     <Typography.Title level={5}>{group.name}</Typography.Title>

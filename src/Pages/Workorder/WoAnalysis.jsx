@@ -18,11 +18,13 @@ import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import { useToast } from "../../hooks/useToast.js";
 import FinalizeModal from "./components/woAnalysis/FinalizeModal";
 import MyButton from "../../Components/MyButton";
+import Field from "../../Components/Field.jsx";
 
 const WoAnalysis = () => {
   const { showToast } = useToast();
   const [wise, setWise] = useState(wiseOptions[0].value);
   const [searchInput, setSearchInput] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [showView, setShowView] = useState(false);
   const [showMINModal, setShowMINModal] = useState(false);
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
@@ -32,12 +34,21 @@ const WoAnalysis = () => {
   const [cancelForm] = Form.useForm();
 
   const getRows = async () => {
+    const value =
+      wise === wiseOptions[0].value || wise === wiseOptions[3].value
+        ? searchInput?.value
+        : searchInput;
+    if (!value) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     try {
       setLoading("fetch");
-      const arr = await getWorkOrderAnalysis(wise, searchInput);
+      const arr = await getWorkOrderAnalysis(wise, value);
       setRows(arr);
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      console.log("some error occured while fetching rows", error);
     } finally {
       setLoading(false);
     }
@@ -49,7 +60,10 @@ const WoAnalysis = () => {
       const arr = await getClientOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      showToast(
+        error.message || "Some error occured while fetching clients",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -60,7 +74,10 @@ const WoAnalysis = () => {
       const arr = await getSKUOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      showToast(
+        error.message || "Some error occured while fetching SKUs",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -108,7 +125,7 @@ const WoAnalysis = () => {
     const { status, message } = await closeWorkOrder(
       woId,
       sku,
-      values.cancelRemarks
+      values.cancelRemarks,
     );
     setLoading(false);
     setLoading(false);
@@ -194,9 +211,8 @@ const WoAnalysis = () => {
   };
 
   useEffect(() => {
-    if (wise !== wiseOptions[1].value) {
-      setSearchInput("");
-    }
+    setSearchInput("");
+    setIsValid(false);
   }, [wise]);
   return (
     <Row style={{ height: "calc(100vh - 180px)", margin: "10px" }}>
@@ -211,6 +227,8 @@ const WoAnalysis = () => {
                     options={wiseOptions}
                     value={wise}
                     placeholder="Select Wise"
+                    showError={isValid}
+                    message="Wise is required"
                   />
                 </div>
                 {wise === wiseOptions[0].value && (
@@ -220,20 +238,30 @@ const WoAnalysis = () => {
                       optionsState={asyncOptions}
                       onBlur={() => setAsyncOptions([])}
                       value={searchInput}
+                      labelInValue
+                      showError={isValid}
                       onChange={setSearchInput}
                       loadOptions={handleClientOptions}
                     />
                   </div>
                 )}
                 {wise === wiseOptions[1].value && (
-                  <MyDatePicker setDateRange={setSearchInput} />
+                  <MyDatePicker
+                    setDateRange={setSearchInput}
+                    value={searchInput}
+                    showError={isValid}
+                  />
                 )}
                 {wise === wiseOptions[2].value && (
                   <div style={{ width: 270 }}>
-                    <Input
+                    <Field
+                      attr="required | Please enter Work Order Id"
                       value={searchInput}
+                      showValidation={isValid}
                       onChange={(e) => setSearchInput(e.target.value)}
-                    />
+                    >
+                      <Input />
+                    </Field>
                   </div>
                 )}
                 {wise === wiseOptions[3].value && (
@@ -243,6 +271,8 @@ const WoAnalysis = () => {
                       optionsState={asyncOptions}
                       onBlur={() => setAsyncOptions([])}
                       value={searchInput}
+                      labelInValue={true}
+                      showError={isValid}
                       onChange={setSearchInput}
                       loadOptions={handleSKUOptions}
                     />
@@ -262,7 +292,7 @@ const WoAnalysis = () => {
           </Col>
         </Row>
       </Col>
-      <Col span={24} style={{ height: "calc(100% - 0px)",marginTop:10 }}>
+      <Col span={24} style={{ height: "calc(100% - 0px)", marginTop: 10 }}>
         <MyDataTable
           loading={
             loading === "fetch" || loading === "print" || loading === "cancel"
@@ -309,7 +339,7 @@ const wiseOptions = [
 const columns = [
   {
     headerName: "#",
-    field: "index",
+    field: "id",
     width: 30,
   },
   {
@@ -350,6 +380,5 @@ const columns = [
     width: 150,
   },
 ];
-
 
 export default WoAnalysis;

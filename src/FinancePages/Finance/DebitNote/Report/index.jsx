@@ -1,6 +1,6 @@
-import {  Input, Row, Space } from "antd";
+import { Input, Row, Space } from "antd";
 import { CloudDownloadOutlined, PrinterFilled } from "@ant-design/icons";
-import  { useState } from "react";
+import { useState } from "react";
 import { useEffect } from "react";
 import { imsAxios } from "../../../../axiosInterceptor";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
@@ -21,6 +21,7 @@ import useApi from "../../../../hooks/useApi.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
 import { getVendorOptions } from "../../../../api/general.ts";
 import MyButton from "../../../../Components/MyButton";
+import Field from "../../../../Components/Field.jsx";
 
 function DebitNoteReport() {
   const { showToast } = useToast();
@@ -29,6 +30,7 @@ function DebitNoteReport() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const wiseOptions = [
     { text: "Effective Date Wise", value: "effectivewise" },
@@ -38,10 +40,15 @@ function DebitNoteReport() {
     { text: "VBT Wise", value: "vbtwise" },
   ];
   const getRows = async () => {
+    if (!searchTerm || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading("fetch");
     const response = await imsAxios.post("/tally/vbt_report/vbt_debit_report", {
       wise: wise,
-      data: searchTerm,
+      data: searchTerm?.value ?? searchTerm,
     });
     setLoading(false);
     const { data } = response;
@@ -82,7 +89,7 @@ function DebitNoteReport() {
       debit_code: id,
     });
 
-    downloadFunction(response.data.buffer.data, filename);
+    downloadFunction(response?.data.buffer.data, filename);
     setLoading(false);
   };
   const handleSinblePrint = async (id) => {
@@ -93,7 +100,7 @@ function DebitNoteReport() {
         debit_code: id,
       }
     );
-    printFunction(response.data.buffer.data);
+    printFunction(response?.data.buffer.data);
     setLoading(false);
   };
   const columns = [
@@ -104,14 +111,14 @@ function DebitNoteReport() {
       type: "actions",
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={row.debitNo ??  "print"}
+          key={"print"}
           disabled={loading === "tableLoading"}
           icon={<PrinterFilled className="view-icon" />}
           onClick={() => handleSinblePrint(row.debitNo)}
           label="Print"
         />,
         <GridActionsCellItem
-          key={row.debitNo ??  "download"}
+          key={"download"}
           disabled={loading === "tableLoading"}
           icon={<CloudDownloadOutlined className="view-icon" />}
           onClick={() => {
@@ -310,6 +317,7 @@ function DebitNoteReport() {
   ];
   useEffect(() => {
     setSearchTerm("");
+    setIsValid(false);
   }, [wise]);
   useEffect(() => {
     getVendorOption(searchTerm);
@@ -323,10 +331,20 @@ function DebitNoteReport() {
           </div>
           <div style={{ width: 250 }}>
             {wise === "effectivewise" && (
-              <MyDatePicker setDateRange={setSearchTerm} />
+              <MyDatePicker
+                setDateRange={setSearchTerm}
+                value={searchTerm}
+                showError={isValid}
+                message="Please select a date range"
+              />
             )}
             {wise === "datewise" && (
-              <MyDatePicker setDateRange={setSearchTerm} />
+              <MyDatePicker
+                setDateRange={setSearchTerm}
+                value={searchTerm}
+                showError={isValid}
+                message="Please select a date range"
+              />
             )}
             {wise === "vendorwise" && (
               <MyAsyncSelect
@@ -335,17 +353,23 @@ function DebitNoteReport() {
                 onChange={setSearchTerm}
                 optionsState={asyncOptions}
                 loading={loading1("select")}
+                labelInValue
+                showError={isValid}
+                message="Please select a Vendor"
               />
             )}
             {(wise === "minwise" || wise === "vbtwise") && (
-              <Input
+              <Field
+                attr="required | This field is required"
                 value={searchTerm}
+                showValidation={isValid}
                 onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              >
+                <Input />
+              </Field>
             )}
           </div>
           <MyButton
-            disabled={searchTerm.length === 0 || !wise}
             type="primary"
             loading={loading === "fetch"}
             onClick={getRows}

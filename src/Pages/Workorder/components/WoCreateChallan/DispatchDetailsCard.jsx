@@ -1,15 +1,10 @@
 import { Card, Form, Input, Col } from "antd";
 
 import MySelect from "../../../../Components/MySelect";
+import Field from "../../../../Components/Field.jsx";
 
-const DispatchDetailsCard = ({
-  form,
-  setaddid,
-  addoptions,
-}) => {
-
+const DispatchDetailsCard = ({ form, setaddid, addoptions, isValid }) => {
   const handleaddress = (e) => {
-
     setaddid(true);
     addoptions.map((item) => {
       if (item.value === e) {
@@ -33,32 +28,45 @@ const DispatchDetailsCard = ({
         <Form.Item
           name="dispatchid"
           label="Select Dispatch Address"
-          rules={[
-            { required: true, message: "Please select Dispatch Address!" },
-          ]}
+          rules={[{ required: true, message: "" }]}
         >
-          <MySelect
-            options={addoptions}
-            onChange={(e) => {
-              handleaddress(e);
-            }}
-          />
+          <Field
+            attr="required | Please select Dispatch Address!"
+            showValidation={isValid}
+          >
+            <MySelect
+              options={addoptions}
+              onChange={(e) => {
+                handleaddress(e);
+              }}
+            />
+          </Field>
         </Form.Item>
         <Form.Item
           name="shippingaddress"
           label="Complete Address"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "" }]}
         >
-          <Input.TextArea rows={3} />
+          <Field
+            attr="required | Please enter Complete Address"
+            showValidation={isValid}
+          >
+            <Input.TextArea rows={3} />
+          </Field>
         </Form.Item>
         {/* {rtnchallan && ( */}
         <>
           <Form.Item
             name="dispatchfrompincode"
             label="Shipping Pin"
-            // rules={[{ required: true }]}
+            rules={[{ required: true, message: "" }]}
           >
-            <Input />
+            <Field
+              attr="required | Please enter Shipping Pin"
+              showValidation={isValid}
+            >
+              <Input />
+            </Field>
           </Form.Item>
           <Form.Item
             name="dispatchfromgst"

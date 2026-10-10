@@ -1,5 +1,5 @@
-import  { useState } from "react";
-import {  Col, Form, Row, Input } from "antd";
+import { useState } from "react";
+import { Col, Form, Row, Input } from "antd";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import NavFooter from "../../../Components/NavFooter";
@@ -9,6 +9,7 @@ import { useToast } from "../../../hooks/useToast.js";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
 import { Add, Delete } from "@mui/icons-material";
+import Field from "../../../Components/Field.jsx";
 
 function CashReceipt() {
   const { showToast } = useToast();
@@ -17,6 +18,7 @@ function CashReceipt() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [effectiveDate, setSetEffective] = useState("");
+  const [isValid, setIsValid] = useState(false);
   //   const [headerAccount, setHeaderAccount] = useState("");
   const [cashPaymentRows, setCashPaymentRows] = useState([
     {
@@ -33,7 +35,7 @@ function CashReceipt() {
       search: search,
     });
     setSelectLoading(false);
-    const arr = response.data.map((row) => {
+    const arr = response?.data.map((row) => {
       return { value: row.id, text: row.text };
     });
     setAsyncOptions(arr);
@@ -99,6 +101,9 @@ function CashReceipt() {
           loadOptions={getLedger}
           optionsState={asyncOptions}
           placeholder="Select Ledger.."
+          labelInValue
+          showError={isValid}
+          message="Ledger is required"
         />
       ),
     },
@@ -108,14 +113,21 @@ function CashReceipt() {
       sortable: false,
       flex: 1,
       renderCell: ({ row }) => (
-        <Input
+        <Field
+          attr="required | Amount is required"
           value={row.cash}
-          onChange={(e) => {
-            inputHandler("cash", e.target.value, row.id);
-          }}
-          placeholder="0"
-          type="number"
-        />
+          showValidation={isValid}
+          treatZeroAsEmpty
+        >
+          <Input
+            value={row.cash}
+            onChange={(e) => {
+              inputHandler("cash", e.target.value, row.id);
+            }}
+            placeholder="0"
+            type="number"
+          />
+        </Field>
       ),
     },
 
@@ -173,61 +185,48 @@ function CashReceipt() {
     setCashPaymentRows(arr);
   };
 
-  const saveFunction = async () => {
-    let validating = { status: true, message: "" };
-    let gls = [];
-    let cash = [];
-    let comment = [];
-    if (headerCash == "") {
-      return showToast("A account is required", "error");
-    } else if (effectiveDate == "") {
-      return showToast("Effective date is required", "error");
-    }
-    cashPaymentRows.map((row) => {
-      if (row.gls == "") {
-        validating = {
-          status: false,
-          message: "GLS is required in all the fields",
-        };
-      } else if (row.cash == "") {
-        validating = {
-          status: false,
-          message: "cash is required in all the fields",
-        };
-      }
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((r) => !r.glCode || !r.cash);
 
-      if (validating) {
-        gls.push(row.glCode ? row.glCode : "");
-        cash.push(row.cash);
-        comment.push(row.comment);
-      }
+  const saveFunction = async () => {
+    if (!headerCash || !effectiveDate || hasIncompleteRow(cashPaymentRows)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
+    const gls = cashPaymentRows.map(
+      (row) => row.glCode?.value ?? row.glCode ?? "",
+    );
+    const cash = cashPaymentRows.map((row) => row.cash);
+    const comment = cashPaymentRows.map((row) => row.comment);
+
+    setLoading(true);
+    const response = await imsAxios.post("/tally/cash/insert_cashreceipt", {
+      gls: gls,
+      credit: cash,
+      comment: comment,
+      account: headerCash?.value ?? headerCash,
+      effective_date: effectiveDate,
     });
-    if (validating.status == false) {
-      showToast(validating.message, "error");
-    } else if (validating.status == true) {
-      setLoading(true);
-      const response = await imsAxios.post("/tally/cash/insert_cashreceipt", {
-        gls: gls,
-        credit: cash,
-        comment: comment,
-        account: headerCash ? headerCash : "",
-        effective_date: effectiveDate,
-      });
-      setLoading(false);
-      if (response.success) {
-        resetFunction();
-        showToast(response.message, "success");
-      }
+    setLoading(false);
+    if (response.success) {
+      resetFunction();
+      showToast(response.message, "success");
+    } else {
+      showToast(response.message?.msg || response.message, "error");
     }
   };
 
   const resetFunction = () => {
+    setIsValid(false);
     setHeaderCash("");
+    setSetEffective("");
     setCashPaymentRows([
       {
         id: v4(),
         glCode: "",
-        debit: "",
+        cash: "",
         comment: "",
       },
     ]);
@@ -241,15 +240,7 @@ function CashReceipt() {
             <Form size="small">
               <Row gutter={12}>
                 <Col span={6}>
-                  <Form.Item
-                    label="Cash"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Select Account",
-                      },
-                    ]}
-                  >
+                  <Form.Item label="Cash">
                     <MyAsyncSelect
                       size="default"
                       selectLoading={selectLoading}
@@ -259,22 +250,20 @@ function CashReceipt() {
                       value={headerCash}
                       placeholder="Select Account.."
                       onChange={(value) => setHeaderCash(value)}
+                      labelInValue
+                      showError={isValid}
+                      message="Select Account"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <Form.Item
-                    label="Select EffectiveDate"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Select Effective Date",
-                      },
-                    ]}
-                  >
+                  <Form.Item label="Select EffectiveDate">
                     <SingleDatePicker
                       size="default"
                       setDate={setSetEffective}
+                      value={effectiveDate}
+                      showError={isValid}
+                      message="Select Effective Date"
                     />
                   </Form.Item>
                 </Col>

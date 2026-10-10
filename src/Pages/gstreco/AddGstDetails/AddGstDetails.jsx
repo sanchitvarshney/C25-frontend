@@ -5,13 +5,23 @@ import { useToast } from "../../../hooks/useToast.js";
 import { Row, Col } from "antd";
 import { CheckOutlined, UploadOutlined } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";
+import Field from "../../../Components/Field.jsx";
 
 const { Option } = Select;
+
+// Keep only digits and a single decimal point — blocks letters/symbols on type & paste
+const toNumeric = (value) => {
+  if (value === undefined || value === null) return value;
+  const cleaned = String(value).replace(/[^\d.]/g, "");
+  const [intPart, ...rest] = cleaned.split(".");
+  return rest.length ? `${intPart}.${rest.join("")}` : cleaned;
+};
 
 const AddGstDetails = () => {
   const { showToast } = useToast();
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const handleUpload = async () => {
     const formData = new FormData();
@@ -50,11 +60,13 @@ const AddGstDetails = () => {
   };
 
   const handleFormSubmit = async (formData) => {
+    setIsValid(false);
     try {
       const response = await imsAxios.post(`/gst/postgstdata`, formData);
       if (response.status === 200) {
         showToast("Form submitted successfully!");
         gstForm.resetFields();
+        setIsValid(false);
       } else {
         showToast(" Error in submitted Form!","error");
       }
@@ -76,6 +88,7 @@ const AddGstDetails = () => {
           layout="vertical"
           autoComplete="off"
           onFinish={handleFormSubmit}
+          onFinishFailed={() => setIsValid(true)}
         >
           <Row gutter={[10, 10]}>
             <Col span={4}>
@@ -85,23 +98,29 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Select placeholder="Select a month">
-                  <Option value="Jan">Jan</Option>
-                  <Option value="Feb">Feb</Option>
-                  <Option value="Mar">Mar</Option>
-                  <Option value="Apr">Apr</Option>
-                  <Option value="May">May</Option>
-                  <Option value="Jun">Jun</Option>
-                  <Option value="Jul">Jul</Option>
-                  <Option value="Aug">Aug</Option>
-                  <Option value="Sept">Sept</Option>
-                  <Option value="Oct">Oct</Option>
-                  <Option value="Nov">Nov</Option>
-                  <Option value="Dec">Dec</Option>
-                </Select>
+                <Field
+                  attr="required | Month is required"
+                  showValidation={isValid}
+                >
+                  <Select placeholder="Select a month">
+                    <Option value="Jan">Jan</Option>
+                    <Option value="Feb">Feb</Option>
+                    <Option value="Mar">Mar</Option>
+                    <Option value="Apr">Apr</Option>
+                    <Option value="May">May</Option>
+                    <Option value="Jun">Jun</Option>
+                    <Option value="Jul">Jul</Option>
+                    <Option value="Aug">Aug</Option>
+                    <Option value="Sept">Sept</Option>
+                    <Option value="Oct">Oct</Option>
+                    <Option value="Nov">Nov</Option>
+                    <Option value="Dec">Dec</Option>
+                  </Select>
+                </Field>
               </Form.Item>
             </Col>
             <Col span={5}>
@@ -111,10 +130,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter GST Number" />
+                <Field attr="required | GSTIN is required" showValidation={isValid}>
+                  <Input placeholder="Enter GST Number" />
+                </Field>
               </Form.Item>
             </Col>
             <Col span={5}>
@@ -124,10 +146,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter suppliername" />
+                <Field attr="required | Supplier Name is required" showValidation={isValid}>
+                  <Input placeholder="Enter suppliername" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -138,10 +163,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter Invoice Number" />
+                <Field attr="required | Invoice Number is required" showValidation={isValid}>
+                  <Input placeholder="Enter Invoice Number" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -152,10 +180,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter Invoice Type" />
+                <Field attr="required | Invoice Type is required" showValidation={isValid}>
+                  <Input placeholder="Enter Invoice Type" />
+                </Field>
               </Form.Item>
             </Col>
           </Row>
@@ -168,10 +199,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input type="date" placeholder="Enter Invoice Date" />
+                <Field attr="required | Invoice Date is required" showValidation={isValid}>
+                  <Input type="date" placeholder="Enter Invoice Date" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -182,10 +216,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter Invoice Value" />
+                <Field attr="required | Invoice Value is required" showValidation={isValid}>
+                  <Input inputMode="decimal" placeholder="Enter Invoice Value" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -196,10 +233,13 @@ const AddGstDetails = () => {
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter Place of Supply" />
+                <Field attr="required | Place of Supply is required" showValidation={isValid}>
+                  <Input placeholder="Enter Place of Supply" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -207,26 +247,34 @@ const AddGstDetails = () => {
               <Form.Item
                 name="RateOfTax"
                 label="Rate of Tax"
+                normalize={toNumeric}
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter Rate of Tax" />
+                <Field attr="required | Rate of Tax is required" showValidation={isValid}>
+                  <Input inputMode="decimal" placeholder="Enter Rate of Tax" />
+                </Field>
               </Form.Item>
             </Col>
             <Col span={5}>
               <Form.Item
                 name="TaxableValue"
                 label="Taxable Value"
+                normalize={toNumeric}
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter Taxable Value" />
+                <Field attr="required | Taxable Value is required" showValidation={isValid}>
+                  <Input inputMode="decimal" placeholder="Enter Taxable Value" />
+                </Field>
               </Form.Item>
             </Col>
           </Row>
@@ -236,13 +284,17 @@ const AddGstDetails = () => {
               <Form.Item
                 name="IGST"
                 label="IGST "
+                normalize={toNumeric}
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter IGST" />
+                <Field attr="required | IGST is required" showValidation={isValid}>
+                  <Input inputMode="decimal" placeholder="Enter IGST" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -250,13 +302,17 @@ const AddGstDetails = () => {
               <Form.Item
                 name="CGST"
                 label="CGST"
+                normalize={toNumeric}
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter CGST" />
+                <Field attr="required | CGST is required" showValidation={isValid}>
+                  <Input inputMode="decimal" placeholder="Enter CGST" />
+                </Field>
               </Form.Item>
             </Col>
 
@@ -264,13 +320,17 @@ const AddGstDetails = () => {
               <Form.Item
                 name="SGST"
                 label="SGST"
+                normalize={toNumeric}
                 rules={[
                   {
                     required: true,
+                    message: "",
                   },
                 ]}
               >
-                <Input placeholder="Enter SGST" />
+                <Field attr="required | SGST is required" showValidation={isValid}>
+                  <Input inputMode="decimal" placeholder="Enter SGST" />
+                </Field>
               </Form.Item>
             </Col>
           </Row>
@@ -281,6 +341,7 @@ const AddGstDetails = () => {
                 <Space>
                   <Button
                     htmlType="reset"
+                    onClick={() => setIsValid(false)}
                     style={{ color: "#04B0A8", borderColor: "#04B0A8" }}
                   >
                     <svg

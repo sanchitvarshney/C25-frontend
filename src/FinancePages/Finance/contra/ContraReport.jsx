@@ -19,6 +19,7 @@ import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import TableActions from "../../../Components/TableActions.jsx/TableActions";
 import ContraEdit from "./ContraEdit";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 export default function ContraReport() {
   const { showToast } = useToast();
@@ -32,6 +33,7 @@ export default function ContraReport() {
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [selectLoading, setSelectLoading] = useState(false);
   const [editingContra, setEditingContra] = useState(null);
+  const [isValid, setIsValid] = useState(false);
 
   const wiseOptions = [
     { text: "Created Date Wise", value: "date" },
@@ -40,31 +42,18 @@ export default function ContraReport() {
     { text: "Ledger Wise", value: "ledger" },
   ];
   const getRows = async () => {
+    const isDateMode = wise === "date" || wise === "effective";
+    if (isDateMode ? !searchDateRange : !searchInput) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+
     let d;
-    if (wise == "date") {
-      if (searchDateRange) {
-        d = searchDateRange;
-      } else {
-        showToast("Please select a time period", "error");
-      }
-    } else if (wise == "number") {
-      if (searchInput) {
-        d = searchInput?.trim();
-      } else {
-        showToast("Please Enter a Contra ID", "error");
-      }
-    } else if (wise == "ledger") {
-      if (searchInput) {
-        d = searchInput?.trim();
-      } else {
-        showToast("Please Enter a Contra ID", "error");
-      }
-    } else if (wise == "effective") {
-      if (searchDateRange) {
-        d = searchDateRange;
-      } else {
-        showToast("Please select a time period", "error");
-      }
+    if (wise == "date" || wise == "effective") {
+      d = searchDateRange;
+    } else if (wise == "number" || wise == "ledger") {
+      d = searchInput?.value ?? searchInput?.trim?.() ?? searchInput;
     }
 
     setLoading(true);
@@ -94,7 +83,7 @@ export default function ContraReport() {
     const response = await imsAxios.post("/tally/contra/contra_print", {
       code: id,
     });
-    printFunction(response?.data?.buffer?.data);
+    printFunction(response?.data.buffer.data);
     setLoading(false);
   };
   const handleDownload = async (id) => {
@@ -105,25 +94,10 @@ export default function ContraReport() {
     const response = await imsAxios.post(link, {
       code: id,
     });
-    downloadFunction(response?.data?.buffer?.data, filename);
+    downloadFunction(response?.data.buffer.data, filename);
     setLoading(false);
   };
-  // const deleteFun = async () => {
-  //   setLoading(true);
-  //   if (deleteConfirm) {
-  //     const response = await imsAxios.post("/tally/contra/contra_delete", {
-  //       contra_code: deleteConfirm,
-  //     });
-  //     setLoading(false);
-  //     if (response.success) {
-  //       setDeleteConfirm(null);
-  //       showToast(response.message, "success");
-  //       getRows();
-  //     } else {
-  //       showToast(response.message?.msg || response.message, "error");
-  //     }
-  //   }
-  // };
+
   const getLedger = async (search) => {
     setSelectLoading(true);
     const response = await imsAxios.post("/tally/contra/bank_cash_ledgers", {
@@ -186,7 +160,7 @@ export default function ContraReport() {
       flex: 1,
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={row.id ?? "view"}
+        key={row.id || "view"}
           disabled={loading}
           icon={<BsEyeFill className="view-icon" />}
           onClick={() => {
@@ -195,7 +169,7 @@ export default function ContraReport() {
           label="Delete"
         />,
         <GridActionsCellItem
-        key={row.id ?? "print"}
+          key={row.id || "print"}
           disabled={loading}
           icon={<AiFillPrinter className="view-icon" />}
           onClick={() => {
@@ -204,7 +178,7 @@ export default function ContraReport() {
           label="Delete"
         />,
         <GridActionsCellItem
-        key={row.id ?? "download"}
+          key={row.id || "download"}
           disabled={loading}
           icon={<BsDownload className="view-icon" />}
           onClick={() => {
@@ -214,7 +188,7 @@ export default function ContraReport() {
         />,
 
         <TableActions
-          key={row.id ?? "edit"}
+          key={row.id || "edit"}
           action="edit"
           disabled={loading}
           onClick={() => {
@@ -249,6 +223,7 @@ export default function ContraReport() {
   ];
   useEffect(() => {
     setSearchInput("");
+    setIsValid(false);
   }, [wise]);
   return (
     <div style={{ position: "relative", height: "100%", padding: 10 }}>
@@ -258,7 +233,9 @@ export default function ContraReport() {
         <div>
           <Space>
             <div style={{ width: 250 }}>
-              <MySelect options={wiseOptions} onChange={setWise} value={wise} />
+              <MySelect options={wiseOptions} onChange={setWise} value={wise} 
+               showError={isValid}
+                message="Please select wise" />
             </div>
             <div style={{ width: 300 }}>
               {wise === "date" ? (
@@ -267,22 +244,30 @@ export default function ContraReport() {
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                  showError={isValid}
+                  message="Please select a time period"
                 />
               ) : wise === "number" ? (
-                <Input
-                  size="default"
-                  type="text"
-                  // className="form-control w-100 "
-                  placeholder="Enter Conttra Number"
+                <Field
+                  attr="required | Please enter a Contra Number"
                   value={searchInput}
+                  showValidation={isValid}
                   onChange={(e) => setSearchInput(e.target.value)}
-                />
+                >
+                  <Input
+                    size="default"
+                    type="text"
+                    placeholder="Enter Conttra Number"
+                  />
+                </Field>
               ) : wise === "effective" ? (
                 <MyDatePicker
                   size="default"
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
+                  showError={isValid}
+                  message="Please select a time period"
                 />
               ) : (
                 wise === "ledger" && (
@@ -293,20 +278,14 @@ export default function ContraReport() {
                     onChange={setSearchInput}
                     optionsState={asyncOptions}
                     loadOptions={getLedger}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a Ledger"
                   />
                 )
               )}
             </div>
             <MyButton
-              disabled={
-                wise === "date" || wise === "effective"
-                  ? searchDateRange === ""
-                    ? true
-                    : false
-                  : !searchInput
-                    ? true
-                    : false
-              }
               type="primary"
               onClick={getRows}
               variant="search"

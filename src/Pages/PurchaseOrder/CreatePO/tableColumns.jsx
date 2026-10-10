@@ -110,7 +110,7 @@ export const foreignCell = ({ row }) => {
     />
   );
 };
-export const invoiceDateCell = ({ row }, inputHandler, isValid) => {
+export const invoiceDateCell = ({ row }, inputHandler, isValid = false) => {
   return (
     <SingleDatePicker
       row={row}

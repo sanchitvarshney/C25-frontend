@@ -4,8 +4,6 @@ import MySelect from "../../Components/MySelect";
 import MyDatePicker from "../../Components/MyDatePicker";
 import MyDataTable from "../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-// import SelectChallanTypeModal from "./components/WoCreateChallan/SelectChallanTypeModal";
-// import CreateChallanModal from "./components/WoCreateChallan/CreateChallanModal";
 import { CommonIcons } from "../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../Components/exportToCSV";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
@@ -16,6 +14,7 @@ import printFunction, {
   downloadFunction,
 } from "../../Components/printFunction";
 import MyButton from "../../Components/MyButton";
+import Field from "../../Components/Field.jsx";
 //
 const WoCompleted = () => {
   const actionColumn = {
@@ -25,16 +24,14 @@ const WoCompleted = () => {
     type: "actions",
     getActions: ({ row }) => [
       <GridActionsCellItem
-      key={"print"}
         showInMenu
-        // disabled={loading}
+        key={"print"}
         onClick={() => printwocompleted(row)}
         label="Print"
       />,
       <GridActionsCellItem
-      key={"download"}
         showInMenu
-        // disabled={loading}
+        key={"download"}
         onClick={() => {
           downloadwocompleted(row);
         }}
@@ -45,9 +42,10 @@ const WoCompleted = () => {
   const [wise, setWise] = useState(wiseOptions[0].value);
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [rows, setRows] = useState([]);
- const { showToast } = useToast();
+  const { showToast } = useToast();
 
   const handleClientOptions = async (search) => {
     try {
@@ -55,7 +53,10 @@ const WoCompleted = () => {
       const arr = await getClientOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      showToast(
+        error?.message || "Some error occured while fetching clients",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -68,10 +69,15 @@ const WoCompleted = () => {
         "/createwo/print_wo_completed_list",
         {
           transaction: row.transactionId,
-        }
+        },
       );
-      printFunction(response.data.buffer.data);
-      showToast(response.message, "success");
+
+      if (response.success) {
+        printFunction(response.data.buffer.data);
+        showToast(response.message, "success");
+      } else {
+        showToast(response.message || "Some error occured", "error");
+      }
     } catch (error) {
       console.log("some error occured while fetching rows", error);
     } finally {
@@ -86,10 +92,15 @@ const WoCompleted = () => {
         "/createwo/print_wo_completed_list",
         {
           transaction: row.transactionId,
-        }
+        },
       );
-      downloadFunction(response.data.buffer.data);
-      showToast(response.message, "success");
+
+      if (response.success) {
+        downloadFunction(response.data.buffer.data, "wo_completed.pdf");
+        showToast(response.message, "success");
+      } else {
+        showToast(response.message || "Some error occured", "error");
+      }
     } catch (error) {
       console.log("some error occured while fetching rows", error);
     } finally {
@@ -97,29 +108,52 @@ const WoCompleted = () => {
     }
   };
 
+  const isSearchInputEmpty = () => {
+    if (wise === wiseOptions[1].value) {
+      return !searchInput || searchInput === "";
+    }
+    return (
+      searchInput === undefined ||
+      searchInput === null ||
+      searchInput === "" ||
+      (typeof searchInput === "object" && !searchInput?.value)
+    );
+  };
+
   const getRows = async () => {
+    if (isSearchInputEmpty()) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     try {
       setLoading("fetch");
       const response = await imsAxios.post(
         "/createwo/fetch_wo_completed_list",
         {
           wise: wise,
-          data: searchInput,
-        }
+          data: searchInput?.value || searchInput,
+        },
       );
-    
-      const arr = response.data.map((row, index) => ({
-        id: index + 1,
-        date: row.date,
-        requiredQty: row.ord_qty,
-        sku: row.sku_code,
-        product: row.sku_name,
-        transactionId: row.transaction_id,
-      }));
-      setRows(arr);
+
+      if (response.success) {
+        const arr = response.data.map((row, index) => ({
+          id: index + 1,
+          date: row.date,
+          requiredQty: row.ord_qty,
+          sku: row.sku_code,
+          product: row.sku_name,
+          transactionId: row.transaction_id,
+        }));
+        setRows(arr);
+      } else {
+        showToast(response.message || "Some error occured", "error");
+      }
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
-     
+      showToast(
+        error?.message || "Some error occured while fetching rows",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -129,6 +163,7 @@ const WoCompleted = () => {
     if (wise !== wiseOptions[1].value) {
       setSearchInput("");
     }
+    setIsValid(false);
   }, [wise]);
 
   return (
@@ -144,6 +179,8 @@ const WoCompleted = () => {
                     options={wiseOptions}
                     value={wise}
                     placeholder="Select Wise"
+                    showError={isValid}
+                    message="Please select a wise!"
                   />
                 </div>
                 {wise === wiseOptions[0].value && (
@@ -153,20 +190,34 @@ const WoCompleted = () => {
                       optionsState={asyncOptions}
                       onBlur={() => setAsyncOptions([])}
                       value={searchInput}
+                      labelInValue
                       onChange={setSearchInput}
                       loadOptions={handleClientOptions}
+                      showError={isValid}
+                      message="Please select a client!"
                     />
                   </div>
                 )}
                 {wise === wiseOptions[1].value && (
-                  <MyDatePicker setDateRange={setSearchInput} />
+                  <MyDatePicker
+                    setDateRange={setSearchInput}
+                    showError={isValid}
+                    message="Please select a date range!"
+                    value={searchInput}
+                  />
                 )}
                 {wise === wiseOptions[2].value && (
                   <div style={{ width: 270 }}>
-                    <Input
+                    <Field
+                      attr="required | Please enter a work order number!"
                       value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                    />
+                      showValidation={isValid}
+                    >
+                      <Input
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                      />
+                    </Field>
                   </div>
                 )}
 

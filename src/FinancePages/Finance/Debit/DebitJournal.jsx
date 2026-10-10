@@ -1,19 +1,103 @@
-import  { useState } from "react";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { v4 } from "uuid";
 import { Add, Delete } from "@mui/icons-material";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import {  Col, Input, Row } from "antd";
+import {
+  Card,
+  Col,
+  Collapse,
+  Descriptions,
+  Divider,
+  Drawer,
+  Empty,
+  Form,
+  Input,
+  Modal,
+  Row,
+  Space,
+  Table,
+  Tag,
+  Typography,
+  Upload,
+} from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
+import Field from "../../../Components/Field.jsx";
+import MyButton from "../../../Components/MyButton";
+import { downloadExcel } from "../../../Components/printFunction";
+import { InboxOutlined } from "@ant-design/icons";
+
+const debitNoteItemColumns = [
+  { title: "Part Code", dataIndex: "partCode", width: 110 },
+  { title: "Part Name", dataIndex: "partName", ellipsis: true },
+  { title: "Narration", dataIndex: "narration", ellipsis: true },
+  { title: "Qty", dataIndex: "quantity", width: 70, align: "right" },
+  { title: "UOM", dataIndex: "uom", width: 70 },
+  { title: "Rate", dataIndex: "rate", width: 80, align: "right" },
+  {
+    title: "Value",
+    dataIndex: "value",
+    width: 100,
+    align: "right",
+    render: (value) => (+Number(value ?? 0)).toLocaleString("en-IN"),
+  },
+  {
+    title: "GL",
+    dataIndex: "glDetails",
+    width: 190,
+    render: (gl) => (gl ? `${gl.name} (${gl.code})` : "-"),
+  },
+  {
+    title: "TDS GL",
+    dataIndex: "tdsDetails",
+    width: 200,
+    render: (tds) =>
+      tds?.length ? (
+        <div>
+          {tds.map((t, i) => (
+            <div key={i} style={{ marginBottom: i < tds.length - 1 ? 6 : 0 }}>
+              <div>{t.masterDetails?.gl_code ?? "-"}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        "-"
+      ),
+  },
+  {
+    title: "TDS",
+    dataIndex: "tdsDetails",
+    width: 160,
+    render: (tds) =>
+      tds?.length
+        ? tds
+            .map(
+              (t) => `${t.masterDetails?.name ?? t.tdsCode} (${t.tdsPercent}%)`,
+            )
+            .join(", ")
+        : "-",
+  },
+  {
+    title: "Total TDS Amount",
+    dataIndex: "tdsAmount",
+    width: 160,
+  },
+];
 
 export default function JournalPosting() {
   const { showToast } = useToast();
   const [journalDate, setJournalDate] = useState("");
   const [debitTotal, setDebitTotal] = useState(0);
   const [creditTotal, setCreditTotal] = useState(0);
+  const [parsedDebitNotes, setParsedDebitNotes] = useState(null);
+  const [excelUploadLoading, setExcelUploadLoading] = useState(false);
+  const [bulkDebitNoteSubmitting, setBulkDebitNoteSubmitting] =
+    useState(false);
+  const [excelUploadOpen, setExcelUploadOpen] = useState(false);
+  const [excelUploadForm] = Form.useForm();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [journalRows, setJounralRows] = useState([
     {
@@ -35,6 +119,7 @@ export default function JournalPosting() {
 
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const addRows = () => {
     let dummy = [];
@@ -105,6 +190,217 @@ export default function JournalPosting() {
       setAsyncOptions([]);
     }
   };
+  const getDebitCreditBalance = (dn) => {
+    const items = dn?.items ?? [];
+    const taxableValue = items.reduce(
+      (sum, item) => sum + (+item.value || 0),
+      0,
+    );
+    const tdsAmount = +dn?.totalTdsAmount || 0;
+    const taxes = dn?.taxes ?? {};
+    const igst = +taxes.igstInputReversal || 0;
+    const cgst = +taxes.cgstInputReversal || 0;
+    const sgst = +taxes.sgstInputReversal || 0;
+    const roundOff = +dn?.roundOff || 0;
+    const totalValue = +dn?.totalValue || 0;
+
+    let debit = totalValue + tdsAmount;
+    let credit = taxableValue + igst + cgst + sgst;
+
+    if (roundOff < 0) {
+      debit += Math.abs(roundOff);
+    } else if (roundOff > 0) {
+      credit += roundOff;
+    }
+
+    const balanced = Math.abs(debit - credit) < 0.01;
+
+    return {
+      taxableValue,
+      igst,
+      cgst,
+      sgst,
+      tdsAmount,
+      roundOff,
+      totalValue,
+      debit,
+      credit,
+      balanced,
+    };
+  };
+  const getDebitNoteTotals = (dn) => {
+    const {
+      taxableValue,
+      igst,
+      cgst,
+      sgst,
+      tdsAmount,
+      roundOff,
+      totalValue,
+      debit,
+      credit,
+    } = getDebitCreditBalance(dn);
+    return [
+      { name: "Taxable Value", value: taxableValue },
+      { name: "IGST", value: igst },
+      { name: "CGST", value: cgst },
+      { name: "SGST", value: sgst },
+      { name: "TDS Amount", value: tdsAmount },
+      { name: "Round Off", value: roundOff || 0 },
+      {
+        name: "Total Value",
+        value: `₹${totalValue}`,
+      },
+      {
+        name: "Debit",
+        value: `₹${debit.toFixed(2)}`,
+      },
+      {
+        name: "Credit",
+        value: `₹${credit.toFixed(2)}`,
+      },
+    ];
+  };
+  const handleExcelUpload = async () => {
+    const values = excelUploadForm.getFieldsValue();
+    const file = values.files?.[0]?.originFileObj;
+    if (!file) {
+      showToast("Please select a file", "error");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      setExcelUploadLoading("upload");
+      const response = await imsAxios.post("/tally/dv/upload/item", formData);
+      if (response.success) {
+        const debitNotes = response.data?.debitNotes ?? [];
+        if (debitNotes.length === 0) {
+          showToast("No debit notes found in the uploaded file", "error");
+        } else {
+          setParsedDebitNotes(debitNotes);
+          showToast(
+            response.message ?? "Excel file processed successfully",
+            "success",
+          );
+          setExcelUploadOpen(false);
+          excelUploadForm.resetFields();
+        }
+      } else {
+        showToast(
+          response.message?.msg ?? response.message ?? "Excel validation failed",
+          "error",
+        );
+      }
+    } catch (error) {
+      showToast("Some error occured while uploading the excel", "error");
+      console.log("Some error occured while uploading the excel", error);
+    } finally {
+      setExcelUploadLoading(false);
+    }
+  };
+
+  const downloadDebitNoteSampleFile = async () => {
+    try {
+      setExcelUploadLoading("sample");
+      const response = await imsAxios.get("/tally/debitNote/downloadSample", {
+        params: { type: "vbt" },
+      });
+      if (response.success) {
+        downloadExcel(response.data.buffer.data, "Debit Note Sample");
+      } else {
+        showToast(
+          response.message?.msg ?? "Unable to download sample file",
+          "error",
+        );
+      }
+    } catch (error) {
+      showToast("Some error occured while downloading the sample file", "error");
+    } finally {
+      setExcelUploadLoading(false);
+    }
+  };
+  const submitBulkDebitNotes = async () => {
+    if (!parsedDebitNotes || parsedDebitNotes.length === 0) {
+      showToast("No debit notes to submit", "error");
+      return;
+    }
+    const unbalancedNotes = parsedDebitNotes.filter(
+      (dn) => !getDebitCreditBalance(dn).balanced,
+    );
+    if (unbalancedNotes.length > 0) {
+      showToast(
+        `Debit and Credit value is not equal for: ${unbalancedNotes
+          .map((dn) => dn.voucherNo)
+          .join(", ")}`,
+        "error",
+      );
+      return;
+    }
+    try {
+      setBulkDebitNoteSubmitting(true);
+      const debitNotesPayload = parsedDebitNotes.map((dn) => {
+        const { debit, credit } = getDebitCreditBalance(dn);
+        return {
+          voucherNo: dn.voucherNo,
+          date: dn.date,
+          vendorCode: dn.vendorCode,
+          voucherRefNo: dn.voucherRefNo,
+          gstin: dn.gstin,
+          items: (dn.items ?? []).map((item) => ({
+            partCode: item.componentKey,
+            narration: item.narration,
+            quantity: item.quantity,
+            uom: item.uom,
+            rate: item.rate,
+            value: item.value,
+            glDetails: { key: item.glDetails?.key },
+            tdsDetails: item.tdsDetails,
+            tdsAmount: item.tdsAmount,
+          })),
+          taxes: dn.taxes,
+          roundOff: dn.roundOff,
+          taxableValue: dn.taxableValue,
+          totalTdsAmount: dn.totalTdsAmount,
+          totalValue: dn.totalValue,
+          dnStatus: dn.dnStatus,
+          debit,
+          credit,
+        };
+      });
+      const response = await imsAxios.post(
+        "/tally/dv/create-bulk-debit-note",
+        { debitNotes: debitNotesPayload },
+      );
+      if (response.success) {
+        showToast(response.message ?? "Debit notes saved successfully", "success");
+        setParsedDebitNotes(null);
+      } else {
+        showToast(
+          response.message?.msg ?? response.message ?? "Unable to save debit notes",
+          "error",
+        );
+      }
+    } catch (error) {
+      showToast("Some error occured while saving the debit notes", "error");
+      console.log("Some error occured while saving the debit notes", error);
+    } finally {
+      setBulkDebitNoteSubmitting(false);
+    }
+  };
+
+  const normExcelFile = (e) => {
+    if (Array.isArray(e)) return e;
+    return e?.fileList;
+  };
+
+  const excelUploadProps = {
+    name: "file",
+    multiple: false,
+    maxCount: 1,
+    beforeUpload: () => false,
+  };
+
   const inputHandler = (name, value, id) => {
     let arr = [];
 
@@ -209,6 +505,8 @@ export default function JournalPosting() {
               optionsState={asyncOptions}
               loadOptions={getLedger}
               placeholder="Select G/L..."
+              showError={isValid}
+              message="G/L is required"
             />
           </div>
         ),
@@ -230,14 +528,23 @@ export default function JournalPosting() {
               type="number"
             />
           ) : (
-            <Input
-              value={row.debit}
-              fun={inputHandler}
-              onChange={(e) => inputHandler("debit", e.target.value, row.id)}
-              disabled={row.credit?.length > 0}
-              inputType="number"
-              type="number"
-            />
+            <Field
+              attr="required | Debit or Credit is required"
+              value={row.debit || row.credit}
+              showValidation={isValid}
+              treatZeroAsEmpty
+            >
+              <Input
+                value={row.debit}
+                fun={inputHandler}
+                onChange={(e) =>
+                  inputHandler("debit", e.target.value, row.id)
+                }
+                disabled={row.credit?.length > 0}
+                inputType="number"
+                type="number"
+              />
+            </Field>
           )}
         </>
       ),
@@ -250,16 +557,32 @@ export default function JournalPosting() {
       flex: 1,
       sortable: false,
       // width: "10vw",
-      renderCell: ({ row }) => (
-        <Input
-          // size="small"
-          value={row.total ? creditTotal.toFixed(2) : row.credit}
-          onChange={(e) => inputHandler("credit", e.target.value, row.id)}
-          disabled={row.total || row.debit?.length > 0}
-          inputType="number"
-          type="number"
-        />
-      ),
+      renderCell: ({ row }) =>
+        row.total ? (
+          <Input
+            value={creditTotal.toFixed(2)}
+            disabled
+            inputType="number"
+            type="number"
+          />
+        ) : (
+          <Field
+            attr="required | Debit or Credit is required"
+            value={row.debit || row.credit}
+            showValidation={isValid}
+            treatZeroAsEmpty
+          >
+            <Input
+              value={row.credit}
+              onChange={(e) =>
+                inputHandler("credit", e.target.value, row.id)
+              }
+              disabled={row.debit?.length > 0}
+              inputType="number"
+              type="number"
+            />
+          </Field>
+        ),
     },
     {
       headerName: "Comment",
@@ -279,10 +602,21 @@ export default function JournalPosting() {
         ),
     },
   ];
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (r) => !r.total && (!r.glCode || (!r.debit && !r.credit)),
+    );
+
   const submitHandler = async () => {
-    if (!journalDate) {
-      return showToast("Please select Effective date", "error");
+    if (!journalDate || hasIncompleteRow(journalRows)) {
+      setIsValid(true);
+      return;
     }
+    if (Number(creditTotal) !== Number(debitTotal)) {
+      return showToast("Debit total and Credit total does not match", "error");
+    }
+    setIsValid(false);
+
     let finalObj = {
       effective_date: journalDate,
       gl_code: [],
@@ -290,41 +624,33 @@ export default function JournalPosting() {
       debit: [],
       comment: [],
     };
-    let problem = null;
-    journalRows.map((row, index) => {
-      if (row.glCode == "") {
-        problem = "gl_code";
-      } else {
-        if (index < journalRows.length - 1) {
-          finalObj = {
-            ...finalObj,
-            gl_code: [...finalObj.gl_code, row.glCode.value],
-            credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
-            debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
-            comment: [...finalObj.comment, row.comment],
-          };
-        }
+    journalRows.forEach((row, index) => {
+      if (index < journalRows.length - 1) {
+        finalObj = {
+          ...finalObj,
+          gl_code: [...finalObj.gl_code, row.glCode?.value ?? row.glCode],
+          credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
+          debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
+          comment: [...finalObj.comment, row.comment],
+        };
       }
     });
-    if (!problem) {
-      setLoading(true);
-      const response = await imsAxios.post("/tally/dv/createDebitVoucher", {
-        ...finalObj,
-      });
-      setLoading(false);
-      if (response.success) {
-        resetHandler();
-        showToast(response.message, "success");
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
+
+    setLoading(true);
+    const response = await imsAxios.post("/tally/dv/createDebitVoucher", {
+      ...finalObj,
+    });
+    setLoading(false);
+    if (response.success) {
+      resetHandler();
+      showToast(response.message, "success");
     } else {
-      if (problem == "gl_code") {
-        return showToast("All entries should have a gl_code", "error");
-      }
+      showToast(response.message?.msg || response.message, "error");
     }
   };
   const resetHandler = () => {
+    setIsValid(false);
+    setJournalDate("");
     setJounralRows([
       {
         id: v4(),
@@ -344,7 +670,6 @@ export default function JournalPosting() {
     ]);
     setDebitTotal(0);
     setCreditTotal(0);
-    // setJournalDate("");
   };
   return (
     <div style={{ height: "92%", padding: 10 }}>
@@ -355,17 +680,28 @@ export default function JournalPosting() {
         }}
       >
         <Col span={24} style={{ marginBottom: 12 }}>
-     
-            <Row>
+
+            <Row justify="space-between">
               <Col span={6}>
                 <SingleDatePicker
                   setDate={setJournalDate}
                   placeholder="Select Effective Date.."
-                  selectedDate={journalDate}
+                  value={journalDate}
+                  showError={isValid}
+                  message="Please select Effective date"
+                />
+              </Col>
+              <Col>
+                <MyButton
+                  variant="upload"
+                  text="Bulk Upload"
+                  onClick={() => {
+                    setExcelUploadOpen(true);
+                  }}
                 />
               </Col>
             </Row>
-      
+
         </Col>
         <Col style={{ height: "calc(100% - 35px)", padding: 0 }} span={24}>
           <FormTable data={journalRows} columns={columns} />
@@ -377,6 +713,183 @@ export default function JournalPosting() {
         resetFunction={resetHandler}
         nextLabel="Submit"
       />
+      <Modal
+        title="Upload Excel"
+        open={excelUploadOpen}
+        onCancel={() => {
+          setExcelUploadOpen(false);
+          excelUploadForm.resetFields();
+        }}
+        footer={[
+          <MyButton
+            key="cancel"
+            onClick={() => {
+              setExcelUploadOpen(false);
+              excelUploadForm.resetFields();
+            }}
+            variant="reset"
+            text="Cancel"
+          />,
+          <MyButton
+            key="upload"
+            type="primary"
+            variant="upload"
+            text="Upload"
+            loading={excelUploadLoading === "upload"}
+            onClick={handleExcelUpload}
+          />,
+        ]}
+      >
+        <Form form={excelUploadForm} layout="vertical">
+          <Form.Item
+            name="files"
+            valuePropName="fileList"
+            getValueFromEvent={normExcelFile}
+            noStyle
+          >
+            <Upload.Dragger name="file" {...excelUploadProps}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">
+                Click or drag excel file to this area to upload
+              </p>
+            </Upload.Dragger>
+          </Form.Item>
+          <Row justify="end" style={{ marginTop: 5 }}>
+            <MyButton
+              variant="downloadSample"
+              loading={excelUploadLoading === "sample"}
+              onClick={downloadDebitNoteSampleFile}
+            />
+          </Row>
+        </Form>
+      </Modal>
+      <Drawer
+        title={
+          parsedDebitNotes
+            ? `Parsed Debit Notes (${parsedDebitNotes.length})`
+            : "Parsed Debit Notes"
+        }
+        open={!!parsedDebitNotes}
+        onClose={() => setParsedDebitNotes(null)}
+        width="100vw"
+        destroyOnClose
+        extra={
+          <Space>
+            <MyButton
+              variant="reset"
+              text="Close"
+              onClick={() => setParsedDebitNotes(null)}
+            />
+            <MyButton
+              variant="submit"
+              text="Submit"
+              loading={bulkDebitNoteSubmitting}
+              onClick={submitBulkDebitNotes}
+            />
+          </Space>
+        }
+      >
+        <div style={{ paddingRight: 4 }}>
+          {!parsedDebitNotes || parsedDebitNotes.length === 0 ? (
+            <Empty description="No debit notes to preview" />
+          ) : (
+            <>
+              <Collapse
+                defaultActiveKey={parsedDebitNotes.map((_, idx) => idx)}
+              >
+                {parsedDebitNotes.map((dn, idx) => (
+                  <Collapse.Panel
+                    key={idx}
+                    header={
+                      <Space
+                        size="middle"
+                        wrap
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Space size="middle" wrap>
+                          <Typography.Text strong>{dn.voucherNo}</Typography.Text>
+                          <Tag color="blue">{dn.date}</Tag>
+                          <Typography.Text>
+                            {dn.venName} ({dn.vendorCode})
+                          </Typography.Text>
+                          <Typography.Text type="secondary">
+                            Ref: {dn.voucherRefNo}
+                          </Typography.Text>
+                        </Space>
+                        <Tag color={dn.dnStatus === "ACTIVE" ? "green" : "red"}>
+                          {dn.dnStatus}
+                        </Tag>
+                      </Space>
+                    }
+                  >
+                    <Descriptions
+                      size="small"
+                      column={3}
+                      bordered
+                      style={{ marginBottom: 12 }}
+                    >
+                      <Descriptions.Item label="Vendor Code">
+                        {dn.venRegisterId}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="GSTIN">
+                        {dn.gstin}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Voucher Ref No.">
+                        {dn.voucherRefNo}
+                      </Descriptions.Item>
+                    </Descriptions>
+                    <Row gutter={12}>
+                      <Col span={18}>
+                        <Table
+                          size="small"
+                          pagination={false}
+                          rowKey={(row, rowIdx) => row.componentKey ?? rowIdx}
+                          dataSource={dn.items}
+                          columns={debitNoteItemColumns}
+                          scroll={{ x: "max-content" }}
+                        />
+                      </Col>
+                      <Col span={6}>
+                        <Card size="small" title="Total Values">
+                          {getDebitNoteTotals(dn).map((row) => (
+                            <Row key={row.name}>
+                              <Col span={12}>
+                                <Typography.Text
+                                  strong
+                                  style={{ fontSize: "0.8rem" }}
+                                >
+                                  {row.name}
+                                </Typography.Text>
+                              </Col>
+                              <Col span={12}>
+                                <Row justify="end">
+                                  <Typography.Text style={{ fontSize: "0.8rem" }}>
+                                    {row.value}
+                                  </Typography.Text>
+                                </Row>
+                              </Col>
+                              <Divider
+                                style={{ marginBottom: 5, marginTop: 5 }}
+                              />
+                            </Row>
+                          ))}
+                        </Card>
+                      </Col>
+                    </Row>
+                  </Collapse.Panel>
+                ))}
+              </Collapse>
+            </>
+          )}
+        </div>
+      </Drawer>
     </div>
   );
 }

@@ -24,6 +24,7 @@ import Loading from "../../Components/Loading";
 import useApi from "../../hooks/useApi.ts";
 import { convertSelectOptions } from "../../utils/general.ts";
 import { getCostCentresOptions, getProjectOptions } from "../../api/general.ts";
+import Field from "../../Components/Field.jsx";
 
 // vendor type options
 
@@ -100,6 +101,7 @@ export default function CreateWO() {
     totalValue: "0",
   });
   const [uom, setUom] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const [createWoForm] = Form.useForm();
   const [clientData, setClientData] = useState([]);
   const [addOptions, setAddOptions] = useState([]);
@@ -112,7 +114,7 @@ export default function CreateWO() {
       const response = await imsAxios.post("/backend/getClient", {
         searchTerm: inputValue,
       });
-   
+
       if (response?.success) {
         let arr = response.data.map((row) => ({
           text: row.name,
@@ -136,9 +138,8 @@ export default function CreateWO() {
       const response = await imsAxios.post("/backend/fetchClientDetail", {
         code: inputValue,
       });
-  
+
       if (response.success) {
-       
         const arr = response?.data.branchList.map((row) => ({
           text: row.text,
           value: row.id,
@@ -186,7 +187,7 @@ export default function CreateWO() {
   const getComponentDetails = async (inputValue) => {
     setLoading("fetch");
     const response = await imsAxios.post("/createwo/fetchProductData", {
-      product_key: inputValue,
+      product_key: inputValue?.value ?? inputValue,
     });
     setLoading(false);
     if (response.success) {
@@ -197,7 +198,10 @@ export default function CreateWO() {
       createWoForm.setFieldValue("hsn", response.data?.hsn);
       createWoForm.setFieldValue("gstRate", response.data?.gstrate);
     } else {
-      showToast(response.message || "Some error occured wile getting component details", "error");
+      showToast(
+        response.message || "Some error occured wile getting component details",
+        "error",
+      );
     }
   };
 
@@ -224,7 +228,7 @@ export default function CreateWO() {
   };
 
   const handlebilladress = (e) => {
-    console.log(clientData)
+    console.log(clientData);
     clientData.branchList.map((item) => {
       if (item.id === e) {
         createWoForm.setFieldValue("billPan", clientData.client.pan_no);
@@ -274,7 +278,15 @@ export default function CreateWO() {
     createWoForm.setFieldsValue(obj);
   };
   // show submit confirmation modal
-  const showSubmitConfirmationModal = () => {
+  const showSubmitConfirmationModal = async () => {
+    let values;
+    try {
+      values = await createWoForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     // submit confirm modal
     Modal.confirm({
       title: "Do you Want to submit the WO?",
@@ -283,7 +295,7 @@ export default function CreateWO() {
       okText: "Yes",
       cancelText: "No",
       onOk: () => {
-        submitHandler();
+        submitHandler(values);
       },
     });
   };
@@ -312,16 +324,13 @@ export default function CreateWO() {
   };
 
   // submit handler
-  const submitHandler = async () => {
-    //validating form values
-    const values = await createWoForm.validateFields();
-    // return;
+  const submitHandler = async (values) => {
     let finalObj = {
       client_name: values.clientname.value,
       qty: values.qty,
       gstrate: values.gstRate,
       gsttype: values.gstType,
-      product: values.product,
+      product: values.product?.value ?? values.product,
       rate: values.rate,
       billingaddrid: values.billaddressid,
       dispatch_id: values.shipaddressid,
@@ -338,15 +347,14 @@ export default function CreateWO() {
       dispatch_address: values.shipaddress,
       hsncode: values.hsn,
       insert_dt: values.insertDate,
-      cost_center: values.wocostcenter,
-      project: values.project_name,
-  
+      cost_center: values.wocostcenter?.value ?? values.wocostcenter,
+      project: values.project_name?.value ?? values.project_name,
     };
-   
+
     setLoading("submitting");
     const response = await imsAxios.post(
       "createwo/createWorkOrderReq",
-      finalObj
+      finalObj,
     );
     setLoading(false);
     if (response.success) {
@@ -360,14 +368,14 @@ export default function CreateWO() {
   const handleFetchProjectOptions = async (search) => {
     const response = await executeFun(
       () => getProjectOptions(search),
-      "select"
+      "select",
     );
     setAsyncOptions(response.data);
   };
   const handleProjectChange = async (value) => {
     // setPageLoading(true);
     const response = await imsAxios.post("/backend/projectDescription", {
-      project_name: value,
+      project_name: value?.value ?? value,
     });
     // setPageLoading(false);
     if (response.success) {
@@ -379,7 +387,7 @@ export default function CreateWO() {
   const handleFetchCostCenterOptions = async (search) => {
     const response = await executeFun(
       () => getCostCentresOptions(search),
-      "select"
+      "select",
     );
     let arr = [];
     if (response.success) arr = convertSelectOptions(response.data);
@@ -413,7 +421,7 @@ export default function CreateWO() {
         height: "calc(100vh - 180px)",
         overflowY: "scroll",
         overflowX: "hidden",
-     margin: "10px",
+        margin: "10px",
       }}
     >
       {/* vendor */}
@@ -450,14 +458,14 @@ export default function CreateWO() {
                 <Form.Item
                   name="wocreatetype"
                   label="WO Type"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a WO Type!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect size="default" options={poTypeOptions} />
+                  <MySelect
+                    size="default"
+                    options={poTypeOptions}
+                    showError={isValid}
+                    message="Please Select a WO Type!"
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -503,17 +511,14 @@ export default function CreateWO() {
                       </span>
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Client Name!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading === "select"}
                     size="default"
                     labelInValue
+                    showError={isValid}
+                    message="Please Select a Client Name!"
                     onBlur={() => setAsyncOptions([])}
                     optionsState={asyncOptions}
                     loadOptions={getClientOptions}
@@ -544,7 +549,10 @@ export default function CreateWO() {
                                   createWoForm.getFieldValue("clientname")
                                     ?.value,
                               })
-                            : showToast("Please Select a Client first", "error");
+                            : showToast(
+                                "Please Select a Client first",
+                                "error",
+                              );
                         }}
                         style={{ color: "#1890FF" }}
                       >
@@ -552,12 +560,7 @@ export default function CreateWO() {
                       </span>
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a client Branch!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MySelect
                     options={ClientBranchOptions}
@@ -566,6 +569,8 @@ export default function CreateWO() {
                     }}
                     size="default"
                     placeholder="select Client Branch!"
+                    showError={isValid}
+                    message="Please Select a client Branch!"
                   />
                 </Form.Item>
               </Col>
@@ -602,12 +607,7 @@ export default function CreateWO() {
               <Col span={5}>
                 <Form.Item
                   name="wocostcenter"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select a cost center!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                   label={
                     <div
                       style={{
@@ -635,18 +635,16 @@ export default function CreateWO() {
                     onBlur={() => setAsyncOptions([])}
                     loadOptions={handleFetchCostCenterOptions}
                     optionsState={asyncOptions}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a cost center!"
                   />
                 </Form.Item>
               </Col>
               <Col span={5}>
                 <Form.Item
                   name="project_name"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select a cost center!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                   label={
                     <div
                       style={{
@@ -675,6 +673,9 @@ export default function CreateWO() {
                     loadOptions={handleFetchProjectOptions}
                     optionsState={asyncOptions}
                     onChange={handleProjectChange}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select a project!"
                   />
                 </Form.Item>
               </Col>
@@ -687,14 +688,14 @@ export default function CreateWO() {
                 <Form.Item
                   name="termscondition"
                   label=" Terms and Conditions"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Terms and Condition!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please Enter Terms and Condition!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* payment terms */}
@@ -702,14 +703,14 @@ export default function CreateWO() {
                 <Form.Item
                   name="paymentterms"
                   label=" Payment Terms"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter the Pament Terms!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please Enter the Payment Terms!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -735,18 +736,15 @@ export default function CreateWO() {
                 <Form.Item
                   name="billaddressid"
                   label="Billing Id"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Billing Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MySelect
                     options={addOptions}
                     onChange={(e) => {
                       handlebilladress(e);
                     }}
+                    showError={isValid}
+                    message="Please Select a Billing Address!"
                   />
                 </Form.Item>
               </Col>
@@ -755,15 +753,14 @@ export default function CreateWO() {
                 <Form.Item
                   name="billPan"
                   label="Pan No."
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter Billing PAN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.billPan} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Billing PAN Number!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
 
@@ -801,15 +798,14 @@ export default function CreateWO() {
                       </span> */}
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter Billing GSTIN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.billGST} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter Billing GSTIN Number!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -819,14 +815,14 @@ export default function CreateWO() {
                 <Form.Item
                   name="billaddress"
                   label="Billing Address"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Billing Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  <Field
+                    attr="required | Please Enter Billing Address!"
+                    showValidation={isValid}
+                  >
+                    <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -853,18 +849,15 @@ export default function CreateWO() {
                 <Form.Item
                   name="shipaddressid"
                   label="Shipping Id"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Shipping Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MySelect
                     options={addOptions}
                     onChange={(e) => {
                       handleshipadress(e);
                     }}
+                    showError={isValid}
+                    message="Please Select a Shipping Address!"
                   />
                 </Form.Item>
               </Col>
@@ -873,15 +866,14 @@ export default function CreateWO() {
                 <Form.Item
                   label="Pan No."
                   name="shipPan"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Shipping PAN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.shipPan} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please Enter Shipping PAN Number!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* gstin uin */}
@@ -918,15 +910,14 @@ export default function CreateWO() {
                       </span> */}
                     </div>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Shipping GSTIN!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.shipGST} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please Enter Shipping GSTIN!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -936,14 +927,14 @@ export default function CreateWO() {
                 <Form.Item
                   label="Shipping Address"
                   name="shipaddress"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Enter Shipping Address!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  <Field
+                    attr="required | Please Enter Shipping Address!"
+                    showValidation={isValid}
+                  >
+                    <Input.TextArea style={{ resize: "none" }} rows={3} />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -971,18 +962,16 @@ export default function CreateWO() {
                 <Form.Item
                   name="product"
                   label="Product Name"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please Select a Product!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading === "select"}
                     loadOptions={getComponentOptions}
                     optionsState={asyncOptions}
                     onChange={getComponentDetails}
+                    labelInValue
+                    showError={isValid}
+                    message="Please Select a Product!"
                   />
                 </Form.Item>
               </Col>
@@ -991,14 +980,15 @@ export default function CreateWO() {
                 <Form.Item
                   label="Order Qty"
                   name="qty"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Qty should be greater than zero!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" suffix={uom}   type="number" />
+                  <Field
+                    attr="required | Qty should be greater than zero!"
+                    treatZeroAsEmpty
+                    showValidation={isValid}
+                  >
+                    <Input size="default" suffix={uom} type="number" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* Rate */}
@@ -1006,14 +996,15 @@ export default function CreateWO() {
                 <Form.Item
                   name="rate"
                   label="Rate"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Rate should be greater than zero!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <Input size="default" type="number" />
+                  <Field
+                    attr="required | Rate should be greater than zero!"
+                    treatZeroAsEmpty
+                    showValidation={isValid}
+                  >
+                    <Input size="default" type="number" />
+                  </Field>
                 </Form.Item>
               </Col>
               {/* Rate */}
@@ -1023,8 +1014,17 @@ export default function CreateWO() {
                 </Form.Item>
               </Col>
               <Col span={4}>
-                <Form.Item name="insertDate" label="Insert Date">
-                  <Input size="default" type="date" />
+                <Form.Item
+                  name="insertDate"
+                  label="Insert Date"
+                  rules={[{ required: true, message: "" }]}
+                >
+                  <Field
+                    attr="required | Please Select Insert Date!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" type="date" />
+                  </Field>
                 </Form.Item>
               </Col>
             </Row>
@@ -1033,18 +1033,16 @@ export default function CreateWO() {
                 <Form.Item
                   name="bom"
                   label="BOM"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select bom code",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
                   <MyAsyncSelect
                     selectLoading={loading === "select"}
                     loadOptions={fetchbomlist}
                     optionsState={bomOptions}
                     onBlur={() => setAsyncOptions([])}
+                    labelInValue
+                    showError={isValid}
+                    message="Please select bom code"
                   />
                 </Form.Item>
               </Col>
@@ -1052,43 +1050,42 @@ export default function CreateWO() {
                 <Form.Item
                   name="gstType"
                   label="GST Type"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select GST type",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect options={gstTypeOptions} size="default" />
+                  <MySelect
+                    options={gstTypeOptions}
+                    size="default"
+                    showError={isValid}
+                    message="Please select GST type"
+                  />
                 </Form.Item>
               </Col>
               <Col span={4}>
                 <Form.Item
                   name="hsn"
                   label="HSN"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter HSN Number!",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  {/* <Input size="default" value={newPurchaseOrder.billPan} /> */}
-                  <Input size="default" />
+                  <Field
+                    attr="required | Please enter HSN Number!"
+                    showValidation={isValid}
+                  >
+                    <Input size="default" />
+                  </Field>
                 </Form.Item>
               </Col>
               <Col span={2}>
                 <Form.Item
                   name="gstRate"
                   label="GST Rate"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter GST Rate",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect options={gstRateOptions} size="default" />
+                  <MySelect
+                    options={gstRateOptions}
+                    size="default"
+                    showError={isValid}
+                    message="Please enter GST Rate"
+                  />
                 </Form.Item>
               </Col>
               <Col span={3}>

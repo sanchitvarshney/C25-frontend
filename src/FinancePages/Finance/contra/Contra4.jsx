@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import SingleDatePicker from "../../../Components/SingleDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
@@ -6,6 +6,7 @@ import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { Col, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import FormTable from "../../../Components/FormTable.jsx";
+import Field from "../../../Components/Field.jsx";
 
 export default function Contra4() {
   const { showToast } = useToast();
@@ -14,6 +15,7 @@ export default function Contra4() {
   const [creditTotal, setCreditTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [contraRows, setContraRows] = useState([
     {
       id: 1,
@@ -68,6 +70,9 @@ export default function Contra4() {
             optionsState={asyncOptions}
             loadOptions={getLedger}
             placeholder="Select G/L..."
+            labelInValue
+            showError={isValid}
+            message="G/L is required"
           />
         ),
     },
@@ -89,15 +94,22 @@ export default function Contra4() {
               type="number"
             />
           ) : (
-            <Input
-              value={row.debit}
-              fun={inputHandler}
-              onChange={(e) => inputHandler("debit", e.target.value, row.id)}
-              disabled={row.credit?.length > 0}
-              inputType="number"
-              id={row.id}
-              type="number"
-            />
+            <Field
+              attr="required | Debit or Credit is required"
+              value={row.debit || row.credit}
+              showValidation={isValid}
+              treatZeroAsEmpty
+            >
+              <Input
+                value={row.debit}
+                fun={inputHandler}
+                onChange={(e) => inputHandler("debit", e.target.value, row.id)}
+                disabled={row.credit?.length > 0}
+                inputType="number"
+                id={row.id}
+                type="number"
+              />
+            </Field>
           )}
         </>
       ),
@@ -120,13 +132,20 @@ export default function Contra4() {
               type="number"
             />
           ) : (
-            <Input
-              value={row.credit}
-              onChange={(e) => inputHandler("credit", e.target.value, row.id)}
-              name="credit"
-              disabled={row.debit?.length > 0}
-              type="number"
-            />
+            <Field
+              attr="required | Debit or Credit is required"
+              value={row.debit || row.credit}
+              showValidation={isValid}
+              treatZeroAsEmpty
+            >
+              <Input
+                value={row.credit}
+                onChange={(e) => inputHandler("credit", e.target.value, row.id)}
+                name="credit"
+                disabled={row.debit?.length > 0}
+                type="number"
+              />
+            </Field>
           )}
         </>
       ),
@@ -205,20 +224,31 @@ export default function Contra4() {
     setCreditTotal(
       creditArr?.reduce((partialSum, a) => {
         return Number(partialSum) + Number(a);
-      }, 0)
+      }, 0),
     );
     setDebitTotal(
       debitArr?.reduce((partialSum, a) => {
         return Number(partialSum) + Number(a);
-      }, 0)
+      }, 0),
     );
 
     setContraRows(arr);
   };
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (r) => !r.total && (!r.account || (!r.debit && !r.credit)),
+    );
+
   const submitHandler = async () => {
-    if (!contraDate) {
-      return showToast("Please select date", "error");
+    if (!contraDate || hasIncompleteRow(contraRows)) {
+      setIsValid(true);
+      return;
     }
+    if (Number(creditTotal) !== Number(debitTotal)) {
+      return showToast("Debit total and Credit total does not match", "error");
+    }
+    setIsValid(false);
+
     let finalObj = {
       effective_date: contraDate,
       gls: [],
@@ -226,73 +256,33 @@ export default function Contra4() {
       debit: [],
       comment: [],
     };
-    let problem = null;
-    contraRows.map((row, index) => {
-      if (row.account == "") {
-        if (!row.total) {
-          problem = "account";
-        }
-      } else if (
-        index < contraRows.length - 1 &&
-        row.credit == "" &&
-        row.debit == ""
-      ) {
-        problem = "amount";
-      } else if (creditTotal !== debitTotal) {
-        problem = "total";
-      } else {
-        if (index < contraRows.length - 1) {
-          finalObj = {
-            ...finalObj,
-            gls: [...finalObj.gls, row.account],
-            credit: [...finalObj.credit, row.credit],
-            debit: [...finalObj.debit, row.debit],
-            comment: [...finalObj.comment, row.comment],
-          };
-        }
+    contraRows.forEach((row, index) => {
+      if (index < contraRows.length - 1) {
+        finalObj = {
+          ...finalObj,
+          gls: [...finalObj.gls, row.account?.value ?? row.account],
+          credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
+          debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
+          comment: [...finalObj.comment, row.comment],
+        };
       }
     });
-    finalObj = {
+
+    setLoading(true);
+    const response = await imsAxios.post("/tally/contra/create_contra", {
       ...finalObj,
-      credit: finalObj.credit.map((row) => {
-        if (row == "") {
-          return 0;
-        } else {
-          return row;
-        }
-      }),
-      debit: finalObj.debit.map((row) => {
-        if (row == "") {
-          return 0;
-        } else {
-          return row;
-        }
-      }),
-    };
-    if (!problem) {
-      setLoading(true);
-      const response = await imsAxios.post("/tally/contra/create_contra", {
-        ...finalObj,
-      });
-      setLoading(false);
-      if (response.success) {
-        resetHandler();
-  
-        showToast(response.message.msg ?? response.message, "success");
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
+    });
+    setLoading(false);
+    if (response.success) {
+      resetHandler();
+
+      showToast(response.message, "success");
     } else {
-      if (problem == "account") {
-        return showToast("All entries should have a account selected", "error");
-      } else if (problem == "amount") {
-        return showToast("All entries should have a credit or debit amount", "error");
-      } else if (problem == "total") {
-        return showToast("Debit total and Credit total does not match", "error");
-      }
+      showToast(response.message?.msg || response.message, "error");
     }
   };
   const resetHandler = () => {
+    setIsValid(false);
     setContraRows([
       {
         id: 1,
@@ -325,17 +315,17 @@ export default function Contra4() {
     <div style={{ height: "100%", padding: 10 }}>
       <Row gutter={4} style={{ height: "100%" }}>
         <Col span={6} style={{ marginBottom: 12 }}>
-          
-            <SingleDatePicker
-              setDate={setContraDate}
-              placeholder="Select Date.."
-              selectedDate={contraDate}
-            />
+          <SingleDatePicker
+            setDate={setContraDate}
+            placeholder="Select Date.."
+            value={contraDate}
+            showError={isValid}
+            message="Please select date"
+          />
         </Col>
 
         <Col style={{ height: "calc(100% - 50px)" }} span={24}>
-            <FormTable loading={loading} data={contraRows} columns={columns} />
-        
+          <FormTable loading={loading} data={contraRows} columns={columns} />
         </Col>
       </Row>
       <NavFooter

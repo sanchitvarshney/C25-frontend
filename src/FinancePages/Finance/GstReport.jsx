@@ -7,6 +7,7 @@ import { convertDate } from "../../utils/general.ts";
 import dayjs from "dayjs";
 import quarterOfYear from "dayjs/plugin/quarterOfYear";
 import { downloadGSTReport } from "../../socketEvents/finance";
+import { useState } from "react";
 dayjs.extend(quarterOfYear);
 
 const reportTypeOptions = [
@@ -42,12 +43,20 @@ const initialValues = {
 
 const GstReport = () => {
   const [form] = Form.useForm();
+  const [isValid, setIsValid] = useState(false);
 
   const pickerType = Form.useWatch("pickerType", form);
 
   const handleDownloadReport = async () => {
     let format = "DD-MM-YYYY";
-    const values = await form.validateFields();
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     let timePeriod = convertDate(values.timePeriod);
 
     let startDate = dayjs(timePeriod, format)
@@ -76,7 +85,11 @@ const GstReport = () => {
               label="Report"
               rules={rules.reportType}
             >
-              <MySelect options={reportTypeOptions} />
+              <MySelect
+                options={reportTypeOptions}
+                showError={isValid}
+                message="Please select which report you want to download"
+              />
             </Form.Item>
               </Col>
             <Col span={12}>
@@ -85,7 +98,11 @@ const GstReport = () => {
               label="Time Period Selection"
               rules={rules.selectionType}
             >
-              <MySelect options={datePickerTypeOptions} />
+              <MySelect
+                options={datePickerTypeOptions}
+                showError={isValid}
+                message="Please select a time period selection type"
+              />
             </Form.Item>
              </Col>
           </Row>
@@ -93,6 +110,8 @@ const GstReport = () => {
               <SingleDatePicker
                 setDate={(value) => form.setFieldValue("timePeriod", value)}
                 pickerType={pickerType}
+                showError={isValid}
+                message="Please select a time period"
               />
             </Form.Item>
             <Row justify="center" style={{ marginBottom: 5 }}>
@@ -127,19 +146,19 @@ const rules = {
   date: [
     {
       required: true,
-      message: "Please select a time period",
+      message: "",
     },
   ],
   selectionType: [
     {
       required: true,
-      message: "Please select a time period selection type",
+      message: "",
     },
   ],
   reportType: [
     {
       required: true,
-      message: "Please select which report you want to download",
+      message: "",
     },
   ],
 };

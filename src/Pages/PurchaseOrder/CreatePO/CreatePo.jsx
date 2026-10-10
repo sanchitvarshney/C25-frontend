@@ -736,7 +736,7 @@ export default function CreatePo() {
             }),
           });
         } else {
-          showToast(response.message, "error");
+          showToast(response.message||response.data?.message?.msg, "error");
         }
       }
     } catch (error) {
@@ -2028,11 +2028,13 @@ export default function CreatePo() {
                                     >
                                       <InputNumber
                                         min={1}
-                                        max={100}
-                                        formatter={(v) => `${v}%`}
-                                        parser={(v) => v.replace("%", "")}
+                                        max={99}
+                                        precision={0}
+                                        formatter={(v) => (v ? `${v}%` : "")}
+                                        parser={(v) =>
+                                          v?.replace(/\D/g, "").slice(0, 2)
+                                        }
                                         style={{ width: "100%" }}
-                                        type="number"
                                         onChange={(value) => {
                                           if (
                                             form.getFieldValue(

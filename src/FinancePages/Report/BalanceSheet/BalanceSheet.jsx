@@ -1,5 +1,5 @@
 
-import {  Row, Space, Table } from "antd";
+import { Row, Space, Table } from "antd";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -16,11 +16,16 @@ function BalanceSheet() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingSheet, setEditingSheet] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const { showToast } = useToast();
 
   const getRows = async () => {
-  try {
-      setRows([]);
+    if (!dateRange) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setRows([]);
     arr = [];
     setLoading("fetchLoading");
     const response = await imsAxios.post("/tally/reports/balanceSheet", {
@@ -36,12 +41,6 @@ function BalanceSheet() {
       setLoading(false);
       showToast(response.message, "error");
     }
-    
-  } catch (error) {
-    setLoading(false);
-    showToast(error.message || "Failed to get Trial Balance Report", "error");
-    
-  }
   };
   const columns = [
     {
@@ -199,7 +198,12 @@ function BalanceSheet() {
       <Row justify="space-between">
         <Space>
           <div style={{ width: 300 }}>
-            <MyDatePicker setDateRange={setDateRange} />
+            <MyDatePicker
+              setDateRange={setDateRange}
+              value={dateRange}
+              showError={isValid}
+              message="Please select a date range"
+            />
           </div>
           <MyButton
             loading={loading === "fetchLoading"}

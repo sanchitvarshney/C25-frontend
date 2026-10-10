@@ -56,7 +56,7 @@ const ViewFGMIN = () => {
     setIsLoading(true);
     try {
       const response = await imsAxios.post("/fgMIN/getFGMinTransactionByDate", {
-        data: value,
+        data:  value?.key,
         wise,
       });
 

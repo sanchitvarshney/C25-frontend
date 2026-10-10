@@ -1,5 +1,5 @@
 import { Form, Typography } from "antd";
-import { useState } from "react";
+import  { useState } from "react";
 import { normalizeFormRules } from "../utils/general";
 import { useEffect } from "react";
 import { memo } from "react";
@@ -11,6 +11,7 @@ const FormTable2 = ({
   listName,
   removableRows,
   nonRemovableColumns = 2,
+  allowFirstRowRemove = false,
   watchKeys,
   calculation,
   nonListWatchKeys,
@@ -18,13 +19,16 @@ const FormTable2 = ({
   addableRow,
   newRow,
   reverse,
+  height = "calc(100vh - 200px)",
 }) => {
   const formValues = Form.useWatch();
   const [hoveredRow, setHoveredRow] = useState(null);
   const addRow = (rowTemplate) => {
     const names = columns.map((row) => row.name);
     const obj =
-      rowTemplate && typeof rowTemplate === "object" ? { ...rowTemplate } : {};
+      rowTemplate && typeof rowTemplate === "object"
+        ? { ...rowTemplate }
+        : {};
     if (!rowTemplate) {
       names.forEach((name) => {
         if (name !== "") obj[name] = "";
@@ -40,13 +44,14 @@ const FormTable2 = ({
   return (
     <div
       style={{
+       
         padding: 0,
         overflowY: "auto",
-        height: "calc(100vh - 200px)",
+        height: height,
       }}
     >
-      <table style={{ border: "1px solid #ccc" }}>
-        <thead>
+      <table style={{ border: "1px solid #ccc", }}>
+        <thead >
           <tr>
             {(addableRow || removableRows) && (
               <td
@@ -55,6 +60,7 @@ const FormTable2 = ({
                   width: 30,
                   minWidth: 30,
                   textAlign: "center",
+                    
                 }}
               >
                 {addableRow && (
@@ -64,7 +70,8 @@ const FormTable2 = ({
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") addRow(newRow);
+                      if (e.key === "Enter" || e.key === " ")
+                        addRow(newRow);
                     }}
                   >
                     <Add color="success" />
@@ -74,14 +81,22 @@ const FormTable2 = ({
             )}
             {columns.map((col) =>
               !col.conditional ? (
-                <td key={col.name} className="table-col">
+                <td
+                  key={col.name}
+                  className="table-col"
+             
+                >
                   <Typography.Text style={{ fontSize: "0.8rem" }} strong>
                     {col.headerName}
                   </Typography.Text>
                 </td>
               ) : (
                 col.condition() && (
-                  <td key={col.name} className="table-col">
+                  <td
+                    key={col.name}
+                    className="table-col"
+                
+                  >
                     <Typography.Text style={{ fontSize: "0.8rem" }} strong>
                       {col.headerName}
                     </Typography.Text>
@@ -108,6 +123,7 @@ const FormTable2 = ({
                   fieldsLength={fields.length}
                   nonRemovableColumns={nonRemovableColumns}
                   removableRows={removableRows}
+                  allowFirstRowRemove={allowFirstRowRemove}
                   addableRow={addableRow}
                   remove={remove}
                   index={index}
@@ -136,7 +152,10 @@ export default FormTable2;
 const SingleRow = memo(
   ({
     field,
+    // fieldsLength,
+    // nonRemovableColumns = 1,
     removableRows,
+    allowFirstRowRemove,
     addableRow,
     remove,
     index,
@@ -150,8 +169,10 @@ const SingleRow = memo(
     hoveredRow,
     setHoveredRow,
   }) => {
-    const rowStripe = index % 2 === 0 ? "#ffffff" : "#f8f9fa";
-    const rowBg = hoveredRow === field.key ? "#fffaec" : rowStripe;
+    const rowStripe =
+      index % 2 === 0 ? "#ffffff" : "#f8f9fa";
+    const rowBg =
+      hoveredRow === field.key ? "#fffaec" : rowStripe;
     const watchValues = watchKeys?.map((val) =>
       form.getFieldValue([listName, field.name, val]),
     );
@@ -188,7 +209,7 @@ const SingleRow = memo(
       <Form.Item noStyle>
         <tr
           align="middle"
-          style={{ backgroundColor: rowBg }}
+          style={{  backgroundColor: rowBg }}
           onMouseEnter={() => setHoveredRow(field.key)}
           onMouseLeave={() => setHoveredRow(null)}
         >
@@ -197,6 +218,7 @@ const SingleRow = memo(
               style={{
                 width: 30,
                 backgroundColor: rowBg,
+            
               }}
             />
           )}
@@ -206,9 +228,10 @@ const SingleRow = memo(
                 width: "2vw",
                 textAlign: "center",
                 backgroundColor: rowBg,
+            
               }}
             >
-              {index > 0 && (
+              {(allowFirstRowRemove || index > 0) && (
                 <span
                   onClick={() => remove(field.name)}
                   className="delete-icon"
@@ -270,6 +293,7 @@ const SingleRow = memo(
 );
 
 SingleRow.displayName = "SingleRow";
+
 
 const columnCellStyle = (row, rowBg) => ({
   whiteSpace: "nowrap",
