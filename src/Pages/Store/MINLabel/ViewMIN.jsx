@@ -158,7 +158,7 @@ const ViewMIN = () => {
         selectLoading={loading("select")}
         preSelected={preselected}
       />
-      <Col span={24}>
+      <Col span={20}>
         <Form form={form} initialValues={initialFilterValues}>
           <Row gutter={8}>
             {/* Wise */}

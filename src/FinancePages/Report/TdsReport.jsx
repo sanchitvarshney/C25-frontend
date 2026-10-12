@@ -1,5 +1,5 @@
 import { Button, Col, Row, Card } from "antd";
-import  { useState } from "react";
+import { useState } from "react";
 
 import MyDatePicker from "../../Components/MyDatePicker";
 import socket from "../../Components/socket";
@@ -11,10 +11,15 @@ import { v4 } from "uuid";
 const TdsReport = () => {
   const { showToast } = useToast();
   const [dateRange, setDateRange] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const { user } = useSelector((state) => state.login);
   const emitDownloadEvent = () => {
+    if (!dateRange) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     let newId = v4();
-  
 
     if (!user.company_branch) {
       showToast("Please select a branch to download report", "error");
@@ -24,92 +29,46 @@ const TdsReport = () => {
       date: dateRange,
       notificationId: newId,
     };
-  
+
     socket.emit("getTdsReport", payload);
   };
   return (
     <div style={{ height: "100%" }}>
-      <Row gutter={16} style={{ margin: "5px", display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+      <Row
+        gutter={16}
+        style={{
+          margin: "5px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
         <Card size="small" title="TDS Report">
-    <Col span={24}>
-          <MyDatePicker setDateRange={setDateRange} />
-        </Col>
-        <Col span={24} style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
-          <Button
-            // loading={loading}
-            type="primary"
-            onClick={emitDownloadEvent}
+          <Col span={24}>
+            <MyDatePicker
+              setDateRange={setDateRange}
+              value={dateRange}
+              showError={isValid}
+              message="Please select a date range"
+            />
+          </Col>
+          <Col
+            span={24}
+            style={{ display: "flex", justifyContent: "center", marginTop: 10 }}
           >
-            Download Report
-          </Button>
-        </Col>
+            <Button
+              // loading={loading}
+              type="primary"
+              onClick={emitDownloadEvent}
+            >
+              Download Report
+            </Button>
+          </Col>
         </Card>
-    
       </Row>
     </div>
   );
 };
 
 export default TdsReport;
-// const columns = [
-//   {
-//     headerName: "Section",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "VBT No.",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "Vendor Name",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "Pan No.",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "Invoice No.",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "Invoice Date",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "GST Assesable Value",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "TDS Assessable Value",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "TDS Rate.",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "To Be Deducted TDS On GST AV",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "TDS Duducted.",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-//   {
-//     headerName: "Difference",
-//     field: "tcsCode",
-//     flex: 1,
-//   },
-// ];

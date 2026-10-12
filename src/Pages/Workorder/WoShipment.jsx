@@ -4,8 +4,7 @@ import MySelect from "../../Components/MySelect";
 import MyDatePicker from "../../Components/MyDatePicker";
 import MyDataTable from "../../Components/MyDataTable";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-// import SelectChallanTypeModal from "./components/WoCreateChallan/SelectChallanTypeModal";
-// import CreateChallanModal from "./components/WoCreateChallan/CreateChallanModal";
+
 import ToolTipEllipses from "../../Components/ToolTipEllipses";
 import MyAsyncSelect from "../../Components/MyAsyncSelect";
 import {
@@ -26,7 +25,6 @@ import MyButton from "../../Components/MyButton";
 const WoShipment = () => {
   const { showToast } = useToast();
   const [wise, setWise] = useState(wiseOptions[0].value);
-  // const [showTypeSelect, setShowTypeSelect] = useState(false);
   const [showCreateChallanModal, setShowCreateChallanModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
@@ -39,6 +37,7 @@ const WoShipment = () => {
   const [viewRtnChallan, setViewRtnChallan] = useState([]);
   const [rtData, setRtData] = useState([]);
   const [challantype, setchallantype] = useState(challanoptions[0].value);
+  const [isValid, setIsValid] = useState(false);
   const [ModalForm] = Form.useForm();
   const showSubmitConfirmationModal = (f, type) => {
     // submit confirm modal
@@ -171,7 +170,7 @@ const WoShipment = () => {
       challantype === "RM Challan"
         ? [
             <GridActionsCellItem
-            key={"view"}
+              key="view-return"
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -180,7 +179,7 @@ const WoShipment = () => {
               label="View Return"
             />,
             <GridActionsCellItem
-            key={"edit"}
+              key="edit-return"
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -191,7 +190,7 @@ const WoShipment = () => {
               label="Edit Return"
             />,
             <GridActionsCellItem
-            key={"cancel"}
+              key="cancel-return"
               showInMenu
               onClick={() => {
                 setDetailData(row);
@@ -202,7 +201,7 @@ const WoShipment = () => {
           ]
         : [
             <GridActionsCellItem
-            key={"shipment"}
+              key="view-shipment"
               showInMenu
               // disabled={loading}
               onClick={() => {
@@ -213,7 +212,7 @@ const WoShipment = () => {
               label="Edit Shipment"
             />,
             <GridActionsCellItem
-            key={"cancel"}
+              key="cancel-shipment"
               showInMenu
               onClick={() => {
                 setDetailData(row);
@@ -225,18 +224,22 @@ const WoShipment = () => {
   };
 
   const getRows = async () => {
-    // setRows(newarray);
+    const value =
+      wise === wiseOptions[0].value ? searchInput?.value : searchInput;
+    if (!value) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     try {
       setLoading("fetch");
-      // setLoading("fetch");
       let arr;
       if (challantype === "RM Challan") {
-        arr = await getWorkOrderRC(wise, searchInput);
+        arr = await getWorkOrderRC(wise, value);
       } else {
-        arr = await getWorkOrderShipment(wise, searchInput);
+        arr = await getWorkOrderShipment(wise, value);
       }
 
-      // console.log("newarr", newarr);
       setRows(arr);
     } catch (error) {
       console.log("some error occured while fetching rows", error);
@@ -261,7 +264,7 @@ const WoShipment = () => {
         wo_transaction_id: mins.map((r) => r.woTransaction_Id),
         remark: values.remark,
       };
-       await createWorkOrderReturnChallan(payload);
+      await createWorkOrderReturnChallan(payload);
       getRows();
       clearForm();
     } else {
@@ -291,7 +294,10 @@ const WoShipment = () => {
       const arr = await getClientOptions(search);
       setAsyncOptions(arr);
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      showToast(
+        error?.message || "Some error occured while fetching clients",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -301,9 +307,8 @@ const WoShipment = () => {
   };
   //
   useEffect(() => {
-    if (wise !== wiseOptions[1].value) {
-      setSearchInput("");
-    }
+    setSearchInput("");
+    setIsValid(false);
   }, [wise]);
   return (
     <div style={{ height: "calc(100vh - 180px)", margin: "10px" }}>
@@ -354,13 +359,19 @@ const WoShipment = () => {
                         optionsState={asyncOptions}
                         onBlur={() => setAsyncOptions([])}
                         value={searchInput}
+                        labelInValue={true}
+                        showError={isValid}
                         onChange={setSearchInput}
                         loadOptions={handleClientOptions}
                       />
                     </div>
                   )}
                   {wise === wiseOptions[1].value && (
-                    <MyDatePicker setDateRange={setSearchInput} />
+                    <MyDatePicker
+                      setDateRange={setSearchInput}
+                      value={searchInput}
+                      showError={isValid}
+                    />
                   )}
                   {/* {wise === wiseOptions[2].value && (
                   <div style={{ width: 270 }}>
@@ -394,7 +405,7 @@ const WoShipment = () => {
           </Col>
         </Row>
       </Col>
-      <div style={{ height: "100%", }}>
+      <div style={{ height: "100%" }}>
         <MyDataTable
           data={rows}
           columns={

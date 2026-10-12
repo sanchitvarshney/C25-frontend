@@ -4,7 +4,9 @@ import { Tag } from "antd";
 
 export default function ComponentsTable({
   actionColumn,
+
   components,
+  
   loading,
 
 }) {
@@ -26,7 +28,7 @@ const columns = [
   {
     headerName: "Name",
     field: "componentName",
-    minWidth: 150,
+    minWidth: 350,
     renderCell: ({ row }) => <ToolTipEllipses text={row.componentName} />,
     flex: 1,
   },
@@ -43,6 +45,11 @@ const columns = [
   {
     headerName: "UoM",
     field: "unit",
+    width: 150,
+  },
+  {
+    headerName: "Sub Group",
+    field: "subGroup",
     width: 150,
   },
   {

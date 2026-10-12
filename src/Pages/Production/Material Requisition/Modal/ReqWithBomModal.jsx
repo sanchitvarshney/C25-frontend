@@ -207,9 +207,7 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
     setTableData(arr);
   };
 
-  const hasIncompleteRow = (rows) =>
-    (rows || []).some((row) => !row.reqQty || Number(row.reqQty) <= 0);
-
+ 
   const sendRequest = async () => {
     let arr = [];
     arr = tabsExist.map((tab) => {
@@ -219,10 +217,7 @@ const ReqWithBomModal = ({ allBom, back, setTab, reset }) => {
       return [...r, ...c];
     });
 
-    if (hasIncompleteRow(arr)) {
-      setIsValid(true);
-      return;
-    }
+   
     setIsValid(false);
 
     const finalObj = {

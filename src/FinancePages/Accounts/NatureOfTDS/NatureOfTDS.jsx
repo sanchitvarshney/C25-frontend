@@ -3,15 +3,7 @@ import { AiFillEdit } from "react-icons/ai";
 import EditTDSMoal from "./EditTDSMoal";
 import MyDataTable from "../../../Components/MyDataTable";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  Input,
-  Row,
-  Space,
-} from "antd";
+import { Button, Card, Col, Form, Input, Row, Space } from "antd";
 import { v4 } from "uuid";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
@@ -19,14 +11,17 @@ import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { downloadCSV } from "../../../Components/exportToCSV";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field.jsx";
 
 export default function NatureOfTDS() {
- const { showToast } = useToast();
+  const { showToast } = useToast();
   const [editingTDS, setEditingTDS] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  // const [search, setSearch] = useState("");
   const [selectLoading, setSelectLoading] = useState(false);
   const [TDSList, setTDSList] = useState([]);
+  // const [filterData, setFilterData] = useState([]);
   const [newTDS, setNewTDS] = useState({
     code: "",
     name: "",
@@ -35,6 +30,7 @@ export default function NatureOfTDS() {
     ledger: "",
   });
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const columns = [
     {
       headerName: "Action",
@@ -44,7 +40,7 @@ export default function NatureOfTDS() {
       width: 65,
       getActions: ({ row }) => [
         <GridActionsCellItem
-        key={row.id ?? "edit"}
+          key={"edit"}
           icon={<AiFillEdit />}
           onClick={() => setEditingTDS(row)}
           label="Edit"
@@ -111,27 +107,27 @@ export default function NatureOfTDS() {
   const createTDS = async () => {
     const { code, name, description, percentage, ledger } = newTDS;
     if (!code || !name || !description || !percentage || !ledger) {
-      showToast("Please enter all the fields", "error");
-    
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setFormLoading(true);
+    const response = await imsAxios.post("/tally/tds/add_new_nature_of_tds", {
+      ...newTDS,
+      ledger: ledger?.value ?? ledger,
+    });
+    setFormLoading(false);
+
+    if (response.success) {
+      showToast(response.message || response.message?.msg);
+
+      reset();
     } else {
-      setFormLoading(true);
-      const response = await imsAxios.post("/tally/tds/add_new_nature_of_tds", {
-        ...newTDS,
-        ledger: newTDS.ledger,
-      });
-      setFormLoading(false);
-   
-      if (response.success) {
-        showToast(response.message || response.message?.msg);
-       
-        reset();
-      } else {
-        showToast(response.message || response.message?.msg, "error");
-    
-      }
+      showToast(response.message || response.message?.msg, "error");
     }
   };
   const reset = () => {
+    setIsValid(false);
     setNewTDS({
       code: "",
       name: "",
@@ -153,11 +149,9 @@ export default function NatureOfTDS() {
       setTDSList(arr);
     } else {
       showToast(response.message || response.message?.msg, "error");
-     
     }
 
     setLoading(false);
- 
   };
 
   useEffect(() => {
@@ -172,7 +166,7 @@ export default function NatureOfTDS() {
   //   setFilterData(res);
   // }, [search]);
   return (
-    <div style={{ height: "100%", padding:10 }}>
+    <div style={{ height: "100%", padding: 10 }}>
       <EditTDSMoal
         getGLCodes={getGLCodes}
         editingTDS={editingTDS}
@@ -186,22 +180,32 @@ export default function NatureOfTDS() {
               <Row gutter={10}>
                 <Col span={12}>
                   <Form.Item label="TDS Code">
-                    <Input
-                      size="default"
+                    <Field
+                      attr="required | TDS Code is required"
                       value={newTDS.code}
+                      showValidation={isValid}
                       onChange={(e) => inputHandler("code", e.target.value)}
-                      placeholder="Enter New TDS Code.."
-                    />
+                    >
+                      <Input
+                        size="default"
+                        placeholder="Enter New TDS Code.."
+                      />
+                    </Field>
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item label=" TDS Name">
-                    <Input
-                      size="default"
+                    <Field
+                      attr="required | TDS Name is required"
                       value={newTDS.name}
+                      showValidation={isValid}
                       onChange={(e) => inputHandler("name", e.target.value)}
-                      placeholder="Enter New TDS Name.."
-                    />
+                    >
+                      <Input
+                        size="default"
+                        placeholder="Enter New TDS Name.."
+                      />
+                    </Field>
                   </Form.Item>
                 </Col>
               </Row>
@@ -209,28 +213,36 @@ export default function NatureOfTDS() {
               <Row gutter={10}>
                 <Col span={12}>
                   <Form.Item label="Description">
-                    <Input
-                      size="default"
+                    <Field
+                      attr="required | Description is required"
                       value={newTDS.description}
+                      showValidation={isValid}
                       onChange={(e) =>
                         inputHandler("description", e.target.value)
                       }
-                      placeholder="Enter Description"
-                    />
+                    >
+                      <Input size="default" placeholder="Enter Description" />
+                    </Field>
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item label="Percentage">
-                    <Input
-                      size="default"
+                    <Field
+                      attr="required | Percentage is required"
                       value={newTDS.percentage}
+                      showValidation={isValid}
+                      treatZeroAsEmpty
                       onChange={(e) =>
                         inputHandler("percentage", e.target.value)
                       }
-                      suffix="%"
-                      placeholder="Enter Percentage"
-                      type="number"
-                    />
+                    >
+                      <Input
+                        size="default"
+                        suffix="%"
+                        placeholder="Enter Percentage"
+                        type="number"
+                      />
+                    </Field>
                   </Form.Item>
                 </Col>
               </Row>
@@ -249,6 +261,9 @@ export default function NatureOfTDS() {
                       optionsState={asyncOptions}
                       defaultOptions
                       placeholder="Select G/L..."
+                      labelInValue
+                      showError={isValid}
+                      message="Please select a G/L"
                     />
                   </Form.Item>
                 </Col>
@@ -267,7 +282,9 @@ export default function NatureOfTDS() {
                     >
                       Save
                     </Button>
-                    <Button size="default">Reset</Button>
+                    <Button size="default" onClick={reset}>
+                      Reset
+                    </Button>
 
                     <CommonIcons
                       action="downloadButton"

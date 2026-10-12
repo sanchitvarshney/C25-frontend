@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import {  Col, Input, Row, Space } from "antd";
+import {  Col, Input, Modal, Row, Space, Tag } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { imsAxios } from "../../../axiosInterceptor";
 import { v4 } from "uuid";
@@ -13,6 +13,7 @@ import {
   PrinterFilled,
   EyeFilled,
   EditFilled,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import MySelect from "../../../Components/MySelect";
@@ -23,6 +24,7 @@ import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import DebitView from "./DebitView";
 import DebitEdit from "./DebitEdit";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 function DebitRegister() {
   const { showToast } = useToast();
@@ -41,13 +43,19 @@ function DebitRegister() {
   const [editDebit, setEditDebit] = useState(null);
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const getRows = async () => {
+    if (!searchTerm || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setRows([]);
     setLoading("fetch");
     const response = await imsAxios.post("/tally/dv/debitVoucherList", {
       wise: wise,
-      data: searchTerm,
+      data: searchTerm?.value ?? searchTerm,
     });
     setLoading(false);
     if (response.success) {
@@ -67,7 +75,52 @@ function DebitRegister() {
     }
   };
 
- 
+  const deleteFun = async (dv_code, remark) => {
+    setLoading(true);
+    const response = await imsAxios.post("/tally/dv/cancel-debit-note", {
+      debitNo: dv_code,
+      cancelReason: remark,
+    });
+    setLoading(false);
+    if (response.success) {
+      showToast(response.message?.msg || response.message, "success");
+      getRows();
+    } else {
+      showToast(response.message?.msg || response.message, "error");
+    }
+  };
+
+  const confirmDelete = (jv_code) => {
+    let remark = "";
+    Modal.confirm({
+      title: "Cancel Voucher",
+      okText: "Yes",
+      cancelText: "No",
+      centered: true,
+      content: (
+        <div>
+          <p style={{ marginBottom: 2 }}>
+            Debit Code: <b>{jv_code}</b>
+          </p>
+          <Input.TextArea
+            rows={3}
+            placeholder="Enter remark for cancellation"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      onOk() {
+        if (!remark.trim()) {
+          showToast("Please enter a remark for cancellation", "error");
+          return Promise.reject();
+        }
+        return deleteFun(jv_code, remark);
+      },
+    });
+  };
+
   const columns = [
     {
       headerName: "Sr No.",
@@ -116,17 +169,16 @@ function DebitRegister() {
     },
 
     {
-      headerName: "Status",
-      field: "status",
-      renderCell: ({ row }) => (
-        <span
-          style={{
-            color: row.status == "Deleted" && "brown",
-          }}
-        >
-          {row.status}
-        </span>
-      ),
+      headerName: "DN Status",
+      field: "dnStatus",
+      renderCell: ({ row }) =>
+        row.dnStatus ? (
+          <Tag color={row.dnStatus === "ACTIVE" ? "green" : "red"}>
+            {row.dnStatus}
+          </Tag>
+        ) : (
+          "--"
+        ),
       width: 120,
     },
 
@@ -138,7 +190,7 @@ function DebitRegister() {
       getActions: ({ row }) => [
         // view voucher
         <GridActionsCellItem
-        key={row?.id ?? "view"}
+          key={"view"}
           disabled={loading}
           icon={<EyeFilled className="view-icon" />}
           onClick={() => {
@@ -148,7 +200,7 @@ function DebitRegister() {
           label="view"
         />,
         <GridActionsCellItem
-        key={row?.id ?? "print"}
+          key={"print"}
           // print voucher
           disabled={loading}
           icon={<PrinterFilled className="view-icon" />}
@@ -158,7 +210,7 @@ function DebitRegister() {
           label="print"
         />,
         <GridActionsCellItem
-        key={row?.id ?? "download"}
+          key={"download"}
           // download voucher
           disabled={loading}
           icon={<CloudDownloadOutlined className="view-icon" />}
@@ -167,43 +219,35 @@ function DebitRegister() {
           }}
           label="download"
         />,
-        <GridActionsCellItem
-        key={row?.id ?? "edit"}
-          // edit voucher
-          disabled={loading}
-          icon={<EditFilled className="view-icon" />}
-          onClick={() => {
-            // console.log(row);
-            setEditDebit(row.module_used);
-          }}
-          label="download"
-        />,
-        // <GridActionsCellItem
-        //   // delete voucher
-        //   style={{ marginTop: -5 }}
-        //   disabled={row.status == "Deleted"}
-        //   icon={
-        //     <Popconfirm
-        //       title="Are you sure to delete this Voucher?"
-        //       onConfirm={deleteFun}
-        //       onCancel={() => {
-        //         setDeleteConfirm(null);
-        //       }}
-        //       okText="Yes"
-        //       cancelText="No"
-        //     >
-        //       <DeleteFilled
-        //         className={`view-icon ${
-        //           row.status == "Deleted" && "disable"
-        //         }`}
-        //       />{" "}
-        //     </Popconfirm>
-        //   }
-        //   onClick={() => {
-        //     setDeleteConfirm(row.module_used);
-        //   }}
-        //   label="Delete"
-        // />,
+        ...(row?.dnStatus !== "CANCELLED"
+          ? [
+              <GridActionsCellItem
+                key={row?.id ?? "edit"}
+                // edit voucher
+                disabled={loading}
+                icon={<EditFilled className="view-icon" />}
+                onClick={() => {
+                  // console.log(row);
+                  setEditDebit(row.module_used);
+                }}
+                label="edit"
+              />,
+              <GridActionsCellItem
+                key={row?.id ?? "delete"}
+                // cancel voucher
+                disabled={loading || row.status == "Deleted"}
+                icon={
+                  <CloseOutlined
+                    className={`view-icon ${
+                      row.status == "Deleted" && "disable"
+                    }`}
+                  />
+                }
+                onClick={() => confirmDelete(row.module_used)}
+                label="Delete"
+              />,
+            ]
+          : []),
       ],
     },
   ];
@@ -214,7 +258,7 @@ function DebitRegister() {
       dv_key: key,
     });
     setLoading(false);
-    printFunction(response.data.buffer.data);
+    printFunction(response?.data.buffer.data);
     // module_used
   };
   const handleDownload = async (id) => {
@@ -226,7 +270,7 @@ function DebitRegister() {
     const response = await imsAxios.post(link, {
       dv_key: id,
     });
-    downloadFunction(response.data.buffer.data, filename);
+    downloadFunction(response?.data.buffer.data, filename);
     setLoading(false);
   };
   const getLedgerName = async (e) => {
@@ -249,6 +293,7 @@ function DebitRegister() {
   };
   useEffect(() => {
     setSearchTerm("");
+    setIsValid(false);
   }, [wise]);
   return (
     <div style={{ height: "100%" , padding: 10}}>
@@ -264,17 +309,32 @@ function DebitRegister() {
             </div>
             <div style={{ width: 300 }}>
               {wise === "date_wise" && (
-                <MyDatePicker size="default" setDateRange={setSearchTerm} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setSearchTerm}
+                  value={searchTerm}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               )}
               {wise === "eff_wise" && (
-                <MyDatePicker size="default" setDateRange={setSearchTerm} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setSearchTerm}
+                  value={searchTerm}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               )}
               {wise === "code_wise" && (
-                <Input
-                  placeholder="Debit Code"
+                <Field
+                  attr="required | Debit Code is required"
                   value={searchTerm}
+                  showValidation={isValid}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                >
+                  <Input placeholder="Debit Code" />
+                </Field>
               )}
               {wise === "vendor_wise" && (
                 <MyAsyncSelect
@@ -282,22 +342,13 @@ function DebitRegister() {
                   onBlur={() => setAsyncOptions([])}
                   value={searchTerm}
                   onChange={(value) => setSearchTerm(value)}
-                  // defaultOptions
                   loadOptions={getLedgerName}
                   optionsState={asyncOptions}
                   placeholder="Select Ledger..."
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a Ledger"
                 />
-                // <MyAsyncSelect
-                //   selectLoading={selectLoading}
-                //   onBlur={() => setAsyncOptions([])}
-                //   value={selectedLedger}
-                //   onChange={(value) =>
-                //     setSelectedLedger(value)
-                //   }
-                //   loadOptions={getLedgerName}
-                //   optionsState={asyncOptions}
-                //   placeholder="Select Ledger..."
-                // />
               )}
             </div>
             <MyButton

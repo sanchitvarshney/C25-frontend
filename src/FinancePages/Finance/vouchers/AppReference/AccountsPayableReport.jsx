@@ -9,8 +9,10 @@ import {
 } from "antd";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { v4 } from "uuid";
+
 import { useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast.js";
+
 import MySelect from "../../../../Components/MySelect";
 import socket from "../../../../Components/socket";
 import MyDatePicker from "../../../../Components/MyDatePicker";
@@ -24,6 +26,7 @@ export default function AccountsPayableReport() {
   const [socketValue, setSocketValue] = useState("");
   const [open, setOpen] = useState(false);
   const [searchDateRange, setSearchDateRange] = useState("");
+  const [isValid, setIsValid] = useState(false);
   const options = selectOptions;
   console.log("options", options);
   const fetchReport = async () => {
@@ -226,6 +229,7 @@ export default function AccountsPayableReport() {
     let groupkey = subgroup.value;
     if (!groupkey) {
       showToast("Select and Search the Group for Download", "error");
+      return;
     }
     socket.emit("getAgeingReport", {
       notificationId: newId,
@@ -256,6 +260,14 @@ export default function AccountsPayableReport() {
   const handleCancel = () => {
     setOpen(false);
   };
+  const handleSearch = () => {
+    if (!subgroup || !searchDateRange) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setOpen(true);
+  };
   useEffect(() => {
     if (socketValue.length > 0) {
     
@@ -276,6 +288,8 @@ export default function AccountsPayableReport() {
               labelInValue
               value={subgroup}
               onChange={setSubgroup}
+              showError={isValid}
+              message="Please select a Sundry Creditor"
             />
           </div>
           <div style={{ width: 300 }}>
@@ -284,13 +298,11 @@ export default function AccountsPayableReport() {
               setDateRange={setSearchDateRange}
               dateRange={searchDateRange}
               value={searchDateRange}
+              showError={isValid}
+              message="Please select a date range"
             />
           </div>
-          <Button
-            type="primary"
-            disabled={!subgroup}
-            onClick={() => setOpen(true)}
-          >
+          <Button type="primary" onClick={handleSearch}>
             Search
           </Button>
         </Col>

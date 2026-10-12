@@ -75,7 +75,7 @@ const EditModal = ({ show, close, bomType }) => {
     const missingComponent = row.new && !row.newComponent?.value;
     const missingStatus = !row.status;
     const missingCategory = !row.category;
-    const missingQty = !row.qty || Number(row.qty) < 1;
+    const missingQty = !row.qty || Number(row.qty) <= 0;
 
     if (missingComponent || missingStatus || missingCategory || missingQty) {
       setInvalidRows((curr) => ({ ...curr, [row.id]: true }));
@@ -287,8 +287,8 @@ const EditModal = ({ show, close, bomType }) => {
       width: 100,
       renderCell: ({ row }) => (
         <Field
-          attr="required | Qty must be at least 1"
-          value={row.qty && Number(row.qty) >= 1 ? row.qty : undefined}
+          attr="required"
+          value={row.qty && Number(row.qty) > 0 ? row.qty : undefined}
           showValidation={invalidRows[row.id]}
         >
           <Input

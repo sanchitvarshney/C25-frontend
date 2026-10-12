@@ -89,7 +89,7 @@ export default function UpdateComponent() {
             value: value.uomid,
           },
           mrp: value.mrp,
-          group: value.groupid, 
+          group: value.groupid,
           subgroup: value.subgroupid,
           isEnabled: value.enable_status,
           jobWork: value.jobwork_rate,
@@ -129,7 +129,7 @@ export default function UpdateComponent() {
           text: value.attr_code,
           value: value.attr_code,
         });
-      
+
         setTooldata(finalObj.toolLabel);
         componentForm.setFieldsValue(finalObj);
 
@@ -155,7 +155,7 @@ export default function UpdateComponent() {
         componentForm.setFieldValue("mountingStyle", tooldata?.mountingStyle);
         componentForm.setFieldValue(
           "manufacturing_code",
-          tooldata?.manufacturing_code
+          tooldata?.manufacturing_code,
         );
         componentForm.setFieldValue("multipler", tooldata?.multipler);
         componentForm.setFieldValue("packageSize", tooldata?.packageSize);
@@ -165,7 +165,7 @@ export default function UpdateComponent() {
       } else if (fetchPartCode.catType == "Capacitor") {
         componentForm.setFieldValue(
           "manufacturing_code",
-          tooldata?.manufacturing_code
+          tooldata?.manufacturing_code,
         );
 
         componentForm.setFieldValue("mountingStyle", tooldata?.mountingStyle);
@@ -173,14 +173,14 @@ export default function UpdateComponent() {
         componentForm.setFieldValue("siUnit", tooldata?.siUnit);
         componentForm.setFieldValue(
           "typeofCapacitor",
-          tooldata?.typeofCapacitor
+          tooldata?.typeofCapacitor,
         );
         componentForm.setFieldValue("tolerance", tooldata?.tolerance);
         componentForm.setFieldValue("packageSize", tooldata?.packageSize);
         componentForm.setFieldValue("value", tooldata?.value);
         componentForm.setFieldValue("voltage", tooldata?.voltage);
       }
-    } 
+    }
   }, [tooldata]);
 
   const getSubGroupOptions = async (groupId) => {
@@ -198,8 +198,7 @@ export default function UpdateComponent() {
         }));
 
         setSubGroupOptions(arr);
-      } else { 
-       
+      } else {
         setSubGroupOptions([]);
         showToast(response.message, "error");
       }
@@ -212,9 +211,7 @@ export default function UpdateComponent() {
 
   useEffect(() => {
     if (selectedGroup) {
-      
       getSubGroupOptions(selectedGroup);
-    
     }
   }, [selectedGroup]);
 
@@ -223,17 +220,16 @@ export default function UpdateComponent() {
       setLoading("fetch");
       const response = await imsAxios.post("/uom/uomSelect2");
       const { data, success } = response;
-    
-        if (success) {
-          const arr = data.map((row) => ({
-            text: row.text,
-            value: row.id,
-          }));
-          setuomOptions(arr);
-        } else {
-          showToast(response.message.msg || response.message, "error");
-        }
-    
+
+      if (success) {
+        const arr = data.map((row) => ({
+          text: row.text,
+          value: row.id,
+        }));
+        setuomOptions(arr);
+      } else {
+        showToast(response.message.msg || response.message, "error");
+      }
     } catch (error) {
       showToast(error.message || "Something went wrong", "error");
     } finally {
@@ -241,23 +237,21 @@ export default function UpdateComponent() {
     }
   };
   const getGroupOptions = async () => {
-
     try {
       setLoading("fetch");
       const response = await imsAxios.post("/groups/groupSelect2");
-      const { data,success } = response;
+      const { data, success } = response;
 
-        if (success) {
-          componentForm.setFieldValue("group", data[0].id);
-          const arr = data.map((row) => ({
-            text: row.text,
-            value: row.id,
-          }));
-          setgroupOptions(arr);
-        } else {
-          showToast(response.message.msg || response.message, "error");
-        }
-    
+      if (success) {
+        componentForm.setFieldValue("group", data[0].id);
+        const arr = data.map((row) => ({
+          text: row.text,
+          value: row.id,
+        }));
+        setgroupOptions(arr);
+      } else {
+        showToast(response.message.msg || response.message, "error");
+      }
     } catch (error) {
       showToast(error.message || "Something went wrong", "error");
     } finally {
@@ -298,10 +292,11 @@ export default function UpdateComponent() {
     const payload = {
       componentKey: componentKey,
       componentname: values.component,
-      uom: values.uom.value,
+      uom: values.uom.value ?? values.uom,
       category: "--",
       mrn: values.mrp,
       group: values.group,
+      subgroup: values.subgroup,
       new_partno: values.newPartCode,
       enable_status: values.isEnabled,
       jobwork_rate: values.jobWork,
@@ -323,7 +318,7 @@ export default function UpdateComponent() {
       pocost: values.purchaseCost,
       othercost: values.otherCost,
       attr_code: attr_raw?.attributeCode ?? "--",
-      attr_raw: attr_raw?.attr_raw ? attr_raw?.attr_raw : tooldata ?? "",
+      attr_raw: attr_raw?.attr_raw ? attr_raw?.attr_raw : (tooldata ?? ""),
       attr_category: attrCat,
       componentcategory: "--",
       manufacturing_code: attr_raw?.attr_raw?.manufacturing_code,
@@ -333,9 +328,9 @@ export default function UpdateComponent() {
 
     const response = await imsAxios.post(
       "/component/updateComponent/verify",
-      payload
+      payload,
     );
-    const {  success } = response;
+    const { success } = response;
     if (success) {
       Modal.confirm({
         title: "Are you sure you want to submit this Updated Component?",
@@ -350,13 +345,12 @@ export default function UpdateComponent() {
     }
   };
 
-
   const submitHandler = async (payload) => {
     try {
       setLoading("submit");
       const response = await imsAxios.post(
         "/component/updateComponent/save",
-        payload
+        payload,
       );
 
       if (response.success) {
@@ -394,7 +388,7 @@ export default function UpdateComponent() {
         form={componentForm}
         style={{ height: "90%", width: "100%", padding: 20 }}
       >
-        <Row >
+        <Row>
           <Col
             span={16}
             style={{
@@ -783,7 +777,6 @@ export default function UpdateComponent() {
     </>
   );
 }
-
 
 const isEnabledOptions = [
   { text: "Yes", value: "Y" },

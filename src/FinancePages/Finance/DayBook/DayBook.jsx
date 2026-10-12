@@ -1,5 +1,5 @@
-import { useState, } from "react";
-import {  Card, Col, Divider, Row, Space, Typography } from "antd";
+import { useState } from "react";
+import { Card, Col, Divider, Row, Space, Typography } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { CommonIcons } from "../../../Components/TableActions.jsx/TableActions";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -23,6 +23,7 @@ function DayBook() {
   const [journalRows, setJournalRows] = useState([]);
   const [contraRows, setContraRows] = useState([]);
   const [vbtRows, setVbtRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const getBankRows = async () => {
     let paymentArr = [];
@@ -199,6 +200,11 @@ function DayBook() {
     setVbtRows(arr);
   };
   const getAllRows = async () => {
+    if (!searchDateRange) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     resetHandler();
     await getBankRows();
     await getCashRows();
@@ -228,18 +234,11 @@ function DayBook() {
               setDateRange={setSearchDateRange}
               dateRange={searchDateRange}
               value={searchDateRange}
+              showError={isValid}
+              message="Please select a date range"
             />
 
             <MyButton
-              // disabled={
-              //   wise === "date"
-              //     ? searchDateRange === ""
-              //       ? true
-              //       : false
-              //     : !searchInput
-              //     ? true
-              //     : false
-              // }
               loading={loading > 0}
               type="primary"
               onClick={getAllRows}

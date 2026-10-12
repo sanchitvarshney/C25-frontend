@@ -15,7 +15,6 @@ import Loading from "../../../../Components/Loading";
 import FormTable2 from "../../../../Components/FormTable2";
 import WODetailsCard from "./WODetailsCard";
 import ProductDetailsCard from "./ProductDetailsCard";
-import { useToast } from "../../../../hooks/useToast.js";
 
 let resetDetails = [];
 
@@ -23,7 +22,6 @@ const FinalizeModal = ({ showView, setShowView, getRows }) => {
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  const { showToast } = useToast();
 
   const getDetails = async (id, woId) => {
     try {
@@ -32,14 +30,14 @@ const FinalizeModal = ({ showView, setShowView, getRows }) => {
       const { components, details } = await getFinalizeComponents(
         id,
         woId,
-        true
+        true,
       );
       setLoading(false);
       setDetails(details);
       form.setFieldValue("components", components);
       resetDetails = components;
     } catch (error) {
-      showToast(error.message || "Something went wrong", "error");
+      setLoading(false);
     }
   };
   const validateHandler = async () => {
@@ -91,7 +89,7 @@ const FinalizeModal = ({ showView, setShowView, getRows }) => {
     >
       {loading === "fetch" && <Loading />}
       <Form layout="vertical" form={form} style={{ height: "100%" }}>
-        <Row gutter={6} style={{ height: "95%", overflow: "hidden" }}>
+        <Row gutter={6} style={{ height: "100%", overflow: "hidden" }}>
           <Col span={4} style={{ height: "100%", overflowY: "scroll" }}>
             <Row gutter={[0, 6]}>
               <WODetailsCard details={details} />
@@ -127,6 +125,7 @@ const FinalizeModal = ({ showView, setShowView, getRows }) => {
               nonListWatchKeys={[]}
               componentRequiredRef={[]}
               form={form}
+              height="100%"
             />
           </Col>
         </Row>

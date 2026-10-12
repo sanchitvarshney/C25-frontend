@@ -33,18 +33,22 @@ function ProfilLossReport() {
   const [dateRange, setDateRange] = useState("");
   const [editingSheet, setEditingSheet] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const getRows = async () => {
-try {
-      setLoading("fetch");
+    if (!dateRange) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    setLoading("fetch");
     const response = await imsAxios.post("/tally/reports/plReport", {
       date: dateRange,
     });
    
-
+    const { data, success } = response;
  
-      if (response?.success) {
-        let {data} = response;
+      if (success) {
         let incomeMaster = data.income_master;
         let indirectIncomes = incomeMaster[0].children.filter(
           (row) => row.code === "8030000"
@@ -136,13 +140,6 @@ try {
         setIncomeRows([]);
         setExpenseRows([]);
       }
-  
-} catch (error) {
-    showToast(error.message ?? "Failed to get Trial Balance Report", "error");
-    setIncomeRows([]);
-    setExpenseRows([]);
-  
-}
 
   };
   const customFlatArray = (array) => {
@@ -420,7 +417,12 @@ try {
         />
         <Space>
           <div style={{ width: 300 }}>
-            <MyDatePicker setDateRange={setDateRange} />
+            <MyDatePicker
+              setDateRange={setDateRange}
+              value={dateRange}
+              showError={isValid}
+              message="Please select a date range"
+            />
           </div>
           <MyButton
             loading={loading === "fetch"}

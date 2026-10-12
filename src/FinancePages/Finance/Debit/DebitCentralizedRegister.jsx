@@ -1,4 +1,4 @@
-import {  Col, Row, Space, Input } from "antd";
+import { Col, Row, Space, Input } from "antd";
 import { useEffect, useState } from "react";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import MyDataTable from "../../../Components/MyDataTable";
@@ -23,6 +23,7 @@ import printFunction, {
 } from "../../../Components/printFunction";
 import DebitEdit from "./DebitEdit";
 import MyButton from "../../../Components/MyButton";
+import Field from "../../../Components/Field.jsx";
 
 // import {loading}
 function DebitCentralizedRegister() {
@@ -34,6 +35,7 @@ function DebitCentralizedRegister() {
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [rows, setRows] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const wiseOptions = [
     // { text: "Date", value: "datfe_wise" },
@@ -60,12 +62,15 @@ function DebitCentralizedRegister() {
     }
   };
   const getRows = async () => {
+    if (!searchTerm || !wise) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     setLoading("fetch");
     const response = await imsAxios.get(
-      `/tally/dv/register?wise=${wise}&data=${searchTerm}`
+      `/tally/dv/register?wise=${wise}&data=${searchTerm?.value ?? searchTerm}`
     );
-    console.log("resonse----", response);
-  
     if (response.success) {
       // console.log("arr-------------", arr);
       let arr = response.data.map((row, index) => {
@@ -89,7 +94,7 @@ function DebitCentralizedRegister() {
       dv_key: key,
     });
     setLoading(false);
-    printFunction(response.data.buffer.data);
+    printFunction(response?.data.buffer.data);
     // module_used
   };
   const handleDownloadwithout = async (id) => {
@@ -101,7 +106,7 @@ function DebitCentralizedRegister() {
     const response = await imsAxios.post(link, {
       dv_key: id,
     });
-    downloadFunction(response.data.buffer.data, filename);
+    downloadFunction(response?.data.buffer.data, filename);
     setLoading(false);
   };
   //debit note with  vbt functions
@@ -113,7 +118,7 @@ function DebitCentralizedRegister() {
         debit_code: id,
       }
     );
-    printFunction(response.data.buffer.data);
+    printFunction(response?.data.buffer.data);
     setLoading(false);
   };
   const handleSingleDownload = async (id) => {
@@ -125,7 +130,7 @@ function DebitCentralizedRegister() {
       debit_code: id,
     });
 
-    downloadFunction(response.data.buffer.data, filename);
+    downloadFunction(response?.data.buffer.data, filename);
     setLoading(false);
   };
 
@@ -135,12 +140,12 @@ function DebitCentralizedRegister() {
 
   useEffect(() => {
     setRows([]);
+    setIsValid(false);
     if (wise == "debit_key_wise") {
       setSearchTerm("DN/23-24/");
     } else {
       setSearchTerm("");
     }
-    setSearchTerm("");
   }, [wise]);
   // useEffect(() => {
   //   setRows([]);
@@ -161,7 +166,7 @@ function DebitCentralizedRegister() {
         row.docType == "without vbt"
           ? [
               <GridActionsCellItem
-                key={row.id ?? "view"}
+                key={"view"}
                 showInMenu
                 disabled={loading}
                 icon={<EyeFilled className="view-icon" />}
@@ -172,7 +177,7 @@ function DebitCentralizedRegister() {
                 label="View"
               />,
               <GridActionsCellItem
-                key={row.id ?? "print"}
+                key={"print"}
                 showInMenu // print voucher
                 disabled={loading}
                 icon={<PrinterFilled className="view-icon" />}
@@ -182,7 +187,7 @@ function DebitCentralizedRegister() {
                 label="Print"
               />,
               <GridActionsCellItem
-                key={row.id ?? "download"}
+                key={"download"}
                 showInMenu
                 // download voucher
                 disabled={loading}
@@ -193,7 +198,7 @@ function DebitCentralizedRegister() {
                 label="Download"
               />,
               <GridActionsCellItem
-                key={row.id ?? "edit"}
+                key={"edit"}
                 showInMenu
                 // edit voucher
                 disabled={loading}
@@ -207,7 +212,7 @@ function DebitCentralizedRegister() {
             ]
           : [
               <GridActionsCellItem
-                key={row.id ?? "view"}
+                key="print"
                 showInMenu
                 disabled={loading === "tableLoading"}
                 icon={<PrinterFilled className="view-icon" />}
@@ -215,7 +220,7 @@ function DebitCentralizedRegister() {
                 label="Print"
               />,
               <GridActionsCellItem
-                key={row.id ?? "download"}
+                key="download"
                 showInMenu
                 disabled={loading === "tableLoading"}
                 icon={<CloudDownloadOutlined className="view-icon" />}
@@ -452,19 +457,32 @@ function DebitCentralizedRegister() {
             </div>
             <div style={{ width: 300 }}>
               {wise === "created_date_wise" && (
-                <MyDatePicker size="default" setDateRange={setSearchTerm} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setSearchTerm}
+                  value={searchTerm}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               )}
               {wise === "effective_date_wise" && (
-                <MyDatePicker size="default" setDateRange={setSearchTerm} />
+                <MyDatePicker
+                  size="default"
+                  setDateRange={setSearchTerm}
+                  value={searchTerm}
+                  showError={isValid}
+                  message="Please select a date range"
+                />
               )}
               {wise === "debit_key_wise" && (
-                <Input
-                  type="text"
-                  size="default"
-                  placeholder="Enter Debit Key"
+                <Field
+                  attr="required | Debit Key is required"
                   value={searchTerm}
+                  showValidation={isValid}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                >
+                  <Input type="text" size="default" placeholder="Enter Debit Key" />
+                </Field>
               )}
               {wise === "vendor_wise" && (
                 <MyAsyncSelect
@@ -476,6 +494,9 @@ function DebitCentralizedRegister() {
                   loadOptions={getLedger}
                   optionsState={asyncOptions}
                   placeholder="Select Ledger..."
+                  labelInValue
+                  showError={isValid}
+                  message="Please select a Ledger"
                 />
               )}
             </div>

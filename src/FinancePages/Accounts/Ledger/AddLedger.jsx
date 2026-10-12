@@ -6,6 +6,7 @@ import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field.jsx";
 
 function AddLedger({ getLedgerList, options, statusOptions }) {
   const { showToast } = useToast();
@@ -24,19 +25,19 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
 
   const getSubGroupSelect = async (search) => {
     setSelectLoading(true);
     const response = await imsAxios.post("/tally/getSubgroup", {
       search: search,
     });
- 
+    setSelectLoading(false);
     if (response.success) {
       let arr = response.data.map((d) => {
         return { text: d.label, value: d.id };
       });
       setAsyncOptions(arr);
-         setSelectLoading(false);
     }
   };
   const ledgerTypeOptions = [
@@ -52,21 +53,15 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
   };
   const createLedger = async () => {
     const { gst, tds, status, sub_group, code, name } = newLedger;
-    if (!name || name == "") {
-      return showToast("Please Enter a Ledger Name");
-    } else if (!code || code == "") {
-      return showToast("Please Enter a ledger Code");
-    } else if (!sub_group || sub_group == "") {
-      return showToast("Please Select a Sub Group");
-    } else if (!gst || gst == "") {
-      return showToast("Please Select GST Apply");
-    } else if (!tds || tds == "") {
-      return showToast("Please Select TDS Apply");
+    if (!name || !code || !sub_group || !gst || !tds) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     setLoading(true);
     const response = await imsAxios.post("/tally/ledger/addLedger", {
       ...newLedger,
-      sub_group: sub_group,
+      sub_group: sub_group?.value ?? sub_group,
       gst: gst,
       tds: tds,
       status: status,
@@ -94,10 +89,11 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
       }
     } else {
       setCodeConfirmed("exist");
-      showToast(response.message|| response.message?.msg);
+      showToast(response.message || response.message?.msg);
     }
   };
   const reset = () => {
+    setIsValid(false);
     setNewLedger({
       name: "",
       code: "",
@@ -134,22 +130,27 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
                       codeConfirmed === "pending"
                         ? "searchButton"
                         : codeConfirmed === "not exist"
-                        ? "checkButton"
-                        : codeConfirmed === "exist" && "closeButton"
+                          ? "checkButton"
+                          : codeConfirmed === "exist" && "closeButton"
                     }
                     size="default"
                   />
                 </Col>
                 <Col span={21}>
-                  <Input
-                    size="default"
+                  <Field
+                    attr="required | Ledger Code is required"
                     value={newLedger.code}
+                    showValidation={isValid}
                     onChange={(e) => {
                       inputHandler("code", e.target.value);
                       setCodeConfirmed("pending");
                     }}
-                    placeholder="Enter New Ledger Code.."
-                  />
+                  >
+                    <Input
+                      size="default"
+                      placeholder="Enter New Ledger Code.."
+                    />
+                  </Field>
                 </Col>
               </Row>
             </Form.Item>
@@ -169,12 +170,14 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
                 </span>
               }
             >
-              <Input
-                size="default"
+              <Field
+                attr="required | Ledger Name is required"
                 value={newLedger.name}
+                showValidation={isValid}
                 onChange={(e) => inputHandler("name", e.target.value)}
-                placeholder="Enter New Ledger Name.."
-              />
+              >
+                <Input size="default" placeholder="Enter New Ledger Name.." />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -227,6 +230,9 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
                 loadOptions={getSubGroupSelect}
                 optionsState={asyncOptions}
                 placeholder="Select Sub Group..."
+                labelInValue
+                showError={isValid}
+                message="Please select a Sub Group"
               />
             </Form.Item>
           </Form>
@@ -253,6 +259,8 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
                 onChange={(value) => {
                   inputHandler("gst", value);
                 }}
+                showError={isValid}
+                message="Please select GST Apply"
               />
             </Form.Item>
           </Form>
@@ -276,6 +284,8 @@ function AddLedger({ getLedgerList, options, statusOptions }) {
                   inputHandler("tds", value);
                 }}
                 options={options}
+                showError={isValid}
+                message="Please select TDS Apply"
               />
             </Form.Item>
           </Form>

@@ -6,6 +6,7 @@ import { Row, Col } from "antd";
 import { useToast } from "../../../hooks/useToast.js";
 import { CheckOutlined, UploadOutlined } from "@ant-design/icons";
 import { imsAxios } from "../../../axiosInterceptor";
+import Field from "../../../Components/Field.jsx";
 
 const { Option } = Select;
 
@@ -15,6 +16,7 @@ const AddBookDetails = () => {
   const { showToast } = useToast();
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [bookForm] = Form.useForm();
 
   
@@ -64,8 +66,15 @@ const AddBookDetails = () => {
 
 
   const handleFormSubmit = async () => {
+    let values;
     try {
-     const values = await bookForm.validateFields();
+      values = await bookForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
+    try {
      console.log(values);
      const response = await imsAxios.post(`/book/postbookdata`, {
       SupplierName: values.SupplierName,
@@ -86,6 +95,7 @@ const AddBookDetails = () => {
      if(response.status === 200){
       showToast('Form submitted successfully!', "success");
       bookForm.resetFields();
+      setIsValid(false);
      }
      else{
       showToast(' Error in submitted Form!', "error");
@@ -115,23 +125,26 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Select placeholder="Select a month">
-                <Option value="Jan">Jan</Option>
-                <Option value="Feb">Feb</Option>
-                <Option value="Mar">Mar</Option>
-                <Option value="Apr">Apr</Option>
-                <Option value="May">May</Option>
-                <Option value="Jun">Jun</Option>
-                <Option value="Jul">Jul</Option>
-                <Option value="Aug">Aug</Option>
-               <Option value="Sept">Sept</Option>
-                <Option value="Oct">Oct</Option>
-                <Option value="Nov">Nov</Option>
-                <Option value="Dec">Dec</Option>
-              </Select>
+              <Field attr="required | Month is required" showValidation={isValid}>
+                <Select placeholder="Select a month">
+                  <Option value="Jan">Jan</Option>
+                  <Option value="Feb">Feb</Option>
+                  <Option value="Mar">Mar</Option>
+                  <Option value="Apr">Apr</Option>
+                  <Option value="May">May</Option>
+                  <Option value="Jun">Jun</Option>
+                  <Option value="Jul">Jul</Option>
+                  <Option value="Aug">Aug</Option>
+                 <Option value="Sept">Sept</Option>
+                  <Option value="Oct">Oct</Option>
+                  <Option value="Nov">Nov</Option>
+                  <Option value="Dec">Dec</Option>
+                </Select>
+              </Field>
             </Form.Item>
           </Col>
           <Col span={5}>
@@ -141,10 +154,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input placeholder="Enter Supplier Name" />
+              <Field attr="required | Supplier Name is required" showValidation={isValid}>
+                <Input placeholder="Enter Supplier Name" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -155,10 +171,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input placeholder="Enter GST number" />
+              <Field attr="required | GSTIN/UIN is required" showValidation={isValid}>
+                <Input placeholder="Enter GST number" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -169,12 +188,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input
-                placeholder="Enter Voucher Number"
-              />
+              <Field attr="required | Voucher Number is required" showValidation={isValid}>
+                <Input placeholder="Enter Voucher Number" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -185,10 +205,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input type="date" placeholder="Enter Voucher Date" />
+              <Field attr="required | Voucher Date is required" showValidation={isValid}>
+                <Input type="date" placeholder="Enter Voucher Date" />
+              </Field>
             </Form.Item>
           </Col>
         </Row>
@@ -201,10 +224,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input placeholder="Enter Voucher Type" />
+              <Field attr="required | Voucher Type is required" showValidation={isValid}>
+                <Input placeholder="Enter Voucher Type" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -215,13 +241,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input
-               
-                placeholder="Enter Invoice Number"
-              />
+              <Field attr="required | Invoice Number is required" showValidation={isValid}>
+                <Input placeholder="Enter Invoice Number" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -232,10 +258,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input type="date" placeholder="Enter Invoice Date" />
+              <Field attr="required | Invoice Date is required" showValidation={isValid}>
+                <Input type="date" placeholder="Enter Invoice Date" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -246,13 +275,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input
-                
-                placeholder="Enter Invoice Value"
-              />
+              <Field attr="required | Invoice Value is required" showValidation={isValid}>
+                <Input placeholder="Enter Invoice Value" />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={5}>
@@ -292,10 +321,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input placeholder="Enter Supply Type" />
+              <Field attr="required | Supply Type is required" showValidation={isValid}>
+                <Input placeholder="Enter Supply Type" />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={5}>
@@ -305,12 +337,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input
-                placeholder="Enter IGST"
-              />
+              <Field attr="required | IGST is required" showValidation={isValid}>
+                <Input placeholder="Enter IGST" />
+              </Field>
             </Form.Item>
           </Col>
           <Col span={5}>
@@ -320,12 +353,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input
-                placeholder="Enter CGST"
-              />
+              <Field attr="required | CGST is required" showValidation={isValid}>
+                <Input placeholder="Enter CGST" />
+              </Field>
             </Form.Item>
           </Col>
 
@@ -336,12 +370,13 @@ const AddBookDetails = () => {
               rules={[
                 {
                   required: true,
+                  message: "",
                 },
               ]}
             >
-              <Input
-                placeholder="Enter SGST"
-              />
+              <Field attr="required | SGST is required" showValidation={isValid}>
+                <Input placeholder="Enter SGST" />
+              </Field>
             </Form.Item>
           </Col>
         </Row>
@@ -352,6 +387,7 @@ const AddBookDetails = () => {
               <Space>
                 <Button
                   htmlType="reset"
+                  onClick={() => setIsValid(false)}
                   style={{ color: "#04B0A8", borderColor: "#04B0A8" }}
                 >
                   <svg

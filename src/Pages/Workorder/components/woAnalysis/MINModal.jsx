@@ -11,7 +11,6 @@ import {
 } from "antd";
 import {
   createMIN,
-  // getLocationOptions,
   getWorkOrderDetails,
   getWorkOrderForMIN,
 } from "../api";
@@ -28,11 +27,10 @@ import NavFooter from "../../../../Components/NavFooter";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
+import Field from "../../../../Components/Field.jsx";
 
 const MINModal = ({ showView, setShowView, getRows }) => {
-  // ////////////////
   const { showToast } = useToast();
-  // const [locationOptions, setLocationOptions] = useState([]);
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [minForm] = Form.useForm();
@@ -40,6 +38,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   const components = Form.useWatch("components", minForm);
   const [files, setFiles] = useState([]);
   const [asyncOptions, setAsyncOptions] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   //
   //
   const getDetails = async (id, woId, sku) => {
@@ -56,19 +55,23 @@ const MINModal = ({ showView, setShowView, getRows }) => {
       showToast(error.message || "Something went wrong", "error");
     }
   };
-  // const handleGetLocations = async (search) => {
-  //   try {
-  //     const arr = await getLocationOptions(search);
-  //     // console.log("sr", arr);
-  //     setLocationOptions(arr);
-  //   } catch (error) {
-  //     console.log("some error occured while fetching locations", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some((r) => !r.qty || !r.hsn || !r.location);
+
   const validateHandler = async () => {
-    const values = await minForm.validateFields();
+    let values;
+    try {
+      values = await minForm.validateFields();
+    } catch (error) {
+      setIsValid(true);
+      return;
+    }
+    if (hasIncompleteRow(components)) {
+      setIsValid(true);
+      return;
+    }
+    setIsValid(false);
     Modal.confirm({
       title: "Submit MIN",
       content: "Are you sure you want to submit this MIN",
@@ -79,7 +82,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   const validForSubmit = () => {
     const arr =
       components?.map((comp) => {
-        if (comp.rate && comp.qty) {
+        if (comp.qty) {
           return true;
         }
       }) ?? [];
@@ -110,6 +113,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
           setShowView(false);
           getRows();
           minForm.resetFields();
+          setIsValid(false);
         }
       } else {
         showToast(uploadwodoc.message, "error");
@@ -120,6 +124,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     setShowView(false);
     getRows();
     minForm.resetFields();
+    setIsValid(false);
   };
   const getLocatonOptions = async (search) => {
     setLoading("select");
@@ -143,7 +148,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
   useEffect(() => {
     if (showView) {
       getDetails(showView.subjectId, showView.woId, showView.sku);
-      // handleGetLocations();
+  
     }
   }, [showView]);
   const locationColumn = {
@@ -152,12 +157,17 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     width: 150,
     field: () => (
       //  <MySelect options={locationOptions} />,
-      <MyAsyncSelect
-        onBlur={() => setAsyncOptions([])}
-        loadOptions={getLocatonOptions}
-        optionsState={asyncOptions}
-        selectLoading={loading === "select"}
-      />
+      <Field
+        attr="required | Please select a Location!"
+        showValidation={isValid}
+      >
+        <MyAsyncSelect
+          onBlur={() => setAsyncOptions([])}
+          loadOptions={getLocatonOptions}
+          optionsState={asyncOptions}
+          selectLoading={loading === "select"}
+        />
+      </Field>
     ),
   };
 
@@ -238,7 +248,10 @@ const MINModal = ({ showView, setShowView, getRows }) => {
     <Drawer
       title={`MIN | ${details?.woId ?? ""}`}
       placement="right"
-      onClose={() => setShowView(false)}
+      onClose={() => {
+        setIsValid(false);
+        setShowView(false);
+      }}
       styles={{
         body: {
           padding: 5,
@@ -263,11 +276,16 @@ const MINModal = ({ showView, setShowView, getRows }) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please select doc id!",
+                        message: "",
                       },
                     ]}
                   >
-                    <Input />
+                    <Field
+                      attr="required | Please select doc id!"
+                      showValidation={isValid}
+                    >
+                      <Input />
+                    </Field>
                   </Form.Item>
                   <Form.Item
                     name="docDate"
@@ -275,7 +293,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please select doc Date!",
+                        message: "",
                       },
                     ]}
                   >
@@ -283,6 +301,8 @@ const MINModal = ({ showView, setShowView, getRows }) => {
                       setDate={(value) =>
                         minForm.setFieldValue("docDate", value)
                       }
+                      showError={isValid}
+                      message="Please select doc Date!"
                     />
                   </Form.Item>
                   <Form.Item
@@ -313,15 +333,17 @@ const MINModal = ({ showView, setShowView, getRows }) => {
           <Col span={20} style={{ height: "100%", overflow: "hidden" }}>
             <FormTable2
               removableRows={true}
+              allowFirstRowRemove={true}
               nonRemovableColumns={1}
-              columns={[...componentsItems(gstType), locationColumn]}
+              columns={[...componentsItems(gstType, isValid), locationColumn]}
               listName="components"
               watchKeys={["rate", "qty", "gstRate"]}
               nonListWatchKeys={["gstType"]}
-              componentRequiredRef={["rate", "qty"]}
+              componentRequiredRef={["qty"]}
               form={minForm}
               calculation={calculation}
               rules={listRules}
+              height="100%"
             />
             {/* </Card> */}
           </Col>
@@ -333,6 +355,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
         type="primary"
         resetFunction={() => {
           minForm.resetFields();
+          setIsValid(false);
           setShowView(false);
         }}
         submitFunction={validateHandler}
@@ -344,7 +367,7 @@ const MINModal = ({ showView, setShowView, getRows }) => {
 
 export default MINModal;
 
-const componentsItems = (gstType) => [
+const componentsItems = (gstType, isValid) => [
   {
     headerName: "#",
     name: "",
@@ -379,7 +402,11 @@ const componentsItems = (gstType) => [
     headerName: "Qty",
     name: "qty",
     width: 100,
-    field: () => <Input />,
+    field: () => (
+      <Field attr="required | Please enter MIN Qty!" showValidation={isValid} treatZeroAsEmpty>
+        <Input />
+      </Field>
+    ),
   },
   {
     headerName: "Rate",
@@ -428,7 +455,11 @@ const componentsItems = (gstType) => [
     headerName: "HSN Code",
     name: "hsn",
     width: 150,
-    field: () => <Input />,
+    field: () => (
+      <Field attr="required | Please enter a HSN code!" showValidation={isValid}>
+        <Input />
+      </Field>
+    ),
   },
   {
     headerName: "Remark",
@@ -473,6 +504,7 @@ const getArrSum = (list, key) => {
   return arr?.reduce((a, b) => a + (+Number(b || 0).toFixed(2)), 0);
 };
 
+
 const listRules = {
   hsn: [
     {
@@ -496,12 +528,6 @@ const listRules = {
     {
       required: true,
       message: "Please select document!",
-    },
-  ],
-  rate: [
-    {
-      required: true,
-      message: "Please component rate!",
     },
   ],
   docDate: [

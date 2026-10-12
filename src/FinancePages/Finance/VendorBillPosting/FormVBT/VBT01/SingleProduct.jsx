@@ -23,7 +23,8 @@ function arePropsEqual(prev, next) {
     prev.glCodes === next.glCodes &&
     prev.freightGlOptions === next.freightGlOptions &&
     prev.glstate === next.glstate &&
-    prev.lastRateArr === next.lastRateArr
+    prev.lastRateArr === next.lastRateArr &&
+    prev.isValid === next.isValid
   );
 }
 
@@ -41,12 +42,23 @@ function SingleComponent({
   loading,
   glstate,
   lastRateArr,
+  isValid,
 }) {
   const [showLastRateWarning, setShowLastRateWarning] = useState({
     rate: "",
     gl: "",
     glN: "",
   });
+  // vbt08 / vbt09 are FG screens: rows are FG MINs / SKUs instead of parts.
+  const isFg = ["vbt08", "vbt09"].some(
+    (code) => apiUrl === code || editApiUrl === code,
+  );
+  const labels = {
+    minId: isFg ? "FG MIN ID" : "MIN ID",
+    partCode: isFg ? "SKU" : "Part Code",
+    partName: isFg ? "Product Name" : "Part Name",
+    minQty: isFg ? "FG MIN Qty" : "MIN Qty",
+  };
 
   const qty =
     Form.useWatch(["components", field.name, "vbtBillQty"], form) ?? 0;
@@ -226,6 +238,24 @@ function SingleComponent({
     showGlWarning();
   }, [gloptions]);
 
+  // Auto-select the TDS code when the vendor has exactly one (ignoring the
+  // "--" placeholder option). Not for the FG screens (vbt08 / vbt09).
+  useEffect(() => {
+    if (isFg || !Array.isArray(tdsArray)) return;
+    const realOptions = tdsArray.filter((r) => r?.value !== "--");
+    if (realOptions.length !== 1) return;
+    const only = realOptions[0];
+    if (only?.value == null && only?.text == null) return;
+    const current = form.getFieldValue(["components", field.name, "tdsName"]);
+    if (current?.value != null && String(current.value) === String(only.value)) {
+      return;
+    }
+    form.setFieldValue(["components", field.name, "tdsName"], {
+      label: only.text,
+      value: only.value,
+    });
+  }, [tdsArray, field.name, form, isFg]);
+
   const showRateWarning = () => {
     const partCode = form.getFieldValue(["components", field.name, "partCode"]);
     const lastRateFoundObj = lastRateArr?.find((row) => row.partCode === partCode);
@@ -281,17 +311,17 @@ function SingleComponent({
             </Typography.Text>
           </Col>
           <Col span={3}>
-            <Form.Item label="MIN ID" name={[field.name, "minId"]}>
+            <Form.Item label={labels.minId} name={[field.name, "minId"]}>
               <Input disabled />
             </Form.Item>
           </Col>
           <Col span={3}>
-            <Form.Item label="Part Code" name={[field.name, "partCode"]}>
+            <Form.Item label={labels.partCode} name={[field.name, "partCode"]}>
               <Input rows={1} disabled />
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item label="Part Name" name={[field.name, "partName"]}>
+            <Form.Item label={labels.partName} name={[field.name, "partName"]}>
               <Input rows={1} disabled />
             </Form.Item>
           </Col>
@@ -302,7 +332,7 @@ function SingleComponent({
             </Form.Item>
           </Col>
           <Col span={2}>
-            <Form.Item label="MIN Qty" name={[field.name, "vbtInQty"]}>
+            <Form.Item label={labels.minQty} name={[field.name, "vbtInQty"]}>
               <Input disabled />
             </Form.Item>
           </Col>
@@ -364,14 +394,14 @@ function SingleComponent({
                 <Form.Item
                   label="CGST G/L"
                   name={[field.name, "cgst"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: "CGST GL is required",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect labelInValue options={glstate} />
+                  <MySelect
+                    labelInValue
+                    options={glstate}
+                    showError={isValid}
+                    message="CGST GL is required"
+                  />
                 </Form.Item>
               </Col>
               <Col span={2}>
@@ -383,14 +413,14 @@ function SingleComponent({
                 <Form.Item
                   label="SGST G/L"
                   name={[field.name, "sgst"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: "SGST GL is required",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect labelInValue options={glstate} />
+                  <MySelect
+                    labelInValue
+                    options={glstate}
+                    showError={isValid}
+                    message="SGST GL is required"
+                  />
                 </Form.Item>
               </Col>
             </>
@@ -407,19 +437,21 @@ function SingleComponent({
                 <Form.Item
                   label="IGST G/L"
                   name={[field.name, "igst"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: "IGST GL is required",
-                    },
-                  ]}
+                  rules={[{ required: true, message: "" }]}
                 >
-                  <MySelect labelInValue options={glstate} />
+                  <MySelect
+                    labelInValue
+                    options={glstate}
+                    showError={isValid}
+                    message="IGST GL is required"
+                  />
                 </Form.Item>
               </Col>
             </>
           )}
           {apiUrl === "vbt01" ||
+          apiUrl === "vbt08" ||
+          apiUrl === "vbt09" ||
           apiUrl === "vbt04" ||
           apiUrl === "vbt05" ||
           apiUrl === "vbt07" ? (
@@ -583,17 +615,17 @@ function SingleComponent({
             </Typography.Text>
           </Col>
           <Col span={3}>
-            <Form.Item label="MIN ID" name={[field.name, "minId"]}>
+            <Form.Item label={labels.minId} name={[field.name, "minId"]}>
               <Input disabled />
             </Form.Item>
           </Col>
           <Col span={3}>
-            <Form.Item label="Part Code" name={[field.name, "partCode"]}>
+            <Form.Item label={labels.partCode} name={[field.name, "partCode"]}>
               <Input rows={1} disabled />
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item label="Part Name" name={[field.name, "partName"]}>
+            <Form.Item label={labels.partName} name={[field.name, "partName"]}>
               <Input rows={1} disabled />
             </Form.Item>
           </Col>
@@ -613,7 +645,7 @@ function SingleComponent({
             </Form.Item>
           </Col>
           <Col span={2}>
-            <Form.Item label="MIN Qty" name={[field.name, "vbtInQty"]}>
+            <Form.Item label={labels.minQty} name={[field.name, "vbtInQty"]}>
               <Input disabled />
             </Form.Item>
           </Col>
@@ -643,6 +675,8 @@ function SingleComponent({
             </Form.Item>
           </Col>
           {editApiUrl === "vbt01" ||
+          editApiUrl === "vbt08" ||
+          editApiUrl === "vbt09" ||
           editApiUrl === "vbt04" ||
           editApiUrl === "vbt05" ? (
             <>

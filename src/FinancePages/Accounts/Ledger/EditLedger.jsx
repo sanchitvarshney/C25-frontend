@@ -1,22 +1,23 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MySelect from "../../../Components/MySelect";
 import Loading from "../../../Components/Loading";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { Button, Col, Form, Input, Row, Space, } from "antd";
+import { Button, Col, Form, Input, Row, Space } from "antd";
 import validateResponse from "../../../Components/validateResponse";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field.jsx";
 
 export default function EditLedger({ getLedgerList }) {
- const {showToast} = useToast();
+  const { showToast } = useToast();
   const [selectLoading, setSelectLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedLedger, setSelectedLedger] = useState(null);
   const [ledgerData, setLedgerData] = useState();
   const [asyncOptions, setAsyncOptions] = useState([]);
-  // const [codeConfirmLoading, setCodeConfirmLoading] = useState(false);
-  // const [codeConfirmed, setCodeConfirmed] = useState("pending");
+  const [isValid, setIsValid] = useState(false);
+
   // const confirmCode = async () => {
   //   setCodeConfirmLoading(true);
   //   const response = await imsAxios.post("/tally/ledger/check_leadger_code", {
@@ -32,7 +33,7 @@ export default function EditLedger({ getLedgerList }) {
   //   } else {
   //     setCodeConfirmed("exist");
   //     showToast(response.message?.msg || response.message);
-     
+
   //   }
   // };
 
@@ -91,7 +92,7 @@ export default function EditLedger({ getLedgerList }) {
     setLoading(true);
     if (selectedLedger) {
       const response = await imsAxios.post("/tally/ledger/editLedger", {
-        code: selectedLedger,
+        code: selectedLedger?.value ?? selectedLedger,
       });
       setLoading(false);
       validateResponse(response);
@@ -114,11 +115,21 @@ export default function EditLedger({ getLedgerList }) {
     setLedgerData(obj);
   };
   const submitHandler = async () => {
-    if (!ledgerData?.ledger_type) {
-      return showToast("Please select a ledger type"); 
+    if (
+      !selectedLedger ||
+      !ledgerData?.l_code ||
+      !ledgerData?.ladger_name ||
+      !(ledgerData?.subGroup?.value ?? ledgerData?.subGroup) ||
+      !ledgerData?.gst_applicable ||
+      !ledgerData?.tds_applicable ||
+      !ledgerData?.ledger_type
+    ) {
+      setIsValid(true);
+      return;
     }
+    setIsValid(false);
     const finalObj = {
-      l_key: selectedLedger,
+      l_key: selectedLedger?.value ?? selectedLedger,
       name: ledgerData.ladger_name,
       code: ledgerData.l_code,
       sub_group: ledgerData.subGroup.value
@@ -137,7 +148,6 @@ export default function EditLedger({ getLedgerList }) {
     validateResponse(response);
     setSubmitLoading(false);
     if (response.success) {
-      
       showToast(response.message);
       getLedgerList();
       resetHandler();
@@ -145,6 +155,7 @@ export default function EditLedger({ getLedgerList }) {
     setSubmitLoading(false);
   };
   const resetHandler = () => {
+    setIsValid(false);
     let obj = {
       account_status: "active",
       group_key: "",
@@ -193,6 +204,9 @@ export default function EditLedger({ getLedgerList }) {
                 loadOptions={getLedgers}
                 optionsState={asyncOptions}
                 placeholder="Select Ledger..."
+                labelInValue
+                showError={isValid}
+                message="Please select a Ledger"
               />
             </Form.Item>
           </Form>
@@ -227,12 +241,14 @@ export default function EditLedger({ getLedgerList }) {
                   />
                 </Col> */}
                 <Col span={24}>
-                  <Input
-                    size="default"
+                  <Field
+                    attr="required | Ledger Code is required"
                     value={ledgerData?.l_code}
+                    showValidation={isValid}
                     onChange={(e) => inputHandler("l_code", e.target.value)}
-                    placeholder="Enter a Ledger Code.."
-                  />
+                  >
+                    <Input size="default" placeholder="Enter a Ledger Code.." />
+                  </Field>
                 </Col>
               </Row>
             </Form.Item>
@@ -254,12 +270,14 @@ export default function EditLedger({ getLedgerList }) {
                 </span>
               }
             >
-              <Input
-                size="default"
+              <Field
+                attr="required | Ledger Name is required"
                 value={ledgerData?.ladger_name}
+                showValidation={isValid}
                 onChange={(e) => inputHandler("ladger_name", e.target.value)}
-                placeholder="Enter Ledger Name.."
-              />
+              >
+                <Input size="default" placeholder="Enter Ledger Name.." />
+              </Field>
             </Form.Item>
           </Form>
         </Col>
@@ -312,6 +330,9 @@ export default function EditLedger({ getLedgerList }) {
                 loadOptions={getSubGroupSelect}
                 optionsState={asyncOptions}
                 placeholder="Select Sub Group..."
+                labelInValue
+                showError={isValid}
+                message="Please select a Sub Group"
               />
             </Form.Item>
           </Form>
@@ -335,6 +356,8 @@ export default function EditLedger({ getLedgerList }) {
                   inputHandler("gst_applicable", value);
                 }}
                 options={options}
+                showError={isValid}
+                message="Please select GST Apply"
               />
             </Form.Item>
           </Form>
@@ -361,6 +384,8 @@ export default function EditLedger({ getLedgerList }) {
                   inputHandler("tds_applicable", value);
                 }}
                 options={options}
+                showError={isValid}
+                message="Please select TDS Apply"
               />
             </Form.Item>
           </Form>
@@ -410,6 +435,8 @@ export default function EditLedger({ getLedgerList }) {
                   inputHandler("ledger_type", value);
                 }}
                 options={ledgerTypeOptions}
+                showError={isValid}
+                message="Please select a Ledger Type"
               />
             </Form.Item>
           </Form>

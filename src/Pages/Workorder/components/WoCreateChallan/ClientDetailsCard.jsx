@@ -9,6 +9,7 @@ import {
   Space,
   Typography,
 } from "antd";
+
 import UploadFile from "../../../Master/Bom/CreateBom/UploadFile";
 ///
 const ClientDetailsCard = ({
@@ -95,10 +96,10 @@ const ClientDetailsCard = ({
         {uplaodType === "file" && (
           <Col span={24} style={{ marginBottom: 10 }}>
             <Typography.Text type="secondary" strong>
-              {`Note: ${<br />}
+              {`Note: <br />
               Kindly don't do any changes with columns of the sample file, it
-              can lead to errors.`}
-            </Typography.Text>
+              can lead to errors.
+            `}</Typography.Text>
           </Col>
         )}
         {uplaodType === "file" && (

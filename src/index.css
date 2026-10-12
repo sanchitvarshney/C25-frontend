@@ -168,6 +168,10 @@ button:disabled {
 .ant-btn-link {
   color: #203624 !important;
 }
+.ant-form-item-explain,
+.ant-form-item-extra {
+  display: none !important;
+}
 .ant-btn-link:hover,
 .ant-btn-link:focus {
   color: #0d9489 !important;

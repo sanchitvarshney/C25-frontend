@@ -5,6 +5,7 @@ import MySelect from "../../../Components/MySelect";
 import { imsAxios } from "../../../axiosInterceptor";
 import MyButton from "../../../Components/MyButton";
 import { useToast } from "../../../hooks/useToast";
+import Field from "../../../Components/Field.jsx";
 
 function MapClient() {
 const { showToast} =  useToast();
@@ -12,6 +13,7 @@ const { showToast} =  useToast();
   const [selectLoading, setSelectLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [mapClientForm] = Form.useForm();
   const statusOptions = [
     { text: "ACTIVE", value: "active" },
@@ -51,6 +53,7 @@ const { showToast} =  useToast();
     }
   };
   const clientReset = () => {
+    setIsValid(false);
     const obj = {
       code: client.value,
       name: client.label,
@@ -64,11 +67,12 @@ const { showToast} =  useToast();
     setClient("");
   };
   const submitHandler = async (values) => {
+    setIsValid(false);
     setSubmitLoading(true);
     const response = await imsAxios.post("/tally/ledger/addCustLedger", {
       name: values.name,
-      code: values.code,
-      sub_group: values.sub_group,
+      code: values.code?.value ?? values.code,
+      sub_group: values.sub_group?.value ?? values.sub_group,
       search_name: values.search_name,
       gst: values.gst,
       tds: values.tds,
@@ -100,10 +104,19 @@ const { showToast} =  useToast();
   }, [client]);
   return (
     <Card title="Map Customer" size="small">
-      <Form onFinish={submitHandler} form={mapClientForm} layout="vertical">
+      <Form
+        onFinish={submitHandler}
+        onFinishFailed={() => setIsValid(true)}
+        form={mapClientForm}
+        layout="vertical"
+      >
         <Row gutter={10} span={24}>
           <Col span={12}>
-            <Form.Item name="code" label=" Select Customer">
+            <Form.Item
+              name="code"
+              label=" Select Customer"
+              rules={[{ required: true, message: "" }]}
+            >
               <MyAsyncSelect
                 selectLoading={selectLoading}
                 labelInValue
@@ -111,6 +124,8 @@ const { showToast} =  useToast();
                 onChange={(value) => setClient(value)}
                 loadOptions={getClients}
                 optionsState={asyncOptions}
+                showError={isValid}
+                message="Please select a Customer"
               />
             </Form.Item>
           </Col>
@@ -126,8 +141,14 @@ const { showToast} =  useToast();
                   Customer Name
                 </span>
               }
+              rules={[{ required: true, message: "" }]}
             >
-              <Input size="default" placeholder="Enter New Vendor Name.." />
+              <Field
+                attr="required | Customer Name is required"
+                showValidation={isValid}
+              >
+                <Input size="default" placeholder="Enter New Vendor Name.." />
+              </Field>
             </Form.Item>
           </Col>
         </Row>
@@ -161,12 +182,16 @@ const { showToast} =  useToast();
                   Sub Group
                 </span>
               }
+              rules={[{ required: true, message: "" }]}
             >
               <MyAsyncSelect
                 selectLoading={selectLoading}
                 onBlur={() => setAsyncOptions([])}
                 loadOptions={getSubGroupSelect}
                 optionsState={asyncOptions}
+                labelInValue
+                showError={isValid}
+                message="Please select a Sub Group"
               />
             </Form.Item>
           </Col>
@@ -185,8 +210,13 @@ const { showToast} =  useToast();
                   GST Apply
                 </span>
               }
+              rules={[{ required: true, message: "" }]}
             >
-              <MySelect options={gstOptions} />
+              <MySelect
+                options={gstOptions}
+                showError={isValid}
+                message="Please select GST Apply"
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -201,8 +231,13 @@ const { showToast} =  useToast();
                   TDS Apply
                 </span>
               }
+              rules={[{ required: true, message: "" }]}
             >
-              <MySelect options={gstOptions} />
+              <MySelect
+                options={gstOptions}
+                showError={isValid}
+                message="Please select TDS Apply"
+              />
             </Form.Item>
           </Col>
         </Row>

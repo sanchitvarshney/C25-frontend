@@ -127,7 +127,7 @@ const EWayBill = () => {
     } catch (error) {
       showToast("Error while fetching details", "error");
     } finally {
-      setLoading("fetch");
+      setLoading(false);
     }
   };
   const subSupplyTypeOption = Form.useWatch("subType", form);
@@ -268,6 +268,7 @@ const EWayBill = () => {
       if (response?.success) {
         showToast(response?.message, "success");
         setSuccessData({ ewayBillNo: response?.data?.ewayBillNo });
+        setLoading(false);
       } else {
         showToast(response.message, "error");
       }

@@ -1,15 +1,16 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import { useToast } from "../../../hooks/useToast.js";
 import NavFooter from "../../../Components/NavFooter";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import {  Col, DatePicker, Form, Input, Row } from "antd";
+import {  Col, Form, Input, Row } from "antd";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useLocation } from "react-router-dom";
-import dayjs from "dayjs";
 import FormTable from "../../../Components/FormTable.jsx";
 import { Add, Delete } from "@mui/icons-material";
+import Field from "../../../Components/Field.jsx";
+import SingleDatePicker from "../../../Components/SingleDatePicker";
 
 export default function JournalPosting() {
   const { showToast } = useToast();
@@ -24,18 +25,19 @@ export default function JournalPosting() {
       credit: "",
       comment: "",
     },
-    {
-      id: v4(),
-      glCode: "",
-      debit: "",
-      credit: "",
-      comment: "",
-    },
+    // {
+    //   id: v4(),
+    //   glCode: "",
+    //   debit: "",
+    //   credit: "",
+    //   comment: "",
+    // },
     { id: v4(), total: true, debit: 0, credit: 0 },
   ]);
   const [loading, setLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
-  const [addJournalForm] = Form.useForm();
+  const [isValid, setIsValid] = useState(false);
+  const [effectiveDate, setEffectiveDate] = useState("");
   const { pathname } = useLocation();
 
   const addRows = () => {
@@ -184,6 +186,8 @@ export default function JournalPosting() {
               optionsState={asyncOptions}
               loadOptions={getLedger}
               placeholder="Select G/L..."
+              showError={isValid}
+              message="G/L is required"
             />
           </div>
         ),
@@ -205,14 +209,23 @@ export default function JournalPosting() {
               type="number"
             />
           ) : (
-            <Input
-              value={row.debit}
-              fun={inputHandler}
-              onChange={(e) => inputHandler("debit", e.target.value, row.id)}
-              disabled={row.credit?.length > 0}
-              inputType="number"
-              type="number"
-            />
+            <Field
+              attr="required | Debit or Credit is required"
+              value={row.debit || row.credit}
+              showValidation={isValid}
+              treatZeroAsEmpty
+            >
+              <Input
+                value={row.debit}
+                fun={inputHandler}
+                onChange={(e) =>
+                  inputHandler("debit", e.target.value, row.id)
+                }
+                disabled={row.credit?.length > 0}
+                inputType="number"
+                type="number"
+              />
+            </Field>
           )}
         </>
       ),
@@ -225,15 +238,30 @@ export default function JournalPosting() {
       flex: 1,
       sortable: false,
       // width: "10vw",
-      renderCell: ({ row }) => (
-        <Input
-          // size="small"
-          value={row.total ? creditTotal.toFixed(2) : row.credit}
-          onChange={(e) => inputHandler("credit", e.target.value, row.id)}
-          disabled={row.total || row.debit?.length > 0}
-          type="number"
-        />
-      ),
+      renderCell: ({ row }) =>
+        row.total ? (
+          <Input
+            value={creditTotal.toFixed(2)}
+            disabled
+            type="number"
+          />
+        ) : (
+          <Field
+            attr="required | Debit or Credit is required"
+            value={row.debit || row.credit}
+            showValidation={isValid}
+            treatZeroAsEmpty
+          >
+            <Input
+              value={row.credit}
+              onChange={(e) =>
+                inputHandler("credit", e.target.value, row.id)
+              }
+              disabled={row.debit?.length > 0}
+              type="number"
+            />
+          </Field>
+        ),
     },
     {
       headerName: "Comment",
@@ -253,55 +281,58 @@ export default function JournalPosting() {
         ),
     },
   ];
+  const hasIncompleteRow = (rows) =>
+    (rows || []).some(
+      (r) => !r.total && (!r.glCode || (!r.debit && !r.credit)),
+    );
+
   const submitHandler = async () => {
-    const values = await addJournalForm.validateFields();
+    if (!effectiveDate || hasIncompleteRow(journalRows)) {
+      setIsValid(true);
+      return;
+    }
+    if (Number(debitTotal) !== Number(creditTotal)) {
+      return showToast("Debit and Credit totals must match", "error");
+    }
+    setIsValid(false);
 
     let finalObj = {
-      effective_date: dayjs(values.effectiveDate).format("DD-MM-YYYY"),
+      effective_date: effectiveDate,
       gls: [],
       credit: [],
       debit: [],
       comment: [],
     };
-    let problem = null;
-    journalRows.map((row, index) => {
-      if (row.glCode == "") {
-        problem = "gls";
-      } else {
-        if (index < journalRows.length - 1) {
-          finalObj = {
-            ...finalObj,
-            gls: [...finalObj.gls, row.glCode.value],
-            credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
-            debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
-            comment: [...finalObj.comment, row.comment],
-          };
-        }
+    journalRows.forEach((row, index) => {
+      if (index < journalRows.length - 1) {
+        finalObj = {
+          ...finalObj,
+          gls: [...finalObj.gls, row.glCode?.value ?? row.glCode],
+          credit: [...finalObj.credit, row.credit == "" ? 0 : row.credit],
+          debit: [...finalObj.debit, row.debit == "" ? 0 : row.debit],
+          comment: [...finalObj.comment, row.comment],
+        };
       }
     });
-    if (!problem) {
-      setLoading(true);
-      let link = "/tally/jv/create_jv";
-      if (pathname.includes("jv01")) {
-        link = "/tally/jv/create_jv01";
-      }
-      const response = await imsAxios.post(link, {
-        ...finalObj,
-      });
-      setLoading(false);
-      if (response.success) {
-        resetHandler();
-        showToast(response.message, "success");
-      } else {
-        showToast(response.message?.msg || response.message, "error");
-      }
+
+    setLoading(true);
+    let link = "/tally/jv/create_jv";
+    if (pathname.includes("jv01")) {
+      link = "/tally/jv/create_jv01";
+    }
+    const response = await imsAxios.post(link, {
+      ...finalObj,
+    });
+    setLoading(false);
+    if (response.success) {
+      resetHandler();
+      showToast(response.message, "success");
     } else {
-      if (problem == "gls") {
-        return showToast("All entries should have a gls", "error");
-      }
+      showToast(response.message?.msg || response.message, "error");
     }
   };
   const resetHandler = () => {
+    setIsValid(false);
     setJounralRows([
       {
         id: v4(),
@@ -310,19 +341,18 @@ export default function JournalPosting() {
         credit: "",
         comment: "",
       },
-      {
-        id: v4(),
-        glCode: "",
-        debit: "",
-        credit: "",
-        comment: "",
-      },
+      // {
+      //   id: v4(),
+      //   glCode: "",
+      //   debit: "",
+      //   credit: "",
+      //   comment: "",
+      // },
       { id: v4(), total: true, debit: 0, credit: 0 },
     ]);
     setDebitTotal(0);
-    addJournalForm.setFieldValue("effectiveDate", "");
+    setEffectiveDate("");
     setCreditTotal(0);
-    // setJournalDate("");
   };
   useEffect(() => {
     if (loading) {
@@ -337,30 +367,17 @@ export default function JournalPosting() {
         <Col span={24}>
          
             <Row>
-              <Form
-                style={{ width: "100%" }}
-                layout="vertical"
-                form={addJournalForm}
-              >
+              <Form style={{ width: "100%" }} layout="vertical">
                 <Col span={6}>
-                  <Form.Item
-                    label="Effective Date"
-                    name="effectiveDate"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Select Effective Date",
-                      },
-                    ]}
-                  >
-                    <DatePicker format="DD-MM-YYYY" style={{ width: "100%" }} />
+                  <Form.Item label="Effective Date">
+                    <SingleDatePicker
+                      setDate={setEffectiveDate}
+                      value={effectiveDate}
+                      placeholder="Select Effective Date.."
+                      showError={isValid}
+                      message="Select Effective Date"
+                    />
                   </Form.Item>
-                  {/* <SingleDatePicker
-                  setDate={setJournalDate}
-                  placeholder="Select Effective Date.."
-                  selectedDate={journalDate}
-                  value={journalDate}
-                  /> */}
                 </Col>
               </Form>
             </Row>
