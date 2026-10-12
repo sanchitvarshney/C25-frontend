@@ -633,6 +633,11 @@ const links = [
       routePath: "/warehouse/dc/manage",
       key: "1",
     },
+    {
+      routeName: "Return DC",
+      routePath: "/warehouse/dc/return-report",
+      key: "2",
+    },
   ],
   // gatepass links
   [
