@@ -172,6 +172,9 @@ button:disabled {
 .ant-form-item-extra {
   display: none !important;
 }
+.show-form-extra .ant-form-item-extra {
+  display: block !important;
+}
 .ant-btn-link:hover,
 .ant-btn-link:focus {
   color: #0d9489 !important;
