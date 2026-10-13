@@ -181,7 +181,7 @@ const Manual = () => {
 
     const response = await imsAxios.post("/audit/saveAudit", {
       branch: "BROAKTRC25",
-      component: comName,
+      component: comName?.value ?? comName,
       closing: existStock,
       audit: phyisalStock,
       remark: remarkArr,
