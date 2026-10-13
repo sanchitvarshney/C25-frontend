@@ -3,7 +3,8 @@
   --auth-brand: #047780;
   --auth-brand-2: #03545b;
   --auth-accent: #047780;
-  --auth-accent-hover: #036870;
+  --auth-accent-hover: #025a61;
+  --auth-btn: #036a72;
   --auth-accent-soft: #e6f2f3;
   --auth-text: #1f2a24;
   --auth-muted: #6b7570;
@@ -460,9 +461,9 @@
 
 /* ---------- Primary button ---------- */
 .auth-shell .ant-btn-primary:not(:disabled) {
-  background: var(--auth-accent);
-  border-color: var(--auth-accent);
-  box-shadow: 0 4px 12px -4px rgba(4, 119, 128, 0.5);
+  background: var(--auth-btn);
+  border-color: var(--auth-btn);
+  box-shadow: 0 4px 12px -4px rgba(3, 106, 114, 0.5);
 }
 
 .auth-shell .ant-btn-primary:not(:disabled):hover {
