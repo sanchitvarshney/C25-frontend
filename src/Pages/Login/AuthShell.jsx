@@ -1,53 +1,77 @@
 import { Typography } from "antd";
+import { PackageCheck, ScanBarcode, Truck, ShieldCheck } from "lucide-react";
+import "./AuthShell.css";
 
 const { Text } = Typography;
 
-const shellStyle = {
-  backgroundImage:"url('/assets/images/login_bg.svg')",
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  backgroundAttachment: "scroll",
-};
+const features = [
+  { icon: PackageCheck, label: "Track stock levels across every location" },
+  { icon: ScanBarcode, label: "Faster inward, outward & material issue" },
+  { icon: Truck, label: "Purchase orders, vendors & dispatch in one place" },
+  { icon: ShieldCheck, label: "Role-based access with secure sign-in" },
+];
 
-const cardStyle = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  backgroundColor: "white",
-  maxWidth: "50%",
-  minWidth: "50%",
-  overflow: "hidden",
-  borderRadius: "20px",
-  border: "1px solid #e9e1e1",
-  gap: 20,
-  padding: 40,
-  position: "relative",
-  boxShadow: "0px 0px 6px 1px #a4a8aa",
-};
+const stats = [
+  { value: "Real-time", label: "Stock visibility" },
+  { value: "Multi", label: "Branch support" },
+  { value: "Audit", label: "Ready reports" },
+];
 
 /**
- * Shared layout for login, sign-up, and OTP screens (two-column card on gradient background).
+ * Shared layout for login, sign-up, and OTP screens (brand panel + form panel).
  */
 export default function AuthShell({ footerLeft, children }) {
   return (
-    <div
-      className="flex justify-center items-center h-[calc(100vh-25px)]"
-      style={shellStyle}
-    >
-      <div style={cardStyle}>
-        <div>
-          <div>
-            <img
-              src={"/assets/images/mscorpres_auto_logo.png"}
-              alt="Oakter Logo"
-              className="w-[150px] h-[auto]"
-            />
-            <div style={{ position: "absolute", bottom: 40, left: 40 }}>
-              {footerLeft}
+    <div className="auth-shell">
+      <div className="auth-card">
+        <aside className="auth-brand">
+          <div className="auth-brand-logo">
+            <div className="auth-brand-logo-tile">
+              <img src={"/assets/images/mscorpres_auto_logo.png"} alt="Oakter Logo" />
+            </div>
+            <div className="auth-brand-name">
+              IMS (C25)
+              <small>Inventory Management System</small>
             </div>
           </div>
-        </div>
-        <div className="flex justify-center items-center ">{children}</div>
+
+          <div>
+            <h2 className="auth-brand-headline">
+              Every part, every store, <span>always in sync.</span>
+            </h2>
+            <p className="auth-brand-copy">
+              Manage materials, warehouses and production flow from a single
+              dashboard built for the shop floor.
+            </p>
+          </div>
+
+          <ul className="auth-features">
+            {features.map(({ icon: Icon, label }) => (
+              <li key={label}>
+                <span className="auth-feature-icon">
+                  <Icon size={18} />
+                </span>
+                {label}
+              </li>
+            ))}
+          </ul>
+
+          <div className="auth-stats">
+            {stats.map((s) => (
+              <div key={s.label} className="auth-stat">
+                <strong>{s.value}</strong>
+                <span>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <section className="auth-form-panel">
+          <div className="auth-form-body">
+            <div className="auth-form-inner">{children}</div>
+          </div>
+          {footerLeft ? <div className="auth-form-footer">{footerLeft}</div> : null}
+        </section>
       </div>
     </div>
   );

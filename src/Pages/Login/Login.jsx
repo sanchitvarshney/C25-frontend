@@ -7,15 +7,8 @@ import "swiper/css/pagination";
 import ForgotPassword from "./ForgotPassword.tsx";
 import "swiper/css/effect-fade";
 import { Box, CircularProgress } from "@mui/material";
-import {
-  Form,
-  Row,
-  Typography,
-  Col,
-  Input,
-  Button,
-  Flex,
-} from "antd";
+import { Form, Typography, Input, Button, Flex, Divider } from "antd";
+import { Lock, ShieldCheck, User } from "lucide-react";
 import { imsAxios } from "../../axiosInterceptor";
 import useApi from "../../hooks/useApi.ts";
 import { setSettings, setUser } from "../../Features/loginSlice/loginSlice";
@@ -60,7 +53,7 @@ const Login = () => {
     password: "",
     company_branch: "BROAKTRC25",
   });
-  const { Title, Link: AntLink } = Typography;
+  const { Link: AntLink } = Typography;
   const [loginForm] = Form.useForm();
   const inputHandler = (name, value) => {
     setInpVal(() => {
@@ -176,7 +169,7 @@ const Login = () => {
     isPasswordSame();
   }, [
     loginForm.getFieldValue("confirmPassword"),
-    loginForm.getFieldValue("password"),
+    loginForm.getFieldValue("password"), 
   ]);
 
   const handleLoginWithGoogle = async (googleResponse) => {
@@ -225,70 +218,157 @@ const Login = () => {
   const footerLeft =
     forgotPassword === "0" ? (
       <div>
-        <Text>Don&apos;t have an account? </Text>
-        <Link to="/signup" className="auth-shell-footer-link">
-          Sign Up
+        <Text type="secondary">Don&apos;t have an account? </Text>
+        <Link to="/signup" className="auth-link">
+          Create one
         </Link>
       </div>
     ) : (
-      <span onClick={back} style={{ cursor: "pointer" }}>
-        If you have an account,{" "}
-        <span style={{ textDecoration: "underline", color: "blue" }}>Login</span>
-      </span>
+      <div>
+        <Text type="secondary">Already have an account? </Text>
+        <AntLink className="auth-link" onClick={back}>
+          Log In
+        </AntLink>
+      </div>
     );
 
   return (
     <AuthShell footerLeft={footerLeft}>
       {fromOtp ? <style>{loginFromOtpKeyframes}</style> : null}
       <ForgotPassword show={showForgotPassword} hide={() => setShowForgotPassword(false)} />
-      <Row justify="center" style={{ width: "100%", maxWidth: "600px" }} align="middle" gutter={[5, 5]}>
-        <Col span={24}>
-          <Box
-            style={{
-              position: "relative",
-              ...(fromOtp
-                ? {
-                    animation: "loginFormSlideFromLeft 0.45s ease-out both",
-                  }
-                : {}),
-            }}
+      <Box
+        style={{
+          position: "relative",
+          ...(fromOtp
+            ? {
+                animation: "loginFormSlideFromLeft 0.45s ease-out both",
+              }
+            : {}),
+        }}
+      >
+        <span className="auth-eyebrow">
+          <ShieldCheck size={14} /> Secure sign-in
+        </span>
+        <h1 className="auth-title">
+          {forgotPassword === "0" ? "Welcome back" : "Reset your password"}
+        </h1>
+        <p className="auth-subtitle">
+          {forgotPassword === "0"
+            ? "Log in to your account to manage your inventory."
+            : "Enter your account details and choose a new password."}
+        </p>
+        <Form
+          name="basic"
+          layout="vertical"
+          onFinish={handleSubmit}
+          autoComplete="off"
+          form={loginForm}
+          requiredMark={false}
+        >
+          <Form.Item
+            label="Email / Mobile / CRN Number"
+            name="username"
+            rules={[
+              {
+                required: true,
+                message: "Please provide either your email / mobile number or CRN Number",
+              },
+            ]}
           >
-            <Title
-              style={{
-                color: "gray",
-                marginBottom: 20,
-              }}
-              level={4}
-            >
-              Log In to your account
-            </Title>
-            <Form
-              name="basic"
-              layout="vertical"
-              onFinish={handleSubmit}
-              autoComplete="off"
-              form={loginForm}
-            >
-              <Form.Item
-                label="Email / Mobile / CRN Number"
-                name="username"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please provide either your email / mobile number or CRN Number",
-                  },
-                ]}
-              >
-                <Input
-                  value={inpVal.username}
-                  onChange={(e) => inputHandler("username", e.target.value)}
+            <Input
+              value={inpVal.username}
+              onChange={(e) => inputHandler("username", e.target.value)}
+              size="large"
+              prefix={<User size={16} />}
+              placeholder="you@company.com or CRN"
+              disabled={isLoginBusy}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Password"
+            name="password"
+            style={forgotPassword === "0" ? { marginBottom: 6 } : undefined}
+            rules={[
+              {
+                required: true,
+                message: "Please input your password!",
+              },
+            ]}
+          >
+            <Input.Password
+              value={inpVal.password}
+              onChange={(e) => inputHandler("password", e.target.value)}
+              size="large"
+              prefix={<Lock size={16} />}
+              placeholder="Enter your password"
+              disabled={isLoginBusy}
+            />
+          </Form.Item>
+
+          {forgotPassword === "0" ? (
+            <>
+              <Flex justify="end" style={{ marginBottom: 16 }}>
+                <Button
+                  onClick={() => setShowForgotPassword(true)}
+                  type="link"
+                  className="auth-link-btn"
+                >
+                  Forgot password?
+                </Button>
+              </Flex>
+              <div className="auth-captcha">
+                <div className="auth-captcha-head">
+                  <span>Security check</span>
+                  <span>Click image to refresh</span>
+                </div>
+                <ImageCaptcha
+                  key={captchaKey}
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  onCodeChange={setExpectedCaptchaCode}
+                  placeholder="Enter letters shown"
                   size="large"
+                  inputStyle={{ width: "100%" }}
                   disabled={isLoginBusy}
                 />
+              </div>
+              <Form.Item style={{ marginBottom: 0 }}>
+                <Button
+                  disabled={isLoginBusy}
+                  block
+                  size="large"
+                  type="primary"
+                  htmlType="submit"
+                  loading={loading("submit")}
+                >
+                  Log In
+                </Button>
               </Form.Item>
+
+              <Divider plain className="auth-divider">
+                or continue with
+              </Divider>
+              <div className="auth-social">
+                {googleLoginLoading && <CircularProgress size={20} />}
+                {!loading("submit") && !googleLoginLoading && (
+                  <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                      handleLoginWithGoogle(credentialResponse);
+                    }}
+                    onError={() => {
+                      showToast("Google login failed", "error");
+                    }}
+                       use_fedcm_for_button
+                    shape="pill"
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <>
               <Form.Item
-                label="Password"
-                name="password"
+                label="Confirm Password"
+                name="confirmPassword"
                 rules={[
                   {
                     required: true,
@@ -300,132 +380,34 @@ const Login = () => {
                   value={inpVal.password}
                   onChange={(e) => inputHandler("password", e.target.value)}
                   size="large"
-                  disabled={isLoginBusy}
+                  prefix={<Lock size={16} />}
                 />
               </Form.Item>
+              <Form.Item>
+                <Button
+                  block
+                  size="large"
+                  type="primary"
+                  htmlType="button"
+                  disabled={!ispassSame}
+                  onClick={setThePassword}
+                >
+                  Reset Password
+                </Button>
+              </Form.Item>
 
-              {forgotPassword === "0" ? (
-                <>
-                  <div className="flex justify-center w-full">
-                    <ImageCaptcha
-                      key={captchaKey}
-                      value={captchaInput}
-                      onChange={(e) => setCaptchaInput(e.target.value)}
-                      onCodeChange={setExpectedCaptchaCode}
-                      placeholder="Enter letters above"
-                      disabled={isLoginBusy}
-                    />
-                    <Flex justify="end" style={{ marginTop: "12px" }}>
-                      <Button onClick={() => setShowForgotPassword(true)} type="link">
-                        Forgot Password?
-                      </Button>
-                    </Flex>
-                  </div>
-                  <Form.Item wrapperCol={{ offset: 0, span: 24 }}>
-                    <Button
-                      disabled={isLoginBusy}
-                      block
-                      size="large"
-                      type="primary"
-                      htmlType="submit"
-                      style={{ marginTop: "1em" }}
-                      loading={loading("submit")}
-                    >
-                      Log In
-                    </Button>
-                  </Form.Item>
-                  <div
-                    className="flex flex-col items-center justify-center w-full"
-                    style={{ marginTop: "0.5rem" }}
-                  >
-                    {googleLoginLoading && (
-                      <div className="flex justify-center items-center py-2">
-                        <CircularProgress size={20} />
-                      </div>
-                    )}
-                    {!loading("submit") && !googleLoginLoading && (
-                      <Typography
-                        style={{
-                         
-                          textAlign: "center",
-                          marginBottom: 8,
-                          fontWeight: "bold",
-                          border: "1px solid #ccc",
-                          borderRadius: "50%",
-                          backgroundColor: "#f0f0f0",
-                          width: "50px",
-                          height: "50px",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                        variant="subtitle2"
-                      >
-                        OR
-                      </Typography>
-                    )}
-                    <div className="flex justify-center items-center w-full">
-                      {!loading("submit") && !googleLoginLoading && (
-                        <GoogleLogin
-                          onSuccess={(credentialResponse) => {
-                            handleLoginWithGoogle(credentialResponse);
-                          }}
-                          use_fedcm_for_button
-                          onError={() => {
-                            showToast("Google login failed", "error");
-                          }}
-                          shape="circle"
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  <br />
-                </>
-              ) : (
-                <>
-                  <Form.Item
-                    label="Confirm Password"
-                    name="confirmPassword"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please input your password!",
-                      },
-                    ]}
-                  >
-                    <Input.Password
-                      value={inpVal.password}
-                      onChange={(e) => inputHandler("password", e.target.value)}
-                      size="large"
-                    />
-                  </Form.Item>
-                  <Form.Item wrapperCol={{ offset: 0, span: 24 }}>
-                    <Button
-                      block
-                      size="large"
-                      type="primary"
-                      htmlType="button"
-                      style={{ marginTop: "1em" }}
-                      disabled={!ispassSame}
-                      onClick={setThePassword}
-                    >
-                      Reset Password
-                    </Button>
-                  </Form.Item>
-
-                  <AntLink style={{ marginLeft: "8em" }} onClick={back}>
-                    Back to Log In
-                  </AntLink>
-                  <AntLink style={{ marginLeft: "1em" }} onClick={() => navigate("/signup")}>
-                    Create an Account
-                  </AntLink>
-                </>
-              )}
-            </Form>
-          </Box>
-        </Col>
-      </Row>
+              <Flex justify="space-between">
+                <AntLink className="auth-link" onClick={back}>
+                  Back to Log In
+                </AntLink>
+                <AntLink className="auth-link" onClick={() => navigate("/signup")}>
+                  Create an Account
+                </AntLink>
+              </Flex>
+            </>
+          )}
+        </Form>
+      </Box>
     </AuthShell>
   );
 };
