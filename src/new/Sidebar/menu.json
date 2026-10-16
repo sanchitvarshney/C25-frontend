@@ -143,6 +143,20 @@
                 "path": "/tally/vendor-bill-posting/vb-7",
                 "isShown": true
               },
+                {
+                "key": "D314566",
+                "label": "VBT8",
+                "icon": "ReceiptIcon",
+                "path": "/tally/vendor-bill-posting/vb-8",
+                "isShown": true
+              },
+              {
+                "key": "D3165677",
+                "label": "VBT9",
+                "icon": "ReceiptIcon",
+                "path": "/tally/vendor-bill-posting/vb-9",
+                "isShown": true
+              },
               {
                 "key": "D32",
                 "label": "VBT Records",
@@ -961,6 +975,13 @@
                     "label": "Manage DC",
                     "icon": "DescriptionIcon",
                     "path": "/warehouse/dc/manage",
+                    "isShown": true
+                  },
+                  {
+                    "key": "B342",
+                    "label": "Return DC",
+                    "icon": "DescriptionIcon",
+                    "path": "/warehouse/dc/return-report",
                     "isShown": true
                   }
                 ]

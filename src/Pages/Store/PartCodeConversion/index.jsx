@@ -437,6 +437,7 @@ const PartCodeConversion = () => {
               <Row gutter={6}>
                 <Col span={14}>
                   <Form.Item
+                    className="show-form-extra"
                     extra={
                       <Typography.Text
                         type="secondary"
@@ -508,6 +509,7 @@ const PartCodeConversion = () => {
               <Row gutter={6}>
                 <Col span={14}>
                   <Form.Item
+                    className="show-form-extra"
                     extra={
                       <Typography.Text
                         type="secondary"

@@ -44,7 +44,7 @@ const JwReturnModel = ({ show, close }) => {
   const [previewRows, setPreviewRows] = useState([]);
   const [vendor, setVendor] = useState("");
 
-  const { executeFun, loading: loading1 } = useApi();
+  const {  loading: loading1 } = useApi();
   const [form] = Form.useForm();
   const [uplaodForm] = Form.useForm();
   const sampleData = [
@@ -126,8 +126,8 @@ const JwReturnModel = ({ show, close }) => {
       });
 
       if (response.success) {
-        const { data, header } = response || {};
-        const headerValues = header;
+      
+        const headerValues = response.header;
         setVendor(headerValues?.vendor?.code);
         let headerArr = [];
         const headerObj = {
@@ -148,7 +148,7 @@ const JwReturnModel = ({ show, close }) => {
           });
         }
 
-        const componentArr = data.map((row) => ({
+        const componentArr = response.data.map((row) => ({
           id: v4(),
           component: row.component,
           componentKey: row.component_key,
@@ -263,20 +263,24 @@ const JwReturnModel = ({ show, close }) => {
     },
   };
   const callFileUpalod = async () => {
-    setPreview(true);
     const values = uplaodForm.getFieldsValue();
 
     const file = values.files[0].originFileObj;
     const formData = new FormData();
     formData.append("file", file);
-    const response = await executeFun(
-      () => uplaodFileInJWReturn(formData),
-      "fetch",
-    );
-    if (response?.data?.status == "success") {
+    setLoading("upload", true);
+    let response;
+    try {
+      response = await uplaodFileInJWReturn(formData);
+    } finally {
+      setLoading("upload", false);
+    }
+    setPreview(true);
+
+    if (response?.success) {
       let { data } = response;
 
-      const formattedHeaders = data.data.headers.map((header) =>
+      const formattedHeaders = data?.headers.map((header) =>
         header
           .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) =>
             index === 0 ? match.toUpperCase() : match.toLowerCase(),
@@ -285,7 +289,7 @@ const JwReturnModel = ({ show, close }) => {
       );
 
       // Map the row values to headers
-      const formattedRows = data.data.rows.map((row) => {
+      const formattedRows = data?.rows.map((row) => {
         let rowObject = {};
         formattedHeaders.forEach((header, index) => {
           rowObject[header] = row[index];
@@ -589,7 +593,7 @@ const JwReturnModel = ({ show, close }) => {
             key="submit"
             type="primary"
             onClick={callFileUpalod}
-            loading={loading1("fetch")}
+            loading={loading("upload")}
           >
             Preview
           </Button>,

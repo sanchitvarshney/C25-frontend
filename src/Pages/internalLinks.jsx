@@ -133,6 +133,18 @@ const links = [
       routePath: "/tally/vendor-bill-posting/vb-7",
       key: 6,
     },
+        {
+      routeName: "VBT8",
+      routePath: "/tally/vendor-bill-posting/vb-8",
+      key: 8,
+      placeholder: "Sales - Return",
+    },
+    {
+      routeName: "VBT9",
+      routePath: "/tally/vendor-bill-posting/vb-9",
+      key: 9,
+      placeholder: "FG - Purchase",
+    },
   ],
   // JV links
   [
@@ -620,6 +632,11 @@ const links = [
       routeName: "Manage",
       routePath: "/warehouse/dc/manage",
       key: "1",
+    },
+    {
+      routeName: "Return DC",
+      routePath: "/warehouse/dc/return-report",
+      key: "2",
     },
   ],
   // gatepass links
