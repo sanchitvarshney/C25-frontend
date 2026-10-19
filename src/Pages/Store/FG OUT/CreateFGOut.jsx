@@ -277,7 +277,6 @@ const compInputHandler = async (name, id, value) => {
       },
     ]);
     setIsValid(false);
-    showToast("Form Reset", "success");
   };
 
   const columns = [
