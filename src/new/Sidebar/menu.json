@@ -1501,7 +1501,7 @@
               },
               {
                 "key": "B413",
-                "label": "Reports R1 - R38",
+                "label": "Reports R1 - R39",
                 "icon": "DescriptionIcon",
                 "isHeading": true,
                 "children": [
@@ -1756,6 +1756,13 @@
                     "icon": "DescriptionIcon",
                     "path": "/fg-register-report",
                     "isShown": true
+                  },
+                     {
+                    "key": "B413-r39",
+                    "label": "R39",
+                    "icon": "DescriptionIcon",
+                    "path": "/r39",
+                    "isShown": true
                   }
                 ]
               }
@@ -1871,6 +1878,14 @@
                     "label": "Complete PPR",
                     "icon": "ScheduleIcon",
                     "path": "/production-and-plan/completed",
+                    "isShown": true
+                  },
+                 
+                  {
+                    "key": "C123",
+                    "label": "Request QTY",
+                    "icon": "ScheduleIcon",
+                    "path": "/production-and-plan/request-qty",
                     "isShown": true
                   }
                 ]

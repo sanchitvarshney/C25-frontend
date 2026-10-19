@@ -245,6 +245,15 @@ const RequestPo = () => {
       flex: 1,
     },
     {
+      headerName: "PPR No",
+      field: "ppr_no",
+      renderCell: ({ row }) => (
+        <ToolTipEllipses text={row.ppr_no} copy={true} />
+      ),
+      minWidth: 130,
+      flex: 1,
+    },
+    {
       headerName: "Requested By",
       field: "requested_by",
       renderCell: ({ row }) => <ToolTipEllipses text={row.requested_by} />,
@@ -334,11 +343,11 @@ const RequestPo = () => {
   };
 
   const validateAndSearch = () => {
-    if(!wise) {
+    if (!wise) {
       setIsValid(true);
       return;
     }
-    if (wise === "single_date_wise" && !searchDateRange ) {
+    if (wise === "single_date_wise" && !searchDateRange) {
       setIsValid(true);
       return;
     }
@@ -386,7 +395,13 @@ const RequestPo = () => {
         <Col>
           <Space>
             <div style={{ width: 150 }}>
-              <MySelect options={wiseOptions} onChange={setWise} value={wise} message="Please select wise" showError={isValid} />
+              <MySelect
+                options={wiseOptions}
+                onChange={setWise}
+                value={wise}
+                message="Please select wise"
+                showError={isValid}
+              />
             </div>
             <div style={{ width: 300 }}>
               {wise === "single_date_wise" ? (

@@ -174,14 +174,14 @@ const Manual = () => {
     let phyisalStock = [];
     let remarkArr = [];
 
-    addrow.map((a) => comName.push(a.comp));
+    addrow.map((a) => comName.push(a.comp?.key ?? a.comp));
     addrow.map((a) => existStock.push(a.eStick));
     addrow.map((a) => phyisalStock.push(a.phyStock));
     addrow.map((a) => remarkArr.push(a.rem));
 
     const response = await imsAxios.post("/audit/saveAudit", {
       branch: "BROAKTRC25",
-      component: comName,
+      component:comName,
       closing: existStock,
       audit: phyisalStock,
       remark: remarkArr,

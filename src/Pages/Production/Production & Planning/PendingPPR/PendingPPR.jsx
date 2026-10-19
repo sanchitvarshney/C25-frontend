@@ -18,6 +18,9 @@ import ExecutePPR from "./ExecutePPR";
 import ViewComponents from "./ViewComponents";
 import MyButton from "../../../../Components/MyButton";
 import Field from "../../../../Components/Field.jsx";
+import RaisePprQtyRequestModal from "../RaisePprQtyRequestModal.jsx";
+import PprQtyLogsModal from "../PprQtyLogsModal";
+
 
 const PendingPPR = () => {
   const { showToast } = useToast();
@@ -30,7 +33,9 @@ const PendingPPR = () => {
   const [searchInput, setSearchInput] = useState("");
   const [rows, setRows] = useState([]);
   const [wise, setWise] = useState("pprno");
+  const [showRaiseQty, setShowRaiseQty] = useState(null);
   const [isValid, setIsValid] = useState(false);
+   const [showQtyLogs, setShowQtyLogs] = useState(null); 
   const [asyncOptions, setAsyncOptions] = useState([]);
   const pprWiseOptions = [
     { text: "New", value: "new" },
@@ -155,6 +160,25 @@ const PendingPPR = () => {
               executedQty: row.totalConsumption,
               plannedQty: row.prod_planned_qty,
               remainingQty: row.consumptionRemaining,
+            });
+          }}
+        />,
+                   <TableActions
+           key={row.id || "raiseQty"}
+          showInMenu={true}
+          action="add"
+          label="Raise Qty Request"
+          onClick={() => setShowRaiseQty(row.prod_transaction)}
+        />,
+        <TableActions
+          key={row.id || "viewQtyLogs"}
+          showInMenu={true}
+          action="view"
+          label="View Qty Logs"
+          onClick={() => {
+            setShowQtyLogs({
+              ppr_no: row.prod_transaction,
+              project_id: row.prod_project,
             });
           }}
         />,
@@ -368,6 +392,16 @@ const PendingPPR = () => {
       <div style={{ height: "calc(100% - 40px)", marginTop: 10 }}>
         <MyDataTable columns={columns} data={rows} loading={searchLoading} />
       </div>
+              <RaisePprQtyRequestModal
+        open={!!showRaiseQty}
+        pprNo={showRaiseQty}
+        onClose={() => setShowRaiseQty(null)}
+      />
+           <PprQtyLogsModal
+        open={!!showQtyLogs}
+        onClose={() => setShowQtyLogs(null)}
+        initialFilters={showQtyLogs}
+      />
     </div>
   );
 };

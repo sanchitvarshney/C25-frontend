@@ -896,7 +896,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
                       <Form.Item label="Consumption Location">
                         <MySelect
                           options={[
-                            { text: "AL_CONS01", value: "1765454664276" },
+                            { text: "C25_Consumption", value: "1785153933381" },
                           ]}
                           value={consumpLoc}
                           onChange={(value) => setConsumpLoc(value)}
