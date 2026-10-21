@@ -53,7 +53,6 @@ export default function ItemAllLogs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
 
   // initializing search form
   const [searchForm] = Form.useForm();
@@ -118,7 +117,6 @@ export default function ItemAllLogs() {
       if (pagination) {
         setCurrentPage(pagination.currentPage ?? page);
         setTotalRecords(pagination.totalRecords ?? 0);
-        setTotalPages(pagination.totalPages ?? 0);
       }
       setSummaryData([
         { title: "Component", description: response.data.header.partName },
@@ -147,11 +145,12 @@ export default function ItemAllLogs() {
       return;
     } 
     setValidating(false);
+    const nextPage = size !== pageSize ? 1 : page;
     setPageSize(size);
-    getRows(values, page, size);
+    setCurrentPage(nextPage);
+    getRows(values, nextPage, size);
   };
 
-  // CHANGE: Added function to handle initial form submission
   const handleFormSubmit = (values) => {
       if (!values?.component) {
       setValidating(true);
@@ -160,7 +159,6 @@ export default function ItemAllLogs() {
     setValidating(false);
     setCurrentPage(1);
     setTotalRecords(0);
-    setTotalPages(0);
     getRows(values, 1, pageSize);
   };
   const handleCancelRequest = async () => {
@@ -440,7 +438,7 @@ export default function ItemAllLogs() {
               <Pagination
                 current={currentPage}
                 pageSize={pageSize}
-                total={totalPages}
+                total={totalRecords}
                 showSizeChanger
                 pageSizeOptions={[25, 50, 100]}
                 showTotal={(total, range) =>
