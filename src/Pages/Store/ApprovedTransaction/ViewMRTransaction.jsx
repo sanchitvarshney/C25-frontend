@@ -3,7 +3,6 @@ import { Col, Row, Table, Typography } from "antd";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../axiosInterceptor";
-import Loading from "../../../Components/Loading";
 
 export default function ViewMRTransaction({ viewTransaction }) {
   const [details, setDetails] = useState([]);
@@ -102,9 +101,9 @@ export default function ViewMRTransaction({ viewTransaction }) {
   }, [viewTransaction]);
   return (
     <div style={{ height: "100%" }}>
-      {pageLoading && <Loading />}
       <Table
         bordered={true}
+        loading={pageLoading}
         columns={columns}
         showSorterTooltip={false}
         expandable={{
