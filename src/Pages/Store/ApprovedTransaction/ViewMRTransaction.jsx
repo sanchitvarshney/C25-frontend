@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Col, Row, Table, Typography } from "antd";
-import validateResponse from "../../../Components/validateResponse";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../axiosInterceptor";
@@ -12,20 +11,24 @@ export default function ViewMRTransaction({ viewTransaction }) {
   const getDetails = async () => {
     setPageLoading(true);
     setDetails([]);
-    const response = await imsAxios.post(
-      "/transaction/fetchAllComponentStatus",
-      {
-        transactionid: viewTransaction,
-      }
-    );
-    setPageLoading(false);
-    const validatedData = validateResponse(response?.data);
-    let arr = validatedData.data.map((row, index) => ({
-      ...row,
-      index: index + 1,
-      key: v4(),
-    }));
-    setDetails(arr);
+    try {
+      const response = await imsAxios.post(
+        "/transaction/fetchAllComponentStatus",
+        {
+          transactionid: viewTransaction,
+        }
+      );
+      const rows = response?.success ? response.data : [];
+      setDetails(
+        (rows || []).map((row, index) => ({
+          ...row,
+          index: index + 1,
+          key: v4(),
+        }))
+      );
+    } finally {
+      setPageLoading(false);
+    }
   };
   const nestedDetails = (record) => {
     return (
