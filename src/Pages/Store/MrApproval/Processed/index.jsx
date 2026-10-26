@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Col, Form, Row } from "antd";
+import { Col, Form, Modal, Row } from "antd";
 import useLoading from "../../../../hooks/useLoading";
 import MyAsyncSelect from "../../../../Components/MyAsyncSelect";
 import { imsAxios } from "../../../../axiosInterceptor";
@@ -160,25 +160,16 @@ const ProccessedMrRequest = () => {
       <Col span={24} style={{ height: "calc(100% - 60px)", overflowY: "auto" }}>
         <MyDataTable data={rows} columns={[actionColumn, ...columns]} />
       </Col>
-      {showDetails && (
-        <Col span={10} style={{ height: "100%", overflowY: "hidden" }}>
-          <Card
-            size="small"
-            title={`Request: ${showDetails}`}
-            style={{ height: "100%" }}
-            extra={
-              <MyButton
-                variant="clear"
-                text="Close"
-                onClick={() => setShowDetails(null)}
-              />
-            }
-            bodyStyle={{ height: "95%", overflow: "hidden" }}
-          >
-            <ViewMRTransaction viewTransaction={showDetails} />
-          </Card>
-        </Col>
-      )}
+      <Modal
+        open={!!showDetails}
+        title={`Request: ${showDetails}`}
+        width={800}
+        footer={null}
+        destroyOnClose
+        onCancel={() => setShowDetails(null)}
+      >
+        {showDetails && <ViewMRTransaction viewTransaction={showDetails} />}
+      </Modal>
     </Row>
   );
 };
