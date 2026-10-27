@@ -19,6 +19,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { RiProhibitedLine } from "react-icons/ri";
 import Field from "../../../../Components/Field.jsx";
+import { getCurrentIndianFinancialYearSession } from "../../../../utils/indianFinancialYear";
 
 const VBT_ROUTE_TO_API_URL = {
   "vb-1": "vbt01",
@@ -45,7 +46,7 @@ const hasDisableWorkflow = (apiUrl) =>
 const VBTMainTable = ({ editVbtDrawer }) => {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -306,7 +307,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   }, [selectedRows, vbtData]);
 
   useEffect(() => {
-    setSearchInput(wise === "min_wise" ? "" : null);
+    setSearchInput(wise === "min_wise" ? `MIN/C25/${getCurrentIndianFinancialYearSession()}/` : null);
     setVBTData([]);
     setPreviewdisData(false);
     setIsValid(false);

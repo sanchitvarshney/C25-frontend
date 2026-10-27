@@ -238,24 +238,6 @@ function SingleComponent({
     showGlWarning();
   }, [gloptions]);
 
-  // Auto-select the TDS code when the vendor has exactly one (ignoring the
-  // "--" placeholder option). Not for the FG screens (vbt08 / vbt09).
-  useEffect(() => {
-    if (isFg || !Array.isArray(tdsArray)) return;
-    const realOptions = tdsArray.filter((r) => r?.value !== "--");
-    if (realOptions.length !== 1) return;
-    const only = realOptions[0];
-    if (only?.value == null && only?.text == null) return;
-    const current = form.getFieldValue(["components", field.name, "tdsName"]);
-    if (current?.value != null && String(current.value) === String(only.value)) {
-      return;
-    }
-    form.setFieldValue(["components", field.name, "tdsName"], {
-      label: only.text,
-      value: only.value,
-    });
-  }, [tdsArray, field.name, form, isFg]);
-
   const showRateWarning = () => {
     const partCode = form.getFieldValue(["components", field.name, "partCode"]);
     const lastRateFoundObj = lastRateArr?.find((row) => row.partCode === partCode);

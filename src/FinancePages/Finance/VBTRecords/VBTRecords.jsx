@@ -14,7 +14,7 @@ import useApi from "../../../hooks/useApi.ts";
 import { getCurrentIndianFinancialYearSession } from "../../../utils/indianFinancialYear";
 
 function vbtMinSearchPrefix(sessionCode) {
-  return `MIN/${sessionCode}/`;
+  return `MIN/C25/${sessionCode}/`;
 }
 
 function VBTRecords() {

@@ -119,6 +119,11 @@ const TransactionIn = () => {
       width: 150,
       renderCell: ({ row }) => <ToolTipEllipses text={row.INVOICENUMBER} />,
     },
+    {
+      headerName:"HSN Code",
+      field:"HSNCODE",
+      width:150,
+    },
     { headerName: "Transaction Id", field: "TRANSACTION", width: 150 },
     { headerName: "Document Date", field: "DOC_DATE", width: 150 },
     { headerName: "Cost Center", field: "COSTCENTER", width: 150 },
