@@ -43,10 +43,13 @@ const wiseOptions = [
 const hasDisableWorkflow = (apiUrl) =>
   ["vbt01", "vbt06", "vbt08", "vbt09"].includes(apiUrl);
 
+const getTxnPrefix = (apiUrl) =>
+  `${["vbt08", "vbt09"].includes(apiUrl) ? "FGIN" : "MIN"}/C25/${getCurrentIndianFinancialYearSession()}/`;
+
 const VBTMainTable = ({ editVbtDrawer }) => {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
-  const [searchInput, setSearchInput] = useState(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
+  const [searchInput, setSearchInput] = useState(getTxnPrefix(""));
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -307,11 +310,11 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   }, [selectedRows, vbtData]);
 
   useEffect(() => {
-    setSearchInput(wise === "min_wise" ? `MIN/C25/${getCurrentIndianFinancialYearSession()}/` : null);
+    setSearchInput(wise === "min_wise" ? getTxnPrefix(apiUrl) : null);
     setVBTData([]);
     setPreviewdisData(false);
     setIsValid(false);
-  }, [wise]);
+  }, [wise, apiUrl]);
 
   useEffect(() => {
     setVBTData(previewdisData ? combinedData : extracted);

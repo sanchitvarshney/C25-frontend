@@ -21,6 +21,15 @@ const VBT_OPTIONS = [
 const decodeGroupLabel = (label) =>
   label.replaceAll("&amp;", " & ").replaceAll("amp;", "");
 
+const parseResponse = (response) => {
+  const body = response?.success !== undefined ? response : response?.data;
+  return {
+    ok: Boolean(body?.success) || body?.code == 200,
+    data: body?.data,
+    message: body?.message?.msg || body?.message,
+  };
+};
+
 export default function MapVBTModal({ mapVBT, setMapVBT }) {
   const { showToast } = useToast();
   const [selectedVBT, setSelectedVBT] = useState();
@@ -38,12 +47,14 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
   const getGroups = async () => {
     if (selectedVBT) {
       setFetchLoading(true);
-      const response = await imsAxios.post("/tally/vbt/fetch_vbt_group", {
-        vbt_key: selectedVBT,
-      });
+      const response = parseResponse(
+        await imsAxios.post("/tally/vbt/fetch_vbt_group", {
+          vbt_key: selectedVBT,
+        }),
+      );
       setFetchLoading(false);
-      if (response.success) {
-        const arr = response.data.vbt_group_key.map((row) => ({
+      if (response.ok) {
+        const arr = (response.data?.vbt_group_key ?? []).map((row) => ({
           value: row.code,
           label: decodeGroupLabel(row.label),
         }));
@@ -55,12 +66,14 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
   };
   const getGSTGlGroups = async () => {
     setFetchLoading(true);
-    const response = await imsAxios.post("/tally/vbt/fetch_vbt_group", {
-      vbt_key: "gst",
-    });
+    const response = parseResponse(
+      await imsAxios.post("/tally/vbt/fetch_vbt_group", {
+        vbt_key: "gst",
+      }),
+    );
     setFetchLoading(false);
-    if (response.success) {
-      const arr = response.data.vbt_group_key.map((row) => ({
+    if (response.ok) {
+      const arr = (response.data?.vbt_group_key ?? []).map((row) => ({
         value: row.code,
         label: decodeGroupLabel(row.label),
       }));
@@ -71,11 +84,13 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
   };
   const searchGroups = async (search) => {
     setGroupSelectLoading(true);
-    const response = await imsAxios.post("/tally/getSubgroup", {
-      search: search,
-    });
+    const response = parseResponse(
+      await imsAxios.post("/tally/getSubgroup", {
+        search: search,
+      }),
+    );
     setGroupSelectLoading(false);
-    if (response.success) {
+    if (response.ok && Array.isArray(response.data)) {
       setGroupSearchOptions(
         response.data.map((row) => ({ text: row.label, value: row.id })),
       );
@@ -85,11 +100,13 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
   };
   const searchGstGlGroups = async (search) => {
     setGstGlSelectLoading(true);
-    const response = await imsAxios.post("/tally/getSubgroup", {
-      search: search,
-    });
+    const response = parseResponse(
+      await imsAxios.post("/tally/getSubgroup", {
+        search: search,
+      }),
+    );
     setGstGlSelectLoading(false);
-    if (response.success) {
+    if (response.ok && Array.isArray(response.data)) {
       setGstGlSearchOptions(
         response.data.map((row) => ({ text: row.label, value: row.id })),
       );
@@ -100,31 +117,35 @@ export default function MapVBTModal({ mapVBT, setMapVBT }) {
   const submitGSTGlFunction = async () => {
     const selGroups = gstGlGroups.map((group) => group.value);
     setGstSubmitLoading(true);
-    const response = await imsAxios.post("/tally/vbt/update_vbt_group_module", {
-      vbt_module: "gst",
-      sub_groups: selGroups,
-    });
+    const response = parseResponse(
+      await imsAxios.post("/tally/vbt/update_vbt_group_module", {
+        vbt_module: "gst",
+        sub_groups: selGroups,
+      }),
+    );
     setGstSubmitLoading(false);
-    if (response.success) {
-      showToast(response.message, "success");
+    if (response.ok) {
+      showToast(response.message || "VBT Updated", "success");
       setMapVBT(null);
     } else {
-      showToast(response.message?.msg || response.message, "error");
+      showToast(response.message || "Something went wrong", "error");
     }
   };
   const submitFunction = async () => {
     const selGroups = groups.map((group) => group.value);
     setLoading(true);
-    const response = await imsAxios.post("/tally/vbt/update_vbt_group_module", {
-      vbt_module: selectedVBT,
-      sub_groups: selGroups,
-    });
+    const response = parseResponse(
+      await imsAxios.post("/tally/vbt/update_vbt_group_module", {
+        vbt_module: selectedVBT,
+        sub_groups: selGroups,
+      }),
+    );
     setLoading(false);
-    if (response.success) {
-      showToast(response.message, "success");
+    if (response.ok) {
+      showToast(response.message || "VBT Updated", "success");
       setMapVBT(null);
     } else {
-      showToast(response.message?.msg || response.message, "error");
+      showToast(response.message || "Something went wrong", "error");
     }
   };
   useEffect(() => {

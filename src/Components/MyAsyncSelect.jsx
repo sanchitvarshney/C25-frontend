@@ -34,21 +34,16 @@ const MyAsyncSelect = forwardRef(function MyAsyncSelect(
     }
   }, [updatedValue]);
 
-  // Normalize value for labelInValue mode
   const normalizedValue = labelInValue
-    ? value && typeof value === "object" && value.value !== undefined
+    ? Array.isArray(value) ||
+      (value && typeof value === "object" && value.value !== undefined)
       ? value
-      : value === "" || value === null || value === undefined
-        ? undefined
-        : undefined
+      : undefined
     : value;
 
-  const isEmpty =
-    !normalizedValue ||
-    normalizedValue === undefined ||
-    normalizedValue === null ||
-    normalizedValue === "" ||
-    !normalizedValue?.value;
+  const isEmpty = Array.isArray(normalizedValue)
+    ? normalizedValue.length === 0
+    : !normalizedValue || !normalizedValue?.value;
   const showValidation = showError && isEmpty;
 
   return (
