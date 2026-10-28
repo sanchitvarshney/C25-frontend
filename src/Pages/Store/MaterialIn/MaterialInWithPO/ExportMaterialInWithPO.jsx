@@ -1868,6 +1868,7 @@ export default function ExportMaterialInWithPO() {
               ref={tableContainerRef}
               style={{
                 height: "100%",
+                maxHeight: "calc(100vh - 214px)",
                 position: "relative",
                 overflow: "hidden",
                 display: "flex",

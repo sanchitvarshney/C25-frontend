@@ -1,14 +1,78 @@
 import { useState, useEffect } from "react";
-import { Col, Row, Input } from "antd";
+import {
+  Col,
+  Row,
+  Input,
+  Card,
+  Button,
+  Divider,
+  Tooltip,
+  Typography,
+} from "antd";
+import {
+  EnvironmentOutlined,
+  FileExcelOutlined,
+  ProjectOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import MySelect from "../../../Components/MySelect";
 import NavFooter from "../../../Components/NavFooter";
 import { imsAxios } from "../../../axiosInterceptor";
 import { useToast } from "../../../hooks/useToast.js";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
-import { getComponentOptions } from "../../../api/general.ts";
+import {
+  getComponentOptions,
+  getProjectOptions,
+} from "../../../api/general.ts";
+import { convertSelectOptions } from "../../../utils/general.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { Add, Delete } from "@mui/icons-material";
 import Field from "../../../Components/Field.jsx";
+import BulkSfToRejTransferDrawer from "./BulkSfToRejTransferDrawer";
+
+const emptyRow = () => ({
+  componentName: "",
+  qty: "",
+  restDetail: {},
+  comment: "",
+  project: "",
+});
+
+const infoBoxStyle = {
+  background: "#fafafa",
+  border: "1px dashed #d9d9d9",
+  borderRadius: 6,
+  padding: "6px 10px",
+  minHeight: 34,
+  display: "flex",
+  alignItems: "center",
+};
+
+const SectionTitle = ({ icon, title }) => (
+  <div style={{ marginBottom: 4 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <Typography.Text strong style={{ fontSize: 14 }}>
+        <span style={{ marginRight: 6 }}>{icon}</span>
+        {title}
+      </Typography.Text>
+    
+    </div>
+  
+  </div>
+);
+
+const FieldLabel = ({ children, required, style }) => (
+  <Typography.Text style={{ fontSize: 12, fontWeight: 500, ...style }}>
+    {required && <span style={{ color: "#ff4d4f", marginRight: 2 }}>*</span>}
+    {children}
+  </Typography.Text>
+);
 
 function MaterialTransfer({ type }) {
   const { showToast } = useToast();
@@ -18,28 +82,71 @@ function MaterialTransfer({ type }) {
 
   const [allData, setAllData] = useState({
     locationSel: "",
+    dropLoc: "",
+    pprId: "",
   });
   const { executeFun, loading: loading1 } = useApi();
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [locationData, setLocationData] = useState([]);
 
   const [locDetail, setLocDetail] = useState("");
+  const [locDetailTo, setLocDetailTo] = useState("");
   const [locRejDetail, setLocRejDetail] = useState("");
 
-  const [rows, setRows] = useState([
-    {
-      componentName: "",
-      qty: "",
-      rejLoc: "",
-      restDetail: {},
-      address: "",
-      comment: "",
-    },
-  ]);
+  const [project, setProject] = useState(null);
+  const [projectAsyncOptions, setProjectAsyncOptions] = useState([]);
+  const [pprOptions, setPprOptions] = useState([]);
+  const [isPPRLoading, setIsPPRLoading] = useState(false);
+
+  const [rows, setRows] = useState([emptyRow()]);
 
   const [loading, setLoading] = useState(false);
+  const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
+  const isSfToRej = type == "sftorej";
+
+  const handleFetchProjectOptions = async (search) => {
+    const response = await executeFun(
+      () => getProjectOptions(search),
+      "project",
+    );
+    setProjectAsyncOptions(response?.data ?? []);
+  };
+
+  const fetchPPROptions = async (projectName) => {
+    if (!projectName) {
+      setPprOptions([]);
+      return;
+    }
+    setIsPPRLoading(true);
+    try {
+      const response = await imsAxios.post("/purchaseOrder/pprList", {
+        project_name: projectName,
+      });
+      if (response?.success) {
+        setPprOptions(convertSelectOptions(response?.data) ?? []);
+      } else {
+        setPprOptions([]);
+      }
+    } catch (error) {
+      setPprOptions([]);
+      showToast("Error fetching PPR options", "error");
+    } finally {
+      setIsPPRLoading(false);
+    }
+  };
+
+  const handleProjectChange = (value) => {
+    setProject(value ?? null);
+    setAllData((prev) => ({ ...prev, pprId: "" }));
+    fetchPPROptions(typeof value === "object" ? value?.value : value);
+  };
+
+  const resolveProjectId = () => {
+    if (project == null || project === "") return "";
+    return typeof project === "object" ? (project?.value ?? "") : project;
+  };
 
   const getLocation = async () => {
     let link = "";
@@ -63,7 +170,6 @@ function MaterialTransfer({ type }) {
 
   const getComponent = async (e) => {
     if (e?.length > 2) {
-   
       const response = await executeFun(() => getComponentOptions(e), "select");
       const { data } = response;
       let arr = [];
@@ -85,7 +191,11 @@ function MaterialTransfer({ type }) {
     });
     setRows((prev) => {
       const updated = [...prev];
-      updated[rowIndex] = { ...updated[rowIndex], restDetail: response.data };
+      updated[rowIndex] = {
+        ...updated[rowIndex],
+        restDetail: response.data,
+        project: response.data?.project ?? "",
+      };
       return updated;
     });
   };
@@ -106,18 +216,11 @@ function MaterialTransfer({ type }) {
     }
   };
 
-  const getRowDropLocationDetail = async (rowIndex, rejLocValue) => {
-    const row = rows[rowIndex];
-    const rejLoc = rejLocValue ?? row?.rejLoc;
-    if (!rejLoc) return;
+  const getLocationDetailTo = async () => {
     const response = await imsAxios.post("/godown/fetchLocationDetail_to", {
-      location_key: rejLoc,
+      location_key: allData.dropLoc,
     });
-    setRows((prev) => {
-      const updated = [...prev];
-      updated[rowIndex] = { ...updated[rowIndex], address: response.data };
-      return updated;
-    });
+    setLocDetailTo(response.data);
   };
 
   const hasIncompleteRow = (rows) =>
@@ -126,28 +229,28 @@ function MaterialTransfer({ type }) {
         !r.componentName ||
         !r.qty ||
         Number(r.qty) <= 0 ||
-        !r.rejLoc ||
         !r.comment ||
-        !r.restDetail?.avr_rate
+        !r.restDetail?.avr_rate,
     );
 
   const submitHandler = async () => {
     // validations
-    if (!allData?.locationSel || hasIncompleteRow(rows)) {
+    if (!allData?.locationSel || !allData?.dropLoc || hasIncompleteRow(rows)) {
       setIsValid(true);
-     
+
       return;
     }
 
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      if (r.rejLoc == allData.locationSel)
-        return showToast(`Row ${i + 1}: Both Location Same`, "error");
+    if (allData.dropLoc == allData.locationSel) {
+      return showToast("Pick and Drop location cannot be the same", "error");
     }
     setIsValid(false);
 
-    const components = rows.map((r) => r.componentName?.value ?? r.componentName);
-    const tolocations = rows.map((r) => r.rejLoc);
+    const components = rows.map(
+      (r) => r.componentName?.value ?? r.componentName,
+    );
+    // one drop location for the whole transfer; backend still expects it per row
+    const tolocations = rows.map(() => allData.dropLoc);
     const qtys = rows.map((r) => r.qty);
     const comments = rows.map((r) => r.comment || "");
     const rates = rows.map((r) => r.restDetail?.avr_rate || "");
@@ -162,28 +265,21 @@ function MaterialTransfer({ type }) {
         tolocation: tolocations,
         qty: qtys,
         type: type == "sftorej" ? "SF2REJ" : "SF2SF",
-         rate: rates,
+        rate: rates,
+        ...(isSfToRej && {
+          project_id: resolveProjectId() || null,
+          ppr_id: allData.pprId || null,
+          projectsIds: rows.map(
+            (r) => r.restDetail?.project ?? r.project ?? "",
+          ),
+        }),
       },
     );
 
     if (response.success) {
-      setIsValid(false);
-      setAllData({
-        locationSel: "",
-      });
-      setRows([
-        {
-          componentName: "",
-          qty: "",
-          rejLoc: "",
-          restDetail: {},
-          address: "",
-          comment: "",
-        },
-      ]);
-      setLocDetail("");
+      reset();
       setLoading(false);
-      showToast(response.message?.[0]?.msg || response.message , "success");
+      showToast(response.message?.[0]?.msg || response.message, "success");
     } else if (!response.success) {
       showToast(response.message?.[0]?.msg || response.message, "error");
       setLoading(false);
@@ -194,33 +290,31 @@ function MaterialTransfer({ type }) {
     setIsValid(false);
     setAllData({
       locationSel: "",
+      dropLoc: "",
+      pprId: "",
     });
-    setRows([
-      {
-        componentName: "",
-        qty: "",
-        rejLoc: "",
-        restDetail: {},
-        address: "",
-        comment: "",
-      },
-    ]);
+    setLocDetail("");
+    setLocDetailTo("");
+    setProject(null);
+    setPprOptions([]);
+    setRows([emptyRow()]);
   };
 
   const addRow = () => {
-    setRows((prev) => [
-      {
-        componentName: "",
-        qty: "",
-        rejLoc: "",
-        restDetail: {},
-        address: "",
-        comment: "",
-      },
-      ...prev,
-    ]);
+    setRows((prev) => [emptyRow(), ...prev]);
   };
 
+  const openBulkDrawer = () => {
+    if (!allData.locationSel) {
+      showToast("Please select a Pick Location first", "error");
+      return;
+    }
+    if (!allData.dropLoc) {
+      showToast("Please select a Drop Location first", "error");
+      return;
+    }
+    setBulkDrawerOpen(true);
+  };
 
   const removeRow = (index) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
@@ -237,6 +331,12 @@ function MaterialTransfer({ type }) {
     }
   }, [allData.locationSel]);
 
+  useEffect(() => {
+    if (allData.dropLoc) {
+      getLocationDetailTo();
+    }
+  }, [allData.dropLoc]);
+
   // when pick location changes, refresh each row's stock detail (if component selected)
   useEffect(() => {
     if (allData?.locationSel) {
@@ -247,41 +347,160 @@ function MaterialTransfer({ type }) {
   return (
     <div style={{ height: "calc(100vh - 160px)", padding: 10 }}>
       <Row gutter={10}>
-        <Col span={12}>
-      
-            <Row>
-              <Col span={12} style={{ padding: "5px", display: "flex", gap: 5, alignItems: "center" }}>
-                <span style={{ fontWeight: "bold", minWidth: "100px" }}>Pick Location</span>
-                <MySelect
-                  options={locationData}
-                  placeholder="Check Location"
-                  value={allData.locationSel}
-                  onChange={(e) =>
-                    setAllData((allData) => {
-                      return { ...allData, locationSel: e };
-                    })
-                  }
-                  showError={isValid}
-                  message="Please select a Pick Location"
+        <Col span={8}>
+          <Card
+            size="small"
+            style={{ height: "calc(100vh - 190px)", overflowY: "auto" }}
+            styles={{
+              body: { display: "flex", flexDirection: "column", gap: 4 },
+            }}
+          >
+        
+            <SectionTitle
+              icon={<EnvironmentOutlined />}
+              title="Pick Location"
+            />
+            <FieldLabel required>Location</FieldLabel>
+            <MySelect
+              options={locationData}
+              placeholder="Select pick location"
+              value={allData.locationSel || undefined}
+              onChange={(e) => {
+                setAllData((prev) => ({ ...prev, locationSel: e ?? "" }));
+                setLocDetail("");
+              }}
+              showError={isValid}
+              message="Please select a Pick Location"
+            />
+            <div style={infoBoxStyle}>
+              {locDetail ? (
+                <Typography.Text style={{ fontSize: 13 }}>
+                  {locDetail}
+                </Typography.Text>
+              ) : (
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Location address will appear here
+                </Typography.Text>
+              )}
+            </div>
+
+            <Divider style={{ margin: "12px 0 8px" }} />
+            <SectionTitle icon={<EnvironmentOutlined />} title="Drop Location" />
+            <FieldLabel required>Location</FieldLabel>
+            <MySelect
+              options={locRejDetail}
+              placeholder="Select drop location"
+              value={allData.dropLoc || undefined}
+              onChange={(e) => {
+                setAllData((prev) => ({ ...prev, dropLoc: e ?? "" }));
+                setLocDetailTo("");
+              }}
+              showError={isValid}
+              message="Please select a Drop Location"
+            />
+            <div style={infoBoxStyle}>
+              {locDetailTo ? (
+                <Typography.Text style={{ fontSize: 13 }}>
+                  {locDetailTo}
+                </Typography.Text>
+              ) : (
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Location address will appear here
+                </Typography.Text>
+              )}
+            </div>
+
+            {isSfToRej && (
+              <>
+                <Divider style={{ margin: "12px 0 8px" }} />
+                <SectionTitle
+                  icon={<ProjectOutlined />}
+                  title="Project & PPR"
+                
                 />
-              </Col>
-              <Col span={12} style={{ padding: "5px" }}>
-                <Input disabled value={locDetail} />
-              </Col>
-            </Row>
-      
+                <FieldLabel>Project</FieldLabel>
+                <MyAsyncSelect
+                  loadOptions={handleFetchProjectOptions}
+                  optionsState={projectAsyncOptions}
+                  onBlur={() => setProjectAsyncOptions([])}
+                  selectLoading={loading1("project")}
+                  placeholder="Search project ID / name"
+                  labelInValue
+                  value={project}
+                  onChange={handleProjectChange}
+                />
+                <FieldLabel style={{ marginTop: 6 }}>PPR</FieldLabel>
+                <Tooltip
+                  title={resolveProjectId() ? "" : "Select a project first"}
+                >
+                  <div>
+                    <MySelect
+                      options={pprOptions}
+                      selectLoading={isPPRLoading}
+                      disabled={!resolveProjectId()}
+                      placeholder={
+                        resolveProjectId()
+                          ? pprOptions.length || isPPRLoading
+                            ? "Select PPR"
+                            : "No PPR found for this project"
+                          : "Select project first"
+                      }
+                      value={allData.pprId || undefined}
+                      onChange={(value) =>
+                        setAllData((prev) => ({ ...prev, pprId: value ?? "" }))
+                      }
+                    />
+                  </div>
+                </Tooltip>
+              </>
+            )}
+
+            {/* bulk upload */}
+            {type == "sftorej" && (
+              <>
+                <Divider style={{ margin: "12px 0 8px" }} />
+                <SectionTitle
+                  icon={<FileExcelOutlined />}
+                  title="Bulk Upload"
+                  hint=""
+                />
+                <Tooltip
+                  title={
+                    !allData.locationSel
+                      ? "Select a pick location first"
+                      : !allData.dropLoc
+                        ? "Select a drop location first"
+                        : ""
+                  }
+                >
+                  <Button
+                    block
+                    icon={<UploadOutlined />}
+                    onClick={openBulkDrawer}
+                    disabled={!allData.locationSel || !allData.dropLoc}
+                  >
+                    Bulk Upload
+                  </Button>
+                </Tooltip>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Upload a CSV / Excel file, review the rows and transfer them
+                  in one go.
+                </Typography.Text>
+              </>
+            )}
+          </Card>
         </Col>
-        <Col span={24} style={{ height: "50vh" }}>
+        <Col span={16} style={{ height: "50vh" }}>
           <div
             style={{ marginTop: "10px", border: "1px solid #ccc", padding: 0 }}
           >
             <div
               style={{
                 overflowY: "auto",
-                height: "calc(100vh - 250px)",
+                height: "calc(100vh - 205px)",
               }}
             >
-              <table style={{ minWidth: 1500 }}>
+              <table style={{ minWidth: 1000, width: "100%" }}>
                 <thead style={{ backgroundColor: "grey", color: "white" }}>
                   <tr>
                     <th className="table-col" style={{ width: "10vw" }}>
@@ -296,14 +515,8 @@ function MaterialTransfer({ type }) {
                     <th className="table-col" style={{ width: "14vw" }}>
                       Transfer Qty
                     </th>
-                    <th className="table-col" style={{ width: "18vw" }}>
-                      DROP (+) Loc
-                    </th>
                     <th className="table-col" style={{ width: "20vw" }}>
                       Weighted Average Rate
-                    </th>
-                    <th className="table-col" style={{ width: "24vw" }}>
-                      Address
                     </th>
                     <th className="table-col" style={{ width: "24vw" }}>
                       Comment
@@ -334,16 +547,15 @@ function MaterialTransfer({ type }) {
                           )}
                         </td>
                         <td style={{ width: "20vw" }}>
-                       
-                            <MyAsyncSelect
-                              loadOptions={getComponent}
-                              optionsState={asyncOptions}
-                              selectLoading={loading1("select")}
-                              labelInValue
-                              message="Please select a Component"
-                              showError={isValid}
-                              value={r.componentName}
-      onChange={async (e) => {
+                          <MyAsyncSelect
+                            loadOptions={getComponent}
+                            optionsState={asyncOptions}
+                            selectLoading={loading1("select")}
+                            labelInValue
+                            message="Please select a Component"
+                            showError={isValid}
+                            value={r.componentName}
+                            onChange={async (e) => {
                               setRows((prev) => {
                                 const updated = [...prev];
                                 updated[idx] = {
@@ -354,7 +566,7 @@ function MaterialTransfer({ type }) {
                               });
                               await getRowComponentDetail(idx, e);
                             }}
-                            />
+                          />
                         </td>
                         <td style={{ textAlign: "center", width: "14vw" }}>
                           <paragraph>
@@ -383,25 +595,6 @@ function MaterialTransfer({ type }) {
                             <Input type="number" />
                           </Field>
                         </td>
-                        <td style={{ width: "18vw" }}>
-                       
-                            <MySelect
-                              options={locRejDetail}
-                              placeholder="Check Location"
-                              message="Please select a location"
-                              showError={isValid}
-                              value={r.rejLoc}
-                               onChange={async (e) => {
-                              setRows((prev) => {
-                                const updated = [...prev];
-                                updated[idx] = { ...updated[idx], rejLoc: e };
-                                return updated;
-                              });
-                              await getRowDropLocationDetail(idx, e);
-                            }}
-                            />
-                    
-                        </td>
                         <td style={{ width: "14vw" }}>
                           <Field
                             attr="required | Rate not available"
@@ -411,13 +604,6 @@ function MaterialTransfer({ type }) {
                           >
                             <Input disabled value={r?.restDetail?.avr_rate} />
                           </Field>
-                        </td>
-                        <td style={{ width: "24vw" }}>
-                          <Input
-                            disabled
-                            value={r.address}
-                            style={{ resize: "none" }}
-                          />
                         </td>
                         <td style={{ width: "24vw" }}>
                           <Field
@@ -453,6 +639,17 @@ function MaterialTransfer({ type }) {
         loading={loading}
         resetFunction={reset}
       />
+      {isSfToRej && (
+        <BulkSfToRejTransferDrawer
+          open={bulkDrawerOpen}
+          onClose={() => setBulkDrawerOpen(false)}
+          pickLocation={allData.locationSel}
+          dropLocation={allData.dropLoc}
+          projectId={resolveProjectId() || null}
+          pprId={allData.pprId || null}
+          onTransferSuccess={reset}
+        />
+      )}
     </div>
   );
 }

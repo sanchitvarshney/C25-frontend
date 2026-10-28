@@ -56,7 +56,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
   // const [isScan, setIsScan] = useState(false);
   const [modalForm] = Form.useForm();
   const [challanDate, setChallanDate] = useState(null);
-  const [consumpLoc, setConsumpLoc] = useState("20211028124102");
+  const [consumpLoc, setConsumpLoc] = useState("1785153933381");
   const [isValid, setIsValid] = useState(false);
   // const fileComponents = Form.useWatch("fileComponents", modalForm);
   const [uplaoaClicked, setUploadClicked] = useState(false);
@@ -896,7 +896,7 @@ export default function JwRmConsumptionModal({ editModal, setEditModal }) {
                       <Form.Item label="Consumption Location">
                         <MySelect
                           options={[
-                            { text: "AL_CONS01", value: "1765454664276" },
+                            { text: "C25_Consumption", value: "1785153933381" },
                           ]}
                           value={consumpLoc}
                           onChange={(value) => setConsumpLoc(value)}

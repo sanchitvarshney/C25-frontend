@@ -2,16 +2,14 @@ import  { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Box } from "@mui/material";
-import { Row, Col, Typography, Input, Button, Alert } from "antd";
-import { ArrowLeftOutlined, SafetyOutlined } from "@ant-design/icons";
+import { Input, Button } from "antd";
+import { ArrowLeft, Clock, LockKeyhole, ShieldCheck } from "lucide-react";
 import AuthShell from "./AuthShell";
 import { imsAxios } from "../../axiosInterceptor";
 import useApi from "../../hooks/useApi.ts";
 import { setSettings, setUser } from "../../Features/loginSlice/loginSlice";
 import { useToast } from "../../hooks/useToast.js";
 import { getCurrentIndianFinancialYearSession } from "../../utils/indianFinancialYear";
-
-const { Title, Text } = Typography;
 
 const slideKeyframes = `
 @keyframes loginOtpSlideIn {
@@ -107,6 +105,10 @@ const LoginOtp = () => {
   };
 
   const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Enter") {
+      verifyOTP();
+      return;
+    }
     if (e.key === "Backspace" && !otpCode[index] && index > 0) {
       const prevInput = document.getElementById(`otp-input-${index - 1}`);
       if (prevInput) prevInput.focus();
@@ -198,136 +200,82 @@ const LoginOtp = () => {
     return () => window.clearTimeout(t);
   }, [isLeavingToLogin, navigate]);
 
+  const isTimerLow = otpTimer <= 60;
+  const isOtpComplete = otpCode.every(Boolean);
+
   const footerLeft = (
     <Button
       type="link"
       onClick={goBackToLogin}
       disabled={isLeavingToLogin}
-      style={{ color: "#666", padding: 0 }}
+      className="auth-back-btn"
     >
-      <ArrowLeftOutlined /> Back to Sign In
+      <ArrowLeft size={15} /> Back to Log In
     </Button>
   );
 
   return (
     <AuthShell footerLeft={footerLeft}>
       <style>{slideKeyframes}</style>
-      <Row
-        justify="center"
-        style={{ width: "100%", maxWidth: "600px" }}
-        align="middle"
-        gutter={[5, 5]}
+      <Box
+        style={{
+          position: "relative",
+          animation: isLeavingToLogin
+            ? "loginOtpSlideOut 0.45s ease-in forwards"
+            : "loginOtpSlideIn 0.45s ease-out both",
+        }}
       >
-        <Col span={24}>
-          <Box
-            style={{
-              position: "relative",
-              animation: isLeavingToLogin
-                ? "loginOtpSlideOut 0.45s ease-in forwards"
-                : "loginOtpSlideIn 0.45s ease-out both",
-            }}
-          >
-            <Title
-              style={{
-                color: "#04b0a8",
-                textAlign: "center",
-                marginBottom: 20,
-                fontSize: 24,
-                fontWeight: "bold",
-              }}
-              level={3}
-            >
-              Two-Factor Authentication
-            </Title>
+        <span className="auth-eyebrow">
+          <ShieldCheck size={14} /> Two-factor authentication
+        </span>
+        <h1 className="auth-title">Verify it&apos;s you</h1>
+        <p className="auth-subtitle">
+          Enter the 6-digit code sent to the email registered with{" "}
+          <span className="auth-otp-target">{userCredentials?.username || "your account"}</span>.
+        </p>
 
-            <Text
-              style={{
-                textAlign: "center",
-                display: "block",
-                marginBottom: 30,
-                color: "#666",
-                fontSize: 14,
-              }}
-            >
-              Enter the 6-digit verification code sent to your registered Email address (expires
-              in 5 minutes)
-            </Text>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 12,
-                marginBottom: 20,
-              }}
-            >
-              {otpCode.map((digit, index) => (
-                <Input
-                  key={index}
-                  id={`otp-input-${index}`}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                  onPaste={index === 0 ? handleOtpPaste : undefined}
-                  maxLength={1}
-                  style={{
-                    width: 50,
-                    height: 50,
-                    textAlign: "center",
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    border: digit ? "2px solid #04b0a8" : "1px solid #d9d9d9",
-                    borderRadius: 8,
-                  }}
-                />
-              ))}
-            </div>
-
-            <Text
-              style={{
-                textAlign: "center",
-                display: "block",
-                marginBottom: 30,
-                color: "#666",
-                fontSize: 14,
-              }}
-            >
-              Code expires in {formatTimer(otpTimer)}
-            </Text>
-
-            <Button
-              type="primary"
-              size="large"
-              block
-              onClick={verifyOTP}
-              loading={loading("verifyOtp")}
-              style={{
-                height: 45,
-                fontSize: 16,
-                fontWeight: "bold",
-                marginBottom: 20,
-                backgroundColor: "#04b0a8",
-                borderColor: "#04b0a8",
-              }}
-            >
-              Verify & Continue
-            </Button>
-
-            <Alert
-              message="For your security, this code will expire in 5 minutes. Never share this code with anyone."
-              type="info"
-              showIcon
-              icon={<SafetyOutlined />}
-              style={{
-                marginTop: 20,
-                backgroundColor: "#e6f7ff",
-                borderColor: "#91d5ff",
-                borderRadius: 8,
-              }}
+        <div className="auth-otp-row">
+          {otpCode.map((digit, index) => (
+            <Input
+              key={index}
+              id={`otp-input-${index}`}
+              value={digit}
+              onChange={(e) => handleOtpChange(index, e.target.value)}
+              onKeyDown={(e) => handleOtpKeyDown(index, e)}
+              onPaste={index === 0 ? handleOtpPaste : undefined}
+              maxLength={1}
+              inputMode="numeric"
+              autoComplete={index === 0 ? "one-time-code" : "off"}
+              autoFocus={index === 0}
+              aria-label={`Digit ${index + 1}`}
+              className={`auth-otp-input${digit ? " is-filled" : ""}`}
             />
-          </Box>
-        </Col>
-      </Row>
+          ))}
+        </div>
+
+        <div className={`auth-otp-timer${isTimerLow ? " is-low" : ""}`}>
+          <Clock size={14} />
+          Code expires in <strong>{formatTimer(otpTimer)}</strong>
+        </div>
+
+        <Button
+          type="primary"
+          size="large"
+          block
+          onClick={verifyOTP}
+          loading={loading("verifyOtp")}
+          disabled={!isOtpComplete || isLeavingToLogin}
+        >
+          Verify & Continue
+        </Button>
+
+        <div className="auth-note">
+          <LockKeyhole size={15} />
+          <span>
+            For your security, never share this code with anyone. Our team will never ask for it.
+          </span>
+        </div>
+      </Box>
     </AuthShell>
   );
 };

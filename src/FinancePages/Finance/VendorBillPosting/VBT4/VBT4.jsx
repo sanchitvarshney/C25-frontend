@@ -10,13 +10,14 @@ import { Button,  Row, Space } from "antd";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
 import { useToast } from "../../../../hooks/useToast.js";
+import { getCurrentIndianFinancialYearSession } from "../../../../utils/indianFinancialYear";
 // import useApi from "../../../../hooks/useApi.ts";
 // import { getVendorOptions } from "../../../../api/general.ts";
 
 export default function VBT4() {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
-  const [searchInput, setSearchInput] = useState("MIN/23-24/");
+  const [searchInput, setSearchInput] = useState(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
   // const [selectLoading, setSelectLoading] = useState(false);
   // const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
@@ -240,7 +241,7 @@ export default function VBT4() {
   // }, [createVBT, selectedVendors]);
   useEffect(() => {
     if (wise == "min_wise") {
-      setSearchInput("MIN/23-24/");
+      setSearchInput(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
     } else {
       setSearchInput(null);
     }

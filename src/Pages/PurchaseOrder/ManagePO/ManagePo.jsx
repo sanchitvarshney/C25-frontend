@@ -1,4 +1,4 @@
-import { useState } from "react";
+import  { useState } from "react";
 import {  Col, Input, Row, Space } from "antd";
 import MyDatePicker from "../../../Components/MyDatePicker";
 import { useToast } from "../../../hooks/useToast.js";
@@ -12,12 +12,12 @@ import CancelPO from "./Sidebars/CancelPO";
 import MyDataTable from "../../../Components/MyDataTable";
 import MySelect from "../../../Components/MySelect";
 import MyAsyncSelect from "../../../Components/MyAsyncSelect";
+import Field from "../../../Components/Field";
 import UploadDoc from "./UploadDoc";
 import { downloadCSV } from "../../../Components/exportToCSV";
-import {
+import  {
   CommonIcons,
 } from "../../../Components/TableActions.jsx/TableActions";
-import Field from "../../../Components/Field";
 import ToolTipEllipses from "../../../Components/ToolTipEllipses";
 import { imsAxios } from "../../../axiosInterceptor";
 import { GridActionsCellItem } from "@mui/x-data-grid";
@@ -30,7 +30,6 @@ const ManagePO = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [isValid, setIsValid] = useState(false);
   const [viewLoading, setViewLoading] = useState(false);
   const [asyncOptions, setAsyncOptions] = useState([]);
   const [showViewSidebar, setShowViewSideBar] = useState(false);
@@ -44,6 +43,7 @@ const ManagePO = () => {
   const [showUploadDocModal2, setShowUploadDocModal2] = useState(null);
   const [showCancelPO, setShowCancelPO] = useState(null);
   const [newPoLogs, setnewPoLogs] = useState([]);
+  const [isValid, setIsValid] = useState(false);
   const { executeFun, loading: loading1 } = useApi();
   const wiseOptions = [
     { value: "single_date_wise", text: "Date Wise" },
@@ -100,7 +100,7 @@ const ManagePO = () => {
       getActions: ({ row }) => [
         // Edit icon
         <GridActionsCellItem
-        key={"edit"}
+        key="edit"
           showInMenu
           // disabled={disabled}
           label={"Edit"}
@@ -108,7 +108,7 @@ const ManagePO = () => {
         />,
         // VIEW Icon
         <GridActionsCellItem
-        key={"view"}
+          key="view"
           showInMenu
           // disabled={disabled}
           label="View"
@@ -117,7 +117,7 @@ const ManagePO = () => {
 
         // Download icon
         <GridActionsCellItem
-          key={"download"}
+          key="download"
           showInMenu
           // disabled={disabled}
           label="Download"
@@ -127,7 +127,7 @@ const ManagePO = () => {
 
         // Print Icon
         <GridActionsCellItem
-          key={"print"}
+          key="print"
           showInMenu
           // disabled={disabled}
           label="Print"
@@ -137,7 +137,7 @@ const ManagePO = () => {
 
         // Close PO icon
         <GridActionsCellItem
-          key={"close"}
+          key="close"
           showInMenu
           // disabled={disabled}
           label="Cancel"
@@ -147,7 +147,7 @@ const ManagePO = () => {
 
         // Upload DOC Icon
         <GridActionsCellItem
-          key={"upload"}
+          key="upload"
           onClick={() => setShowUploadDocModal2(row.po_transaction)}
           showInMenu
           // disabled={disabled}
@@ -167,7 +167,7 @@ const ManagePO = () => {
       renderCell: ({ row }) => (
         <ToolTipEllipses text={row.po_transaction} copy={true} />
       ),
-      width: 150,
+      width: 180,
     },
     {
       headerName: "Cost Center",
@@ -176,7 +176,7 @@ const ManagePO = () => {
       flex: 1,
       minWidth: 150,
     },
-       {
+     {
       headerName: "Approval Status",
       field: "approval_status",
       renderCell: ({ row }) => <ToolTipEllipses text={row.approval_status} />,
@@ -189,7 +189,7 @@ const ManagePO = () => {
       field: "vendor_name",
       renderCell: ({ row }) => <ToolTipEllipses text={row.vendor_name} />,
       flex: 2,
-      minWidth: 200,
+      minWidth: 300,
     },
     {
       headerName: "Vendor Code",
@@ -205,14 +205,23 @@ const ManagePO = () => {
       renderCell: ({ row }) => (
         <ToolTipEllipses text={row.project_id} copy={true} />
       ),
-      minWidth: 150,
+      minWidth: 200,
       flex: 1,
     },
     {
       headerName: "Project Name",
       field: "project_name",
       renderCell: ({ row }) => <ToolTipEllipses text={row.project_name} />,
-      minWidth: 150,
+      minWidth: 250,
+      flex: 1,
+    },
+      {
+      headerName: "PPR No",
+      field: "ppr_no",
+      renderCell: ({ row }) => (
+        <ToolTipEllipses text={row.ppr_no} copy={true} />
+      ),
+      minWidth: 130,
       flex: 1,
     },
     {
@@ -235,7 +244,7 @@ const ManagePO = () => {
       field: "po_reg_date",
       renderCell: ({ row }) => <ToolTipEllipses text={row.po_reg_date} />,
       flex: 1,
-      minWidth: 150,
+      minWidth: 180,
     },
     {
       headerName: "Created By",
@@ -244,6 +253,7 @@ const ManagePO = () => {
       flex: 1,
       minWidth: 150,
     },
+
     {
       headerName: "Advance Payment",
       field: "advPayment",
@@ -251,14 +261,14 @@ const ManagePO = () => {
         <ToolTipEllipses text={row.advPayment == "0" ? "NO" : "YES"} />
       ),
       flex: 1,
-      minWidth: 150,
+      minWidth: 130,
     },
     {
       headerName: "Comment",
       field: "po_comment",
       renderCell: ({ row }) => <ToolTipEllipses text={row.po_comment} />,
       flex: 1,
-      minWidth: 150,
+      minWidth: 250,
     },
   ];
   //getting rows from database from all 3 filter po wise, data wise, vendor wise
@@ -310,8 +320,7 @@ const ManagePO = () => {
       }
     }
   };
-
-    const validateAndSearch = () => {
+  const validateAndSearch = () => {
     if (!wise) {
       setIsValid(true);
       return;
@@ -418,7 +427,7 @@ const ManagePO = () => {
         <Col>
           <Space>
             <div style={{ width: 150 }}>
-                 <MySelect
+              <MySelect
                 options={wiseOptions}
                 onChange={setWise}
                 value={wise}
@@ -433,11 +442,11 @@ const ManagePO = () => {
                   setDateRange={setSearchDateRange}
                   dateRange={searchDateRange}
                   value={searchDateRange}
-                        showError={isValid}
+                  showError={isValid}
                   message="Please select a date range"
                 />
               ) : wise === "po_wise" ? (
-                   <Field
+                <Field
                   attr="required | Please enter a PO number"
                   value={searchInput}
                   showValidation={isValid}
@@ -461,17 +470,16 @@ const ManagePO = () => {
                     loadOptions={getVendors}
                     optionsState={asyncOptions}
                     placeholder="Select Vendor..."
-                       showError={isValid}
+                    showError={isValid}
                     message="Please select a vendor"
                   />
                 )
               )}
             </div>
             <MyButton
-             
               type="primary"
               loading={searchLoading}
-             onClick={validateAndSearch}
+              onClick={validateAndSearch}
               id="submit"
               variant="search"
             >

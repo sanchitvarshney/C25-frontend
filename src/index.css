@@ -150,8 +150,8 @@ button:disabled {
 
 .ant-btn-primary {
   color: #fff !important;
-  background-color: #0d9489 !important;
-  border-color: #0d9489 !important;
+  background-color: #036a72 !important;
+  border-color: #036a72 !important;
   font-weight: 700 !important;
   letter-spacing: 0.075rem !important;
   border-radius: 0 !important;
@@ -161,8 +161,8 @@ button:disabled {
     0 1px 5px #0000001f !important;
 }
 /* .ant-btn-default {
-  background-color: #0d9489 !important;
-  border-color: #0d9489 !important;
+  background-color: #036a72 !important;
+  border-color: #036a72 !important;
   color: #ffffff !important;
 } */
 .ant-btn-link {
@@ -172,16 +172,19 @@ button:disabled {
 .ant-form-item-extra {
   display: none !important;
 }
+.show-form-extra .ant-form-item-extra {
+  display: block !important;
+}
 .ant-btn-link:hover,
 .ant-btn-link:focus {
-  color: #0d9489 !important;
+  color: #036a72 !important;
 }
 .ant-btn-text {
   color: #fff !important;
 }
 .ant-btn-text:hover,
 .ant-btn-text:focus {
-  background-color: #0d9489cb !important;
+  background-color: #025a61 !important;
 }
 .ant-btn-dashed {
   background-color: red !important;
@@ -190,8 +193,8 @@ button:disabled {
 }
 .ant-btn-dashed:hover,
 .ant-btn-dashed:focus {
-  background-color: #0d9489 !important;
-  border-color: #0d9489 !important;
+  background-color: #036a72 !important;
+  border-color: #036a72 !important;
 }
 .ant-btn {
   box-shadow: none !important;
@@ -201,25 +204,25 @@ button:disabled {
 .ant-btn:focus {
   box-shadow: none !important;
 }
-/* Button hover/focus/active state - change from #0d9489 to #bde649 */
+/* Button hover/focus/active state - hover uses darker #025a61 */
 .ant-btn-primary:hover,
 .ant-btn-primary:focus,
 .ant-btn-primary:active {
-  background-color: #0d9489cb !important;
-  border-color: #0d9489cd !important;
+  background-color: #025a61 !important;
+  border-color: #025a61 !important;
   color: #fff !important;
 }
 /* Reset button styling */
 .reset-button {
-  background-color: #0d9489 !important;
-  border-color: #0d9489 !important;
+  background-color: #036a72 !important;
+  border-color: #036a72 !important;
   color: #fff !important;
 }
 .reset-button:hover,
 .reset-button:focus,
 .reset-button:active {
-  background-color: #0d9489cb !important;
-  border-color: #0d9489cd !important;
+  background-color: #025a61 !important;
+  border-color: #025a61 !important;
   color: #fff !important;
 }
 

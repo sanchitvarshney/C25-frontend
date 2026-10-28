@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import {
   Col,
+  DatePicker,
   Descriptions,
   Divider,
   Form,
   Input,
   Modal,
   Row,
+  Space,
+  Tooltip,
   Typography,
 } from "antd";
+import dayjs from "dayjs";
 import { useToast } from "../../../hooks/useToast.js";
 import MySelect from "../../../Components/MySelect";
 import InputMask from "react-input-mask";
@@ -22,6 +27,23 @@ import useApi from "../../../hooks/useApi.ts";
 import Field from "../../../Components/Field.jsx";
 
 const { TextArea } = Input;
+
+const PLANNING_MONTH_NEXT_AVAILABLE_FROM_DAY = 25;
+
+const isPlanningMonthDisabled = (current) => {
+  if (!current) return false;
+  const today = dayjs();
+  const monthStart = current.startOf("month");
+  const thisMonthStart = today.startOf("month");
+  const nextMonthStart = today.add(1, "month").startOf("month");
+
+  if (monthStart.isBefore(thisMonthStart, "month")) return true;
+  if (monthStart.isSame(thisMonthStart, "month")) return false;
+  if (monthStart.isSame(nextMonthStart, "month")) {
+    return today.date() < PLANNING_MONTH_NEXT_AVAILABLE_FROM_DAY;
+  }
+  return true;
+};
 
 const CreatePPR = () => {
   const { showToast } = useToast();
@@ -55,6 +77,7 @@ const CreatePPR = () => {
     form: createPPRForm,
     preserve: true,
   });
+  const planningMonth = Form.useWatch("planningMonth", createPPRForm);
 
   const getLocation = async () => {
     const response = await imsAxios.get("ppr/ppr_section_location");
@@ -134,11 +157,14 @@ const CreatePPR = () => {
     setIsValid(false);
 
     const payload = {
-      comment: values.remark,
+      comment: values.remark ?? "",
       project: values.project.value,
       requesttype: values.type,
       customer: values.customer,
       duedate: values.dueDate,
+      plannedMonth: values.planningMonth
+        ? dayjs(values.planningMonth).format("YYYY-MM")
+        : undefined,
       location: values.section,
       product: values.product.value,
       projectinfo: values.projectDescription,
@@ -364,6 +390,40 @@ const CreatePPR = () => {
                   </Form.Item>
                 </Col>
                 <Col span={6}>
+                  <Field
+                    attr="required | Please select planning month"
+                    value={planningMonth ? "selected" : ""}
+                    showValidation={isValid}
+                  >
+                    <Form.Item
+                      rules={[{ required: true, message: "" }]}
+                      name="planningMonth"
+                      label={
+                        <Space size={6} align="center">
+                          <span>Planning Month</span>
+                          <Tooltip
+                            title={`Next month opens for planning from day ${PLANNING_MONTH_NEXT_AVAILABLE_FROM_DAY} of the current month onward.`}
+                          >
+                            <InfoCircleOutlined
+                              style={{
+                                color: "rgba(0, 0, 0, 0.45)",
+                                cursor: "help",
+                              }}
+                            />
+                          </Tooltip>
+                        </Space>
+                      }
+                    >
+                      <DatePicker
+                        picker="month"
+                        format="MM-YYYY"
+                        style={{ width: "100%" }}
+                        disabledDate={isPlanningMonthDisabled}
+                      />
+                    </Form.Item>
+                  </Field>
+                </Col>
+                <Col span={6}>
                   <Form.Item
                     rules={[{ required: true, message: "" }]}
                     name="section"
@@ -422,6 +482,7 @@ const initialValues = {
   existingQty: "",
   stock: "",
   dueDate: "",
+  planningMonth: dayjs().startOf("month"),
   section: undefined,
   customer: undefined,
 };

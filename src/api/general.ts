@@ -5,6 +5,12 @@ import { imsAxios } from "../axiosInterceptor";
 //@ts-ignore
 import { getGlobalToast } from "../context/ToastContext";
 
+
+
+
+
+
+
 export const uplaodFGFileInMINInward = async (formdata:any) => {
   try {
     const response = await imsAxios.post("fgMIN/upload/item", formdata);
@@ -150,12 +156,14 @@ export const getVendorBranchDetails = async (
   return response;
 };
 export const getCostCentresOptions = async (search: any) => {
-  const response = await imsAxios.post(`/backend/costcenter`, { search });
+  const response = await imsAxios.post("/backend/costCenter", {
+    search,
+  });
   return response;
 };
 
-export const getBomOptions = async (search: any) => {
-  const response = await imsAxios.post("/backend/bomRecipe", {
+export const getBomOptions = async (search: any, type = "all") => {
+  const response = await imsAxios.post(`/backend/bomRecipe?type=${type}`, {
     search,
   });
   return response;
@@ -260,7 +268,7 @@ export const getProductsOptions = async (search: string, sku?: boolean) => {
     search,
     searchTerm: search,
   });
-  let arr: any = [];
+  let arr:any = [];
   if (response.success) {
     arr = convertSelectOptions(response.data);
   }
@@ -271,7 +279,7 @@ export const getProductsOptions = async (search: string, sku?: boolean) => {
 };
 
 ///Query  6
-export const getClosingStockForQuery6 = async (search: any) => {
+export const getClosingStockForQuery6 = async (search:any) => {
   const response = await imsAxios.post(
     "/closing_stock/save_closing_stock_cif",
     {
@@ -284,7 +292,7 @@ export const getClosingStockForQuery6 = async (search: any) => {
   // response.data = arr;
   return response;
 };
-export const getComponentDetail = async (componentKey: string, vendorCode: string) => {
+export const getComponentDetail = async (componentKey:any, vendorCode:any) => {
   const response = await imsAxios.post("/component/getComponentDetailsByCode", {
     component_code: componentKey,
     vendorCode,
@@ -293,12 +301,12 @@ export const getComponentDetail = async (componentKey: string, vendorCode: strin
   return response;
 };
 
-export const getMINOptions = async (search: any) => {
+export const getMINOptions = async (search:any) => {
   const response = await imsAxios.post("/qrLabel/getMinsTransaction", {
     searchTerm: search,
   });
 
-  let arr: any = [];
+  let arr:any = [];
   if (response.success) {
     arr = convertSelectOptions(response.data);
   }
@@ -324,7 +332,7 @@ export const getHsnOptions = async (search: string) => {
     searchTerm: search,
   });
 
-  let arr: any = [];
+  let arr:any = [];
   if (response.success) {
     arr = convertSelectOptions(response.data);
   }
@@ -375,7 +383,7 @@ export const getPprOptions = async (search: string) => {
 
   return response;
 };
-export const deleteQcaRows = async (payload: any) => {
+export const deleteQcaRows = async (payload:any) => {
   const response = await imsAxios.post(
     "/createqca/delete_testing_data",
     payload,
@@ -390,10 +398,10 @@ export const getComponentMfgCodeAndType = async (components: string[]) => {
     search: components,
   });
 
-  let arr: any = [];
+  let arr = [];
 
   if (response.success) {
-    arr = response.data.map((row: any) => ({
+    arr = response.data.map((row:any) => ({
       mfgCode: row.manufacturingCode,
       category: row.category,
       key: row.componentKey,
@@ -415,7 +423,7 @@ export const getComponenentAndProduct = async (search: string) => {
 
   let arr: SelectOptionType[] = [];
   if (response.success) {
-    arr = response.data.map((row: any) => ({
+    arr = response.data.map((row:any) => ({
       text: row.text,
       value: row.id,
       type: row.type,

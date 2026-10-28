@@ -12,6 +12,7 @@ import { Button, Input, Row, Space } from "antd";
 import { v4 } from "uuid";
 import { imsAxios } from "../../../../axiosInterceptor";
 import useApi from "../../../../hooks/useApi.ts";
+import { getCurrentIndianFinancialYearSession } from "../../../../utils/indianFinancialYear";
 import { getVendorOptions } from "../../../../api/general.ts";
 import { convertSelectOptions } from "../../../../utils/general.ts";
 // import ConfirmModal from "../Shared/ConfirmModal";
@@ -19,7 +20,7 @@ import { convertSelectOptions } from "../../../../utils/general.ts";
 export default function VBT3() {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
-  const [searchInput, setSearchInput] = useState("MIN/23-24/");
+  const [searchInput, setSearchInput] = useState(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
   // const [selectLoading, setSelectLoading] = useState(false);
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
@@ -227,7 +228,7 @@ export default function VBT3() {
 
   useEffect(() => {
     if (wise == "min_wise") {
-      setSearchInput("MIN/23-24/");
+      setSearchInput(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
     } else {
       setSearchInput(null);
     }

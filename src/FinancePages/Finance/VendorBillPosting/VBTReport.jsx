@@ -31,7 +31,7 @@ import Field from "../../../Components/Field.jsx";
 export default function VBTReport() {
   const { showToast } = useToast();
   const [searchInput, setSearchInput] = useState(
-    () => `MIN08/${getCurrentIndianFinancialYearSession()}/`,
+    () => `MIN/C25/${getCurrentIndianFinancialYearSession()}/`,
   );
 
   const [wise, setWise] = useState("minwise");
@@ -760,7 +760,7 @@ export default function VBTReport() {
     setRows([]);
     setIsValid(false);
     if (wise == "minwise") {
-      setSearchInput(`MIN08/${getCurrentIndianFinancialYearSession()}/`);
+      setSearchInput(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
     } else {
       setSearchInput("");
     }

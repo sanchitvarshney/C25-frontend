@@ -633,6 +633,11 @@ const links = [
       routePath: "/warehouse/dc/manage",
       key: "1",
     },
+    {
+      routeName: "Return DC",
+      routePath: "/warehouse/dc/return-report",
+      key: "2",
+    },
   ],
   // gatepass links
   [
@@ -906,6 +911,11 @@ const links = [
 
       placeholder: "FG Register Report",
     },
+     {
+      routeName: "R39",
+      routePath: "/r39",
+      placeholder: "Production PPR Report (by project / BOM)",
+    },
   ],
   // MIN label links
 
@@ -991,6 +1001,11 @@ const links = [
     {
       routeName: "Completed",
       routePath: "/production-and-plan/completed",
+    },
+           {
+      routeName: "PPR Qty Requests",
+      routePath: "/production-and-plan/request-qty",
+      placeholder: "Approve / Reject PPR qty requests",
     },
   ],
   // Material Requisition links

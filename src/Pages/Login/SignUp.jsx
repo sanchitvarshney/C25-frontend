@@ -2,12 +2,11 @@ import  { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Box } from "@mui/material";
 import { Row, Col, Typography, Form, Input, Button, Modal } from "antd";
+import { Lock, Mail, Phone, User, UserPlus } from "lucide-react";
 import AuthShell, { Text } from "./AuthShell";
 import { imsAxios } from "../../axiosInterceptor";
 import ImageCaptcha from "../../Components/ImageCaptcha/ImageCaptcha";
 import { useToast } from "../../hooks/useToast.js";
-
-const { Title } = Typography;
 
 const SignUp = () => {
   document.title = "IMS Sign Up";
@@ -16,7 +15,6 @@ const SignUp = () => {
   const { showToast } = useToast();
   const [captchaInput, setCaptchaInput] = useState("");
   const [expectedCaptchaCode, setExpectedCaptchaCode] = useState("");
-  // const [captchaKey, setCaptchaKey] = useState(Math.random());
 
   const isCaptchaValid = () => captchaInput.trim() === expectedCaptchaCode;
 
@@ -77,41 +75,37 @@ const SignUp = () => {
   };
 
   const footerLeft = (
-    <span>
-      If you have an account,{" "}
-      <Link to="/login" className="auth-shell-footer-link">
-        Login
+    <div>
+      <Text type="secondary">Already have an account? </Text>
+      <Link to="/login" className="auth-link">
+        Log In
       </Link>
-    </span>
+    </div>
   );
 
   return (
     <AuthShell footerLeft={footerLeft}>
-      <Row justify="center" style={{ width: "100%", maxWidth: "600px" }} align="middle" gutter={[5, 5]}>
-        <Col span={24}>
-          <Box style={{ position: "relative" }}>
-            <Title
-              style={{
-                color: "gray",
-                marginBottom: 20,
-              }}
-              level={4}
-            >
-              Sign Up to get started
-            </Title>
-            <Form name="signup" layout="vertical" autoComplete="off" form={signUp}>
-              <Form.Item
-                label="Full Name"
-                name="name"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please provide your name",
-                  },
-                ]}
-              >
-                <Input size="large" />
-              </Form.Item>
+      <Box style={{ position: "relative" }}>
+        <span className="auth-eyebrow">
+          <UserPlus size={14} /> New account
+        </span>
+        <h1 className="auth-title">Create your account</h1>
+        <p className="auth-subtitle">Fill in your details to get started with IMS.</p>
+        <Form name="signup" layout="vertical" autoComplete="off" form={signUp} requiredMark={false}>
+          <Form.Item
+            label="Full Name"
+            name="name"
+            rules={[
+              {
+                required: true,
+                message: "Please provide your name",
+              },
+            ]}
+          >
+            <Input size="large" prefix={<User size={16} />} placeholder="Your full name" />
+          </Form.Item>
+          <Row gutter={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 label="Mobile Number"
                 name="number"
@@ -130,12 +124,16 @@ const SignUp = () => {
                   size="large"
                   inputMode="numeric"
                   maxLength={10}
+                  prefix={<Phone size={16} />}
+                  placeholder="10-digit number"
                   onChange={(e) => {
                     const onlyDigits = e.target.value.replace(/[^0-9]/g, "");
                     signUp.setFieldsValue({ number: onlyDigits });
                   }}
                 />
               </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
               <Form.Item
                 label="Email Address"
                 name="username"
@@ -146,9 +144,13 @@ const SignUp = () => {
                   },
                 ]}
               >
-                <Input size="large" />
+                <Input size="large" prefix={<Mail size={16} />} placeholder="you@company.com" />
               </Form.Item>
+            </Col>
+          </Row>
 
+          <Row gutter={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 label="Password"
                 name="password"
@@ -158,9 +160,10 @@ const SignUp = () => {
                   },
                 ]}
               >
-                <Input.Password />
+                <Input.Password size="large" prefix={<Lock size={16} />} placeholder="Password" />
               </Form.Item>
-
+            </Col>
+            <Col xs={24} sm={12}>
               <Form.Item
                 label="Confirm Password"
                 name="password2"
@@ -181,24 +184,29 @@ const SignUp = () => {
                   }),
                 ]}
               >
-                <Input.Password />
+                <Input.Password size="large" prefix={<Lock size={16} />} placeholder="Re-enter" />
               </Form.Item>
-            </Form>
-            <div className="flex justify-center">
-              <ImageCaptcha
-              
-                value={captchaInput}
-                onChange={(e) => setCaptchaInput(e.target.value)}
-                onCodeChange={setExpectedCaptchaCode}
-                placeholder="Enter letters above"
-              />
-            </div>
-            <Button block size="large" type="primary" style={{ marginTop: "2em" }} onClick={() => validatecreateNewUser()}>
-              Sign Up
-            </Button>
-          </Box>
-        </Col>
-      </Row>
+            </Col>
+          </Row>
+        </Form>
+        <div className="auth-captcha">
+          <div className="auth-captcha-head">
+            <span>Security check</span>
+            <span>Click image to refresh</span>
+          </div>
+          <ImageCaptcha
+            value={captchaInput}
+            onChange={(e) => setCaptchaInput(e.target.value)}
+            onCodeChange={setExpectedCaptchaCode}
+            placeholder="Enter letters shown"
+            size="large"
+            inputStyle={{ width: "100%" }}
+          />
+        </div>
+        <Button block size="large" type="primary" onClick={() => validatecreateNewUser()}>
+          Create Account
+        </Button>
+      </Box>
     </AuthShell>
   );
 };

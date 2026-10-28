@@ -19,6 +19,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { RiProhibitedLine } from "react-icons/ri";
 import Field from "../../../../Components/Field.jsx";
+import { getCurrentIndianFinancialYearSession } from "../../../../utils/indianFinancialYear";
 
 const VBT_ROUTE_TO_API_URL = {
   "vb-1": "vbt01",
@@ -45,7 +46,7 @@ const hasDisableWorkflow = (apiUrl) =>
 const VBTMainTable = ({ editVbtDrawer }) => {
   const { showToast } = useToast();
   const [wise, setWise] = useState("min_wise");
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(`MIN/C25/${getCurrentIndianFinancialYearSession()}/`);
   const [searchDateRange, setSearchDateRange] = useState("");
   const [vbtData, setVBTData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -153,7 +154,11 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     }
     setIsValidDisable(false);
     setDisableModalLoading(true);
-    const response = await imsAxios.put("/tally/vbt/disable_vbtprocess", {
+    const disableEndpoint =
+      apiUrl === "vbt08" || apiUrl === "vbt09"
+        ? `/tally/${apiUrl}/disable_${apiUrl}process`
+        : "/tally/vbt/disable_vbtprocess";
+    const response = await imsAxios.put(disableEndpoint, {
       min_transaction: values.min_transaction,
       part_code: values.part_code,
       remark: values.remark,
@@ -166,7 +171,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
     } else {
       showToast(response.data.message, "error");
     }
-  }, [ModalForm, showToast, getRows]);
+  }, [ModalForm, showToast, getRows, apiUrl]);
 
   const vbtTableColumns = useMemo(
     () => [
@@ -302,7 +307,7 @@ const VBTMainTable = ({ editVbtDrawer }) => {
   }, [selectedRows, vbtData]);
 
   useEffect(() => {
-    setSearchInput(wise === "min_wise" ? "" : null);
+    setSearchInput(wise === "min_wise" ? `MIN/C25/${getCurrentIndianFinancialYearSession()}/` : null);
     setVBTData([]);
     setPreviewdisData(false);
     setIsValid(false);

@@ -246,9 +246,7 @@ const ViewModal = ({ viewVendor, setViewVendor }) => {
                     options={allBranchData}
                     selectLoading={spinLoading}
                     onChange={(e) => {
-                      setAllField((allField) => {
-                        return { ...allField, addresscode: e };
-                      });
+                      if (e) getBranchDetails(e);
                     }}
                   />
                 </Form.Item>

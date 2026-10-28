@@ -45,6 +45,7 @@ import {
   TransactionRej,
   CreateDC,
   ManageDC,
+  ReturnDC,
   VendorPricingUpload,
   CreateGP,
   ManageGatePass,
@@ -213,6 +214,7 @@ import R27 from "../Pages/Reports/R/R27.jsx";
 import R28 from "../Pages/Reports/R/R28.jsx";
 import R29 from "../Pages/Reports/R/R29.jsx";
 import CompletedPPR from "../Pages/Production/Production & Planning/CompletedPPR.jsx";
+import PprQtyRequests from "../Pages/Production/Production & Planning/PprQtyRequests.jsx";
 import AccountsPayableReport from "../FinancePages/Finance/vouchers/AppReference/AccountsPayableReport.jsx";
 import VBTRecords from "../FinancePages/Finance/VBTRecords/VBTRecords.jsx";
 import DebitCentralizedRegister from "../FinancePages/Finance/Debit/DebitCentralizedRegister.jsx";
@@ -231,6 +233,8 @@ import Pending from "../Pages/SFTransfer/Pending.jsx";
 import Addparty from "../Pages/Legal/master/Addparty.jsx";
 //@ts-ignore
 import R38 from "@/Pages/Reports/R/R38.jsx";
+//@ts-ignore
+import R39 from "@/Pages/Reports/R/R39.jsx";
 import WoReport from "../Pages/Workorder/WoReport.jsx";
 import RnC from "../Pages/Legal/Registration&Certificates/RnC.jsx";
 import ViewRnC from "../Pages/Legal/Registration&Certificates/ViewRnC.jsx";
@@ -506,6 +510,11 @@ const Routes = [
     path: "/warehouse/dc/manage",
     exact: true,
     main: () => <ManageDC />,
+  },
+  {
+    path: "/warehouse/dc/return-report",
+    exact: true,
+    main: () => <ReturnDC />,
   },
   {
     path: "/warehouse/gp/create",
@@ -816,6 +825,10 @@ const Routes = [
 
     main: () => <R38 />,
   },
+   {
+    path: "/r39",
+    main: () => <R39 />,
+  },
   {
     path: "/material-requisition/with-bom",
     main: () => <ReqWithBom />,
@@ -835,6 +848,10 @@ const Routes = [
   {
     path: "/production-and-plan/completed",
     main: () => <CompletedPPR />,
+  },
+      {
+    path: "/production-and-plan/request-qty",
+    main: () => <PprQtyRequests />,
   },
   // Purchase Order
   {
