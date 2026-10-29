@@ -537,9 +537,21 @@ function VBT01Report({
   const updateVbt = async (finalData) => {
     setLoading(true);
     let vbtCodeForEdit = getApiUrl(editVbtDrawer);
-    let link = `/tally/${vbtCodeForEdit}/update`;
+    // New codes (e.g. FY/2627/0004) no longer start with the VBT module, so
+    // fall back to the row's type (vbt01, vbt02 ...).
+    const typeModule = String(editVbtType ?? "").trim().toLowerCase();
+    if (!/^vbt\d+$/.test(vbtCodeForEdit) && /^vbt\d+$/.test(typeModule)) {
+      vbtCodeForEdit = typeModule;
+    }
+    let link = /^vbt\d+$/.test(vbtCodeForEdit)
+      ? `/tally/${vbtCodeForEdit}/update`
+      : `/tally/vbt/update`;
     const response = await imsAxios.put(link, finalData);
-    const { success } = response;
+    // The update endpoint can reply { success: false, status: "error" } even
+    // when the message says the VBT was updated, so also trust the message.
+    const success =
+      response.success ||
+      /updated successfully/i.test(String(response.message ?? ""));
     if (success) {
       showToast(response.message, "success");
       setIsValid(false);

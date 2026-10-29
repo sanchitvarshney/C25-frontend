@@ -416,7 +416,9 @@ function VBT02Report({
     let vbtCodeForEdit = getApiUrl(editVbtDrawer);
     // console.log("vbtCodeForEdit", vbtCodeForEdit);
     // return;
-    let link = `/tally/${vbtCodeForEdit}/update`;
+    let link = /^vbt\d+$/.test(vbtCodeForEdit)
+      ? `/tally/${vbtCodeForEdit}/update`
+      : `/tally/vbt/update`;
     const response = await imsAxios.put(link, finalData);
 
     // console.log("data", response);
