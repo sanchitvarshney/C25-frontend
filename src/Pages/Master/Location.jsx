@@ -18,6 +18,7 @@ import { imsAxios } from "../../axiosInterceptor";
 import useApi from "../../hooks/useApi.ts";
 import { getCostCentresOptions } from "../../api/general.ts";
 import { GridActionsCellItem } from "@mui/x-data-grid";
+import { Chip } from "@mui/material";
 import { convertSelectOptions } from "../../utils/general.ts";
 import MyButton from "../../Components/MyButton";
 import MyDataTable from "../../Components/MyDataTable.jsx";
@@ -386,9 +387,23 @@ function Location() {
       width: 150,
     },
     {
-      field: "loc_type",
+      field: "loc_storable",
       headerName: "Location Type",
       width: 150,
+      renderCell: ({ row }) => {
+        const option = LocationTypeOptions.find(
+          (opt) => opt.value === String(row.loc_storable)
+        );
+        if (!option) return "--";
+        return (
+          <Chip
+            size="small"
+            label={option.text}
+            color={option.value === "1" ? "success" : "default"}
+            
+          />
+        );
+      },
     },
     {
       field: "loc_for",
@@ -411,38 +426,33 @@ function Location() {
       width: 150,
     },
     {
-      field: "insert_by",
+      field: "inserted_by",
       headerName: "Insert By",
       width: 150,
     },
   ];
   const getLoactionDetails = async (row) => {
-    setLocDetials("");
+    setLocDetials([]);
     setLoading(true);
-
-    // console.log("viewData", row);
-    const response = await imsAxios.post("/location/fetch_location_details", {
-      location_key: row.label,
-    });
-    // console.log("response", response);
-    if (response.success) {
-      let { data } = response;
-      let id = 0;
-      let obj = {
-        ...data,
-        id: id + 1,
-      };
-      // let extractedData = [];
-      // extractedData = extractedData.push([data]);
-      // console.log("data", data);
-      // arr = extractedData.map((r, id) => {
-      //   return { id: id + 1, ...r };
-      // });
-      // console.log("obj", obj);
-      setLocDetials([obj]);
+    try {
+      const response = await imsAxios.post(
+        "/location/fetch_location_details",
+        {
+          location_key: row.label,
+        }
+      );
+      if (response.success) {
+        // data comes back as an array of location rows
+        const list = Array.isArray(response.data)
+          ? response.data
+          : [response.data].filter(Boolean);
+        setLocDetials(list.map((r, index) => ({ ...r, id: index + 1 })));
+      } else {
+        showToast(response.message?.msg || response.message, "error");
+      }
+    } finally {
       setLoading(false);
     }
-    setLoading(false);
   };
   useEffect(() => {
     if (viewData) {
