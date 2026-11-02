@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast.js";
 import { MdOutlineDownloadForOffline } from "react-icons/md";
 import PendingFGModal from "./Modal/PendingFGModal";
@@ -26,19 +26,18 @@ const PendingFG = () => {
       .get("/fgIN/pending")
       .then((response) => {
         if (response?.success) {
-            let arr = response?.data.map((row) => {
-          return {
-            ...row,
-            id: v4(),
-          };
-        });
-        setPending(arr);
-        setLoading(false);
+          let arr = response?.data.map((row) => {
+            return {
+              ...row,
+              id: v4(),
+            };
+          });
+          setPending(arr);
+          setLoading(false);
         } else {
-        showToast(response?.message, "error");
-        setLoading(false);
+          showToast(response?.message, "error");
+          setLoading(false);
         }
-      
       })
       .catch((err) => {
         showToast(err, "error");
@@ -49,8 +48,12 @@ const PendingFG = () => {
   const handleArrowClick = async (row) => {
     setWarLoading(row.id);
     try {
-      const { data } = await imsAxios.get("/fgIN/pending?calculate=war" + `&mfg=${row?.mfg_transaction}` + `&qty=${row?.mfg_prod_planing_qty}`);
-     
+      const { data } = await imsAxios.get(
+        "/fgIN/pending?calculate=war" +
+          `&mfg=${row?.mfg_transaction}` +
+          `&qty=${row?.mfg_prod_planing_qty}`,
+      );
+
       const warRate = data?.war ?? 0;
       setFGModal({ ...row, warRate });
     } catch (err) {
@@ -74,6 +77,11 @@ const PendingFG = () => {
     { field: "mfg_full_date", headerName: "Data/Time", width: 180 },
     { field: "mfg_sku", headerName: "SKU", width: 100 },
     { field: "p_name", headerName: "Product", width: 220 },
+    {
+      field: "location",
+      headerName: "Location",
+      width: 150,
+    },
     {
       field: "mfg_prod_planing_qty",
       headerName: "MFG/STIN Qty",
@@ -127,7 +135,7 @@ const PendingFG = () => {
   }, []);
 
   return (
-    <div style={{ height: "calc(100vh - 140px)", margin:"10px" }}>
+    <div style={{ height: "calc(100vh - 140px)", margin: "10px" }}>
       <Row>
         {/* <Col span={4} className="gutter-row">
           <div>
@@ -150,7 +158,7 @@ const PendingFG = () => {
         )}
       </Row>
 
-       <div style={{ height: "calc(100vh - 180px)", marginTop: "10px" }}>
+      <div style={{ height: "calc(100vh - 180px)", marginTop: "10px" }}>
         {/* <Skeleton loading={loading}> */}
         <MyDataTable data={pending} columns={columns} loading={loading} />
         {/* </Skeleton> */}
