@@ -333,6 +333,11 @@ const columns = [
       );
     },
   },
+    {
+    headerName: "Vendor",
+    field: "vendor",
+    width: 150,
+  },
   {
     headerName: "Transaction",
     field: "transaction_id",
