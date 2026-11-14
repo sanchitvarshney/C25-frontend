@@ -44,8 +44,7 @@ export default function ReqWithoutBom() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadPreviewRows, setUploadPreviewRows] = useState([]);
-  // true when the table rows came from an Excel upload -> submit via bulk save
-  const [isBulkImport, setIsBulkImport] = useState(false);
+  
 
   const [pickLocationLoadingMessage, contextHolder] = message.useMessage();
 
@@ -284,7 +283,6 @@ export default function ReqWithoutBom() {
   //  reset handler
   const resetHandler = () => {
     setIsValid(false);
-    setIsBulkImport(false);
     setRows([
       {
         id: v4(),
@@ -315,10 +313,7 @@ export default function ReqWithoutBom() {
   const submitHandler = async (values) => {
     setLoading("submitting");
     try {
-      const response = await imsAxios.post(
-        isBulkImport
-          ? "/production/createWithoutBomBulk/save"
-          : "/production/createWithoutBom",
+      const response = await imsAxios.post("/production/createWithoutBom",
         values
       );
       if (response.success) {
@@ -350,7 +345,6 @@ export default function ReqWithoutBom() {
   // moves preview rows into the main table and closes the drawer
   const handleConfirmUpload = () => {
     setRows(uploadPreviewRows);
-    setIsBulkImport(true);
     setIsValid(false);
     setUploadPreviewRows([]);
     setUploadModalOpen(false);
