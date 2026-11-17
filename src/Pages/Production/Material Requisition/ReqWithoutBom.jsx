@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Button,
   Card,
@@ -44,6 +44,7 @@ export default function ReqWithoutBom() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadPreviewRows, setUploadPreviewRows] = useState([]);
+  const uploadFileRef = useRef(null);
   
 
   const [pickLocationLoadingMessage, contextHolder] = message.useMessage();
@@ -576,7 +577,11 @@ export default function ReqWithoutBom() {
     }
   }, [loading]);
   return (
-    <Row gutter={12} style={{ height: "100%", padding: "10px" }}>
+    <Row
+      gutter={12}
+      style={{ height: "100%", padding: "10px", position: "relative", overflow: "hidden" }}
+      ref={uploadFileRef}
+    >
       {contextHolder}
  
       {loading === "fetching" && <Loading />}
@@ -640,6 +645,8 @@ export default function ReqWithoutBom() {
         title={
           uploadPreviewRows.length > 0 ? "Preview Imported Data" : "Upload Excel"
         }
+        getContainer={() => uploadFileRef.current}
+        rootStyle={{ position: "absolute" }}
         open={uploadModalOpen}
         onClose={handleUploadModalClose}
         destroyOnClose
