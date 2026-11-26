@@ -229,8 +229,7 @@ function MaterialTransfer({ type }) {
         !r.componentName ||
         !r.qty ||
         Number(r.qty) <= 0 ||
-        !r.comment ||
-        !r.restDetail?.avr_rate,
+        !r.comment
     );
 
   const submitHandler = async () => {
@@ -596,13 +595,9 @@ function MaterialTransfer({ type }) {
                           </Field>
                         </td>
                         <td style={{ width: "14vw" }}>
-                          <Field
-                            attr="required | Rate not available"
-                            value={r?.restDetail?.avr_rate}
-                            showValidation={isValid}
-                          >
+                        
                             <Input disabled value={r?.restDetail?.avr_rate} />
-                          </Field>
+                        
                         </td>
                         <td style={{ width: "24vw" }}>
                           <Field
