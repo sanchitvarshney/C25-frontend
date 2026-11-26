@@ -264,7 +264,7 @@ function MaterialTransfer({ type }) {
         tolocation: tolocations,
         qty: qtys,
         type: type == "sftorej" ? "SF2REJ" : "SF2SF",
-        rate: rates,
+        rate: rates ?? 0,
         ...(isSfToRej && {
           project_id: resolveProjectId() || null,
           ppr_id: allData.pprId || null,
