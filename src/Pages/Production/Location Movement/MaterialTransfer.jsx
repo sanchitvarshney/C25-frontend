@@ -228,7 +228,7 @@ function MaterialTransfer({ type }) {
       (r) =>
         !r.componentName ||
         !r.qty ||
-        Number(r.qty) < 0 ||
+        Number(r.qty) <= 0 ||
         !r.comment ||
         !r.restDetail?.avr_rate,
     );
